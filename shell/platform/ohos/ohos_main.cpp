@@ -31,6 +31,7 @@
 #include "flutter/shell/common/switches.h"
 #include "third_party/dart/runtime/include/dart_tools_api.h"
 #include "third_party/skia/include/core/SkFontMgr.h"
+#include "types.h"
 
 namespace flutter {
 
@@ -95,14 +96,13 @@ const flutter::Settings& OhosMain::GetSettings() const {
 void OhosMain::Init(napi_env env, napi_callback_info info) {
   size_t argc = 6;
   napi_value param[6];
-  // char kernelPath[512], appStoragePath[512], engineCachesPath[512];
   std::string kernelPath, appStoragePath, engineCachesPath;
   int64_t initTimeMillis;
   napi_get_cb_info(env, info, &argc, param, nullptr, nullptr);
-  napi_get_value_int64(env, param[5], &initTimeMillis);
-  fml::napi::GetString(env, param[2], kernelPath);
-  fml::napi::GetString(env, param[3], appStoragePath);
-  fml::napi::GetString(env, param[4], engineCachesPath);
+  napi_get_value_int64(env, param[FIFTH], &initTimeMillis);
+  fml::napi::GetString(env, param[SECOND], kernelPath);
+  fml::napi::GetString(env, param[THIRD], appStoragePath);
+  fml::napi::GetString(env, param[FOURTH], engineCachesPath);
   FML_DLOG(INFO) << "INIT kernelPath:" << kernelPath;
   FML_DLOG(INFO) << "appStoragePath:" << appStoragePath;
   FML_DLOG(INFO) << "engineCachesPath:" << engineCachesPath;
@@ -119,8 +119,6 @@ void OhosMain::Init(napi_env env, napi_callback_info info) {
   flutter::DartCallbackCache::SetCachePath(appStoragePath);
   fml::paths::InitializeOhosCachesPath(std::string(engineCachesPath));
   flutter::DartCallbackCache::LoadCacheFromDisk();
-  // TODO 使用CPU
-  // settings.skia_deterministic_rendering_on_cpu = true;
 
   if (!flutter::DartVM::IsRunningPrecompiledCode() && kernelPath[0]) {
     auto application_kernel_path = kernelPath;

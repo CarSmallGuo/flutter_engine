@@ -24,6 +24,7 @@
 
 #include <sys/resource.h>
 #include <sys/time.h>
+#include "types.h"
 
 namespace flutter {
 
@@ -33,13 +34,13 @@ static void OHOSPlatformThreadConfigSetter(
   // set thread priority
   switch (config.priority) {
     case fml::Thread::ThreadPriority::BACKGROUND: {
-      if (::setpriority(PRIO_PROCESS, 0, 10) != 0) {
+      if (::setpriority(PRIO_PROCESS, 0, TEN) != 0) {
         FML_DLOG(ERROR) << "Failed to set IO task runner priority";
       }
       break;
     }
     case fml::Thread::ThreadPriority::DISPLAY: {
-      if (::setpriority(PRIO_PROCESS, 0, -1) != 0) {
+      if (::setpriority(PRIO_PROCESS, 0, NEGATIVE_ONE) != 0) {
         FML_DLOG(ERROR) << "Failed to set UI task runner priority";
       }
       break;
@@ -48,17 +49,17 @@ static void OHOSPlatformThreadConfigSetter(
       // Android describes -8 as "most important display threads, for
       // compositing the screen and retrieving input events". Conservatively
       // set the raster thread to slightly lower priority than it.
-      if (::setpriority(PRIO_PROCESS, 0, -5) != 0) {
+      if (::setpriority(PRIO_PROCESS, 0, NEGATIVE_FIVE) != 0) {
         // Defensive fallback. Depending on the OEM, it may not be possible
         // to set priority to -5.
-        if (::setpriority(PRIO_PROCESS, 0, -2) != 0) {
+        if (::setpriority(PRIO_PROCESS, 0, NEGATIVE_TWO) != 0) {
           FML_DLOG(ERROR) << "Failed to set raster task runner priority";
         }
       }
       break;
     }
     default:
-      if (::setpriority(PRIO_PROCESS, 0, 0) != 0) {
+      if (::setpriority(PRIO_PROCESS, 0, ZERO) != 0) {
         FML_DLOG(ERROR) << "Failed to set priority";
       }
   }
