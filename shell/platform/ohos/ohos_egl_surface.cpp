@@ -21,6 +21,7 @@
 #include <list>
 
 #include "flutter/fml/trace_event.h"
+#include "types.h"
 
 namespace flutter {
 
@@ -30,28 +31,22 @@ void LogLastEGLError() {
     EGLint code;
   };
 
-#define _EGL_ERROR_DESC(a) \
-  { #a, a }
-
   const EGLNameErrorPair pairs[] = {
-      _EGL_ERROR_DESC(EGL_SUCCESS),
-      _EGL_ERROR_DESC(EGL_NOT_INITIALIZED),
-      _EGL_ERROR_DESC(EGL_BAD_ACCESS),
-      _EGL_ERROR_DESC(EGL_BAD_ALLOC),
-      _EGL_ERROR_DESC(EGL_BAD_ATTRIBUTE),
-      _EGL_ERROR_DESC(EGL_BAD_CONTEXT),
-      _EGL_ERROR_DESC(EGL_BAD_CONFIG),
-      _EGL_ERROR_DESC(EGL_BAD_CURRENT_SURFACE),
-      _EGL_ERROR_DESC(EGL_BAD_DISPLAY),
-      _EGL_ERROR_DESC(EGL_BAD_SURFACE),
-      _EGL_ERROR_DESC(EGL_BAD_MATCH),
-      _EGL_ERROR_DESC(EGL_BAD_PARAMETER),
-      _EGL_ERROR_DESC(EGL_BAD_NATIVE_PIXMAP),
-      _EGL_ERROR_DESC(EGL_BAD_NATIVE_WINDOW),
-      _EGL_ERROR_DESC(EGL_CONTEXT_LOST),
-  };
-
-#undef _EGL_ERROR_DESC
+      {"EGL_SUCCESS", EGL_SUCCESS},
+      {"EGL_NOT_INITIALIZED", EGL_NOT_INITIALIZED},
+      {"EGL_BAD_ACCESS", EGL_BAD_ACCESS},
+      {"EGL_BAD_ALLOC", EGL_BAD_ALLOC},
+      {"EGL_BAD_ATTRIBUTE", EGL_BAD_ATTRIBUTE},
+      {"EGL_BAD_CONTEXT", EGL_BAD_CONTEXT},
+      {"EGL_BAD_CONFIG", EGL_BAD_CONFIG},
+      {"EGL_BAD_CURRENT_SURFACE", EGL_BAD_CURRENT_SURFACE},
+      {"EGL_BAD_DISPLAY", EGL_BAD_DISPLAY},
+      {"EGL_BAD_SURFACE", EGL_BAD_SURFACE},
+      {"EGL_BAD_MATCH", EGL_BAD_MATCH},
+      {"EGL_BAD_PARAMETER", EGL_BAD_PARAMETER},
+      {"EGL_BAD_NATIVE_PIXMAP", EGL_BAD_NATIVE_PIXMAP},
+      {"EGL_BAD_NATIVE_WINDOW", EGL_BAD_NATIVE_WINDOW},
+      {"EGL_CONTEXT_LOST", EGL_CONTEXT_LOST}};
 
   const auto count = sizeof(pairs) / sizeof(EGLNameErrorPair);
 
@@ -155,14 +150,14 @@ class OhosEGLSurfaceDamage {
   }
 
  private:
-  std::array<EGLint, 4> static RectToInts(EGLDisplay display,
-                                          EGLSurface surface,
-                                          const SkIRect& rect) {
+  std::array<EGLint, FOUR> static RectToInts(EGLDisplay display,
+                                             EGLSurface surface,
+                                             const SkIRect& rect) {
     EGLint height;
     eglQuerySurface(display, surface, EGL_HEIGHT, &height);
 
-    std::array<EGLint, 4> res{rect.left(), height - rect.bottom(), rect.width(),
-                              rect.height()};
+    std::array<EGLint, FOUR> res{rect.left(), height - rect.bottom(),
+                                 rect.width(), rect.height()};
     return res;
   }
 

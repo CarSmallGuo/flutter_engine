@@ -16,7 +16,6 @@
 #include "flutter/shell/platform/ohos/ohos_surface_gl_skia.h"
 
 #include <GLES2/gl2.h>
-#include <utility>
 
 #include "flutter/fml/logging.h"
 #include "flutter/fml/memory/ref_ptr.h"
@@ -154,8 +153,9 @@ SurfaceFrame::FramebufferInfo OhosSurfaceGLSkia::GLContextFramebufferInfo()
   // otherwise there are glitches
   // (https://github.com/flutter/flutter/issues/97482#)
   // Larger alignment might also be beneficial for tile base renderers.
-  res.horizontal_clip_alignment = 32;
-  res.vertical_clip_alignment = 32;
+  constexpr int clip_alignment = 32;
+  res.horizontal_clip_alignment = clip_alignment;
+  res.vertical_clip_alignment = clip_alignment;
 
   return res;
 }
