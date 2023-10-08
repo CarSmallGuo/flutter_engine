@@ -25,11 +25,12 @@
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
 #include "flutter/shell/platform/ohos/surface/ohos_native_window.h"
 #include "unicode/uchar.h"
+#include "../types.h"
 
 #define OHOS_SHELL_HOLDER (reinterpret_cast<OHOSShellHolder*>(shell_holder))
 namespace flutter {
 
-int64_t PlatformViewOHOSNapi::shell_holder;
+int64_t PlatformViewOHOSNapi::shell_holder_value;
 napi_env PlatformViewOHOSNapi::env_;
 napi_ref PlatformViewOHOSNapi::ref_napi_obj_;
 std::vector<std::string> PlatformViewOHOSNapi::system_languages;
@@ -50,14 +51,14 @@ napi_value PlatformViewOHOSNapi::nativeDispatchEmptyPlatformMessage(
   napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
   int64_t shell_holder, responseId;
   std::string channel;
-  ret = napi_get_value_int64(env, args[0], &shell_holder);
+  ret = napi_get_value_int64(env, args[ZERO], &shell_holder);
   if (ret != napi_ok) {
     LOGE("nativeDispatchEmptyPlatformMessage napi get shell_holder error");
     return nullptr;
   }
-  fml::napi::GetString(env, args[1], channel);
+  fml::napi::GetString(env, args[FIRST], channel);
   FML_DLOG(INFO) << "nativeDispatchEmptyPlatformMessage channel:" << channel;
-  ret = napi_get_value_int64(env, args[2], &responseId);
+  ret = napi_get_value_int64(env, args[SECOND], &responseId);
   if (ret != napi_ok) {
     LOGE("nativeDispatchEmptyPlatformMessage napi get responseId error");
     return nullptr;
@@ -91,20 +92,14 @@ napi_value PlatformViewOHOSNapi::nativeDispatchPlatformMessage(
 
   int32_t status;
 
-  // flutter.nativeDispatchPlatformMessage(this.nativeShellHolderId, channel,
-  // message, position, responseId);
-  //
   ret = napi_get_cb_info(env, info, &argc, args, &thisArg, nullptr);
-  if (argc < 5 || ret != napi_ok) {
+  if (argc < FIVE || ret != napi_ok) {
     FML_DLOG(ERROR) << "nativeDispatchPlatformMessage napi get argc ,argc="
                     << argc << "<5,error:" << ret;
     napi_throw_type_error(env, nullptr, "Wrong number of arguments");
     return nullptr;
   }
-  // #ifndef  NDEBUG
   fml::napi::NapiPrintValueTypes(env, argc, args);
-  // #endif
-
   napi_value napiShellHolder = args[0];
   napi_value napiChannel = args[1];
   napi_value napiMessage = args[2];
@@ -228,7 +223,7 @@ napi_value PlatformViewOHOSNapi::nativeInvokePlatformMessageResponseCallback(
         << "nativeInvokePlatformMessageResponseCallback message null";
     return nullptr;
   }
-  ret = napi_get_value_int64(env, args[3], &position);
+  ret = napi_get_value_int64(env, args[THIRD], &position);
   if (ret != napi_ok) {
     LOGE("nativeInvokePlatformMessageResponseCallback napi get position error");
     return nullptr;
@@ -271,7 +266,7 @@ void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessageResponse(
   }
 
   status = fml::napi::InvokeJsMethod(
-      env_, ref_napi_obj_, "handlePlatformMessageResponse", 2, callbackParam);
+      env_, ref_napi_obj_, "handlePlatformMessageResponse", TWO, callbackParam);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod fail ";
   }
@@ -297,7 +292,7 @@ void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessage(
     callbackParam[1] = fml::napi::CreateArrayBuffer(
         env_, (void*)message->data().GetMapping(), message->data().GetSize());
 
-    status = napi_create_int64(env_, reponse_id, &callbackParam[2]);
+    status = napi_create_int64(env_, reponse_id, &callbackParam[SECOND]);
     if (status != napi_ok) {
       FML_DLOG(ERROR) << "napi_create_int64 err " << status;
       return;
@@ -306,7 +301,7 @@ void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessage(
     fml::MallocMapping mapping = message->releaseData();
     char* mapData = (char*)mapping.Release();
     status = napi_create_string_utf8(env_, mapData, strlen(mapData),
-                                     &callbackParam[3]);
+                                     &callbackParam[THIRD]);
     if (status != napi_ok) {
       FML_DLOG(ERROR) << "napi_create_string_utf8 err " << status;
       return;
@@ -317,7 +312,7 @@ void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessage(
     }
 
     status = fml::napi::InvokeJsMethod(
-        env_, ref_napi_obj_, "handlePlatformMessage", 4, callbackParam);
+        env_, ref_napi_obj_, "handlePlatformMessage", FOUR, callbackParam);
     if (status != napi_ok) {
       FML_DLOG(ERROR) << "InvokeJsMethod fail ";
     }
@@ -395,9 +390,9 @@ PlatformViewOHOSNapi::FlutterViewComputePlatformResolvedLocales(
   const int localeDataLength = 3;
   flutter::locale mlocale;
   for (size_t i = 0; i < support_locale_data.size(); i += localeDataLength) {
-    mlocale.language = support_locale_data[i + 0];
-    mlocale.region = support_locale_data[i + 1];
-    mlocale.script = support_locale_data[i + 2];
+    mlocale.language = support_locale_data[i + LANGUAGE_INDEX];
+    mlocale.region = support_locale_data[i + REGION_INDEX];
+    mlocale.script = support_locale_data[i + SCRIPT_INDEX];
     supportedLocales.push_back(mlocale);
   }
   mlocale = resolveNativeLocale(supportedLocales);
@@ -405,8 +400,9 @@ PlatformViewOHOSNapi::FlutterViewComputePlatformResolvedLocales(
   result.push_back(mlocale.region);
   result.push_back(mlocale.script);
   FML_DLOG(INFO) << "resolveNativeLocale result to flutter language: "
-                 << result[0] << " region: " << result[1]
-                 << " script: " << result[2];
+                 << result[LANGUAGE_INDEX]
+                 << " region: " << result[REGION_INDEX]
+                 << " script: " << result[SCRIPT_INDEX];
   return std::make_unique<std::vector<std::string>>(std::move(result));
 }
 
@@ -427,7 +423,7 @@ void PlatformViewOHOSNapi::DecodeImage(int64_t imageGeneratorAddress,
           FML_DLOG(ERROR) << "napi_create_int64 decodeImage fail ";
         }
         status = fml::napi::InvokeJsMethod(env_, ref_napi_obj_, "decodeImage",
-                                           2, callbackParam);
+                                           TWO, callbackParam);
         if (status != napi_ok) {
           FML_DLOG(ERROR) << "InvokeJsMethod decodeImage fail ";
         }
@@ -464,10 +460,10 @@ napi_value PlatformViewOHOSNapi::nativeAttach(napi_env env,
   auto shell_holder = std::make_unique<OHOSShellHolder>(
       OhosMain::Get().GetSettings(), napi_facade, platform_loop);
   if (shell_holder->IsValid()) {
-    PlatformViewOHOSNapi::shell_holder =
+    PlatformViewOHOSNapi::shell_holder_value =
         reinterpret_cast<int64_t>(shell_holder.get());
     FML_DLOG(INFO) << "PlatformViewOHOSNapi shell_holder:"
-                   << PlatformViewOHOSNapi::shell_holder;
+                   << PlatformViewOHOSNapi::shell_holder_value;
     napi_value id;
     napi_create_int64(env, reinterpret_cast<int64_t>(shell_holder.release()),
                       &id);
@@ -514,7 +510,7 @@ napi_value PlatformViewOHOSNapi::nativeRunBundleAndSnapshotFromLibrary(
 
   std::string entrypointFunctionName;
   if (fml::napi::SUCCESS !=
-      fml::napi::GetString(env, args[2], entrypointFunctionName)) {
+      fml::napi::GetString(env, args[SECOND], entrypointFunctionName)) {
     LOGE(" napi_get_value_string_utf8 error");
     return nullptr;
   }
@@ -522,7 +518,7 @@ napi_value PlatformViewOHOSNapi::nativeRunBundleAndSnapshotFromLibrary(
 
   std::string pathToEntrypointFunction;
   if (fml::napi::SUCCESS !=
-      fml::napi::GetString(env, args[3], pathToEntrypointFunction)) {
+      fml::napi::GetString(env, args[THIRD], pathToEntrypointFunction)) {
     LOGE(" napi_get_value_string_utf8 error");
     return nullptr;
   }
@@ -530,11 +526,11 @@ napi_value PlatformViewOHOSNapi::nativeRunBundleAndSnapshotFromLibrary(
        pathToEntrypointFunction.c_str());
 
   NativeResourceManager* ResourceManager =
-      OH_ResourceManager_InitNativeResourceManager(env, args[4]);
+      OH_ResourceManager_InitNativeResourceManager(env, args[FOURTH]);
 
   std::vector<std::string> entrypointArgs;
   if (fml::napi::SUCCESS !=
-      fml::napi::GetArrayString(env, args[5], entrypointArgs)) {
+      fml::napi::GetArrayString(env, args[FIFTH], entrypointArgs)) {
     LOGE("nativeRunBundleAndSnapshotFromLibrary GetArrayString error");
     return nullptr;
   }
@@ -626,7 +622,7 @@ napi_value PlatformViewOHOSNapi::nativeLoadDartDeferredLibrary(
 
   std::vector<std::string> search_paths;
   if (fml::napi::SUCCESS !=
-      fml::napi::GetArrayString(env, args[2], search_paths)) {
+      fml::napi::GetArrayString(env, args[SECOND], search_paths)) {
     LOGE("nativeLoadDartDeferredLibrary GetArrayString error");
     return nullptr;
   }
@@ -686,7 +682,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
   }
 
   int64_t shell_holder;
-  ret = napi_get_value_int64(env, args[0], &shell_holder);
+  ret = napi_get_value_int64(env, args[ZEROTH], &shell_holder);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -694,7 +690,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
   LOGD("nativeSetViewportMetrics::shell_holder : %{public}ld", shell_holder);
 
   double devicePixelRatio;
-  ret = napi_get_value_double(env, args[1], &devicePixelRatio);
+  ret = napi_get_value_double(env, args[FIRST], &devicePixelRatio);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -703,7 +699,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
        devicePixelRatio);
 
   int64_t physicalWidth;
-  ret = napi_get_value_int64(env, args[2], &physicalWidth);
+  ret = napi_get_value_int64(env, args[SECOND], &physicalWidth);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -711,7 +707,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
   LOGD("nativeSetViewportMetrics::physicalWidth : %{public}ld", physicalWidth);
 
   int64_t physicalHeight;
-  ret = napi_get_value_int64(env, args[3], &physicalHeight);
+  ret = napi_get_value_int64(env, args[THIRD], &physicalHeight);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -720,7 +716,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
        physicalHeight);
 
   int64_t physicalPaddingTop;
-  ret = napi_get_value_int64(env, args[4], &physicalPaddingTop);
+  ret = napi_get_value_int64(env, args[FOURTH], &physicalPaddingTop);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -729,7 +725,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
        physicalPaddingTop);
 
   int64_t physicalPaddingRight;
-  ret = napi_get_value_int64(env, args[5], &physicalPaddingRight);
+  ret = napi_get_value_int64(env, args[FIFTH], &physicalPaddingRight);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -738,7 +734,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
        physicalPaddingRight);
 
   int64_t physicalPaddingBottom;
-  ret = napi_get_value_int64(env, args[6], &physicalPaddingBottom);
+  ret = napi_get_value_int64(env, args[SIXTH], &physicalPaddingBottom);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -747,7 +743,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
        physicalPaddingBottom);
 
   int64_t physicalPaddingLeft;
-  ret = napi_get_value_int64(env, args[7], &physicalPaddingLeft);
+  ret = napi_get_value_int64(env, args[SEVENTH], &physicalPaddingLeft);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -756,7 +752,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
        physicalPaddingLeft);
 
   int64_t physicalViewInsetTop;
-  ret = napi_get_value_int64(env, args[8], &physicalViewInsetTop);
+  ret = napi_get_value_int64(env, args[EIGHTH], &physicalViewInsetTop);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -765,7 +761,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
        physicalViewInsetTop);
 
   int64_t physicalViewInsetRight;
-  ret = napi_get_value_int64(env, args[9], &physicalViewInsetRight);
+  ret = napi_get_value_int64(env, args[NINTH], &physicalViewInsetRight);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -774,7 +770,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
        physicalViewInsetRight);
 
   int64_t physicalViewInsetBottom;
-  ret = napi_get_value_int64(env, args[10], &physicalViewInsetBottom);
+  ret = napi_get_value_int64(env, args[TENTH], &physicalViewInsetBottom);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -783,7 +779,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
        physicalViewInsetBottom);
 
   int64_t physicalViewInsetLeft;
-  ret = napi_get_value_int64(env, args[11], &physicalViewInsetLeft);
+  ret = napi_get_value_int64(env, args[ELEVENTH], &physicalViewInsetLeft);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -791,7 +787,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
   LOGD("nativeSetViewportMetrics::physicalViewInsetLeft : %{public}ld",
        physicalViewInsetLeft);
   int64_t systemGestureInsetTop;
-  ret = napi_get_value_int64(env, args[12], &systemGestureInsetTop);
+  ret = napi_get_value_int64(env, args[TWELFTH], &systemGestureInsetTop);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -799,7 +795,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
   LOGD("nativeSetViewportMetrics::systemGestureInsetTop : %{public}ld",
        systemGestureInsetTop);
   int64_t systemGestureInsetRight;
-  ret = napi_get_value_int64(env, args[13], &systemGestureInsetRight);
+  ret = napi_get_value_int64(env, args[THIRTEENTH], &systemGestureInsetRight);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -808,7 +804,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
        systemGestureInsetRight);
 
   int64_t systemGestureInsetBottom;
-  ret = napi_get_value_int64(env, args[14], &systemGestureInsetBottom);
+  ret = napi_get_value_int64(env, args[FOURTEENTH], &systemGestureInsetBottom);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -816,7 +812,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
   LOGD("nativeSetViewportMetrics::systemGestureInsetBottom : %{public}ld",
        systemGestureInsetBottom);
   int64_t systemGestureInsetLeft;
-  ret = napi_get_value_int64(env, args[15], &systemGestureInsetLeft);
+  ret = napi_get_value_int64(env, args[FIFTEENTH], &systemGestureInsetLeft);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -825,7 +821,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
        systemGestureInsetLeft);
 
   int64_t physicalTouchSlop;
-  ret = napi_get_value_int64(env, args[16], &physicalTouchSlop);
+  ret = napi_get_value_int64(env, args[SIXTEENTH], &physicalTouchSlop);
   if (ret != napi_ok) {
     LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
     return nullptr;
@@ -834,7 +830,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
        physicalTouchSlop);
 
   std::vector<double> displayFeaturesBounds;
-  napi_value array = args[17];
+  napi_value array = args[SEVENTEENTH];
   uint32_t length;
   napi_get_array_length(env, array, &length);
   displayFeaturesBounds.resize(length);
@@ -850,7 +846,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
   }
 
   std::vector<int64_t> displayFeaturesType;
-  array = args[18];
+  array = args[EIGHTEENTH];
   napi_get_array_length(env, array, &length);
   displayFeaturesType.resize(length);
   for (uint32_t i = 0; i < length; ++i) {
@@ -865,7 +861,7 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
   }
 
   std::vector<int64_t> displayFeaturesState;
-  array = args[19];
+  array = args[NINETEENTH];
   napi_get_array_length(env, array, &length);
   displayFeaturesState.resize(length);
   for (uint32_t i = 0; i < length; ++i) {
@@ -1102,7 +1098,7 @@ napi_value PlatformViewOHOSNapi::nativeDeferredComponentInstallFailure(
   LOGD("nativeSetAccessibilityFeatures loadingUnitId: %s", error.c_str());
 
   bool isTransient;
-  ret = napi_get_value_bool(env, args[2], &isTransient);
+  ret = napi_get_value_bool(env, args[SECOND], &isTransient);
   if (ret != napi_ok) {
     LOGE("nativeDeferredComponentInstallFailure napi_get_value_bool error");
     return nullptr;
@@ -1370,7 +1366,7 @@ napi_value PlatformViewOHOSNapi::nativeGetSystemLanguages(
 }
 
 int64_t PlatformViewOHOSNapi::GetShellHolder() {
-  return PlatformViewOHOSNapi::shell_holder;
+  return PlatformViewOHOSNapi::shell_holder_value;
 }
 
 void PlatformViewOHOSNapi::SurfaceCreated(int64_t shell_holder, void* window) {

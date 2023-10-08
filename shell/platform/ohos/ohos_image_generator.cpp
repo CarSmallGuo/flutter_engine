@@ -20,6 +20,7 @@
 
 #include <multimedia/image_framework/image_pixel_map_napi.h>
 #include "third_party/skia/include/codec/SkCodecAnimation.h"
+#include "types.h"
 
 namespace flutter {
 
@@ -151,7 +152,6 @@ napi_value OHOSImageGenerator::NativeImageDecodeCallback(
 
   size_t argc = 4;
 
-  // width, height, OHOSImageGenerator this, pixmap;
   napi_value args[4] = {nullptr};
 
   napi_status status =
@@ -161,7 +161,7 @@ napi_value OHOSImageGenerator::NativeImageDecodeCallback(
     return nullptr;
   }
 
-  if (argc != 4) {
+  if (argc != FOUR) {
     FML_LOG(ERROR) << "argc is error";
     return nullptr;
   }
@@ -171,17 +171,17 @@ napi_value OHOSImageGenerator::NativeImageDecodeCallback(
   int64_t height = 0;
   OHOSImageGenerator* generator = nullptr;
 
-  status = napi_get_value_int64(env, args[0], &width);
+  status = napi_get_value_int64(env, args[ZEROTH], &width);
   if (status != napi_ok) {
     FML_LOG(ERROR) << "napi_get_value_int32 width error";
   }
 
-  status = napi_get_value_int64(env, args[1], &height);
+  status = napi_get_value_int64(env, args[FIRST], &height);
   if (status != napi_ok) {
     FML_LOG(ERROR) << "napi_get_value_int32 height error";
   }
 
-  status = napi_get_value_int64(env, args[2], (int64_t*)&generator);
+  status = napi_get_value_int64(env, args[SECOND], (int64_t*)&generator);
   if (status != napi_ok) {
     FML_LOG(ERROR) << "napi_get_value_int64 this  error";
   }
@@ -195,7 +195,8 @@ napi_value OHOSImageGenerator::NativeImageDecodeCallback(
 
   void* pixel_lock;
 
-  int ret = OHOS::Media::OH_AccessPixels(g_env, args[3], (void**)&pixel_lock);
+  int ret =
+      OHOS::Media::OH_AccessPixels(g_env, args[THIRD], (void**)&pixel_lock);
   if (ret != 0) {
     FML_DLOG(ERROR) << "Failed to lock pixels, error=" << ret;
     return nullptr;
@@ -211,7 +212,7 @@ napi_value OHOSImageGenerator::NativeImageDecodeCallback(
   ReleaseCtx* ctx = new ReleaseCtx();
   ctx->env_ = env;
   ctx->buf = (char*)pixel_lock;
-  napi_create_reference(env, args[3], 1, &(ctx->ref));
+  napi_create_reference(env, args[THIRD], ONE, &(ctx->ref));
 
   SkData::ReleaseProc on_release = [](const void* ptr, void* context) -> void {
     ReleaseCtx* ctx = reinterpret_cast<ReleaseCtx*>(context);

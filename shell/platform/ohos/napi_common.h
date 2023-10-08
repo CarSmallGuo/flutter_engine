@@ -23,13 +23,11 @@
 #define XComponentDemo_native_common_H
 
 #include <hilog/log.h>
-#define APP_LOG_DOMAIN 0x0000
-#define APP_LOG_TAG "XComFlutterOHOS_Native"
+const unsigned int APP_LOG_DOMAIN = 0x0000;
+const char* APP_LOG_TAG = "XComFlutterOHOS_Native";
 #define LOGI(...)                                                     \
   ((void)OH_LOG_Print(LOG_APP, LOG_INFO, APP_LOG_DOMAIN, APP_LOG_TAG, \
                       __VA_ARGS__))
-// #define LOGD(...) ((void)OH_LOG_Print(LOG_APP, LOG_DEBUG, APP_LOG_DOMAIN,
-// APP_LOG_TAG, __VA_ARGS__))
 #define LOGD(...)                                                     \
   ((void)OH_LOG_Print(LOG_APP, LOG_INFO, APP_LOG_DOMAIN, APP_LOG_TAG, \
                       __VA_ARGS__))
