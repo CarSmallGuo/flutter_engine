@@ -76,7 +76,7 @@ export default class FlutterEngine implements EngineLifecycleListener{
    * 2、初始化所有channel
    * 3、初始化plugin
    * 4、初始化flutterLoader
-   * 5、初始化flutterJNI
+   * 5、初始化flutterNapi
    * 6、engineLifecycleListeners
    */
   constructor(context: common.Context, flutterLoader: FlutterLoader, flutterNapi: FlutterNapi, platformViewsController: PlatformViewsController) {
@@ -157,7 +157,7 @@ export default class FlutterEngine implements EngineLifecycleListener{
         "Spawn can only be called on a fully constructed FlutterEngine");
     }
 
-    const newFlutterJNI =
+    const newFlutterNapi =
     this.flutterNapi.spawn(
       dartEntrypoint.dartEntrypointFunctionName,
       dartEntrypoint.dartEntrypointLibrary,
@@ -166,7 +166,7 @@ export default class FlutterEngine implements EngineLifecycleListener{
     const flutterEngine = new FlutterEngine(
       context,
       null,
-      newFlutterJNI,
+      newFlutterNapi,
       platformViewsController
     );
     await flutterEngine.init(context, null, automaticallyRegisterPlugins, waitForRestorationData, null)
