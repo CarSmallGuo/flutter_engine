@@ -200,18 +200,20 @@ export default class PlatformPlugin {
 
   private setSystemChromeSystemUIOverlayStyle(systemChromeStyle: SystemChromeStyle): void {
     let isStatusBarLightIconValue: boolean = false;
-    let statusBarColorValue:string = null;
-    let statusBarContentColorValue: string = null;
-    let navigationBarColorValue: string = null;
+    let statusBarColorValue: string = undefined;
+    let statusBarContentColorValue: string = undefined;
+    let navigationBarColorValue: string = undefined;
     let isNavigationBarLightIconValue: boolean = false;
-    let navigationBarContentColorValue: string = null;
+    let navigationBarContentColorValue: string = undefined;
     if(systemChromeStyle.statusBarIconBrightness != null) {
       switch (systemChromeStyle.statusBarIconBrightness) {
         case Brightness.DARK:
           isStatusBarLightIconValue = false;
+          statusBarContentColorValue = '#000000';
           break;
         case Brightness.LIGHT:
           isStatusBarLightIconValue = true;
+          statusBarContentColorValue = '#ffffff';
           break;
       }
     }
@@ -242,7 +244,7 @@ export default class PlatformPlugin {
 
     }
     this.currentTheme = systemChromeStyle;
-    let systemBarProperties = {
+    let systemBarProperties: window.SystemBarProperties = {
       statusBarColor: statusBarColorValue,
       isStatusBarLightIcon: isStatusBarLightIconValue,
       statusBarContentColor: statusBarContentColorValue,
