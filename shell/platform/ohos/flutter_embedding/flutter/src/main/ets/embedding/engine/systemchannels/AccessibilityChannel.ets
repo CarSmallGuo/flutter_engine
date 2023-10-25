@@ -20,28 +20,28 @@ import HashMap from '@ohos.util.HashMap';
 import FlutterNapi, {AccessibilityDelegate} from '../FlutterNapi';
 import { Action } from '../../../view/AccessibilityBridge'
 import StandardMessageCodec from '../../../plugin/common/StandardMessageCodec';
-import { MethodCallHandler } from '../../../plugin/common/MethodChannel';
+import StringUtils from '../../../util/StringUtils';
 
 /**
 * 辅助功能channel
 */
-export default class AccessibilityChannel implements MessageHandler<any>{
+export default class AccessibilityChannel implements MessageHandler<object>{
     private static TAG = "AccessibilityChannel";
     private static CHANNEL_NAME = "flutter/accessibility";
-    private channel: BasicMessageChannel<any>;
+    private channel: BasicMessageChannel<object>;
     private flutterNapi: FlutterNapi;
-    private handler: AccessibilityMessageHandler;
+    private handler: AccessibilityMessageHandler | null = null;
     private nextReplyId: number = 1;
 
     onMessage(message: object, reply: Reply<object>): void {
         if (this.handler == null) {
             Log.i(AccessibilityChannel.TAG, "NULL");
-            reply.reply(null);
+            reply.reply(StringUtils.stringToArrayBuffer(""));
             return;
         }
-        let annotatedEvent: HashMap<string, any> = message as HashMap<string, any>;
+        let annotatedEvent: HashMap<string, ESObject> = message as HashMap<string, ESObject>;
         let type: string = annotatedEvent.get("type") as string;
-        let data: HashMap<string, any> = annotatedEvent.get("data") as HashMap<string, any>;
+        let data: HashMap<string, ESObject> = annotatedEvent.get("data") as HashMap<string, ESObject>;
 
         Log.i(AccessibilityChannel.TAG, "Received " + type + " message.");
         switch (type) {
@@ -78,12 +78,12 @@ export default class AccessibilityChannel implements MessageHandler<any>{
                 break;
             }
         }
-        reply.reply(null);
+        reply.reply(StringUtils.stringToArrayBuffer(""));
     }
 
     constructor(dartExecutor: DartExecutor, flutterNapi: FlutterNapi) {
         Log.i(AccessibilityChannel.TAG, "Channel entered");
-        this.channel = new BasicMessageChannel<string>(dartExecutor, AccessibilityChannel.CHANNEL_NAME, StandardMessageCodec.INSTANCE);
+        this.channel = new BasicMessageChannel<object>(dartExecutor, AccessibilityChannel.CHANNEL_NAME, StandardMessageCodec.INSTANCE);
         this.channel.setMessageHandler(this);
         this.flutterNapi = flutterNapi;
     }

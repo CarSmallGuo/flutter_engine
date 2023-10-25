@@ -17,10 +17,10 @@ import Log from '../../util/Log';
 
 export class TextEditingDelta {
   private static TAG = "TextEditingDelta";
-  private oldText: string;
-  private deltaText: string;
-  private deltaStart: number;
-  private deltaEnd: number;
+  private oldText: string = "";
+  private deltaText: string = "";
+  private deltaStart: number = 0;
+  private deltaEnd: number = 0;
   private newSelectionStart: number;
   private newSelectionEnd: number;
   private newComposingStart: number;
@@ -57,23 +57,5 @@ export class TextEditingDelta {
     this.deltaText = newText;
     this.deltaStart = newStart;
     this.deltaEnd = newExtent;
-  }
-
-  toJSON(): any {
-    let delta;
-    try {
-      delta.oldText = this.oldText;
-      delta.deltaText = this.deltaText;
-      delta.deltaStart = this.deltaStart;
-      delta.deltaEnd = this.deltaEnd;
-      delta.selectionBase = this.newSelectionStart;
-      delta.selectionExtent = this.newSelectionEnd;
-      delta.composingBase = this.newComposingStart;
-      delta.composingExtent = this.newComposingEnd;
-    } catch (err) {
-      Log.e(TextEditingDelta.TAG,"unable to create JSONObject: " + JSON.stringify(err));
-    }
-
-
   }
 }

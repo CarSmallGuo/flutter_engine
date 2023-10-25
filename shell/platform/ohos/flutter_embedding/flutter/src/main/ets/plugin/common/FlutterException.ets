@@ -16,11 +16,11 @@
 export default class FlutterException implements Error {
   stack?: string;
   message: string;
-  name: string;
+  name: string = "";
   code: string;
-  details: any
+  details: ESObject
 
-  constructor(code: string, message: string, details: any) {
+  constructor(code: string, message: string, details: ESObject) {
     this.message = message;
     this.code = code;
     this.details =details;
