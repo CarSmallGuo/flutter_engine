@@ -13,22 +13,23 @@
 * limitations under the License.
 */
 
-import FlutterEngine from "./FlutterEngine"
+import FlutterEngine, { EngineLifecycleListener } from "./FlutterEngine"
 import common from '@ohos.app.ability.common'
 import FlutterLoader from './loader/FlutterLoader'
 import FlutterInjector from '../../FlutterInjector'
 import { DartEntrypoint } from './dart/DartExecutor'
 import PlatformViewsController from '../../plugin/platform/PlatformViewsController'
+import ArrayList from '@ohos.util.ArrayList'
 
 export default class FlutterEngineGroup {
-  private activeEngines: Array<FlutterEngine> = new Array();
+  private activeEngines: ArrayList<FlutterEngine> = new ArrayList<FlutterEngine>();
 
   constructor() {
 
   }
 
   async checkLoader(context: common.Context, args: Array<string>) {
-    var loader: FlutterLoader = FlutterInjector.getInstance().getFlutterLoader();
+    let loader: FlutterLoader = FlutterInjector.getInstance().getFlutterLoader();
     if (!loader.initialized) {
       await loader.startInitialization(context.getApplicationContext());
       loader.ensureInitializationComplete(args);
@@ -36,12 +37,12 @@ export default class FlutterEngineGroup {
   }
 
   async createAndRunEngineByOptions(options: Options) {
-    let engine: FlutterEngine = null;
+    let engine: FlutterEngine | null = null;
     let context: common.Context = options.getContext();
-    let dartEntrypoint: DartEntrypoint = options.getDartEntrypoint();
+    let dartEntrypoint: DartEntrypoint | null = options.getDartEntrypoint();
     let initialRoute: string = options.getInitialRoute();
     let dartEntrypointArgs: Array<string> = options.getDartEntrypointArgs();
-    let platformViewsController: PlatformViewsController = options.getPlatformViewsController();
+    let platformViewsController: PlatformViewsController | null = options.getPlatformViewsController();
     let automaticallyRegisterPlugins: boolean = options.getAutomaticallyRegisterPlugins();
     let waitForRestorationData: boolean = options.getWaitForRestorationData();
 
@@ -60,7 +61,7 @@ export default class FlutterEngineGroup {
         waitForRestorationData, // boolean.
         this)
       if (initialRoute != null) {
-        engine.getNavigationChannel().setInitialRoute(initialRoute);
+        engine.getNavigationChannel()?.setInitialRoute(initialRoute);
       }
     } else {
       engine = await this.activeEngines[0]
@@ -73,17 +74,14 @@ export default class FlutterEngineGroup {
           automaticallyRegisterPlugins,
           waitForRestorationData);
     }
-    this.activeEngines.push(engine);
+    this.activeEngines.add(engine);
 
     const engineToCleanUpOnDestroy = engine;
-    engine.addEngineLifecycleListener({
-      onPreEngineRestart(): void {
-        platformViewsController.onPreEngineRestart();
-      },
-      onEngineWillDestroy(): void {
-        this.activeEngines.remove(engineToCleanUpOnDestroy);
-      }
-    });
+    let listener: EngineLifecycleListener = new EngineLifecycleListenerImpl(
+      platformViewsController,
+      this.activeEngines,
+      engineToCleanUpOnDestroy);
+    engine?.addEngineLifecycleListener(listener);
     return engine;
   }
 
@@ -92,12 +90,33 @@ export default class FlutterEngineGroup {
   }
 }
 
+class EngineLifecycleListenerImpl implements EngineLifecycleListener {
+  private platformViewsController: PlatformViewsController;
+  private activeEngines: ArrayList<FlutterEngine> = new ArrayList();
+  private engine: FlutterEngine | null;
+
+  constructor(
+    platformViewsController: PlatformViewsController,
+    activeEngines: ArrayList<FlutterEngine>,
+    engine: FlutterEngine | null) {
+    this.platformViewsController = platformViewsController;
+    this.activeEngines = activeEngines;
+    this.engine = engine;
+  }
+  onPreEngineRestart(): void {
+    this.platformViewsController.onPreEngineRestart();
+  }
+  onEngineWillDestroy(): void {
+    this.activeEngines.remove(this.engine);
+  }
+}
+
 export class Options {
   private context: common.Context;
-  private dartEntrypoint: DartEntrypoint;
-  private initialRoute: string;
-  private dartEntrypointArgs: Array<string>;
-  private platformViewsController: PlatformViewsController;
+  private dartEntrypoint: DartEntrypoint | null = null;
+  private initialRoute: string = '';
+  private dartEntrypointArgs: Array<string> = [];
+  private platformViewsController: PlatformViewsController | null = null;
   private automaticallyRegisterPlugins: boolean = true;
   private waitForRestorationData: boolean = false;
 
@@ -105,11 +124,11 @@ export class Options {
     this.context = context;
   }
 
-  getContext(): any {
+  getContext(): common.Context {
     return this.context;
   }
 
-  getDartEntrypoint(): DartEntrypoint {
+  getDartEntrypoint(): DartEntrypoint | null {
     return this.dartEntrypoint;
   }
 
@@ -129,7 +148,7 @@ export class Options {
     return this.waitForRestorationData;
   }
 
-  getPlatformViewsController(): PlatformViewsController {
+  getPlatformViewsController(): PlatformViewsController | null {
     return this.platformViewsController;
   }
 

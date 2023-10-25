@@ -12,6 +12,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+import StringUtils from '../../util/StringUtils';
 
 import MessageCodec from './MessageCodec';
 import MethodCodec from './MethodCodec';
@@ -27,17 +28,17 @@ import StringCodec from './StringCodec';
  * <p>On the Dart side, JSON messages are handled by the JSON facilities of the <a
  * href="https://api.dartlang.org/stable/dart-convert/JSON-constant.html">dart:convert</a> package.
  */
-export default class JSONMessageCodec implements MessageCodec<any> {
+export default class JSONMessageCodec implements MessageCodec<Object> {
   static INSTANCE = new JSONMessageCodec();
 
-  encodeMessage(message: any): ArrayBuffer {
+  encodeMessage(message: ESObject): ArrayBuffer {
     if (message == null) {
-      return null;
+      return StringUtils.stringToArrayBuffer("");
     }
     return StringCodec.INSTANCE.encodeMessage(JSON.stringify(message));
   }
 
-  decodeMessage(message: ArrayBuffer): any {
+  decodeMessage(message: ArrayBuffer): ESObject {
     if (message == null) {
       return null;
     }
