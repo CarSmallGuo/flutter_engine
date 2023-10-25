@@ -12,32 +12,33 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
 import ArrayList from '@ohos.util.ArrayList';
-import { DVModel, DVModelParameters } from '../../../view/DynamicView/dynamicView';
+import matrix4 from '@ohos.matrix4';
+import { DVModel, DVModelEvents, DVModelParameters } from '../../../view/DynamicView/dynamicView';
 import { createDVModelFromJson } from '../../../view/DynamicView/dynamicViewJson';
 import OhosTouchProcessor from '../../ohos/OhosTouchProcessor';
 import { FlutterMutator, FlutterMutatorsStack } from './FlutterMutatorsStack'
 
 export class FlutterMutatorView {
-  private mutatorsStack: FlutterMutatorsStack;
-  private screenDensity: number;
-  private left: number;
-  private top: number;
-  private prevLeft: number;
-  private prevTop: number;
-  private ohosTouchProcessor: OhosTouchProcessor;
-  private onTouch = (touchEvent) => {
+  private mutatorsStack: FlutterMutatorsStack | null = null;
+  private screenDensity: number = 0;
+  private left: number = 0;
+  private top: number = 0;
+  private prevLeft: number = 0;
+  private prevTop: number = 0;
+
+  private onTouch = (touchEvent: ESObject) => {
+    let params = this.model.params as Record<string, number>;
     switch (touchEvent.type) {
       case TouchType.Down:
         this.prevLeft = this.left;
         this.prevTop = this.top;
-        this.model.params["translateX"] = this.left;
-        this.model.params["translateY"] = this.top;
+        params.translateX = this.left;
+        params.translateY = this.top;
         break;
       case TouchType.Move:
-        this.model.params["translateX"] = this.prevLeft;
-        this.model.params["translateY"] = this.prevTop;
+        params.translateX = this.prevLeft;
+        params.translateY = this.prevTop;
         this.prevLeft = this.left;
         this.prevTop = this.top;
         break;
@@ -47,41 +48,42 @@ export class FlutterMutatorView {
         break;
     }
   }
+
   private model: DVModel = createDVModelFromJson(
-    {
-      compType: "Column",
-      children: [],
-      attributes: { backgroundColor: Color.Red },
-      events: { onTouch: this.onTouch }
-    }
+    new DVModelParam("Column", [], { backgroundColor: Color.Red }, { onTouch: this.onTouch })
   );
 
   setOnDescendantFocusChangeListener(onFocus: () => void, onBlur: () => void) {
-    this.model.events["onFocus"] = onFocus;
-    this.model.events["onBlur"] = onBlur;
+    // this.model.events["onFocus"] = onFocus;
+    // this.model.events["onBlur"] = onBlur;
+    let events2 = this.model.events as Record<string, DVModelEvents>;
+    events2.onFocus = onFocus;
+    events2.onBlur = onBlur;
   }
 
   public setLayoutParams(parameters: DVModelParameters): void {
     if (this.model.params == null) {
       this.model.params = new DVModelParameters();
     }
-    this.model.params['marginLeft'] = parameters['marginLeft'];
-    this.model.params['marginTop'] = parameters['marginTop'];
-    this.model.params['width'] = parameters['width'];
-    this.model.params['height'] = parameters['height'];
-    this.left = parameters['marginLeft'];
-    this.top = parameters['marginTop'];
+    let params = this.model.params as Record<string, string | number | Array<string | number> | matrix4.Matrix4Transit>;
+    let parametersRecord = parameters as Record<string, string | number | Array<string | number> | matrix4.Matrix4Transit>;
+    params.marginLeft = parametersRecord['marginLeft'];
+    params.marginTop = parametersRecord['marginTop'];
+    params.width = parametersRecord['width'];
+    params.height = parametersRecord['height'];
+    this.left = parametersRecord.marginLeft as number;
+    this.top = parametersRecord.marginTop as number ;
   }
 
   public addDvModel(model: DVModel): void {
-    this.model.children.push(model);
+    this.model?.children.push(model);
   }
 
   public readyToDisplay(mutatorsStack: FlutterMutatorsStack, left: number, top: number, width: number, height: number) {
     this.mutatorsStack = mutatorsStack;
     this.left = left;
     this.top = top;
-    let parameters = new DVModelParameters();
+    let parameters = new DVModelParameters() as Record<string, string | number | Array<string | number> | matrix4.Matrix4Transit>;
     parameters['marginLeft'] = left;
     parameters['marginTop'] = top;
     parameters['width'] = width;
@@ -91,25 +93,43 @@ export class FlutterMutatorView {
   }
 
   private dealMutators() {
+    if (this.mutatorsStack == null) {
+      return;
+    }
     let paths = this.mutatorsStack.getFinalClippingPaths();
     let rects = this.mutatorsStack.getFinalClippingRects();
     let matrix = this.mutatorsStack.getFinalMatrix();
+    let params = this.model.params as Record<string, string | number | Array<string | number> | matrix4.Matrix4Transit>;
     if (!paths.isEmpty()) {
       let path = paths.getLast();
-      this.model.params["pathWidth"] = path.width;
-      this.model.params["pathHeight"] = path.height;
-      this.model.params["pathCommands"] = path.commands;
+      params.pathWidth = path.width;
+      params.pathHeight = path.height;
+      params.pathCommands = path.commands;
     }
     if (!rects.isEmpty()) {
       let rect = rects.getLast();
-      this.model.params["rectWidth"] = rect.width;
-      this.model.params["rectHeight"] = rect.height;
-      this.model.params["rectRadius"] = rect.radius;
+      params.rectWidth = rect.width;
+      params.rectHeight = rect.height;
+      params.rectRadius = rect.radius;
     }
-    this.model.params["matrix"] = matrix;
+    params.matrix = matrix;
   }
 
-  public getDvModel(): DVModel {
+  public getDvModel(): DVModel | undefined {
     return this.model;
   }
 }
+
+class DVModelParam {
+  compType: string
+  children: []
+  attributes: ESObject
+  events: ESObject
+
+  constructor(compType: string, children: [], attributes: ESObject, events: ESObject) {
+    this.compType = compType;
+    this.children = children;
+    this.attributes = attributes;
+    this.events = events;
+  }
+};
