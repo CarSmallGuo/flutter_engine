@@ -53,16 +53,17 @@ export default class RestorationChannel {
    * itself to default values until the restoration data has been made available. Setting this flag
    * to true avoids that extra work.
    */
-  public waitForRestorationData: boolean;
+  public waitForRestorationData: boolean = false;
 
   // Holds the most current restoration data which may have been provided by the engine
   // via "setRestorationData" or by the framework via the method channel. This is the data the
   // framework should be restored to in case the app is terminated.
-  private restorationData: Uint8Array;
-  private channel: MethodChannel;
-  private pendingFrameworkRestorationChannelRequest: MethodResult;
+  private restorationData: Uint8Array = new Uint8Array();
+  private channel: MethodChannel | null = null;
+  private pendingFrameworkRestorationChannelRequest: MethodResult | null = null;
   private engineHasProvidedData: boolean = false;
   private frameworkHasRequestedData: boolean = false;
+  private handler: MethodCallHandler = new RestorationChannelMethodCallHandler(this.restorationData);
 
   constructor(channelOrExecutor: MethodChannel | DartExecutor, waitForRestorationData: boolean) {
     if (channelOrExecutor instanceof MethodChannel) {
@@ -84,7 +85,7 @@ export default class RestorationChannel {
     this.engineHasProvidedData = true;
     if (this.pendingFrameworkRestorationChannelRequest != null) {
       // If their is a pending request from the framework, answer it.
-      this.pendingFrameworkRestorationChannelRequest.success(this.packageData(data));
+      this.pendingFrameworkRestorationChannelRequest.success(RestorationChannelMethodCallHandler.packageData(data));
       this.pendingFrameworkRestorationChannelRequest = null;
       this.restorationData = data;
     } else if (this.frameworkHasRequestedData) {
@@ -93,12 +94,12 @@ export default class RestorationChannel {
       // framework retrieved the restoration state before it was set via this method.
       // Experimentally, this can also be used to restore a previously used engine to another state,
       // e.g. when the engine is attached to a new activity.
-      this.channel.invokeMethod("push", this.packageData(data), {
-        success: (result: any) :void => {
+      this.channel?.invokeMethod("push", RestorationChannelMethodCallHandler.packageData(data), {
+        success: (result: ESObject) :void => {
           this.restorationData = data;
         },
 
-        error: (errorCode: string, errorMessage: string, errorDetails: any) :void => {
+        error: (errorCode: string, errorMessage: string, errorDetails: ESObject) :void => {
           Log.e(RestorationChannel.TAG,
             "Error " + errorCode + " while sending restoration data to framework: " + errorMessage);
         },
@@ -120,42 +121,53 @@ export default class RestorationChannel {
    * state prior to the hot restart will get restored.
    */
   clearData() {
-    this.restorationData = null;
+    this.restorationData = new Uint8Array();
+  }
+}
+
+class RestorationChannelMethodCallHandler implements MethodCallHandler {
+  public waitForRestorationData: boolean = false;
+  private restorationData: Uint8Array;
+  private engineHasProvidedData: boolean = false;
+  private frameworkHasRequestedData: boolean = false;
+  private channel: MethodChannel | null = null;
+  private pendingFrameworkRestorationChannelRequest: MethodResult | null = null;
+
+  constructor(restorationData: Uint8Array) {
+    this.restorationData = restorationData;
   }
 
-  private handler: MethodCallHandler = {
-    onMethodCall: (call: MethodCall, result: MethodResult) :void => {
-      const method = call.method;
-      const args = call.args;
-      switch (method) {
-        case "put": {
-          this.restorationData = args;
-          result.success(null);
-          break;
+  onMethodCall(call: MethodCall, result: MethodResult): void {
+    const method = call.method;
+    const args: ESObject = call.args;
+    switch (method) {
+      case "put": {
+        this.restorationData = args;
+        result.success(null);
+        break;
+      }
+      case "get": {
+        this.frameworkHasRequestedData = true;
+        if (this.engineHasProvidedData || !this.waitForRestorationData) {
+          result.success(RestorationChannelMethodCallHandler.packageData(this.restorationData));
+          // Do not delete the restoration data on the engine side after sending it to the
+          // framework. We may need to hand this data back to the operating system if the
+          // framework never modifies the data (and thus doesn't send us any
+          // data back).
+        } else {
+          this.pendingFrameworkRestorationChannelRequest = result;
         }
-        case "get": {
-          this.frameworkHasRequestedData = true;
-          if (this.engineHasProvidedData || !this.waitForRestorationData) {
-            result.success(this.packageData(this.restorationData));
-            // Do not delete the restoration data on the engine side after sending it to the
-            // framework. We may need to hand this data back to the operating system if the
-            // framework never modifies the data (and thus doesn't send us any
-            // data back).
-          } else {
-            this.pendingFrameworkRestorationChannelRequest = result;
-          }
-          break;
-        }
-        default: {
-          result.notImplemented();
-          break;
-        }
+        break;
+      }
+      default: {
+        result.notImplemented();
+        break;
       }
     }
-  };
+  }
 
-  private packageData(data: Uint8Array): Map<string, any> {
-    const packaged: Map<string, any> = new Map();
+  static packageData(data: Uint8Array): Map<string, ESObject> {
+    const packaged: Map<string, ESObject> = new Map();
     packaged.set("enabled", true);
     packaged.set("data", data);
     return packaged;

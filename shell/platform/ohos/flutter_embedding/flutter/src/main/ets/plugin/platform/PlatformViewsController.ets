@@ -21,7 +21,7 @@ import PlatformViewsChannel, {
   PlatformViewsHandler, PlatformViewTouch, PlatformViewBufferSize
 } from '../../../ets/embedding/engine/systemchannels/PlatformViewsChannel';
 import PlatformView from './PlatformView';
-import { DVModel, DVModelParameters, DynamicView } from '../../view/DynamicView/dynamicView';
+import { DVModel, DVModelContainer, DVModelParameters, DynamicView } from '../../view/DynamicView/dynamicView';
 import display from '@ohos.display';
 import { FlutterView } from '../../view/FlutterView';
 import { TextureRegistry } from '../../view/TextureRegistry';
@@ -47,14 +47,13 @@ const TAG = "PlatformViewsController"
 
 export default class PlatformViewsController implements PlatformViewsAccessibilityDelegate, PlatformViewsHandler {
   private registry: PlatformViewRegistryImpl;
-  private context: Context;
-  private flutterView: FlutterView;
-  private textureRegistry: TextureRegistry;
-  private textInputPlugin: TextInputPlugin;
-  private platformViewsChannel: PlatformViewsChannel;
+  private context: Context | null = null;
+  private flutterView: FlutterView | null = null;
+  private textureRegistry: TextureRegistry | null = null;
+  private textInputPlugin: TextInputPlugin | null = null;
+  private platformViewsChannel: PlatformViewsChannel | null = null;
   private accessibilityEventsDelegate: AccessibilityEventsDelegate;
   private nextOverlayLayerId: number = 0;
-  private ohosTouchProcessor: OhosTouchProcessor;
   private usesSoftwareRendering: boolean = false;
 
   private platformViews: Map<number, PlatformView>;
@@ -62,7 +61,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
   private viewWrappers: Map<number, PlatformViewWrapper>;
   private currentFrameUsedOverlayLayerIds: HashSet<number>;
   private currentFrameUsedPlatformViewIds: HashSet<number>;
-  private rootDvModel = RootDvModeManager.getRootDvMode();
+  private rootDvModel: DVModelContainer | null = RootDvModeManager.getRootDvMode();
   private platformViewParent: Map<number, FlutterMutatorView>;
 
   constructor() {
@@ -76,7 +75,8 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     this.platformViewParent = new Map();
   }
 
-  getPlatformViewById(viewId: number) {
+
+  getPlatformViewById(viewId: number): Object {
     throw new Error('Method not implemented.');
   }
 
@@ -102,7 +102,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
   }
 
   dispose(viewId: number): void {
-    let platformView: PlatformView = this.platformViews.get(viewId);
+    let platformView: PlatformView | null = this.platformViews.get(viewId) || null;
     if (platformView == null) {
       Log.e(TAG, "Disposing unknown platform view with id: " + viewId);
       return;
@@ -115,15 +115,20 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       Log.e(TAG, "Disposing platform view threw an exception", err);
     }
 
-    let viewWrapper: PlatformViewWrapper = this.viewWrappers.get(viewId);
+    let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
     if (viewWrapper != null) {
       this.viewWrappers.delete(viewId);
     }
 
-    let parentView: FlutterMutatorView = this.platformViewParent.get(viewId);
+    let parentView: FlutterMutatorView | null = this.platformViewParent.get(viewId) || null;
     if (parentView != null) {
       this.platformViewParent.delete(viewId);
     }
+  }
+
+  setParams: (params: DVModelParameters, key: string, element: ESObject ) => void = (params: DVModelParameters, key: string, element: ESObject): void => {
+    let params2 = params as Record<string, ESObject>;
+    params2[key] =element;
   }
 
   resize(request: PlatformViewResizeRequest, onComplete: PlatformViewBufferResized): void {
@@ -132,31 +137,35 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     let viewId: number = request.viewId;
     Log.i(TAG, `Resize viewId ${viewId}, pw:${physicalWidth}, ph:${physicalHeight},lw:${request.newLogicalWidth}, lh:${request.newLogicalHeight}`);
 
-    let platformView: PlatformView = this.platformViews.get(viewId);
-    let viewWrapper: PlatformViewWrapper = this.viewWrappers.get(viewId);
+    let platformView: PlatformView | null = this.platformViews.get(viewId) || null;
+    let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
     if (platformView == null || viewWrapper == null) {
       Log.e(TAG, "Resizing unknown platform view with id: " + viewId);
       return;
     }
 
-    let viewWrapperLayoutParams: DVModelParameters = viewWrapper.getDvModel().getLayoutParams();
-    if (physicalWidth) {
-      viewWrapperLayoutParams["width"] = physicalWidth;
+    let viewWrapperLayoutParams: DVModelParameters | undefined = viewWrapper.getDvModel()?.getLayoutParams();
+    if (physicalWidth && viewWrapperLayoutParams) {
+      this.setParams(viewWrapperLayoutParams, "width", physicalWidth);
+      // viewWrapperLayoutParams.width = physicalWidth;
     }
 
-    if (physicalHeight) {
-      viewWrapperLayoutParams["height"] = physicalHeight;
+    if (physicalHeight && viewWrapperLayoutParams) {
+      this.setParams(viewWrapperLayoutParams, "height", physicalHeight);
+      // viewWrapperLayoutParams.height = physicalHeight;
     }
 
     let embeddedView: DVModel = platformView.getView();
     if (embeddedView != null) {
       let embeddedViewLayoutParams = embeddedView.getLayoutParams();
       if (physicalWidth) {
-        embeddedViewLayoutParams["width"] = physicalWidth;
+        this.setParams(embeddedViewLayoutParams, "width", physicalWidth);
+        // embeddedViewLayoutParams.width = physicalWidth;
       }
 
       if (physicalHeight) {
-        embeddedViewLayoutParams["height"] = physicalHeight;
+        this.setParams(embeddedViewLayoutParams, "height", physicalHeight);
+        // embeddedViewLayoutParams.height = physicalHeight;
       }
     }
 
@@ -165,7 +174,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
 
   offset(viewId: number, top: number, left: number): void {
     Log.i(TAG, `Offset is id${viewId}, t:${top}, l:${left}`);
-    let viewWrapper: PlatformViewWrapper = this.viewWrappers.get(viewId);
+    let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
     if (viewWrapper == null) {
       Log.e(TAG, "Setting offset for an unknown platform view with id: " + viewId);
       return;
@@ -173,17 +182,17 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
 
     let physicalTop = this.toPhysicalPixels(top);
     let physicalLeft = this.toPhysicalPixels(left);
-    let params = viewWrapper.getDvModel().params;
-    params["marginTop"] = physicalTop;
-    params["marginLeft"] = physicalLeft;
-    viewWrapper.setLayoutParams(params);
+    let params = viewWrapper.getDvModel()!.params;
+    this.setParams(params!, "marginTop", physicalTop);
+    this.setParams(params!, "marginLeft", physicalLeft);
+    viewWrapper.setLayoutParams(params!);
   }
 
   onTouch(touch: PlatformViewTouch): void {
     let viewId: number = touch.viewId;
     let density: number = display.getDefaultDisplaySync().densityDPI;
 
-    let platformView: PlatformView = this.platformViews.get(viewId);
+    let platformView: PlatformView | null = this.platformViews.get(viewId) ?? null;
     if (platformView == null) {
       Log.e(TAG, "Sending touch to an unknown platform view with id: " + viewId);
       return;
@@ -215,7 +224,8 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       Log.e(TAG, "Setting direction to a null view with id: " + viewId);
       return;
     }
-    embeddedView.params["direction"] = direction;
+    this.setParams(embeddedView.params, "direction", direction);
+    // embeddedView.params.direction = direction;
   }
 
   validateDirection(direction:number):boolean {
@@ -271,21 +281,24 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       throw new Error("Trying to create a platform view of unregistered type: " + request.viewType)
     }
 
-    let createParams: any = null;
+    let createParams: ESObject = null;
     if (request.params != null) {
       let byteParas : ByteBuffer = request.params as ByteBuffer;
       createParams = viewFactory.getCreateArgsCodec().decodeMessage(byteParas.buffer);
     }
 
-    let mutableContext: common.Context = this.context;
-    let platformView = viewFactory.create(mutableContext, request.viewId, createParams);
+    if (this.context == null) {
+      throw new Error('PlatformView#context is null.');
+    }
+    let platformView = viewFactory.create(this.context, request.viewId, createParams);
 
     let embeddedView: DVModel =  platformView.getView();
     if (embeddedView == null) {
       throw new Error("PlatformView#getView() returned null, but an dynamic view reference was expected.");
     }
 
-    embeddedView.params['direction'] = request.direction;
+    this.setParams(embeddedView.params, "direction", request.direction);
+    // embeddedView.params.direction = request.direction;
 
     this.platformViews.set(request.viewId, platformView);
     return platformView;
@@ -308,33 +321,40 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     Log.i(TAG, `View pW:${request.logicalWidth}, pH:${request.logicalHeight}, pT:${physicalTop}, pL:${physicalLeft}`);
 
     let param: DVModelParameters = new DVModelParameters();
-    param['marginLeft'] = physicalLeft;
-    param['marginTop'] = physicalTop;
+
+    this.setParams(param, "marginLeft", physicalLeft);
+    this.setParams(param, "marginTop", physicalTop);
+    // param.marginLeft = physicalLeft;
+    // param.marginTop = physicalTop;
 
     let model = platformView.getView();
     if (request.logicalWidth != null) {
       let physicalWidth: number = this.toPhysicalPixels(request.logicalWidth);
-      model.params['width'] = physicalWidth;
-      param['width'] = physicalWidth;
+      this.setParams(model.params, "width", physicalWidth);
+      this.setParams(param, "width", physicalWidth);
+      // model.params.width = physicalWidth;
+      // param.width = physicalWidth;
     }
 
     if (request.logicalHeight != null) {
       let physicalHeight: number = this.toPhysicalPixels(request.logicalHeight);
-      model.params['height'] = physicalHeight;
-      param['height'] = physicalHeight;
+      this.setParams(model.params, "height", physicalHeight);
+      this.setParams(param, "height", physicalHeight);
+      // model.params.height = physicalHeight;
+      // param.height = physicalHeight;
     }
 
     viewWrapper.setLayoutParams(param);
     viewWrapper.addDvModel(model);
 
-    RootDvModeManager.addDvModel(viewWrapper.getDvModel());
+    RootDvModeManager.addDvModel(viewWrapper.getDvModel()!);
     this.viewWrappers.set(request.viewId, viewWrapper);
     Log.i(TAG, "Create platform view success");
 
     return textureId;
   }
 
-  public attach(context: Context, textureRegistry: TextureRegistry, dartExecutor: DartExecutor): void {
+  public attach(context: Context, textureRegistry: TextureRegistry | null, dartExecutor: DartExecutor): void {
     if (this.context != null) {
 
     }
@@ -356,22 +376,22 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
 
   public attachToView() {
     for (let wrapper of this.viewWrappers.values()) {
-      this.rootDvModel.model.children.push(wrapper.getDvModel());
+      this.rootDvModel?.model.children.push(wrapper.getDvModel()!);
     }
     for (let mutator of this.platformViewParent.values()) {
-      this.rootDvModel.model.children.push(mutator.getDvModel());
+      this.rootDvModel?.model.children.push(mutator.getDvModel()!);
     }
     for (let platformView of this.platformViews.values()) {
-      platformView.onFlutterViewAttached(this.rootDvModel.model);
+      platformView.onFlutterViewAttached(this.rootDvModel!.model);
     }
   }
 
   public detachFromView(): void {
     for (let index = 0; index < this.viewWrappers.size; index++) {
-      this.rootDvModel.model.children.pop();
+      this.rootDvModel?.model.children.pop();
     }
     for (let index = 0; index < this.platformViewParent.size; index++) {
-      this.rootDvModel.model.children.pop();
+      this.rootDvModel?.model.children.pop();
     }
     this.destroyOverlaySurfaces();
     this.removeOverlaySurfaces();
@@ -387,7 +407,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
   }
 
   public detachTextInputPlugin(): void {
-    this.textInputPlugin == null;
+    this.textInputPlugin = null;
   }
 
   public getRegistry(): PlatformViewRegistry {
@@ -438,7 +458,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     }
     let parentView: FlutterMutatorView = new FlutterMutatorView();
     parentView.setOnDescendantFocusChangeListener(() => {
-      this.platformViewsChannel.invokeViewFocused(viewId);
+      this.platformViewsChannel?.invokeViewFocused(viewId);
     }, () => {
       if (this.textInputPlugin != null) {
         this.textInputPlugin.clearTextInputClient();
