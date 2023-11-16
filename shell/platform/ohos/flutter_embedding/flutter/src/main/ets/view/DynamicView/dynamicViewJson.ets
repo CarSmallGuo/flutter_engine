@@ -66,3 +66,19 @@ export function createDVModelFromJson(json: Object): DVModel {
     jsonObject["build"]
   );
 }
+
+export class DVModelJson {
+  compType: string
+  children: Array<ESObject>
+  attributes: ESObject
+  events: ESObject
+  build: ESObject
+
+  constructor(compType: string, children: Array<ESObject>, attributes: ESObject, events: ESObject, build?: ESObject) {
+    this.compType = compType
+    this.children = children
+    this.attributes = attributes
+    this.events = events;
+    this.build = build;
+  }
+}
