@@ -32,7 +32,7 @@ REPOS_ROOT = ROOT + '/repos'
 def apply_patch(task):
     file_path = task['file_path']
     target_path = task['target']
-    excute_util.excuteArr(['git', 'apply', file_path], target_path)
+    excute_util.excuteArr(['git', 'apply', '--whitespace=nowarn', file_path], target_path)
     pass
 
 
