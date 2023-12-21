@@ -131,7 +131,7 @@ export default class FlutterEngine implements EngineLifecycleListener{
       this.attachToNapi();
     }
 
-    this.pluginRegistry = new FlutterEngineConnectionRegistry(context.getApplicationContext(), this, this.flutterLoader, group!);
+    this.pluginRegistry = new FlutterEngineConnectionRegistry(context.getApplicationContext(), this, this.flutterLoader);
     this.localizationPlugin.sendLocaleToFlutter();
   }
 
