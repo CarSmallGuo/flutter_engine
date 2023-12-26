@@ -76,6 +76,21 @@ void XComponentAdapter::SetNativeXComponent(
   }
 }
 
+void XComponentAdapter::AttachFlutterEngine(std::string& id,
+                                            std::string& shellholderId) {
+  auto iter = xcomponetMap_.find(id);
+  if (iter != xcomponetMap_.end()) {
+    iter->second->AttachFlutterEngine(shellholderId);
+  }
+}
+
+void XComponentAdapter::DetachFlutterEngine(std::string& id) {
+  auto iter = xcomponetMap_.find(id);
+  if (iter != xcomponetMap_.end()) {
+    iter->second->DetachFlutterEngine();
+  }
+}
+
 #include <native_window/external_window.h>
 using OHOS_SurfaceBufferUsage = enum {
   BUFFER_USAGE_CPU_READ = (1ULL << 0),  /**< CPU read buffer */
@@ -213,10 +228,11 @@ void XComponentBase::BindXComponentCallback() {
   callback_.DispatchTouchEvent = DispatchTouchEventCB;
 }
 
-XComponentBase::XComponentBase(std::string id,OH_NativeXComponent* xcomponet) {
+XComponentBase::XComponentBase(std::string id, OH_NativeXComponent* xcomponet) {
   nativeXComponent_ = xcomponet;
   if (nativeXComponent_ != nullptr) {
     id_ = id;
+    isAttached_ = false;
     BindXComponentCallback();
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
   }
@@ -225,10 +241,18 @@ XComponentBase::XComponentBase(std::string id,OH_NativeXComponent* xcomponet) {
 XComponentBase::~XComponentBase()
 {
 
+void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
+  shellholderId_ = shellholderId;
+  isAttached_ = true;
 }
 
-void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component, void* window)
-{
+void XComponentBase::DetachFlutterEngine() {
+  shellholderId_ = "";
+  isAttached_ = false;
+}
+
+void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component,
+                                      void* window) {
   LOGD(
       "XComponentManger::OnSurfaceCreated window = %{public}p component = "
       "%{public}p",
@@ -248,7 +272,11 @@ void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component, void* wind
   if (ret) {
     LOGD("SetNativeWindowOpt failed:%{public}d", ret);
   }
-  PlatformViewOHOSNapi::SurfaceCreated(std::stoll(id_), window);
+  if (isAttached_) {
+    PlatformViewOHOSNapi::SurfaceCreated(std::stoll(shellholderId_), window);
+  } else {
+    LOGE("OnSurfaceCreated XComponentBase is not attached");
+  }
 }
 
 void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component, void* window)
@@ -260,22 +288,38 @@ void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component, void* wind
     LOGD("XComponent Current width:%{public}d,height:%{public}d",
          static_cast<int>(width_), static_cast<int>(height_));
   }
-  PlatformViewOHOSNapi::SurfaceChanged(std::stoll(id_), width_, height_);
+  if (isAttached_) {
+    PlatformViewOHOSNapi::SurfaceChanged(std::stoll(shellholderId_), width_,
+                                         height_);
+  } else {
+    LOGE("OnSurfaceCreated XComponentBase is not attached");
+  }
 }
 
-void XComponentBase::OnSurfaceDestroyed(OH_NativeXComponent* component, void* window)
-{
+void XComponentBase::OnSurfaceDestroyed(OH_NativeXComponent* component,
+                                        void* window) {
   LOGD("XComponentManger::OnSurfaceDestroyed");
-  PlatformViewOHOSNapi::SurfaceDestroyed(std::stoll(id_));
+  if (isAttached_) {
+    PlatformViewOHOSNapi::SurfaceDestroyed(std::stoll(shellholderId_));
+  } else {
+    LOGE("OnSurfaceCreated OnSurfaceDestroyed is not attached");
+  }
 }
 
-void XComponentBase::OnDispatchTouchEvent(OH_NativeXComponent* component, void* window)
-{
+void XComponentBase::OnDispatchTouchEvent(OH_NativeXComponent* component,
+                                          void* window) {
   LOGD("XComponentManger::DispatchTouchEvent");
   int32_t ret =
       OH_NativeXComponent_GetTouchEvent(component, window, &touchEvent_);
   if (ret == OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
-    ohosTouchProcessor_.HandleTouchEvent(std::stoll(id_), component, &touchEvent_);
+    if (isAttached_) {
+      ohosTouchProcessor_.HandleTouchEvent(std::stoll(shellholderId_),
+                                           component, &touchEvent_);
+    } else {
+      LOGE(
+          "XComponentManger::DispatchTouchEvent XComponentBase is not "
+          "attached");
+    }
   }
 }
 

@@ -163,11 +163,13 @@ export class FlutterAbility extends UIAbility implements Host {
       // RootDvModeManager.addDvModel(xComponentModel);
 
       if (!this.flutterView) {
-        this.flutterView = new FlutterView();
+        if (this.delegate?.getFlutterNapi()) {
+          this.flutterView = new FlutterView(this.delegate?.getFlutterNapi()!);
+        }
       }
       const engine = this.getFlutterEngine();
       if (engine) {
-        this.flutterView.attachToFlutterEngine(engine);
+        this.flutterView?.attachToFlutterEngine(engine);
       } else {
         throw new Error('this.getFlutterEngine() is null!');
       }

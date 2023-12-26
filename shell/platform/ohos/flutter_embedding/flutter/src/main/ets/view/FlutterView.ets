@@ -14,6 +14,7 @@
 */
 import util from '@ohos.util';
 import FlutterEngine from '../embedding/engine/FlutterEngine';
+import FlutterNapi from '../embedding/engine/FlutterNapi';
 import { RootDvModeManager } from '../plugin/platform/RootDvModelManager';
 import { BuilderParams, DVModel, DVModelChildren, DVModelEvents, DVModelParameters } from './DynamicView/dynamicView';
 
@@ -45,16 +46,20 @@ function BuildXComponentStruct(buildParams: BuilderParams) {
 export class FlutterView {
   private xcomponentId: number
   private flutterEngine?: FlutterEngine | null
+  private flutterNapi: FlutterNapi
+  private isAttach: boolean
 
-  constructor() {
+  constructor(flutterNapi: FlutterNapi) {
+    this.flutterNapi = flutterNapi
+    this.isAttach = false
     this.xcomponentId = Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER + 1));
   }
 
-  public getUUID(): number {
+  public getXComponentId(): number {
     return this.xcomponentId;
   }
 
-  public getFlutterEngine(): FlutterEngine | null {
+  public getAttachedFlutterEngine(): FlutterEngine | null {
     return this.flutterEngine ? this.flutterEngine : null;
   }
 
@@ -66,9 +71,19 @@ export class FlutterView {
     let xComponentModel: DVModel =
       new DVModel("xComponent", params, new DVModelEvents(), new DVModelChildren(), BuildXComponentStruct);
     RootDvModeManager.addDvModel(xComponentModel);
+
+    //xcomponent绑定engine
+    this.flutterNapi.xComponentAttachFlutterEngine(this.xcomponentId);
+
+    this.isAttach = true;
+  }
+
+  public isAttachedToFlutterEngine(): boolean {
+    return this.isAttach;
   }
 
   public detachFromFlutterEngine() {
     this.flutterEngine = null
+    this.isAttach = false
   }
 }

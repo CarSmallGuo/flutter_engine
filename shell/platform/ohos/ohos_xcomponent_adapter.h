@@ -32,6 +32,9 @@ public:
   XComponentBase(std::string id_, OH_NativeXComponent* xcomponet);
   ~XComponentBase();
 
+  void AttachFlutterEngine(std::string shellholderId);
+  void DetachFlutterEngine();
+
   // Callback, called by ACE XComponent
   void OnSurfaceCreated(OH_NativeXComponent* component, void* window);
   void OnSurfaceChanged(OH_NativeXComponent* component, void* window);
@@ -41,6 +44,8 @@ public:
   OH_NativeXComponent_TouchEvent touchEvent_;
   OH_NativeXComponent_Callback callback_;
   std::string id_;
+  std::string shellholderId_;
+  bool isAttached_;
   OH_NativeXComponent* nativeXComponent_;
   uint64_t width_;
   uint64_t height_;
@@ -56,6 +61,8 @@ class XComponentAdapter {
   bool Export(napi_env env, napi_value exports);
   void SetNativeXComponent(std::string& id,
                            OH_NativeXComponent* nativeXComponent);
+  void AttachFlutterEngine(std::string& id, std::string& shellholderId);
+  void DetachFlutterEngine(std::string& id);
 
  public:
   std::map<std::string, XComponentBase*> xcomponetMap_;
