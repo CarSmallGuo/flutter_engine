@@ -57,11 +57,11 @@ DIR_LOG = safeGetPath("%s/logs" % DIR_OUTPUTS)
 
 class BuildInfo:
     def __init__(
-            self,
-            buildType="release",
-            targetOS="ohos",
-            targetArch="arm64",
-            targetTriple="arm64-%s-ohos" % OS_NAME,
+        self,
+        buildType="release",
+        targetOS="ohos",
+        targetArch="arm64",
+        targetTriple="arm64-%s-ohos" % OS_NAME,
     ):
         self.buildType = buildType
         self.targetOS = targetOS
@@ -128,15 +128,14 @@ def getNdkHome():
 
     logging.info("OHOS_NDK_HOME = %s" % OHOS_NDK_HOME)
     if (
-            (not os.path.exists(OHOS_NDK_HOME))
-            or (not os.path.exists(OHOS_NDK_HOME + "/sysroot"))
-            or (not os.path.exists(OHOS_NDK_HOME + "/llvm/bin"))
-            or (not os.path.exists(OHOS_NDK_HOME + "/build-tools/cmake/bin"))
+        (not os.path.exists(OHOS_NDK_HOME))
+        or (not os.path.exists(OHOS_NDK_HOME + "/sysroot"))
+        or (not os.path.exists(OHOS_NDK_HOME + "/llvm/bin"))
+        or (not os.path.exists(OHOS_NDK_HOME + "/build-tools/cmake/bin"))
     ):
         logging.error(
             """
-    Please set the environment variables for HarmonyOS NDK to "OHOS_NDK_HOME".
-    Such as 'export OHOS_NDK_HOME=~/ndk/mac/4.0/native'.
+    Please set the environment variables for HarmonyOS SDK to "HOS_SDK_HOME" or "OHOS_SDK_HOME".
     We will use both native/llvm and native/sysroot.
     Please ensure that the file "native/llvm/bin/clang" exists and is executable."""
         )
@@ -150,9 +149,9 @@ def engineConfig(buildInfo, extraParam=""):
     # export PATH=$OHOS_NDK_HOME/build-tools/cmake/bin:$OHOS_NDK_HOME/llvm/bin:$PATH
     lastPath = os.getenv("PATH")
     os.environ["PATH"] = (
-            "%s%s" % (os.path.join(OHOS_NDK_HOME, "build-tools", "cmake", "bin"), PATH_SEP)
-            + "%s%s" % (os.path.join(OHOS_NDK_HOME, "build-tools", "llvm", "bin"), PATH_SEP)
-            + lastPath
+        "%s%s" % (os.path.join(OHOS_NDK_HOME, "build-tools", "cmake", "bin"), PATH_SEP)
+        + "%s%s" % (os.path.join(OHOS_NDK_HOME, "build-tools", "llvm", "bin"), PATH_SEP)
+        + lastPath
     )
 
     OPT = "--unoptimized --no-lto " if buildInfo.buildType == "debug" else ""
@@ -174,7 +173,7 @@ def engineConfig(buildInfo, extraParam=""):
         + extraParam.replace("\\", ""),
         checkCode=False,
         timeout=600,
-        )
+    )
 
 
 # 执行engine编译操作
@@ -219,7 +218,7 @@ def harBuild(buildInfo):
     fileDest = safeGetPath(
         "%s/src/out/%s/ohos/flutter_embedding.har" % (DIR_ROOT, getOutput(buildInfo)),
         isDirectory=False,
-        )
+    )
     shutil.copy(fileSrc, fileDest)
     logging.info(
         "Copy result is %s, from %s to %s"
