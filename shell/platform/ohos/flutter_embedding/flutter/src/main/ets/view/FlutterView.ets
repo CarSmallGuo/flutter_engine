@@ -66,15 +66,16 @@ export class FlutterView {
   public attachToFlutterEngine(flutterEngine: FlutterEngine) {
     this.flutterEngine = flutterEngine;
 
+    // 1.给XComponent赋值id
     let params: DVModelParameters = new DVModelParameters();
     (params as Record<string, ESObject>)["xComponentId"] = this.xcomponentId.toString()
     let xComponentModel: DVModel =
       new DVModel("xComponent", params, new DVModelEvents(), new DVModelChildren(), BuildXComponentStruct);
     RootDvModeManager.addDvModel(xComponentModel);
 
-    //xcomponent绑定engine
+    //2.xcomponent绑定engine
+    // 将shellHolder传递到C++侧，用于将Xcomponent和FlutterEngine绑定
     this.flutterNapi.xComponentAttachFlutterEngine(this.xcomponentId);
-
     this.isAttach = true;
   }
 
@@ -83,6 +84,7 @@ export class FlutterView {
   }
 
   public detachFromFlutterEngine() {
+    this.flutterNapi.xComponentDetachFlutterEngine(this.xcomponentId);
     this.flutterEngine = null
     this.isAttach = false
   }
