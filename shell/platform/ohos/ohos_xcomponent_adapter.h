@@ -29,11 +29,12 @@ private:
   void BindXComponentCallback();
   
 public:
-  XComponentBase(std::string id_, OH_NativeXComponent* xcomponet);
+  XComponentBase(std::string id);
   ~XComponentBase();
 
   void AttachFlutterEngine(std::string shellholderId);
   void DetachFlutterEngine();
+  void SetNativeXComponent(OH_NativeXComponent* nativeXComponent);
 
   // Callback, called by ACE XComponent
   void OnSurfaceCreated(OH_NativeXComponent* component, void* window);
