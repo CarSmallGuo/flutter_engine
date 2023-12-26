@@ -37,32 +37,15 @@ import {
   DVModel,
   DVModelChildren,
   DVModelEvents,
-  DVModelParameters } from '../../view/DynamicView/dynamicView';
+  DVModelParameters
+} from '../../view/DynamicView/dynamicView';
 import StringUtils from '../../util/StringUtils';
 import List from '@ohos.util.List';
 import ExclusiveAppComponent from './ExclusiveAppComponent';
+import { FlutterView } from '../../view/FlutterView';
 
 const TAG = "FlutterAbility";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
-
-@Component
-struct XComponentStruct {
-  private context:ESObject;
-  dvModelParams: DVModelParameters = new DVModelParameters();
-
-  build() {
-    XComponent({ id: (this.dvModelParams as Record<string, ESObject>)["xComponentId"], type: 'texture', libraryname: 'flutter'})
-      .onLoad((context) => {
-        this.context = context;
-      })
-      .onDestroy(() => {
-      })
-  }
-}
-
-@Builder function BuildXComponentStruct(buildParams: BuilderParams) {
-  XComponentStruct({dvModelParams: buildParams.params});
-}
 
 /**
  * flutter ohos基础ability，请在让主ability继承自该类。
@@ -76,6 +59,7 @@ export class FlutterAbility extends UIAbility implements Host {
   private mainWindow?: window.Window;
   private viewportMetrics = new ViewportMetrics();
   private displayInfo?: display.Display;
+  private flutterView?: FlutterView
 
   /**
    * onCreate
@@ -171,12 +155,22 @@ export class FlutterAbility extends UIAbility implements Host {
   loadContent() {
     if (this.windowStage != null && this.stillAttachedForEvent("loadContent")) {
       Log.i(TAG, 'loadContent');
-      let params: DVModelParameters = new DVModelParameters();
-      (params as Record<string, ESObject>)["xComponentId"] =
-        this.delegate?.getFlutterNapi()?.nativeShellHolderId?.toString();
-      let xComponentModel: DVModel =
-        new DVModel("xComponent", params, new DVModelEvents(), new DVModelChildren(), BuildXComponentStruct);
-      RootDvModeManager.addDvModel(xComponentModel);
+      // let params: DVModelParameters = new DVModelParameters();
+      // (params as Record<string, ESObject>)["xComponentId"] =
+      //   this.delegate?.getFlutterNapi()?.nativeShellHolderId?.toString();
+      // let xComponentModel: DVModel =
+      //   new DVModel("xComponent", params, new DVModelEvents(), new DVModelChildren(), BuildXComponentStruct);
+      // RootDvModeManager.addDvModel(xComponentModel);
+
+      if (!this.flutterView) {
+        this.flutterView = new FlutterView();
+      }
+      const engine = this.getFlutterEngine();
+      if (engine) {
+        this.flutterView.attachToFlutterEngine(engine);
+      } else {
+        throw new Error('this.getFlutterEngine() is null!');
+      }
 
       this.windowStage?.loadContent('pages/Index', (err, data) => {
         if (err.code) {
@@ -324,7 +318,7 @@ export class FlutterAbility extends UIAbility implements Host {
     return true;
   }
 
-  shouldRestoreAndSaveState(): boolean{
+  shouldRestoreAndSaveState(): boolean {
     if (this.launchWant.parameters![FlutterAbilityLaunchConfigs.EXTRA_CACHED_ENGINE_ID] != undefined) {
       return this.launchWant.parameters![FlutterAbilityLaunchConfigs.EXTRA_CACHED_ENGINE_ID] as boolean;
     }
@@ -335,7 +329,7 @@ export class FlutterAbility extends UIAbility implements Host {
     return true;
   }
 
-  getPlugins(): List<FlutterPlugin>{
+  getPlugins(): List<FlutterPlugin> {
     // Subclasses should override this function.
     return new List()
   }
@@ -380,7 +374,7 @@ export class FlutterAbility extends UIAbility implements Host {
     }
   }
 
-  private onWindowPropertiesUpdated(){
+  private onWindowPropertiesUpdated() {
     if (this.delegate == null || !this.delegate.isAttached) {
       return;
     }
@@ -416,7 +410,7 @@ export class FlutterAbility extends UIAbility implements Host {
     }
   }
 
-  onConfigurationUpdated(config: Configuration){
+  onConfigurationUpdated(config: Configuration) {
     Log.i(TAG, 'onConfigurationUpdated config:' + JSON.stringify(config));
     this?.delegate?.flutterEngine?.getSettingsChannel()?.startMessage()
       .setAlwaysUse24HourFormat(I18n.System.is24HourClock())

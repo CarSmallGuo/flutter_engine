@@ -12,7 +12,63 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+import util from '@ohos.util';
+import FlutterEngine from '../embedding/engine/FlutterEngine';
+import { RootDvModeManager } from '../plugin/platform/RootDvModelManager';
+import { BuilderParams, DVModel, DVModelChildren, DVModelEvents, DVModelParameters } from './DynamicView/dynamicView';
+
+
+@Component
+struct XComponentStruct {
+  private context: ESObject;
+  dvModelParams: DVModelParameters = new DVModelParameters();
+
+  build() {
+    XComponent({
+      id: (this.dvModelParams as Record<string, ESObject>)["xComponentId"],
+      type: 'texture',
+      libraryname: 'flutter'
+    })
+      .onLoad((context) => {
+        this.context = context;
+      })
+      .onDestroy(() => {
+      })
+  }
+}
+
+@Builder
+function BuildXComponentStruct(buildParams: BuilderParams) {
+  XComponentStruct({ dvModelParams: buildParams.params });
+}
 
 export class FlutterView {
+  private xcomponentId: number
+  private flutterEngine?: FlutterEngine | null
 
+  constructor() {
+    this.xcomponentId = Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER + 1));
+  }
+
+  public getUUID(): number {
+    return this.xcomponentId;
+  }
+
+  public getFlutterEngine(): FlutterEngine | null {
+    return this.flutterEngine ? this.flutterEngine : null;
+  }
+
+  public attachToFlutterEngine(flutterEngine: FlutterEngine) {
+    this.flutterEngine = flutterEngine;
+
+    let params: DVModelParameters = new DVModelParameters();
+    (params as Record<string, ESObject>)["xComponentId"] = this.xcomponentId.toString()
+    let xComponentModel: DVModel =
+      new DVModel("xComponent", params, new DVModelEvents(), new DVModelChildren(), BuildXComponentStruct);
+    RootDvModeManager.addDvModel(xComponentModel);
+  }
+
+  public detachFromFlutterEngine() {
+    this.flutterEngine = null
+  }
 }
