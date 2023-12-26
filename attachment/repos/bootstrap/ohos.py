@@ -135,8 +135,8 @@ def getNdkHome():
     ):
         logging.error(
             """
-    Please set the environment variables for HarmonyOS SDK to "HOS_SDK_HOME" or "OHOS_SDK_HOME".
-    We will use both native/llvm and native/sysroot.
+    Please set the environment variables for HarmonyOS NDK to "OHOS_NDK_HOME".
+    Such as 'export OHOS_NDK_HOME=~/ndk/mac/4.0/native'.
     Please ensure that the file "native/llvm/bin/clang" exists and is executable."""
         )
         exit(10)
