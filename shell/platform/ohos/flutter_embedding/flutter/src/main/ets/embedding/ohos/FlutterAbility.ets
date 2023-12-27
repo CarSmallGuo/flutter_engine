@@ -155,13 +155,6 @@ export class FlutterAbility extends UIAbility implements Host {
   loadContent() {
     if (this.windowStage != null && this.stillAttachedForEvent("loadContent")) {
       Log.i(TAG, 'loadContent');
-      // let params: DVModelParameters = new DVModelParameters();
-      // (params as Record<string, ESObject>)["xComponentId"] =
-      //   this.delegate?.getFlutterNapi()?.nativeShellHolderId?.toString();
-      // let xComponentModel: DVModel =
-      //   new DVModel("xComponent", params, new DVModelEvents(), new DVModelChildren(), BuildXComponentStruct);
-      // RootDvModeManager.addDvModel(xComponentModel);
-
       if (!this.flutterView) {
         if (this.delegate?.getFlutterNapi()) {
           this.flutterView = new FlutterView(this.delegate?.getFlutterNapi()!);
