@@ -56,6 +56,10 @@ struct XComponentStruct {
         this.context = context;
       })
       .onDestroy(() => {
+        let func: Function = (this.dvModelParams as Record<string, ESObject>)["xComponentDestroyCallback"];
+        if (func) {
+          func();
+        }
       })
   }
 }
@@ -76,6 +80,8 @@ export class FlutterAbility extends UIAbility implements Host {
   private mainWindow?: window.Window;
   private viewportMetrics = new ViewportMetrics();
   private displayInfo?: display.Display;
+  private abilityDestroy: boolean = false;
+  private xComponentDestroy: boolean = false;
 
   /**
    * onCreate
@@ -108,9 +114,15 @@ export class FlutterAbility extends UIAbility implements Host {
   }
 
   onDestroy() {
+    this.abilityDestroy = true;
     this.context.eventHub.off(EVENT_BACK_PRESS);
     if (this.stillAttachedForEvent("onDestroy")) {
       this?.delegate?.onDestroy();
+      if (this.abilityDestroy && this.xComponentDestroy) {
+        Log.i(TAG, "Enter ability destroy delegate on detach");
+        this.delegate?.onDetach();
+        this.release();
+      }
     }
   }
 
@@ -167,12 +179,24 @@ export class FlutterAbility extends UIAbility implements Host {
     }
   }
 
+  xComponentDestroyCallback() {
+    this.xComponentDestroy = true;
+    if (this.abilityDestroy && this.xComponentDestroy) {
+      Log.i(TAG, "Enter xComponentDestroyCallback delegate.onDetach");
+      this.delegate?.onDetach();
+      this.release();
+    }
+  }
+
   loadContent() {
     if (this.windowStage != null && this.stillAttachedForEvent("loadContent")) {
       Log.i(TAG, 'loadContent');
       let params: DVModelParameters = new DVModelParameters();
       (params as Record<string, ESObject>)["xComponentId"] =
         this.delegate?.getFlutterNapi()?.nativeShellHolderId?.toString();
+      (params as Record<string, ESObject>)["xComponentDestroyCallback"] = () => {
+        this.xComponentDestroyCallback();
+      }
       let xComponentModel: DVModel =
         new DVModel("xComponent", params, new DVModelEvents(), new DVModelChildren(), BuildXComponentStruct);
       RootDvModeManager.addDvModel(xComponentModel);

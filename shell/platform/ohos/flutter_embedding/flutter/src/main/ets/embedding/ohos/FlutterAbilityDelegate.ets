@@ -51,7 +51,7 @@ const FRAMEWORK_RESTORATION_BUNDLE_KEY = "framework";
 class FlutterAbilityDelegate implements ExclusiveAppComponent<UIAbility> {
   private host?: Host | null;
   flutterEngine?: FlutterEngine | null;
-  platformPlugin?: PlatformPlugin;
+  platformPlugin?: PlatformPlugin | null;
   private context?: common.Context;
   private uiContext?: UIContext | undefined;
   private textInputPlugin?: TextInputPlugin;
@@ -255,11 +255,37 @@ class FlutterAbilityDelegate implements ExclusiveAppComponent<UIAbility> {
   }
 
   onDetach() {
+    this.ensureAlive();
+    if (this.flutterEngine) {
+      this.host?.cleanUpFlutterEngine(this.flutterEngine);
+    }
+
     if (this.host?.shouldAttachEngineToActivity()) {
       // Notify plugins that they are no longer attached to an Activity.
       Log.d(TAG, "Detaching FlutterEngine from the Ability");
       this.flutterEngine?.getAbilityControlSurface()?.detachFromAbility();
     }
+
+    if (this.platformPlugin) {
+      this.platformPlugin.destroy();
+      this.platformPlugin = null;
+    }
+
+    if (this.host?.shouldDispatchAppLifecycleState()) {
+      this.flutterEngine?.getLifecycleChannel()?.appIsDetached();
+    }
+
+    if (this.host?.shouldDestroyEngineWithHost()) {
+      this.flutterEngine?.destroy();
+
+      if (this.host?.getCachedEngineId()) {
+        FlutterEngineCache.getInstance().remove(this.host?.getCachedEngineId());
+      }
+
+      this.flutterEngine = null;
+    }
+
+    this.isAttached = false;
   }
 
   onLowMemory(): void {

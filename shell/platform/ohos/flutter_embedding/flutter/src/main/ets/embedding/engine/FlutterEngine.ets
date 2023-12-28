@@ -253,9 +253,12 @@ export default class FlutterEngine implements EngineLifecycleListener{
   destroy(): void {
     Log.d(TAG, "Destroying.");
     this.engineLifecycleListeners.forEach(listener => listener.onEngineWillDestroy())
+    this.pluginRegistry?.destroy();
+    this.platformViewsController?.onDetachedFromNapi();
+    this.dartExecutor.onDetachedFromNAPI();
     this.flutterNapi.removeEngineLifecycleListener(this);
     this.pluginRegistry?.detachFromAbility();
-    this.platformViewsController?.onDetachedFromNapi();
+    this.flutterNapi.detachFromNativeAndReleaseResources();
   }
 
   getRestorationChannel(): RestorationChannel | null {

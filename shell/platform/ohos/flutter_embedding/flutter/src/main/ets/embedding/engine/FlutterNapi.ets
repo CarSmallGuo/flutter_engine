@@ -100,6 +100,15 @@ export default class FlutterNapi {
     this.platformMessageHandler = platformMessageHandler;
   }
 
+  detachFromNativeAndReleaseResources(): void {
+    Log.i(TAG, "DetachFromNativeAndReleaseResources nativeShellHolderId=" + this.nativeShellHolderId);
+    this.ensureAttachedToNative();
+    if (this.nativeShellHolderId) {
+      flutter.nativeDestroy(this.nativeShellHolderId);
+      this.nativeShellHolderId = null;
+    }
+  }
+
   private ensureAttachedToNative(): void {
     if (this.nativeShellHolderId == null) {
       throw new Error(
