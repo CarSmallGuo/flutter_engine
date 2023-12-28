@@ -168,6 +168,8 @@ void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
 
 // |PlatformView|
 void PlatformViewOHOS::NotifyDestroyed() {
+  PlatformView::NotifyDestroyed();
+
   LOGI("PlatformViewOHOS NotifyDestroyed enter");
   if (ohos_surface_) {
     fml::AutoResetWaitableEvent latch;
@@ -338,6 +340,7 @@ void PlatformViewOHOS::ReleaseResourceContext() const {
   if (ohos_surface_) {
     ohos_surface_->ResourceContextClearCurrent();
   }
+  LOGI("ReleaseResourceContext out");
 }
 
 // |PlatformView|

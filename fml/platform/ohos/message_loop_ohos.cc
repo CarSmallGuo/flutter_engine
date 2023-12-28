@@ -66,7 +66,7 @@ void MessageLoopOhos::Run() {
 // |fml::MessageLoopImpl|
 void MessageLoopOhos::Terminate() {
   running_ = false;
-  WakeUp(fml::TimePoint::Now());
+  uv_poll_stop(&poll_handle_);
 }
 
 // |fml::MessageLoopImpl|
