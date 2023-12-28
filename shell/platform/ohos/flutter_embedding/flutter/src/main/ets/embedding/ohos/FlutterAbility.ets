@@ -59,7 +59,7 @@ export class FlutterAbility extends UIAbility implements Host {
   private mainWindow?: window.Window;
   private viewportMetrics = new ViewportMetrics();
   private displayInfo?: display.Display;
-  private flutterView?: FlutterView
+  private flutterView?: FlutterView | null
 
   /**
    * onCreate
@@ -156,15 +156,9 @@ export class FlutterAbility extends UIAbility implements Host {
     if (this.windowStage != null && this.stillAttachedForEvent("loadContent")) {
       Log.i(TAG, 'loadContent');
       if (!this.flutterView) {
-        if (this.delegate?.getFlutterNapi()) {
-          this.flutterView = new FlutterView(this.delegate?.getFlutterNapi()!);
+        if (this.delegate) {
+          this.flutterView = this.delegate?.onCreateView();
         }
-      }
-      const engine = this.getFlutterEngine();
-      if (engine) {
-        this.flutterView?.attachToFlutterEngine(engine);
-      } else {
-        throw new Error('this.getFlutterEngine() is null!');
       }
 
       this.windowStage?.loadContent('pages/Index', (err, data) => {

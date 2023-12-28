@@ -37,6 +37,7 @@ import Settings from './Settings';
 import FlutterNapi from '../engine/FlutterNapi';
 import List from '@ohos.util.List';
 import GeneratedPluginRegister from '../engine/plugins/util/GeneratedPluginRegister';
+import { FlutterView } from '../../view/FlutterView';
 
 const TAG = "FlutterAbilityDelegate";
 const PLUGINS_RESTORATION_BUNDLE_KEY = "plugins";
@@ -57,6 +58,7 @@ class FlutterAbilityDelegate implements ExclusiveAppComponent<UIAbility> {
   private engineGroup?: FlutterEngineGroup;
   private settings?: Settings;
   private isHost:boolean = false;
+  private flutterView?: FlutterView;
 
   constructor(host?: Host) {
     this.host = host;
@@ -384,6 +386,30 @@ class FlutterAbilityDelegate implements ExclusiveAppComponent<UIAbility> {
     } else {
       Log.w(TAG, "onNewIntent() invoked before FlutterFragment was attached to an Activity.");
     }
+  }
+
+  onCreateView(): FlutterView | null {
+    if (this.getFlutterNapi()) {
+      this.flutterView = new FlutterView(this.getFlutterNapi()!);
+      if (this.flutterEngine) {
+        this.flutterView?.attachToFlutterEngine(this.flutterEngine!)
+      }else{
+          throw new Error('this.flutterEngine() is null!');
+      }
+      return this.flutterView;
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Invoke this from {@code FlutterAbility#onDestroy()}.
+   *
+   * */
+  onDestroyView() {
+    Log.i(TAG, "onDestroyView()");
+    this.ensureAlive();
+    this.flutterView?.detachFromFlutterEngine()
   }
 
   onSaveState(reason: AbilityConstant.StateType, wantParam: Record<string, Object>): AbilityConstant.OnSaveResult {
