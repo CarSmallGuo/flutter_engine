@@ -95,6 +95,7 @@ export class FlutterAbility extends UIAbility implements Host {
   onDestroy() {
     this.context.eventHub.off(EVENT_BACK_PRESS);
     if (this.stillAttachedForEvent("onDestroy")) {
+      this?.delegate?.onCreateView();
       this?.delegate?.onDestroy();
     }
   }
