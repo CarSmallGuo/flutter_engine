@@ -87,3 +87,5 @@ export const nativeSetViewportMetrics: (nativeShellHolderId: number, devicePixel
 export const nativeImageDecodeCallback: (width: number, height: number, imageGeneratorPointer: number, pixelMap : image.PixelMap | null) => void;
 
 export const nativeGetSystemLanguages: (nativeShellHolderId: number, languages: Array<string>) => void;
+
+export const nativeInitNativeImage: (textureId: number, aImage: image.Image) => void;

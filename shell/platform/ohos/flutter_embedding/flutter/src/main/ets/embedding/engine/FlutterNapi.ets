@@ -353,6 +353,11 @@ export default class FlutterNapi {
     }
     flutter.nativeGetSystemLanguages(this.nativeShellHolderId!, systemLanguages);
   }
+
+  initNativeImage(textureId: number, aImage: image.Image) {
+    Log.d(TAG, "called initNativeImage ")
+    flutter.nativeInitNativeImage(textureId, aImage);
+  }
 }
 
 export interface AccessibilityDelegate {
