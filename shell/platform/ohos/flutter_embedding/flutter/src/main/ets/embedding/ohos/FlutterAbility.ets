@@ -43,6 +43,8 @@ import StringUtils from '../../util/StringUtils';
 import List from '@ohos.util.List';
 import ExclusiveAppComponent from './ExclusiveAppComponent';
 import { FlutterView } from '../../view/FlutterView';
+import errorManager from '@ohos.app.ability.errorManager';
+import appRecovery from '@ohos.app.ability.appRecovery';
 
 const TAG = "FlutterAbility";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
@@ -60,6 +62,11 @@ export class FlutterAbility extends UIAbility implements Host {
   private viewportMetrics = new ViewportMetrics();
   private displayInfo?: display.Display;
   private flutterView?: FlutterView | null
+  private errorManagerId:number = 0;
+
+  pagePath(): string {
+    return "pages/Index"
+  }
 
   /**
    * onCreate
@@ -89,6 +96,14 @@ export class FlutterAbility extends UIAbility implements Host {
     this.context.eventHub.on(EVENT_BACK_PRESS, () => {
       this.delegate?.flutterEngine?.getNavigationChannel()?.popRoute();
     });
+    let observer:errorManager.ErrorObserver = {
+      onUnhandledException(errorMsg) {
+        console.log("onUnhandledException, errorMsg:", errorMsg);
+        appRecovery.saveAppState();
+        appRecovery.restartApp();
+      }
+    }
+    this.errorManagerId = errorManager.on('error', observer);
   }
 
   onDestroy() {
@@ -97,6 +112,11 @@ export class FlutterAbility extends UIAbility implements Host {
       this?.delegate?.onDestroyView();
       this?.delegate?.onDestroy();
     }
+    errorManager.off('error', this.errorManagerId);
+  }
+
+  onSaveState(reason: AbilityConstant.StateType, wantParam: Record<string, Object>): AbilityConstant.OnSaveResult {
+    return this?.delegate?.onSaveState(reason, wantParam) ?? AbilityConstant.OnSaveResult.ALL_REJECT;
   }
 
   /**
@@ -161,7 +181,7 @@ export class FlutterAbility extends UIAbility implements Host {
         }
       }
 
-      this.windowStage?.loadContent('pages/Index', (err, data) => {
+      this.windowStage?.loadContent(this.pagePath(), (err, data) => {
         if (err.code) {
           Log.e(TAG, 'Failed to load the content. Cause: %{public}s', JSON.stringify(err) ?? '');
           return;
@@ -181,6 +201,10 @@ export class FlutterAbility extends UIAbility implements Host {
       this?.delegate?.getFlutterNapi()?.updateRefreshRate(this.displayInfo!.refreshRate)
       this.onFlutterEngineReady()
     }
+  }
+
+  onNewWant(want: Want, launchParams: AbilityConstant.LaunchParam): void {
+    this?.delegate?.onNewWant(want,launchParams)
   }
 
   onFlutterEngineReady(): void {
@@ -279,7 +303,7 @@ export class FlutterAbility extends UIAbility implements Host {
     return false;
   }
 
-  shouldAttachEngineToActivity(): boolean {
+  shouldAttachEngineToAbility(): boolean {
     return true;
   }
 
