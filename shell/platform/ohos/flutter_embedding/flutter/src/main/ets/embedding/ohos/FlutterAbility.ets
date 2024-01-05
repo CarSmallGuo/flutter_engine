@@ -37,34 +37,17 @@ import {
   DVModel,
   DVModelChildren,
   DVModelEvents,
-  DVModelParameters } from '../../view/DynamicView/dynamicView';
+  DVModelParameters
+} from '../../view/DynamicView/dynamicView';
 import StringUtils from '../../util/StringUtils';
 import List from '@ohos.util.List';
 import ExclusiveAppComponent from './ExclusiveAppComponent';
+import { FlutterView } from '../../view/FlutterView';
 import errorManager from '@ohos.app.ability.errorManager';
 import appRecovery from '@ohos.app.ability.appRecovery';
 
 const TAG = "FlutterAbility";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
-
-@Component
-struct XComponentStruct {
-  private context:ESObject;
-  dvModelParams: DVModelParameters = new DVModelParameters();
-
-  build() {
-    XComponent({ id: (this.dvModelParams as Record<string, ESObject>)["xComponentId"], type: 'texture', libraryname: 'flutter'})
-      .onLoad((context) => {
-        this.context = context;
-      })
-      .onDestroy(() => {
-      })
-  }
-}
-
-@Builder function BuildXComponentStruct(buildParams: BuilderParams) {
-  XComponentStruct({dvModelParams: buildParams.params});
-}
 
 /**
  * flutter ohos基础ability，请在让主ability继承自该类。
@@ -78,6 +61,7 @@ export class FlutterAbility extends UIAbility implements Host {
   private mainWindow?: window.Window;
   private viewportMetrics = new ViewportMetrics();
   private displayInfo?: display.Display;
+  private flutterView?: FlutterView | null
   private errorManagerId:number = 0;
 
   pagePath(): string {
@@ -125,6 +109,7 @@ export class FlutterAbility extends UIAbility implements Host {
   onDestroy() {
     this.context.eventHub.off(EVENT_BACK_PRESS);
     if (this.stillAttachedForEvent("onDestroy")) {
+      this?.delegate?.onDestroyView();
       this?.delegate?.onDestroy();
     }
     errorManager.off('error', this.errorManagerId);
@@ -190,12 +175,11 @@ export class FlutterAbility extends UIAbility implements Host {
   loadContent() {
     if (this.windowStage != null && this.stillAttachedForEvent("loadContent")) {
       Log.i(TAG, 'loadContent');
-      let params: DVModelParameters = new DVModelParameters();
-      (params as Record<string, ESObject>)["xComponentId"] =
-        this.delegate?.getFlutterNapi()?.nativeShellHolderId?.toString();
-      let xComponentModel: DVModel =
-        new DVModel("xComponent", params, new DVModelEvents(), new DVModelChildren(), BuildXComponentStruct);
-      RootDvModeManager.addDvModel(xComponentModel);
+      if (!this.flutterView) {
+        if (this.delegate) {
+          this.flutterView = this.delegate?.onCreateView();
+        }
+      }
 
       this.windowStage?.loadContent(this.pagePath(), (err, data) => {
         if (err.code) {
@@ -353,7 +337,7 @@ export class FlutterAbility extends UIAbility implements Host {
     return true;
   }
 
-  shouldRestoreAndSaveState(): boolean{
+  shouldRestoreAndSaveState(): boolean {
     if (this.launchWant.parameters![FlutterAbilityLaunchConfigs.EXTRA_CACHED_ENGINE_ID] != undefined) {
       return this.launchWant.parameters![FlutterAbilityLaunchConfigs.EXTRA_CACHED_ENGINE_ID] as boolean;
     }
@@ -364,7 +348,7 @@ export class FlutterAbility extends UIAbility implements Host {
     return true;
   }
 
-  getPlugins(): List<FlutterPlugin>{
+  getPlugins(): List<FlutterPlugin> {
     // Subclasses should override this function.
     return new List()
   }
@@ -409,7 +393,7 @@ export class FlutterAbility extends UIAbility implements Host {
     }
   }
 
-  private onWindowPropertiesUpdated(){
+  private onWindowPropertiesUpdated() {
     if (this.delegate == null || !this.delegate.isAttached) {
       return;
     }
@@ -445,7 +429,7 @@ export class FlutterAbility extends UIAbility implements Host {
     }
   }
 
-  onConfigurationUpdated(config: Configuration){
+  onConfigurationUpdated(config: Configuration) {
     Log.i(TAG, 'onConfigurationUpdated config:' + JSON.stringify(config));
     this?.delegate?.flutterEngine?.getSettingsChannel()?.startMessage()
       .setAlwaysUse24HourFormat(I18n.System.is24HourClock())
@@ -474,6 +458,10 @@ export class FlutterAbility extends UIAbility implements Host {
 
   getFlutterEngine(): FlutterEngine | null {
     return this.delegate?.flutterEngine || null;
+  }
+
+  getFlutterView(): FlutterView | null {
+    return this.flutterView ? this.flutterView : null;
   }
 }
 
