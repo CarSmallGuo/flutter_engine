@@ -31,8 +31,6 @@
 #include "flutter/shell/platform/ohos/surface/ohos_snapshot_surface_producer.h"
 #include "flutter/shell/platform/ohos/surface/ohos_surface.h"
 #include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
-#include <multimedia/image_framework/image_mdk.h>
-#include "ohos_external_texture_gl.h"
 
 namespace flutter {
 
@@ -86,11 +84,6 @@ class PlatformViewOHOS final : public PlatformView {
                                int action,
                                void* actionData,
                                int actionDataLenth);
-  void RegisterExternalTexture(
-      int64_t texture_id,
-      ImageNative* image);
-
-  void UnRegisterExternalTexture(int64_t texture_id);
 
   // |PlatformView|
   void LoadDartDeferredLibrary(
@@ -124,7 +117,6 @@ class PlatformViewOHOS final : public PlatformView {
   std::shared_ptr<PlatformMessageHandlerOHOS> platform_message_handler_;
 
   std::shared_ptr<OhosSurfaceFactoryImpl> surface_factory_;
-  std::map<int64_t, std::shared_ptr<OHOSExternalTextureGL>> external_texture_gl_;
 
   // |PlatformView|
   void UpdateSemantics(

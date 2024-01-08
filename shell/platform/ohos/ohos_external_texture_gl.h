@@ -15,20 +15,17 @@
 
 #ifndef OHOS_EXTERNAL_TEXTURE_GL_H
 #define OHOS_EXTERNAL_TEXTURE_GL_H
-#include <GLES2/gl2.h>
+#include <GLES/gl.h>
 
 #include "flutter/common/graphics/texture.h"
 #include "napi/platform_view_ohos_napi.h"
-#include <multimedia/image_framework/image_mdk.h>
-#include <native_window/external_window.h>
-#include <native_image/native_image.h>
 
 // maybe now unused
 namespace flutter {
 
 class OHOSExternalTextureGL : public flutter::Texture {
  public:
-  explicit OHOSExternalTextureGL(int64_t id);
+  explicit OHOSExternalTextureGL(int id);
 
   ~OHOSExternalTextureGL() override;
 
@@ -45,8 +42,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   void OnTextureUnregistered() override;
 
-  void DispatchImage(ImageNative* image);
-
  private:
   void Attach(int textureName);
 
@@ -58,8 +53,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   enum class AttachmentState { uninitialized, attached, detached };
 
-  // ImageNative* image_;
-
   AttachmentState state_ = AttachmentState::uninitialized;
 
   bool new_frame_ready_ = false;
@@ -67,8 +60,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
   GLuint texture_name_ = 0;
 
   SkMatrix transform;
-
-  OH_NativeImage *nativeImage;
 
   FML_DISALLOW_COPY_AND_ASSIGN(OHOSExternalTextureGL);
 };

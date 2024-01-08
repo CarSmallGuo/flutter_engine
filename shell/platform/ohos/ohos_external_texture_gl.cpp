@@ -14,6 +14,7 @@
  */
 
 #include "ohos_external_texture_gl.h"
+#include <GLES/glext.h>
 
 #include <utility>
 
@@ -24,18 +25,13 @@
 #include "third_party/skia/include/gpu/GrBackendSurface.h"
 #include "third_party/skia/include/gpu/GrDirectContext.h"
 
-#include <GLES2/gl2ext.h>
-#include <sys/mman.h>
-
 namespace flutter {
 
-OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id)
-  : Texture(id),transform(SkMatrix::I()) {
-}
+OHOSExternalTextureGL::OHOSExternalTextureGL(int id)
+    : Texture(id), transform(SkMatrix::I()) {}
 
 OHOSExternalTextureGL::~OHOSExternalTextureGL() {
   if (state_ == AttachmentState::attached) {
-    glDeleteTextures(1, &texture_name_);
   }
 }
 
@@ -47,7 +43,6 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     return;
   }
   if (state_ == AttachmentState::uninitialized) {
-    glGenTextures(1, &texture_name_);
     Attach(static_cast<int>(texture_name_));
     state_ = AttachmentState::attached;
   }
@@ -55,8 +50,7 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     Update();
     new_frame_ready_ = false;
   }
-  GrGLTextureInfo textureInfo = {GL_TEXTURE_EXTERNAL_OES, texture_name_,
-                                 GL_RGBA8_OES};
+  GrGLTextureInfo textureInfo = {0, texture_name_, GL_RGBA8_OES};
   GrBackendTexture backendTexture(1, 1, GrMipMapped::kNo, textureInfo);
   sk_sp<SkImage> image = SkImage::MakeFromTexture(
       context.gr_context, backendTexture, kTopLeft_GrSurfaceOrigin,
@@ -93,8 +87,6 @@ void OHOSExternalTextureGL::OnGrContextCreated() {
 void OHOSExternalTextureGL::OnGrContextDestroyed() {
   if (state_ == AttachmentState::attached) {
     Detach();
-    glDeleteTextures(1, &texture_name_);
-    OH_NativeImage_Destroy(&nativeImage);
   }
   state_ = AttachmentState::detached;
 }
@@ -108,89 +100,22 @@ void OHOSExternalTextureGL::OnTextureUnregistered() {
 }
 
 void OHOSExternalTextureGL::Attach(int textureName) {
-  OH_NativeImage_AttachContext(nativeImage, textureName);
+  // do nothing
 }
 
 void OHOSExternalTextureGL::Update() {
-  OH_NativeImage_UpdateSurfaceImage(nativeImage);
   UpdateTransform();
 }
 
 void OHOSExternalTextureGL::Detach() {
-  OH_NativeImage_DetachContext(nativeImage);
+  // do nothing
 }
 
 void OHOSExternalTextureGL::UpdateTransform() {
-  float m[16] = { 0.0f };
-  OH_NativeImage_GetTransformMatrix(nativeImage, m);
-  //transform ohos 4x4 matrix to skia 3x3 matrix
-  SkScalar matrix3[] = {
-    m[0], m[4], m[12],  //
-    m[1], m[5], m[13],  //
-    m[3], m[7], m[15],  //
-  };
-  transform.set9(matrix3);
   SkMatrix inverted;
   if (!transform.invert(&inverted)) {
     FML_LOG(FATAL) << "Invalid SurfaceTexture transformation matrix";
   }
   transform = inverted;
 }
-
-void OHOSExternalTextureGL::DispatchImage(ImageNative* image)
-{
-  if(image == nullptr) {
-    return;
-  }
-
-  if (state_ == AttachmentState::detached) {
-    return;
-  }
-  if (state_ == AttachmentState::uninitialized) {
-    glGenTextures(1, &texture_name_);
-    Attach(static_cast<int>(texture_name_));
-    state_ = AttachmentState::attached;
-  }
-  OhosImageComponent componentNative;
-  if (IMAGE_RESULT_SUCCESS !=
-        OH_Image_GetComponent(image, OHOS_IMAGE_COMPONENT_FORMAT_JPEG, &componentNative)) {
-        FML_DLOG(FATAL)<<"get native component failed";
-        return;
-    }
-  if(nativeImage == nullptr) {
-    nativeImage = OH_NativeImage_Create(texture_name_, GL_TEXTURE_2D);
-  }
-  OHNativeWindow *nativeWindow = OH_NativeImage_AcquireNativeWindow(nativeImage);
-  int code = SET_BUFFER_GEOMETRY;
-  uint32_t width = componentNative.rowStride;
-  uint32_t height = componentNative.size / componentNative.rowStride;
-  OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, width, height);
-  //get NativeWindowBuffer from NativeWindow
-  OHNativeWindowBuffer *buffer = nullptr;
-  int fenceFd;
-  OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow, &buffer, &fenceFd);
-  BufferHandle *handle = OH_NativeWindow_GetBufferHandleFromNative(buffer);
-  //get virAddr of bufferHandl by mmap sys interface
-  void *mappedAddr = mmap(handle->virAddr, handle->size, PROT_READ | PROT_WRITE, MAP_SHARED, handle->fd, 0);
-  if (mappedAddr == MAP_FAILED) {
-    FML_DLOG(FATAL)<<"mmap failed";
-    return;
-  }
-
-  uint8_t *value = componentNative.byteBuffer;
-  uint32_t *pixel = static_cast<uint32_t *>(mappedAddr);
-  for (uint32_t x = 0; x < width; x++) {
-    for (uint32_t y = 0; y < height; y++) {
-      *pixel++ = *value++;
-    }
-  }
-
-  //munmap after use
-  int result = munmap(mappedAddr, handle->size);
-  if (result == -1) {
-    FML_DLOG(FATAL)<<"munmap failed";
-  }
-
-}
-
 }  // namespace flutter
