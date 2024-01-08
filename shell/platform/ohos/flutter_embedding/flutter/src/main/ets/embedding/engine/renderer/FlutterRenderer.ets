@@ -24,6 +24,15 @@ export class FlutterRenderer implements TextureRegistry {
     return surfaceTextureRegistryEntry;
   }
 
+  registerPixelMap(pixelMap: PixelMap): number {
+    let textureId = this.nextTextureId + 1;
+    this.flutterNapi.registerPixelMap(textureId, pixelMap);
+    return textureId;
+  }
+
+  unregisterTexture(textureId: number): void {
+    this.flutterNapi.unregisterTexture(textureId);
+  }
   onTrimMemory(level: number) {
     throw new Error('Method not implemented.');
   }
@@ -37,14 +46,14 @@ export class FlutterRenderer implements TextureRegistry {
     }
     return receiver;
   }
-  private registerTexture(id: number, surfaceTextureWrapper: SurfaceTextureWrapper): void {
+  private registerTexture(textureId: number, surfaceTextureWrapper: SurfaceTextureWrapper): void {
     let receiver = surfaceTextureWrapper.getImageReceiver();
     receiver.on('imageArrival', () => {
       receiver.readNextImage((err: BusinessError, nextImage: image.Image) => {
         if (err || nextImage === undefined) {
           return;
         }
-        this.flutterNapi.initNativeImage(id, nextImage);
+        this.flutterNapi.initNativeImage(textureId, nextImage);
         console.log("[camera test] format: " + nextImage.format);
         nextImage.release((err : BusinessError) =>{
           if (err != undefined) {

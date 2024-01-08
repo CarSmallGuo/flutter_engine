@@ -88,4 +88,8 @@ export const nativeImageDecodeCallback: (width: number, height: number, imageGen
 
 export const nativeGetSystemLanguages: (nativeShellHolderId: number, languages: Array<string>) => void;
 
-export const nativeInitNativeImage: (textureId: number, aImage: image.Image) => void;
+export const nativeInitNativeImage: (nativeShellHolderId: number, textureId: number, aImage: image.Image) => void;
+
+export const nativeUnregisterTexture: (nativeShellHolderId: number, textureId: number) => void;
+
+export const nativeRegisterPixelMap: (nativeShellHolderId: number, textureId: number, pixelMap: PixelMap) => void;
