@@ -14,7 +14,6 @@
  */
 
 #include "ohos_external_texture_gl.h"
-#include <GLES/glext.h>
 
 #include <utility>
 
@@ -25,13 +24,34 @@
 #include "third_party/skia/include/gpu/GrBackendSurface.h"
 #include "third_party/skia/include/gpu/GrDirectContext.h"
 
-namespace flutter {
+#include <sys/mman.h>
+#include <GLES2/gl2ext.h>
 
-OHOSExternalTextureGL::OHOSExternalTextureGL(int id)
-    : Texture(id), transform(SkMatrix::I()) {}
+#define EGL_PLATFORM_OHOS_KHR             0x34E0
+
+namespace flutter {
+using GetPlatformDisplayExt = PFNEGLGETPLATFORMDISPLAYEXTPROC;
+constexpr char CHARACTER_WHITESPACE = ' ';
+constexpr const char *CHARACTER_STRING_WHITESPACE = " ";
+constexpr const char *EGL_EXT_PLATFORM_WAYLAND = "EGL_EXT_platform_wayland";
+constexpr const char *EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
+constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
+constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
+
+OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id)
+  : Texture(id),transform(SkMatrix::I()) {
+    nativeImage_ = nullptr;
+    nativeWindow_ = nullptr;
+    eglContext_ =  EGL_NO_CONTEXT;
+    eglDisplay_ = EGL_NO_DISPLAY;
+    buffer_ = nullptr;
+    pixelMap_ = nullptr;
+    lastImage_ = nullptr;
+}
 
 OHOSExternalTextureGL::~OHOSExternalTextureGL() {
   if (state_ == AttachmentState::attached) {
+    glDeleteTextures(1, &texture_name_);
   }
 }
 
@@ -39,10 +59,12 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
                                   const SkRect& bounds,
                                   bool freeze,
                                   const SkSamplingOptions& sampling) {
+  FML_DLOG(INFO)<<"OHOSExternalTextureGL::Paint";
   if (state_ == AttachmentState::detached) {
     return;
   }
   if (state_ == AttachmentState::uninitialized) {
+    glGenTextures(1, &texture_name_);
     Attach(static_cast<int>(texture_name_));
     state_ = AttachmentState::attached;
   }
@@ -50,12 +72,14 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     Update();
     new_frame_ready_ = false;
   }
-  GrGLTextureInfo textureInfo = {0, texture_name_, GL_RGBA8_OES};
-  GrBackendTexture backendTexture(1, 1, GrMipMapped::kNo, textureInfo);
+  GrGLTextureInfo textureInfo = {GL_TEXTURE_EXTERNAL_OES, texture_name_,
+                                 GL_RGBA8_OES};
+  GrBackendTexture backendTexture(pixelMapInfo.width, pixelMapInfo.height, GrMipMapped::kNo, textureInfo);
   sk_sp<SkImage> image = SkImage::MakeFromTexture(
       context.gr_context, backendTexture, kTopLeft_GrSurfaceOrigin,
       kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
   if (image) {
+    FML_DLOG(INFO)<<"OHOSExternalTextureGL begin draw 1";
     SkAutoCanvasRestore autoRestore(context.canvas, true);
 
     // The incoming texture is vertically flipped, so we flip it
@@ -65,6 +89,7 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     context.canvas->scale(bounds.width(), -bounds.height());
 
     if (!transform.isIdentity()) {
+      FML_DLOG(INFO)<<"OHOSExternalTextureGL begin draw 2";
       sk_sp<SkShader> shader = image->makeShader(
           SkTileMode::kRepeat, SkTileMode::kRepeat, sampling, transform);
 
@@ -75,47 +100,256 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
       paintWithShader.setShader(shader);
       context.canvas->drawRect(SkRect::MakeWH(1, 1), paintWithShader);
     } else {
+      FML_DLOG(INFO)<<"OHOSExternalTextureGL begin draw 3";
       context.canvas->drawImage(image, 0, 0, sampling, context.sk_paint);
     }
   }
 }
 
 void OHOSExternalTextureGL::OnGrContextCreated() {
+  FML_DLOG(INFO)<<" OHOSExternalTextureGL::OnGrContextCreated";
   state_ = AttachmentState::uninitialized;
 }
 
 void OHOSExternalTextureGL::OnGrContextDestroyed() {
+  FML_DLOG(INFO)<<" OHOSExternalTextureGL::OnGrContextDestroyed";
   if (state_ == AttachmentState::attached) {
     Detach();
+    glDeleteTextures(1, &texture_name_);
+    OH_NativeImage_Destroy(&nativeImage_);
   }
   state_ = AttachmentState::detached;
 }
 
 void OHOSExternalTextureGL::MarkNewFrameAvailable() {
+  FML_DLOG(INFO)<<" OHOSExternalTextureGL::MarkNewFrameAvailable";
   new_frame_ready_ = true;
 }
 
 void OHOSExternalTextureGL::OnTextureUnregistered() {
+  FML_DLOG(INFO)<<" OHOSExternalTextureGL::OnTextureUnregistered";
   // do nothing
 }
 
 void OHOSExternalTextureGL::Attach(int textureName) {
-  // do nothing
+  if(eglContext_ == EGL_NO_CONTEXT) {
+    FML_DLOG(INFO)<<"OHOSExternalTextureGL eglContext_ no context, need init";
+    InitEGLEnv();
+  }
+  if(nativeImage_ == nullptr) {
+    // glGenTextures(1, &texture_name_);
+    nativeImage_ = OH_NativeImage_Create(textureName, GL_TEXTURE_2D);
+    FML_DLOG(INFO)<<"OHOSExternalTextureGL texture_name_:"<<static_cast<int>(textureName);
+    FML_DLOG(INFO)<<"OHOSExternalTextureGL nativeImage addr:"<<nativeImage_;
+  }
+
+  if(nativeWindow_ == nullptr) {
+    nativeWindow_ = OH_NativeImage_AcquireNativeWindow(nativeImage_);
+  }
+
+  OH_NativeImage_AttachContext(nativeImage_, textureName);
 }
 
 void OHOSExternalTextureGL::Update() {
+  ProducePixelMapToNativeImage();
+  int32_t ret = OH_NativeImage_UpdateSurfaceImage(nativeImage_);
+  if(ret != 0) {
+    FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_UpdateSurfaceImage err code:"<< ret;
+  }
   UpdateTransform();
 }
 
 void OHOSExternalTextureGL::Detach() {
-  // do nothing
+  OH_NativeImage_DetachContext(nativeImage_);
+  OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
 }
 
 void OHOSExternalTextureGL::UpdateTransform() {
+  float m[16] = { 0.0f };
+  int32_t ret = OH_NativeImage_GetTransformMatrix(nativeImage_, m);
+  if(ret != 0) {
+    FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_GetTransformMatrix err code:"<< ret;
+  }
+  //transform ohos 4x4 matrix to skia 3x3 matrix
+  FML_DLOG(INFO)<<"OHOSExternalTextureGL::UpdateTransform "<<m[0]<<" "<<m[4]<<" "<<m[12];
+  FML_DLOG(INFO)<<"OHOSExternalTextureGL::UpdateTransform "<<m[1]<<" "<<m[5]<<" "<<m[13];
+  FML_DLOG(INFO)<<"OHOSExternalTextureGL::UpdateTransform "<<m[3]<<" "<<m[7]<<" "<<m[15];
+  SkScalar matrix3[] = {
+    m[0], m[4], m[12],  //
+    m[1], m[5], m[13],  //
+    m[3], m[7], m[15],  //
+  };
+  transform.set9(matrix3);
   SkMatrix inverted;
   if (!transform.invert(&inverted)) {
-    FML_LOG(FATAL) << "Invalid SurfaceTexture transformation matrix";
+    FML_LOG(FATAL) << "OHOSExternalTextureGL Invalid SurfaceTexture transformation matrix";
   }
   transform = inverted;
 }
+
+void OHOSExternalTextureGL::DispatchImage(ImageNative* image)
+{
+  lastImage_ = image;
+}
+
+void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
+{
+  FML_DLOG(INFO)<<"OHOSExternalTextureGL::ProducePixelMapToNativeImage enter";
+  if(pixelMap_ == nullptr) {
+    FML_DLOG(FATAL)<<"OHOSExternalTextureGL pixelMap in null";
+    return;
+  }
+  if (state_ == AttachmentState::detached) {
+    FML_DLOG(FATAL)<<"OHOSExternalTextureGL ProducePixelMapToNativeImage AttachmentState err";
+    return;
+  }
+  
+  OH_PixelMap_GetImageInfo(pixelMap_, &pixelMapInfo);
+  FML_DLOG(INFO)<<"OHOSExternalTextureGL pixelMapInfo w:"<<pixelMapInfo.width<<" h:"<<pixelMapInfo.height;
+  
+  int code = SET_BUFFER_GEOMETRY;
+  OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, code, pixelMapInfo.width, pixelMapInfo.height);
+  if(buffer_ != nullptr) {
+    OH_NativeWindow_NativeWindowAbortBuffer(nativeWindow_, buffer_);
+    buffer_ = nullptr;
+  }
+  OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow_, &buffer_, &fenceFd);
+  BufferHandle *handle = OH_NativeWindow_GetBufferHandleFromNative(buffer_);
+  //get virAddr of bufferHandl by mmap sys interface
+  void *mappedAddr = mmap(handle->virAddr, handle->size, PROT_READ | PROT_WRITE, MAP_SHARED, handle->fd, 0);
+  if (mappedAddr == MAP_FAILED) {
+    FML_DLOG(FATAL)<<"OHOSExternalTextureGL mmap failed";
+    return;
+  }
+  void *pixelAddr = nullptr;
+  int32_t ret = OH_PixelMap_AccessPixels(pixelMap_, &pixelAddr);
+  if(ret != IMAGE_RESULT_SUCCESS) {
+    FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_PixelMap_AccessPixels err:"<< ret;
+    return;
+  }
+  FML_DLOG(INFO)<<"OHOSExternalTextureGL pixelAddr:"<<pixelAddr;
+  // memcpy(mappedAddr, pixelAddr, pixelMapInfo.width*pixelMapInfo.height*4);
+  uint8_t *value = static_cast<uint8_t*>(pixelAddr);
+  uint32_t *pixel = static_cast<uint32_t *>(mappedAddr);
+  for (uint32_t x = 0; x < pixelMapInfo.width; x++) {
+    for (uint32_t y = 0; y < pixelMapInfo.height; y++) {
+      *pixel++ = *value++;
+    }
+  }
+  OH_PixelMap_UnAccessPixels(pixelMap_);
+  //munmap after use
+  ret = munmap(mappedAddr, handle->size);
+  if (ret == -1) {
+    FML_DLOG(FATAL)<<"OHOSExternalTextureGL munmap failed";
+    return;
+  }
+  Region region{nullptr, 0};
+  ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow_, buffer_, fenceFd, region);
+  if(ret != 0) {
+    FML_DLOG(FATAL)<<"OH_NativeWindow_NativeWindowFlushBuffer err code:"<< ret;
+  }
+  
+}
+
+EGLDisplay OHOSExternalTextureGL::GetPlatformEglDisplay(EGLenum platform, void *native_display, const EGLint *attrib_list)
+{
+  GetPlatformDisplayExt eglGetPlatformDisplayExt = NULL;
+
+  if (!eglGetPlatformDisplayExt) {
+    const char* extensions = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
+    if (extensions &&
+        (CheckEglExtension(extensions, EGL_EXT_PLATFORM_WAYLAND) ||
+         CheckEglExtension(extensions, EGL_KHR_PLATFORM_WAYLAND))) {
+      eglGetPlatformDisplayExt = (GetPlatformDisplayExt)eglGetProcAddress(EGL_GET_PLATFORM_DISPLAY_EXT);
+    }
+  }
+
+  if (eglGetPlatformDisplayExt) {
+    return eglGetPlatformDisplayExt(platform, native_display, attrib_list);
+  }
+
+  return eglGetDisplay((EGLNativeDisplayType)native_display);
+}
+
+void OHOSExternalTextureGL::InitEGLEnv()
+{
+  // 获取当前的显示设备
+  eglDisplay_ =
+      GetPlatformEglDisplay(EGL_PLATFORM_OHOS_KHR, EGL_DEFAULT_DISPLAY, NULL);
+  if (eglDisplay_ == EGL_NO_DISPLAY) {
+    FML_DLOG(FATAL) << "OHOSExternalTextureGL Failed to create EGLDisplay gl errno : "
+                    << eglGetError();
+  }
+  EGLint major, minor;
+  // 初始化EGLDisplay
+  if (eglInitialize(eglDisplay_, &major, &minor) == EGL_FALSE) {
+    FML_DLOG(FATAL) << "OHOSExternalTextureGL Failed to initialize EGLDisplay";
+  }
+
+  // 绑定图形绘制的API为OpenGLES
+  if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
+    FML_DLOG(FATAL) << "OHOSExternalTextureGL Failed to bind OpenGL ES API";
+  }
+  unsigned int ret;
+  EGLint count;
+  EGLint config_attribs[] = {EGL_SURFACE_TYPE,
+                             EGL_WINDOW_BIT,
+                             EGL_RED_SIZE,
+                             8,
+                             EGL_GREEN_SIZE,
+                             8,
+                             EGL_BLUE_SIZE,
+                             8,
+                             EGL_ALPHA_SIZE,
+                             8,
+                             EGL_RENDERABLE_TYPE,
+                             EGL_OPENGL_ES3_BIT,
+                             EGL_NONE};
+  // 获取一个有效的系统配置信息
+  ret = eglChooseConfig(eglDisplay_, config_attribs, &config_, 1, &count);
+  if (!(ret && static_cast<unsigned int>(count) >= 1)) {
+    FML_DLOG(FATAL) << "OHOSExternalTextureGL Failed to eglChooseConfig";
+  }
+
+  const EGLint context_attribs[] = {
+      EGL_CONTEXT_CLIENT_VERSION, EGL_CONTEXT_CLIENT_VERSION_NUM, EGL_NONE};
+
+  // 创建上下文
+  eglContext_ =
+      eglCreateContext(eglDisplay_, config_, EGL_NO_CONTEXT, context_attribs);
+  if (eglContext_ == EGL_NO_CONTEXT) {
+    FML_DLOG(FATAL) << "OHOSExternalTextureGL Failed to create egl context, error:"
+              << eglGetError();
+  }
+
+  // 关联上下文
+  eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_);
+}
+
+bool OHOSExternalTextureGL::CheckEglExtension(const char *extensions, const char *extension)
+{
+  size_t extlen = strlen(extension);
+  const char *end = extensions + strlen(extensions);
+  while (extensions < end) {
+    size_t n = 0;
+    if (*extensions == CHARACTER_WHITESPACE) {
+        extensions++;
+        continue;
+      }
+      n = strcspn(extensions, CHARACTER_STRING_WHITESPACE);
+      if (n == extlen && strncmp(extension, extensions, n) == 0) {
+        return true;
+    }
+    extensions += n;
+  }
+  return false;
+}
+
+void OHOSExternalTextureGL::DispatchPixelMap(NativePixelMap* pixelMap)
+{
+  if(pixelMap != nullptr) {
+    pixelMap_ = pixelMap;
+  }
+}
+
 }  // namespace flutter

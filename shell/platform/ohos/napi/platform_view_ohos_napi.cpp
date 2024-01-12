@@ -26,6 +26,9 @@
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
 #include "flutter/shell/platform/ohos/surface/ohos_native_window.h"
 #include "unicode/uchar.h"
+#include <native_image/native_image.h>
+#include <multimedia/image_framework/image_mdk.h>
+#include <multimedia/image_framework/image_pixel_map_mdk.h>
 
 #define OHOS_SHELL_HOLDER (reinterpret_cast<OHOSShellHolder*>(shell_holder))
 namespace flutter {
@@ -1415,6 +1418,64 @@ napi_value PlatformViewOHOSNapi::nativeGetSystemLanguages(
     return nullptr;
   }
   system_languages = local_languages;
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeInitNativeImage(
+  napi_env env, napi_callback_info info)
+{
+  FML_DLOG(INFO)<<"PlatformViewOHOSNapi::nativeInitNativeImage";
+  size_t argc = 3;
+  napi_value args[3] = {nullptr};
+  int64_t shell_holder, textureId;
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
+  NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
+  NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
+  ImageNative *imageNative = OH_Image_InitImageNative(env, args[2]);
+  // std::unique_ptr<ImageNative> uImage;
+  OHOS_SHELL_HOLDER->GetPlatformView()->RegisterExternalTextureByImage(textureId, imageNative);
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeUnregisterTexture(
+  napi_env env, napi_callback_info info)
+{
+  FML_DLOG(INFO)<<"PlatformViewOHOSNapi::nativeUnregisterTexture";
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
+  int64_t shell_holder, textureId;
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
+  NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
+  NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
+  OHOS_SHELL_HOLDER->GetPlatformView()->UnRegisterExternalTexture(textureId);
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeMarkTextureFrameAvailable(
+  napi_env env, napi_callback_info info)
+{
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
+  int64_t shell_holder, textureId;
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
+  NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
+  NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
+  OHOS_SHELL_HOLDER->GetPlatformView()->MarkTextureFrameAvailable(textureId);
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeRegisterPixelMap(napi_env env,
+      napi_callback_info info)
+{
+  FML_DLOG(INFO)<<"PlatformViewOHOSNapi::nativeRegisterPixelMap";
+  size_t argc = 3;
+  napi_value args[3] = {nullptr};
+  int64_t shell_holder, textureId;
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
+  NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
+  NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
+  NativePixelMap *nativePixelMap = OH_PixelMap_InitNativePixelMap(env, args[2]);
+  OHOS_SHELL_HOLDER->GetPlatformView()->RegisterExternalTextureByPixelMap(textureId, nativePixelMap);
   return nullptr;
 }
 

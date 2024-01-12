@@ -15,17 +15,25 @@
 
 #ifndef OHOS_EXTERNAL_TEXTURE_GL_H
 #define OHOS_EXTERNAL_TEXTURE_GL_H
-#include <GLES/gl.h>
+
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <GLES3/gl3.h>
 
 #include "flutter/common/graphics/texture.h"
 #include "napi/platform_view_ohos_napi.h"
+#include <multimedia/image_framework/image_mdk.h>
+#include <native_window/external_window.h>
+#include <native_image/native_image.h>
+#include <multimedia/image_framework/image_pixel_map_mdk.h>
+#include <native_buffer/native_buffer.h>
 
 // maybe now unused
 namespace flutter {
 
 class OHOSExternalTextureGL : public flutter::Texture {
  public:
-  explicit OHOSExternalTextureGL(int id);
+  explicit OHOSExternalTextureGL(int64_t id);
 
   ~OHOSExternalTextureGL() override;
 
@@ -42,6 +50,10 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   void OnTextureUnregistered() override;
 
+  void DispatchImage(ImageNative* image);
+
+  void DispatchPixelMap(NativePixelMap* pixelMap);
+
  private:
   void Attach(int textureName);
 
@@ -51,7 +63,17 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   void UpdateTransform();
 
+  EGLDisplay GetPlatformEglDisplay(EGLenum platform, void *native_display, const EGLint *attrib_list);
+
+  void InitEGLEnv();
+
+  bool CheckEglExtension(const char *extensions, const char *extension);
+
+  void ProducePixelMapToNativeImage();
+
   enum class AttachmentState { uninitialized, attached, detached };
+
+  // ImageNative* image_;
 
   AttachmentState state_ = AttachmentState::uninitialized;
 
@@ -60,6 +82,24 @@ class OHOSExternalTextureGL : public flutter::Texture {
   GLuint texture_name_ = 0;
 
   SkMatrix transform;
+
+  OH_NativeImage *nativeImage_;
+
+  OHNativeWindow *nativeWindow_;
+
+  OHNativeWindowBuffer *buffer_;
+
+  NativePixelMap* pixelMap_;
+
+  ImageNative* lastImage_;
+
+  OhosPixelMapInfos pixelMapInfo;
+
+  int fenceFd = -1;
+
+  EGLContext eglContext_;
+  EGLDisplay eglDisplay_;
+  EGLConfig config_;
 
   FML_DISALLOW_COPY_AND_ASSIGN(OHOSExternalTextureGL);
 };

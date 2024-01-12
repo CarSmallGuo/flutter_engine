@@ -101,6 +101,18 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeGetSystemLanguages",
           flutter::PlatformViewOHOSNapi::nativeGetSystemLanguages),
+      DECLARE_NAPI_FUNCTION(
+          "nativeInitNativeImage",
+          flutter::PlatformViewOHOSNapi::nativeInitNativeImage),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnregisterTexture",
+          flutter::PlatformViewOHOSNapi::nativeUnregisterTexture),
+      DECLARE_NAPI_FUNCTION(
+          "nativeMarkTextureFrameAvailable",
+          flutter::PlatformViewOHOSNapi::nativeMarkTextureFrameAvailable),
+      DECLARE_NAPI_FUNCTION(
+          "nativeRegisterPixelMap",
+          flutter::PlatformViewOHOSNapi::nativeRegisterPixelMap),
 
   };
   napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
