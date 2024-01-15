@@ -792,6 +792,7 @@ void Shell::OnPlatformViewCreated(std::unique_ptr<Surface> surface) {
   auto ui_task = [engine = engine_->GetWeakPtr()] {
     if (engine) {
       engine->ScheduleFrame();
+      engine->ScheduleFrame();
     }
   };
 
