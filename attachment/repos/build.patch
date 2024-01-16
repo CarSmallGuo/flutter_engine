@@ -12,18 +12,10 @@ index 4e62965..ea49a53 100644
      libs = [ "dl" ]
    }
 diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
-index b8d0f47..d789796 100644
+index b8d0f47..a3d1ed9 100644
 --- a/build/config/BUILDCONFIG.gn
 +++ b/build/config/BUILDCONFIG.gn
-@@ -34,6 +34,7 @@
- # When writing build files, to do something only for the host:
- #   if (current_toolchain == host_toolchain) { ...
- 
-+
- if (target_os == "") {
-   target_os = host_os
- }
-@@ -190,6 +191,7 @@ if (current_os == "win") {
+@@ -190,6 +190,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = false
@@ -31,7 +23,7 @@ index b8d0f47..d789796 100644
    is_mac = false
    is_posix = false
    is_win = true
-@@ -198,6 +200,7 @@ if (current_os == "win") {
+@@ -198,6 +199,7 @@ if (current_os == "win") {
    is_android = false
    is_chromeos = false
    is_fuchsia = false
@@ -39,7 +31,7 @@ index b8d0f47..d789796 100644
    is_fuchsia_host = false
    is_ios = false
    is_linux = false
-@@ -212,6 +215,7 @@ if (current_os == "win") {
+@@ -212,6 +214,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = false
@@ -47,7 +39,7 @@ index b8d0f47..d789796 100644
    is_mac = false
    is_posix = true
    is_win = false
-@@ -223,6 +227,7 @@ if (current_os == "win") {
+@@ -223,6 +226,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = true
@@ -55,7 +47,7 @@ index b8d0f47..d789796 100644
    is_mac = false
    is_posix = true
    is_win = false
-@@ -237,6 +242,7 @@ if (current_os == "win") {
+@@ -237,6 +241,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = false
@@ -63,7 +55,7 @@ index b8d0f47..d789796 100644
    is_mac = false
    is_posix = true
    is_win = false
-@@ -248,6 +254,19 @@ if (current_os == "win") {
+@@ -248,6 +253,19 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = true
    is_linux = false
@@ -83,7 +75,7 @@ index b8d0f47..d789796 100644
    is_mac = false
    is_posix = true
    is_win = false
-@@ -259,6 +278,7 @@ if (current_os == "win") {
+@@ -259,6 +277,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = true
@@ -91,7 +83,7 @@ index b8d0f47..d789796 100644
    is_mac = false
    is_posix = true
    is_win = false
-@@ -270,6 +290,7 @@ if (current_os == "win") {
+@@ -270,6 +289,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = false
@@ -99,7 +91,7 @@ index b8d0f47..d789796 100644
    is_mac = false
    is_posix = true
    is_win = false
-@@ -281,6 +302,7 @@ if (current_os == "win") {
+@@ -281,6 +301,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = false
@@ -107,7 +99,7 @@ index b8d0f47..d789796 100644
    is_mac = false
    is_posix = false
    is_win = false
-@@ -313,7 +335,7 @@ if (!is_clang && using_sanitizer) {
+@@ -313,7 +334,7 @@ if (!is_clang && using_sanitizer) {
    is_clang = true
  }
  
@@ -116,18 +108,18 @@ index b8d0f47..d789796 100644
  
  if (is_msan && !is_linux) {
    assert(false, "Memory sanitizer is only available on Linux.")
-@@ -365,7 +387,9 @@ if (is_posix) {
+@@ -365,7 +386,9 @@ if (is_posix) {
    ]
  }
  
 -if (is_linux) {
-+if(is_ohos || (is_linux && host_os == "mac")){
++if (is_ohos || (is_linux && host_os == "mac")) {
 +  _native_compiler_configs += [ "//build/config/ohos:sdk" ]
-+  }else if (is_linux) {
++} else if (is_linux) {
    _native_compiler_configs += [ "//build/config/linux:sdk" ]
  } else if (is_mac) {
    _native_compiler_configs += [ "//build/config/mac:sdk" ]
-@@ -510,8 +534,18 @@ shlib_toolchain = false
+@@ -510,8 +533,18 @@ shlib_toolchain = false
  if (custom_toolchain != "") {
    assert(custom_sysroot != "")
    assert(custom_target_triple != "")
@@ -147,22 +139,20 @@ index b8d0f47..d789796 100644
  } else if (is_win) {
    if (is_clang) {
      host_toolchain = "//build/toolchain/win:clang_$host_cpu"
-@@ -544,6 +578,21 @@ if (custom_toolchain != "") {
+@@ -544,6 +577,19 @@ if (custom_toolchain != "") {
    } else {
      set_default_toolchain("//build/toolchain/android:$current_cpu")
    }
 +} else if (is_ohos) {
++  set_default_toolchain("//build/toolchain/custom")
 +  if (host_os == "linux") {
 +    if (is_clang) {
 +      host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
-+      set_default_toolchain("//build/toolchain/linux:clang_$current_cpu")
 +    } else {
 +      host_toolchain = "//build/toolchain/linux:$host_cpu"
-+      set_default_toolchain("//build/toolchain/linux:$current_cpu")
 +    }
 +  } else if (host_os == "mac") {
 +    host_toolchain = "//build/toolchain/mac:clang_$host_cpu"
-+    set_default_toolchain("//build/toolchain/ohos:clang_$current_cpu")
 +  } else {
 +    assert(false, "Unknown host for ohos cross compile")
 +  }

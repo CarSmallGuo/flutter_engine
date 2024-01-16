@@ -97,7 +97,7 @@ static void TestPerformanceOverlayLayerGold(int refresh_rate) {
 
   // TODO(https://github.com/flutter/flutter/issues/53784): enable this on all
   // platforms.
-#if !defined(FML_OS_LINUX)
+#if !defined(FML_OS_LINUX) && !defined(FML_OS_OHOS)
   GTEST_SKIP() << "Skipping golden tests on non-Linux OSes";
 #endif  // FML_OS_LINUX
   const bool golden_data_matches = golden_data->equals(snapshot_data.get());

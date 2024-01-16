@@ -257,6 +257,10 @@ if (enable_unittests) {
       "third_party/fonts/emoji.xml",
       "third_party/fonts/itemize.xml",
     ]
+
+    if (is_ohos) {
+      dest = "/data/flutter_unittests/third_party/txt"
+    }
   }
 
   source_set("txt_test_utils") {

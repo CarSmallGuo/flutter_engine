@@ -257,6 +257,13 @@ source_set("fml") {
       "platform/posix/posix_wrappers_posix.cc",
     ]
   }
+
+  if (!defined(defines)) {
+    defines = []
+  }
+  if (enable_unittests && is_ohos) {
+    defines += [ "OHOS_USE_UNITTESTS" ]
+  }
 }
 
 source_set("build_config") {
@@ -383,6 +390,13 @@ if (enable_unittests) {
       "//flutter/runtime:libdart",
       "//flutter/testing",
     ]
+
+    if (!defined(defines)) {
+      defines = []
+    }
+    if (enable_unittests && is_ohos) {
+      defines += [ "OHOS_USE_UNITTESTS_SKIP" ]
+    }
 
     # This is needed for //third_party/googletest for linking zircon symbols.
     if (is_fuchsia) {

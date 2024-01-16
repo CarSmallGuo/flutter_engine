@@ -331,7 +331,12 @@ template("test_fixtures") {
     copy_fixtures_target_name = "_cf_$target_name"
     copy_fixtures(copy_fixtures_target_name) {
       fixtures = invoker.fixtures
-      dest = dest
+
+      if (is_ohos) {
+        dest = target_gen_dir
+      } else {
+        dest = dest
+      }
       forward_variables_from(invoker, [ "deps" ])
     }
     test_public_deps += [ ":$copy_fixtures_target_name" ]
