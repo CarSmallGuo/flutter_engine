@@ -25,6 +25,9 @@
 #include "napi_common.h"
 #include "ohos_context_gl_impeller.h"
 #include "ohos_surface_gl_impeller.h"
+#include "ohos_external_texture_gl.h"
+
+#include <GLES2/gl2ext.h>
 
 namespace flutter {
 
@@ -402,28 +405,39 @@ void PlatformViewOHOS::RegisterExternalTextureByImage(
   }
 }
 
-int64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id) {
-  int surface_id = 0;
+uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id) {
+  uint64_t surface_id = 0;
+  int ret = -1;
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
-    nativeImage_ = OH_NativeImage_Create(texture_id, GL_TEXTURE_EXTERNAL_OES);
-    if (nativeImage_ == null) {
+    std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id);
+    ohos_external_gl->nativeImage_ = OH_NativeImage_Create(texture_id, GL_TEXTURE_EXTERNAL_OES);
+    if (ohos_external_gl->nativeImage_ == nullptr) {
       FML_DLOG(ERROR) << "Error with OH_NativeImage_Create";
       return surface_id;
     }
-    int ret = OH_NativeImage_SetOnFrameAvailableListener(nativeImage_, OHOSExternalTextureGL::MarkNewFrameAvailable);
+    nativeImageFrameAvailableListener_.context = this;
+    nativeImageFrameAvailableListener_.onFrameAvailable = &PlatformViewOHOS::OnNativeImageFrameAvailable;
+    ret = OH_NativeImage_SetOnFrameAvailableListener(ohos_external_gl->nativeImage_, nativeImageFrameAvailableListener_);
     if (ret != 0) {
       FML_DLOG(ERROR) << "Error with OH_NativeImage_SetOnFrameAvailableListener";
       return surface_id;
     }
-    int ret = OH_NativeImage_GetSurfaceId(nativeImage_, &surface_id);
+    ret = OH_NativeImage_GetSurfaceId(ohos_external_gl->nativeImage_, &surface_id);
     if (ret != 0) {
       FML_DLOG(ERROR) << "Error with OH_NativeImage_GetSurfaceId";
       return surface_id;
     }
-    std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id);
     RegisterTexture(ohos_external_gl);
   }
   return surface_id;
+}
+
+void PlatformViewOHOS::OnNativeImageFrameAvailable(void *data) {
+  auto renderThread = reinterpret_cast<OHOSExternalTextureGL *>(data);
+  if (renderThread == nullptr) {
+    return;
+  }
+  renderThread->MarkNewFrameAvailable();
 }
 
 void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id)

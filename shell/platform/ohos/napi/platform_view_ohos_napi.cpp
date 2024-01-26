@@ -1441,14 +1441,16 @@ napi_value PlatformViewOHOSNapi::nativeRegisterTexture(napi_env env,
       napi_callback_info info)
 {
   FML_DLOG(INFO)<<"PlatformViewOHOSNapi::nativeRegisterTexture";
-  size_t argc = 3;
-  napi_value args[3] = {nullptr};
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
   int64_t shell_holder, textureId;
   NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
   NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
   NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
   int64_t surfaceId = OHOS_SHELL_HOLDER->GetPlatformView()->RegisterExternalTexture(textureId);
-  return surfaceId;
+  napi_value res;
+  napi_create_int64(env, surfaceId, &res);
+  return res;
 }
 
 napi_value PlatformViewOHOSNapi::nativeUnregisterTexture(

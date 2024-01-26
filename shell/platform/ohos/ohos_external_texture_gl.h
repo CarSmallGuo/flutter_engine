@@ -37,6 +37,8 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   ~OHOSExternalTextureGL() override;
 
+  OH_NativeImage *nativeImage_;
+
   void Paint(PaintContext& context,
              const SkRect& bounds,
              bool freeze,
@@ -82,8 +84,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
   GLuint texture_name_ = 0;
 
   SkMatrix transform;
-
-  OH_NativeImage *nativeImage_;
 
   OHNativeWindow *nativeWindow_;
 
