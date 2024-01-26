@@ -105,6 +105,9 @@ static napi_value Init(napi_env env, napi_value exports) {
           "nativeInitNativeImage",
           flutter::PlatformViewOHOSNapi::nativeInitNativeImage),
       DECLARE_NAPI_FUNCTION(
+          "nativeRegisterTexture",
+        flutter::PlatformViewOHOSNapi::nativeRegisterTexture),
+      DECLARE_NAPI_FUNCTION(
           "nativeUnregisterTexture",
           flutter::PlatformViewOHOSNapi::nativeUnregisterTexture),
       DECLARE_NAPI_FUNCTION(
