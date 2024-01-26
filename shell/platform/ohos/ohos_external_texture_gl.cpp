@@ -64,8 +64,10 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     return;
   }
   if (state_ == AttachmentState::uninitialized) {
+    InitEGLEnv();
     glGenTextures(1, &texture_name_);
-    Attach(static_cast<int>(texture_name_));
+    // Attach(static_cast<int>(texture_name_));
+    OH_NativeImage_AttachContext(nativeImage_, texture_name_);
     state_ = AttachmentState::attached;
   }
   if (!freeze && new_frame_ready_) {
@@ -151,7 +153,7 @@ void OHOSExternalTextureGL::Attach(int textureName) {
 }
 
 void OHOSExternalTextureGL::Update() {
-  ProducePixelMapToNativeImage();
+  //ProducePixelMapToNativeImage();
   int32_t ret = OH_NativeImage_UpdateSurfaceImage(nativeImage_);
   if(ret != 0) {
     FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_UpdateSurfaceImage err code:"<< ret;

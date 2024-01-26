@@ -402,6 +402,30 @@ void PlatformViewOHOS::RegisterExternalTextureByImage(
   }
 }
 
+int64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id) {
+  int surface_id = 0;
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    nativeImage_ = OH_NativeImage_Create(texture_id, GL_TEXTURE_EXTERNAL_OES);
+    if (nativeImage_ == null) {
+      FML_DLOG(ERROR) << "Error with OH_NativeImage_Create";
+      return surface_id;
+    }
+    int ret = OH_NativeImage_SetOnFrameAvailableListener(nativeImage_, OHOSExternalTextureGL::MarkNewFrameAvailable);
+    if (ret != 0) {
+      FML_DLOG(ERROR) << "Error with OH_NativeImage_SetOnFrameAvailableListener";
+      return surface_id;
+    }
+    int ret = OH_NativeImage_GetSurfaceId(nativeImage_, &surface_id);
+    if (ret != 0) {
+      FML_DLOG(ERROR) << "Error with OH_NativeImage_GetSurfaceId";
+      return surface_id;
+    }
+    std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id);
+    RegisterTexture(ohos_external_gl);
+  }
+  return surface_id;
+}
+
 void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id)
 {
   external_texture_gl_.erase(texture_id);
