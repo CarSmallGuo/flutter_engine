@@ -4,7 +4,9 @@ import { SurfaceTextureEntry, TextureRegistry } from '../../../view/TextureRegis
 import { FlutterAbility } from '../../ohos/FlutterAbility';
 import FlutterNapi from '../FlutterNapi';
 import { SurfaceTextureWrapper } from './SurfaceTextureWrapper';
+import Log from '../../../util/Log';
 
+const TAG = "FlutterRenderer"
 export class FlutterRenderer implements TextureRegistry {
   private nextTextureId: number = 0;
   private flutterNapi: FlutterNapi;
@@ -17,10 +19,20 @@ export class FlutterRenderer implements TextureRegistry {
     return this.registerSurfaceTexture(receiver);
   }
 
+  registerTexture(): SurfaceTextureEntry {
+    Log.i(TAG, "registerTexture")
+    this.nextTextureId = this.nextTextureId + 1;
+    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.nextTextureId);
+    let surfaceId = this.flutterNapi.registerTexture(this.nextTextureId);
+    surfaceTextureRegistryEntry.setSurfaceId(surfaceId);
+    return surfaceTextureRegistryEntry;
+  }
+
   registerSurfaceTexture(receiver: image.ImageReceiver): SurfaceTextureEntry {
     this.nextTextureId = this.nextTextureId + 1;
-    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.nextTextureId, receiver);
-    this.registerTexture(surfaceTextureRegistryEntry.id(), surfaceTextureRegistryEntry.textureWrapper());
+    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.nextTextureId);
+    surfaceTextureRegistryEntry.setImageReceiver(receiver);
+    this.registerImage(surfaceTextureRegistryEntry.getTextureId(), surfaceTextureRegistryEntry.textureWrapper());
     return surfaceTextureRegistryEntry;
   }
 
@@ -46,7 +58,7 @@ export class FlutterRenderer implements TextureRegistry {
     }
     return receiver;
   }
-  private registerTexture(textureId: number, surfaceTextureWrapper: SurfaceTextureWrapper): void {
+  private registerImage(textureId: number, surfaceTextureWrapper: SurfaceTextureWrapper): void {
     let receiver = surfaceTextureWrapper.getImageReceiver();
     receiver.on('imageArrival', () => {
       receiver.readNextImage((err: BusinessError, nextImage: image.Image) => {
@@ -68,25 +80,37 @@ export class FlutterRenderer implements TextureRegistry {
 }
 
 export class SurfaceTextureRegistryEntry implements SurfaceTextureEntry {
-  private textureId: number;
-  private surfaceTextureWrapper: SurfaceTextureWrapper;
+  private textureId: number = 0;
+  private surfaceId: number = 0;
+  private surfaceTextureWrapper: SurfaceTextureWrapper | null = null;
   private released: boolean = false;
 
-  constructor(id: number, receiver: image.ImageReceiver) {
+  constructor(id: number) {
     this.textureId = id;
-    this.surfaceTextureWrapper = new SurfaceTextureWrapper(receiver);
   }
 
   getImageReceiver(): image.ImageReceiver {
-    return this.surfaceTextureWrapper.getImageReceiver();
+    return this.surfaceTextureWrapper!.getImageReceiver();
   }
 
-  id(): number {
+  setImageReceiver(receiver: image.ImageReceiver): void {
+    this.surfaceTextureWrapper = new SurfaceTextureWrapper(receiver);
+  }
+
+  getTextureId(): number {
     return this.textureId;
   }
 
+  getSurfaceId(): number {
+    return this.surfaceId;
+  }
+
+  setSurfaceId(surfaceId: number): void {
+    this.surfaceId = surfaceId;
+  }
+
   textureWrapper(): SurfaceTextureWrapper {
-    return this.surfaceTextureWrapper;
+    return this.surfaceTextureWrapper!;
   }
   release() {
     throw new Error('Method not implemented.');

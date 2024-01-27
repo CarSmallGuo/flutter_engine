@@ -368,6 +368,11 @@ export default class FlutterNapi {
     Log.d(TAG, "called registerPixelMap ");
     flutter.nativeRegisterPixelMap(this.nativeShellHolderId!, textureId, pixelMap);
   }
+
+  registerTexture(textureId: number): number {
+    Log.d(TAG, "called unregisterTexture ");
+    return flutter.nativeRegisterTexture(this.nativeShellHolderId!, textureId);
+  }
 }
 
 export interface AccessibilityDelegate {
