@@ -12,24 +12,21 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+import FlutterEngine from '../engine/FlutterEngine';
+import KeyEventChannel, { FlutterKeyEvent } from '../engine/systemchannels/KeyEventChannel';
 
-{
-  "app": {
-    "signingConfigs": [],
-    "products": [
-      {
-        "name": "default",
-        "signingConfig": "default",
-        "compileSdkVersion": "4.1.0(11)",
-        "compatibleSdkVersion": "4.1.0(11)",
-        "runtimeOS": "HarmonyOS",
+export default class KeyboardManager {
+  private keyEventChannel: KeyEventChannel | null = null
+
+  constructor(engine: FlutterEngine) {
+    this.keyEventChannel = new KeyEventChannel(engine.dartExecutor)
+  }
+
+  handleKeyEvent(event: KeyEvent) {
+    this.keyEventChannel?.sendFlutterKeyEvent(new FlutterKeyEvent(event), event.type == KeyType.Up, {
+      onFrameworkResponse: (isEventHandled: boolean): void => {
+
       }
-    ]
-  },
-  "modules": [
-    {
-      "name": "flutter",
-      "srcPath": "./flutter"
-    }
-  ]
+    })
+  }
 }

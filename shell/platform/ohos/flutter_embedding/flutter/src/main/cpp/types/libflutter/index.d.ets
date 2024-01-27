@@ -52,7 +52,8 @@ export const nativeSpawn: (
   entrypointFunctionName: string,
   pathToEntrypointFunction: string,
   initialRoute: string,
-  entrypointArgs: Array<string>
+  entrypointArgs: Array<string>,
+  napi: FlutterNapi
 ) => number;
 
 export const nativeRunBundleAndSnapshotFromLibrary: (
@@ -87,6 +88,18 @@ export const nativeSetViewportMetrics: (nativeShellHolderId: number, devicePixel
 export const nativeImageDecodeCallback: (width: number, height: number, imageGeneratorPointer: number, pixelMap : image.PixelMap | null) => void;
 
 export const nativeGetSystemLanguages: (nativeShellHolderId: number, languages: Array<string>) => void;
+
+export const nativeXComponentAttachFlutterEngine: (xcomponentId: number, nativeShellHolderId: number) => void;
+
+export const nativeXComponentDetachFlutterEngine: (xcomponentId: number, nativeShellHolderId: number) => void;
+
+/**
+ * Detaches flutterNapi和engine之间的关联
+ * 这个方法执行前提是flutterNapi已经和engine关联
+ */
+export const nativeDestroy: (
+  nativeShellHolderId: number
+) => void;
 
 export const nativeInitNativeImage: (nativeShellHolderId: number, textureId: number, aImage: image.Image) => void;
 
