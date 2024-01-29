@@ -306,7 +306,7 @@ void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessage(
       FML_DLOG(ERROR) << "napi_create_string_utf8 err " << status;
       return;
     }
-
+    FML_DLOG(INFO) << "FlutterViewHandlePlatformMessage mapData= " << mapData;
     if (mapData) {
       delete mapData;
     }
@@ -1494,10 +1494,6 @@ napi_value PlatformViewOHOSNapi::nativeRegisterPixelMap(napi_env env,
   NativePixelMap *nativePixelMap = OH_PixelMap_InitNativePixelMap(env, args[2]);
   OHOS_SHELL_HOLDER->GetPlatformView()->RegisterExternalTextureByPixelMap(textureId, nativePixelMap);
   return nullptr;
-}
-
-int64_t PlatformViewOHOSNapi::GetShellHolder() {
-  return PlatformViewOHOSNapi::shell_holder_value;
 }
 
 void PlatformViewOHOSNapi::SurfaceCreated(int64_t shell_holder, void* window) {
