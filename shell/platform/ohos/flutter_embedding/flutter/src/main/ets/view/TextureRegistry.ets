@@ -17,7 +17,8 @@ import image from '@ohos.multimedia.image';
 export interface TextureRegistry {
 
   createSurfaceTexture(): SurfaceTextureEntry;
-  registerTexture(): SurfaceTextureEntry;
+  getTextureId(): number;
+  registerTexture(textureId: number): SurfaceTextureEntry;
   registerSurfaceTexture(receiver: image.ImageReceiver): SurfaceTextureEntry;
   registerPixelMap(pixelMap: PixelMap): number;
   unregisterTexture(textureId: number): void;

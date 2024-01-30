@@ -274,6 +274,10 @@ export default class FlutterLoader {
     }) : new Array();
   }
 
+  isInitialized(): boolean {
+    return this.initialized;
+  }
+
 }
 
 class InitResult {

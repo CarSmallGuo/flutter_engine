@@ -241,6 +241,10 @@ export default class FlutterEngine implements EngineLifecycleListener{
     return this.settingsChannel;
   }
 
+  getFlutterLoader() {
+    return this.flutterLoader;
+  }
+
   onPreEngineRestart(): void {
 
   }
