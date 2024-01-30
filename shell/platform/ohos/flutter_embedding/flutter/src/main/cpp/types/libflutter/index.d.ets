@@ -54,8 +54,6 @@ export const nativeSpawn: (
   initialRoute: string,
   entrypointArgs: Array<string>,
   napi: FlutterNapi
-  entrypointArgs: Array<string>,
-  napi: FlutterNapi
 ) => number;
 
 export const nativeRunBundleAndSnapshotFromLibrary: (
