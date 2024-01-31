@@ -26,9 +26,9 @@ export class FlutterRenderer implements TextureRegistry {
   }
 
   registerTexture(textureId: number): SurfaceTextureEntry {
-    Log.i(TAG, "registerTexture")
     let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.nextTextureId);
     let surfaceId = this.flutterNapi.registerTexture(textureId);
+    Log.i(TAG, "registerTexture, surfaceId=" + surfaceId);
     surfaceTextureRegistryEntry.setSurfaceId(surfaceId);
     return surfaceTextureRegistryEntry;
   }

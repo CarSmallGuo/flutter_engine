@@ -124,6 +124,8 @@ static napi_value Init(napi_env env, napi_value exports) {
           flutter::PlatformViewOHOSNapi::nativeRegisterPixelMap),
 
   };
+
+  FML_DLOG(INFO) << "Init NAPI size=" << sizeof(desc) / sizeof(desc[0]);
   napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
   bool ret = flutter::XComponentAdapter::GetInstance()->Export(env, exports);
   if (!ret) {

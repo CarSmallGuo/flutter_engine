@@ -144,6 +144,8 @@ export default class FlutterEngine implements EngineLifecycleListener{
     if (automaticallyRegisterPlugins && plugins) {
       GeneratedPluginRegister.registerGeneratedPlugins(this, plugins);
     }
+
+    Log.d(TAG, "Call init finished.")
   }
 
   private attachToNapi(): void {

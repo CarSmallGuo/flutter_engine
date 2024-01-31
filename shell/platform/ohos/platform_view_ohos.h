@@ -182,5 +182,18 @@ class PlatformViewOHOS final : public PlatformView {
 
   static void OnNativeImageFrameAvailable(void *data);
 };
+
+class OhosImageFrameData {
+ public:
+  OhosImageFrameData(PlatformViewOHOS* context,
+                     int64_t texture_id);
+
+  ~OhosImageFrameData();
+
+  PlatformViewOHOS* context_;
+
+  int64_t texture_id_;
+};
+
 }  // namespace flutter
 #endif
