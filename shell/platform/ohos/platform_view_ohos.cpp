@@ -416,10 +416,7 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id) {
       FML_DLOG(ERROR) << "Error with OH_NativeImage_Create";
       return surface_id;
     }
-    // std::make_shared<PlatformViewOHOS>(this);
-    // std::shared_ptr<PlatformViewOHOS>* p = std::make_shared<PlatformViewOHOS>(this);
     void* contextData = new OhosImageFrameData(this, texture_id);
-    // std::shared_ptr<OhosImageFrameData> contextData = std::make_shared<OhosImageFrameData>(std::make_shared<PlatformViewOHOS>(this), texture_id);
     nativeImageFrameAvailableListener_.context = contextData;
     nativeImageFrameAvailableListener_.onFrameAvailable = &PlatformViewOHOS::OnNativeImageFrameAvailable;
     ret = OH_NativeImage_SetOnFrameAvailableListener(ohos_external_gl->nativeImage_, nativeImageFrameAvailableListener_);
