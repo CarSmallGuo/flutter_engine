@@ -40,7 +40,8 @@ export default class FlutterEntry implements Host {
   private windowStage: window.WindowStage | null = null
   private parameters: ParamsConfigs;
   private engineConfigurator: FlutterEngineConfigurator | null = null
-
+  private hasInit: boolean = false;
+  
   constructor(context: Context, params: ParamsConfigs) {
     this.context = context;
     this.uiAbility = FlutterManager.getInstance().getUIAbility(context);
