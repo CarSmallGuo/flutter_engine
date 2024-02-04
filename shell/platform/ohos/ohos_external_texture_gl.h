@@ -44,6 +44,16 @@ class OHOSExternalTextureGL : public flutter::Texture {
              bool freeze,
              const SkSamplingOptions& sampling) override;
 
+  void PaintOrigin(PaintContext& context,
+             const SkRect& bounds,
+             bool freeze,
+             const SkSamplingOptions& sampling);
+
+  void PaintOhImage(PaintContext& context,
+             const SkRect& bounds,
+             bool freeze,
+             const SkSamplingOptions& sampling);
+
   void OnGrContextCreated() override;
 
   void OnGrContextDestroyed() override;
