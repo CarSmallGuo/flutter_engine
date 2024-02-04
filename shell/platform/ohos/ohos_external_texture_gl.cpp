@@ -42,8 +42,8 @@ constexpr const char *EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
 constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 
-OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, std::shared_ptr<OHOSSurface> ohos_surface)
-  : Texture(id), ohos_surface_(std::move(ohos_surface)), transform(SkMatrix::I()) {
+OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface)
+  : Texture(id),ohos_surface_(std::move(ohos_surface)),transform(SkMatrix::I()) {
     nativeImage_ = nullptr;
     nativeWindow_ = nullptr;
     eglContext_ =  EGL_NO_CONTEXT;
