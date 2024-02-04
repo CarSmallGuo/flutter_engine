@@ -21,6 +21,7 @@
 #include <GLES3/gl3.h>
 
 #include "flutter/common/graphics/texture.h"
+#include "flutter/shell/platform/ohos/surface/ohos_surface.h"
 #include "napi/platform_view_ohos_napi.h"
 #include <multimedia/image_framework/image_mdk.h>
 #include <native_window/external_window.h>
@@ -33,7 +34,7 @@ namespace flutter {
 
 class OHOSExternalTextureGL : public flutter::Texture {
  public:
-  explicit OHOSExternalTextureGL(int64_t id);
+  explicit OHOSExternalTextureGL(int64_t id, std::shared_ptr<OHOSSurface> ohos_surface);
 
   ~OHOSExternalTextureGL() override;
 
@@ -105,6 +106,7 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   OhosPixelMapInfos pixelMapInfo;
 
+  std::shared_ptr<OHOSSurface> ohos_surface_;
   int fenceFd = -1;
 
   EGLContext eglContext_;

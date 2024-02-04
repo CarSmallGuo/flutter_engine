@@ -42,8 +42,8 @@ constexpr const char *EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
 constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 
-OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id)
-  : Texture(id),transform(SkMatrix::I()) {
+OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, std::shared_ptr<OHOSSurface> ohos_surface)
+  : Texture(id), ohos_surface_(std::move(ohos_surface)), transform(SkMatrix::I()) {
     nativeImage_ = nullptr;
     nativeWindow_ = nullptr;
     eglContext_ =  EGL_NO_CONTEXT;
@@ -153,8 +153,17 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     return;
   }
   if (state_ == AttachmentState::uninitialized) {
-    Attach(static_cast<int>(texture_name_));
-    state_ = AttachmentState::attached;
+    if (ohos_surface_->ResourceContextMakeCurrent()) {
+      glGenTextures(1, &texture_name_);
+      int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
+      if(ret != 0) {
+        FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_AttachContext err code:"<< ret;
+      }
+      state_ = AttachmentState::attached;
+    } else {
+      FML_DLOG(FATAL)<<"ResourceContextMakeCurrent failed";
+    }
+
   }
   if (!freeze && new_frame_ready_) {
     Update();
