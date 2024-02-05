@@ -179,11 +179,11 @@ void OHOSExternalTextureGL::PaintOrigin(PaintContext& context,
              bool freeze,
              const SkSamplingOptions& sampling) {
   GrGLTextureInfo textureInfo = {GL_TEXTURE_EXTERNAL_OES, texture_name_,
-                                 GR_GL_RGBA8};
-  GrBackendTexture backendTexture(bounds.width(), bounds.height(), GrMipMapped::kNo, textureInfo);
+                                GL_RGBA8_OES};
+  GrBackendTexture backendTexture(1, 1, GrMipMapped::kNo, textureInfo);
   sk_sp<SkImage> image = SkImage::MakeFromTexture(
       context.gr_context, backendTexture, kTopLeft_GrSurfaceOrigin,
-      kRGBA_8888_SkColorType, kOpaque_SkAlphaType, nullptr); // 修改这里后不闪退了
+      kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
   FML_DLOG(INFO)<<"OHOSExternalTextureGL::Paint, image=" << image;
   if (image) {
     FML_DLOG(INFO)<<"OHOSExternalTextureGL begin draw 1";
@@ -216,7 +216,7 @@ void OHOSExternalTextureGL::PaintOrigin(PaintContext& context,
 
   FML_DLOG(INFO) << "OHOSExternalTextureGL, drawSample tag1";
   // drawSample(context.canvas);
-  drawSample2(context.canvas);
+  // drawSample2(context.canvas);
   drawSample3(context.canvas);
   FML_DLOG(INFO) << "OHOSExternalTextureGL, drawSample tag2";
 }
@@ -254,12 +254,13 @@ void OHOSExternalTextureGL::OnTextureUnregistered() {
 }
 
 void OHOSExternalTextureGL::Attach(int textureName) {
-  if(eglContext_ == EGL_NO_CONTEXT) {
+  if (eglContext_ == EGL_NO_CONTEXT) {
     FML_DLOG(INFO)<<"OHOSExternalTextureGL eglContext_ no context, need init";
     InitEGLEnv();
   }
 
   glGenTextures(1, &texture_name_);
+  glBindTexture(GL_TEXTURE_EXTERNAL_OES, texture_name_);
 
   int32_t ret = OH_NativeImage_AttachContext(nativeImage_, textureName);
   if (ret != 0) {
