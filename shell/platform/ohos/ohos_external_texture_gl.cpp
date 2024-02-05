@@ -153,7 +153,7 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     return;
   }
   if (state_ == AttachmentState::uninitialized) {
-    GLContextResult result = ohos_surface_->GLContextMakeCurrent();
+    auto result = ohos_surface_->GLContextMakeCurrent();
     if (result.GetResult()) {
       glGenTextures(1, &texture_name_);
       int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
