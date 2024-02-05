@@ -22,6 +22,7 @@
 
 #include "flutter/common/graphics/texture.h"
 #include "flutter/shell/platform/ohos/surface/ohos_surface.h"
+#include "flutter/shell/platform/ohos/ohos_surface_gl_skia.h"
 #include "napi/platform_view_ohos_napi.h"
 #include <multimedia/image_framework/image_mdk.h>
 #include <native_window/external_window.h>
