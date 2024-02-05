@@ -38,21 +38,25 @@ OhosSurfaceFactoryImpl::OhosSurfaceFactoryImpl(
 
 OhosSurfaceFactoryImpl::~OhosSurfaceFactoryImpl() = default;
 
-std::unique_ptr<OHOSSurface> OhosSurfaceFactoryImpl::CreateSurface() {
-  switch (ohos_context_->RenderingApi()) {
-    case OHOSRenderingAPI::kSoftware:
-      return std::make_unique<OHOSSurfaceSoftware>(ohos_context_);
-    case OHOSRenderingAPI::kOpenGLES:
-      if (enable_impeller_) {
-        return std::make_unique<OHOSSurfaceGLImpeller>(ohos_context_);
-      } else {
-        FML_LOG(INFO) << "OhosSurfaceFactoryImpl::OhosSurfaceGLSkia ";
-        return std::make_unique<OhosSurfaceGLSkia>(ohos_context_);
-      }
-    default:
-      FML_DCHECK(false);
-      return nullptr;
-  }
+// std::unique_ptr<OHOSSurface> OhosSurfaceFactoryImpl::CreateSurface() {
+//   switch (ohos_context_->RenderingApi()) {
+//     case OHOSRenderingAPI::kSoftware:
+//       return std::make_unique<OHOSSurfaceSoftware>(ohos_context_);
+//     case OHOSRenderingAPI::kOpenGLES:
+//       if (enable_impeller_) {
+//         return std::make_unique<OHOSSurfaceGLImpeller>(ohos_context_);
+//       } else {
+//         FML_LOG(INFO) << "OhosSurfaceFactoryImpl::OhosSurfaceGLSkia ";
+//         return std::make_unique<OhosSurfaceGLSkia>(ohos_context_);
+//       }
+//     default:
+//       FML_DCHECK(false);
+//       return nullptr;
+//   }
+// }
+std::unique_ptr<OhosSurfaceGLSkia> OhosSurfaceFactoryImpl::CreateSurface() {
+   FML_LOG(INFO) << "OhosSurfaceFactoryImpl::OhosSurfaceGLSkia ";
+   return std::make_unique<OhosSurfaceGLSkia>(ohos_context_);
 }
 
 std::unique_ptr<OHOSContext> CreateOHOSContext(
