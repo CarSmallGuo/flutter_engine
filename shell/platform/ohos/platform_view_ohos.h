@@ -31,6 +31,7 @@
 #include "flutter/shell/platform/ohos/surface/ohos_snapshot_surface_producer.h"
 #include "flutter/shell/platform/ohos/surface/ohos_surface.h"
 #include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
+#include "flutter/shell/platform/ohos/ohos_surface_gl_skia.h"
 #include <multimedia/image_framework/image_mdk.h>
 #include "ohos_external_texture_gl.h"
 #include <multimedia/image_framework/image_pixel_map_mdk.h>
