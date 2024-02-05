@@ -125,7 +125,7 @@ class PlatformViewOHOS final : public PlatformView {
   const std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;
   std::shared_ptr<OHOSContext> ohos_context_;
 
-  std::shared_ptr<OHOSSurface> ohos_surface_;
+  std::shared_ptr<OhosSurfaceGLSkia> ohos_surface_;
   std::shared_ptr<PlatformMessageHandlerOHOS> platform_message_handler_;
 
   std::shared_ptr<OhosSurfaceFactoryImpl> surface_factory_;

@@ -34,7 +34,7 @@ namespace flutter {
 
 class OHOSExternalTextureGL : public flutter::Texture {
  public:
-  explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface);
+  explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OhosSurfaceGLSkia>& ohos_surface);
 
   ~OHOSExternalTextureGL() override;
 
@@ -94,7 +94,7 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   GLuint texture_name_ = 0;
 
-  std::shared_ptr<OHOSSurface> ohos_surface_;
+  std::shared_ptr<OhosSurfaceGLSkia> ohos_surface_;
 
   SkMatrix transform;
 
