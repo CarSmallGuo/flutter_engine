@@ -21,8 +21,6 @@
 #include <GLES3/gl3.h>
 
 #include "flutter/common/graphics/texture.h"
-#include "flutter/shell/platform/ohos/surface/ohos_surface.h"
-#include "flutter/shell/platform/ohos/ohos_surface_gl_skia.h"
 #include "napi/platform_view_ohos_napi.h"
 #include <multimedia/image_framework/image_mdk.h>
 #include <native_window/external_window.h>
@@ -35,7 +33,7 @@ namespace flutter {
 
 class OHOSExternalTextureGL : public flutter::Texture {
  public:
-  explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OhosSurfaceGLSkia>& ohos_surface);
+  explicit OHOSExternalTextureGL(int64_t id);
 
   ~OHOSExternalTextureGL() override;
 
@@ -94,8 +92,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
   bool new_frame_ready_ = false;
 
   GLuint texture_name_ = 0;
-
-  std::shared_ptr<OhosSurfaceGLSkia> ohos_surface_;
 
   SkMatrix transform;
 

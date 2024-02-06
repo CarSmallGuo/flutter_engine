@@ -38,25 +38,21 @@ OhosSurfaceFactoryImpl::OhosSurfaceFactoryImpl(
 
 OhosSurfaceFactoryImpl::~OhosSurfaceFactoryImpl() = default;
 
-// std::unique_ptr<OHOSSurface> OhosSurfaceFactoryImpl::CreateSurface() {
-//   switch (ohos_context_->RenderingApi()) {
-//     case OHOSRenderingAPI::kSoftware:
-//       return std::make_unique<OHOSSurfaceSoftware>(ohos_context_);
-//     case OHOSRenderingAPI::kOpenGLES:
-//       if (enable_impeller_) {
-//         return std::make_unique<OHOSSurfaceGLImpeller>(ohos_context_);
-//       } else {
-//         FML_LOG(INFO) << "OhosSurfaceFactoryImpl::OhosSurfaceGLSkia ";
-//         return std::make_unique<OhosSurfaceGLSkia>(ohos_context_);
-//       }
-//     default:
-//       FML_DCHECK(false);
-//       return nullptr;
-//   }
-// }
-std::unique_ptr<OhosSurfaceGLSkia> OhosSurfaceFactoryImpl::CreateSurface() {
-   FML_LOG(INFO) << "OhosSurfaceFactoryImpl::OhosSurfaceGLSkia ";
-   return std::make_unique<OhosSurfaceGLSkia>(ohos_context_);
+std::unique_ptr<OHOSSurface> OhosSurfaceFactoryImpl::CreateSurface() {
+  switch (ohos_context_->RenderingApi()) {
+    case OHOSRenderingAPI::kSoftware:
+      return std::make_unique<OHOSSurfaceSoftware>(ohos_context_);
+    case OHOSRenderingAPI::kOpenGLES:
+      if (enable_impeller_) {
+        return std::make_unique<OHOSSurfaceGLImpeller>(ohos_context_);
+      } else {
+        FML_LOG(INFO) << "OhosSurfaceFactoryImpl::OhosSurfaceGLSkia ";
+        return std::make_unique<OhosSurfaceGLSkia>(ohos_context_);
+      }
+    default:
+      FML_DCHECK(false);
+      return nullptr;
+  }
 }
 
 std::unique_ptr<OHOSContext> CreateOHOSContext(
@@ -402,7 +398,7 @@ void PlatformViewOHOS::RegisterExternalTextureByImage(
     if(iter != external_texture_gl_.end()) {
       iter->second->DispatchImage(image);
     } else {
-      std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_));
+      std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id);
       external_texture_gl_[texture_id] = ohos_external_gl;
       RegisterTexture(ohos_external_gl);
       ohos_external_gl->DispatchImage(image);
@@ -414,7 +410,7 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id) {
   uint64_t surface_id = 0;
   int ret = -1;
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
-    std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_);
+    std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id);
     ohos_external_gl->nativeImage_ = OH_NativeImage_Create(texture_id, GL_TEXTURE_EXTERNAL_OES);
     if (ohos_external_gl->nativeImage_ == nullptr) {
       FML_DLOG(ERROR) << "Error with OH_NativeImage_Create";
@@ -471,7 +467,7 @@ void PlatformViewOHOS::RegisterExternalTextureByPixelMap(int64_t texture_id, Nat
     if(iter != external_texture_gl_.end()) {
       iter->second->DispatchPixelMap(pixelMap);
     } else {
-      std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_);
+      std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id);
       external_texture_gl_[texture_id] = ohos_external_gl;
       RegisterTexture(ohos_external_gl);
       ohos_external_gl->DispatchPixelMap(pixelMap);
