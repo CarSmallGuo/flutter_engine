@@ -20,6 +20,7 @@
 #include "flutter/flow/surface.h"
 #include "flutter/shell/platform/ohos/context/ohos_context.h"
 #include "flutter/shell/platform/ohos/surface/ohos_native_window.h"
+#include "flutter/shell/platform/ohos/ohos_surface_gl_skia.h"
 #include "third_party/skia/include/core/SkSize.h"
 
 namespace impeller {
@@ -60,7 +61,7 @@ class OhosSurfaceFactory {
 
   virtual ~OhosSurfaceFactory() = default;
 
-  virtual std::unique_ptr<OHOSSurface> CreateSurface() = 0;
+  virtual std::unique_ptr<OhosSurfaceGLSkia> CreateSurface() = 0;
 };
 }  // namespace flutter
 
