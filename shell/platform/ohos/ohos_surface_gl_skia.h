@@ -24,11 +24,12 @@
 #include "flutter/shell/platform/ohos/ohos_context_gl_skia.h"
 #include "flutter/shell/platform/ohos/ohos_environment_gl.h"
 #include "flutter/shell/platform/ohos/surface/ohos_surface.h"
+#include "flutter/shell/platform/ohos/ohos_unified_surface.h"
 
 namespace flutter {
 
-class OhosSurfaceGLSkia final : public GPUSurfaceGLDelegate,
-                                public OHOSSurface {
+class OhosSurfaceGLSkia final : public OHOSUnifiedSurface
+                                 {
  public:
   OhosSurfaceGLSkia(const std::shared_ptr<OHOSContext>& ohos_context);
 

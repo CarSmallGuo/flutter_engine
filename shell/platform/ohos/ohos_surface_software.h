@@ -19,13 +19,13 @@
 #include "flutter/fml/macros.h"
 #include "flutter/shell/gpu/gpu_surface_software.h"
 #include "flutter/shell/platform/ohos/surface/ohos_surface.h"
-
+#include "flutter/shell/platform/ohos/ohos_unified_surface.h"
 #include "flutter/shell/platform/ohos/surface/ohos_native_window.h"
 
 namespace flutter {
 
-class OHOSSurfaceSoftware final : public OHOSSurface,
-                                  public GPUSurfaceSoftwareDelegate {
+class OHOSSurfaceSoftware final : public OHOSUnifiedSurface
+                                 {
  public:
   OHOSSurfaceSoftware(const std::shared_ptr<OHOSContext>& ohos_context);
   ~OHOSSurfaceSoftware() override;

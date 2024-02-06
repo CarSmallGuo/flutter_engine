@@ -34,6 +34,7 @@
 #include <multimedia/image_framework/image_mdk.h>
 #include "ohos_external_texture_gl.h"
 #include <multimedia/image_framework/image_pixel_map_mdk.h>
+#include "flutter/shell/platform/ohos/ohos_unified_surface.h"
 
 namespace flutter {
 
@@ -44,7 +45,7 @@ class OhosSurfaceFactoryImpl : public OhosSurfaceFactory {
 
   ~OhosSurfaceFactoryImpl() override;
 
-  std::unique_ptr<OHOSSurface> CreateSurface() override;
+  std::unique_ptr<OHOSUnifiedSurface> CreateSurface() override;
 
  private:
   const std::shared_ptr<OHOSContext>& ohos_context_;
@@ -125,7 +126,7 @@ class PlatformViewOHOS final : public PlatformView {
   const std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;
   std::shared_ptr<OHOSContext> ohos_context_;
 
-  std::shared_ptr<OHOSSurface> ohos_surface_;
+  std::shared_ptr<OhosSurfaceGLSkia> ohos_surface_;
   std::shared_ptr<PlatformMessageHandlerOHOS> platform_message_handler_;
 
   std::shared_ptr<OhosSurfaceFactoryImpl> surface_factory_;

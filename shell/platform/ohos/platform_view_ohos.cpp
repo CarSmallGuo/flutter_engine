@@ -32,13 +32,13 @@
 namespace flutter {
 
 OhosSurfaceFactoryImpl::OhosSurfaceFactoryImpl(
-    const std::shared_ptr<OHOSContext>& context,
+    const std::shared_ptr<OHOSUnifiedSurface>& context,
     bool enable_impeller)
     : ohos_context_(context), enable_impeller_(enable_impeller) {}
 
 OhosSurfaceFactoryImpl::~OhosSurfaceFactoryImpl() = default;
 
-std::unique_ptr<OHOSSurface> OhosSurfaceFactoryImpl::CreateSurface() {
+std::unique_ptr<OHOSUnifiedSurface> OhosSurfaceFactoryImpl::CreateSurface() {
   switch (ohos_context_->RenderingApi()) {
     case OHOSRenderingAPI::kSoftware:
       return std::make_unique<OHOSSurfaceSoftware>(ohos_context_);
@@ -398,7 +398,7 @@ void PlatformViewOHOS::RegisterExternalTextureByImage(
     if(iter != external_texture_gl_.end()) {
       iter->second->DispatchImage(image);
     } else {
-      std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id);
+      std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_);
       external_texture_gl_[texture_id] = ohos_external_gl;
       RegisterTexture(ohos_external_gl);
       ohos_external_gl->DispatchImage(image);
@@ -410,7 +410,7 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id) {
   uint64_t surface_id = 0;
   int ret = -1;
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
-    std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id);
+    std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_);
     ohos_external_gl->nativeImage_ = OH_NativeImage_Create(texture_id, GL_TEXTURE_EXTERNAL_OES);
     if (ohos_external_gl->nativeImage_ == nullptr) {
       FML_DLOG(ERROR) << "Error with OH_NativeImage_Create";
@@ -467,7 +467,7 @@ void PlatformViewOHOS::RegisterExternalTextureByPixelMap(int64_t texture_id, Nat
     if(iter != external_texture_gl_.end()) {
       iter->second->DispatchPixelMap(pixelMap);
     } else {
-      std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id);
+      std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_);
       external_texture_gl_[texture_id] = ohos_external_gl;
       RegisterTexture(ohos_external_gl);
       ohos_external_gl->DispatchPixelMap(pixelMap);

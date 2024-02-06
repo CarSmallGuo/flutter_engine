@@ -22,11 +22,12 @@
 #include "flutter/shell/gpu/gpu_surface_gl_delegate.h"
 #include "surface/ohos_native_window.h"
 #include "surface/ohos_surface.h"
+#include "flutter/shell/platform/ohos/ohos_unified_surface.h"
 
 namespace flutter {
 
-class OHOSSurfaceGLImpeller final : public GPUSurfaceGLDelegate,
-                                    public OHOSSurface {
+class OHOSSurfaceGLImpeller final : public OHOSUnifiedSurface
+                                 {
  public:
   OHOSSurfaceGLImpeller(const std::shared_ptr<OHOSContext>& ohos_context);
 

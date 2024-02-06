@@ -42,8 +42,8 @@ constexpr const char *EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
 constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 
-OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id)
-  : Texture(id),transform(SkMatrix::I()) {
+OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSUnifiedSurface>& ohos_surface)
+  : Texture(id),ohos_surface_(std::move(ohos_surface)),transform(SkMatrix::I()) {
     nativeImage_ = nullptr;
     nativeWindow_ = nullptr;
     eglContext_ =  EGL_NO_CONTEXT;
@@ -153,17 +153,17 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     return;
   }
   if (state_ == AttachmentState::uninitialized) {
-    EGLContext current_egl_context = eglGetCurrentContext();
-    EGLDisplay current_egl_display = eglGetCurrentDisplay();
-    if (eglMakeCurrent(current_egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, current_egl_context) != EGL_TRUE) {
-      FML_DLOG(ERROR) << "OHOSExternalTextureGL::Could not make the context current";
-    } else {
+    auto result = ohos_surface_->GLContextMakeCurrent();
+    if (result->GetResult()) {
+      FML_DLOG(FATAL)<<"ResourceContextMakeCurrent successed";
       glGenTextures(1, &texture_name_);
       int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
       if(ret != 0) {
         FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_AttachContext err code:"<< ret;
       }
       state_ = AttachmentState::attached;
+    } else {
+      FML_DLOG(FATAL)<<"ResourceContextMakeCurrent failed";
     }
 
   }
