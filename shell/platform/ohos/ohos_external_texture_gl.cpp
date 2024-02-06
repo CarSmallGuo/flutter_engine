@@ -158,7 +158,7 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
     auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
     if (result->GetResult()) {
-      FML_DLOG(FATAL)<<"ResourceContextMakeCurrent successed";
+      FML_DLOG(INFO)<<"ResourceContextMakeCurrent successed";
       glGenTextures(1, &texture_name_);
       int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
       if(ret != 0) {
