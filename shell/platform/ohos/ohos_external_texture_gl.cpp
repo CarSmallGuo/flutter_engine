@@ -153,14 +153,19 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     return;
   }
   if (state_ == AttachmentState::uninitialized) {
-    InitEGLEnv();
-    glGenTextures(1, &texture_name_);
-    // Attach(static_cast<int>(texture_name_));
-    int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
-    if(ret != 0) {
-      FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_AttachContext err code:"<< ret;
+    EGLContext current_egl_context = eglGetCurrentContext();
+    EGLDisplay current_egl_display = eglGetCurrentDisplay();
+    if (eglMakeCurrent(current_egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, current_egl_context) != EGL_TRUE) {
+      FML_DLOG(ERROR) << "OHOSExternalTextureGL::Could not make the context current";
+    } else {
+      glGenTextures(1, &texture_name_);
+      int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
+      if(ret != 0) {
+        FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_AttachContext err code:"<< ret;
+      }
+      state_ = AttachmentState::attached;
     }
-    state_ = AttachmentState::attached;
+
   }
   if (!freeze && new_frame_ready_) {
     Update();
