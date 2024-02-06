@@ -181,7 +181,7 @@ void OHOSExternalTextureGL::PaintOrigin(PaintContext& context,
              const SkSamplingOptions& sampling) {
   GrGLTextureInfo textureInfo = {GL_TEXTURE_EXTERNAL_OES, texture_name_,
                                 GL_RGBA8_OES};
-  GrBackendTexture backendTexture(1, 1, GrMipMapped::kNo, textureInfo);
+  GrBackendTexture backendTexture(720, 1280, GrMipMapped::kNo, textureInfo);
   sk_sp<SkImage> image = SkImage::MakeFromTexture(
       context.gr_context, backendTexture, kTopLeft_GrSurfaceOrigin,
       kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
