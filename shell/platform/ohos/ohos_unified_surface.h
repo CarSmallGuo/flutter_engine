@@ -24,10 +24,6 @@
 #include "flutter/shell/platform/ohos/ohos_surface_gl_skia.h"
 #include "third_party/skia/include/core/SkSize.h"
 
-namespace impeller {
-class Context;
-}  // namespace impeller
-
 namespace flutter {
 
 class OHOSUnifiedSurface : public GPUSurfaceGLDelegate,

@@ -33,58 +33,53 @@ class OhosSurfaceGLSkia : public OHOSUnifiedSurface
  public:
   OhosSurfaceGLSkia(const std::shared_ptr<OHOSContext>& ohos_context);
 
-  ~OhosSurfaceGLSkia();
-
-
+  ~OhosSurfaceGLSkia() override;
 
   // |OhosSurface|
   bool IsValid();
 
-
-
-
   // |OhosSurface|
   std::unique_ptr<Surface> CreateGPUSurface(
-      GrDirectContext* gr_context);
+      GrDirectContext* gr_context) override;
 
   // |OhosSurface|
-  void TeardownOnScreenContext();
+  void TeardownOnScreenContext() override;
 
   // |OhosSurface|
-  bool OnScreenSurfaceResize(const SkISize& size);
+  bool OnScreenSurfaceResize(const SkISize& size) override;
 
   // |OhosSurface|
-  bool ResourceContextMakeCurrent();
+  bool ResourceContextMakeCurrent() override;
 
   // |OhosSurface|
-  bool ResourceContextClearCurrent();
+  bool ResourceContextClearCurrent() override;
 
   // |OhosSurface|
-  bool SetNativeWindow(fml::RefPtr<OHOSNativeWindow> window);
+  bool SetNativeWindow(fml::RefPtr<OHOSNativeWindow> window) override;
 
   // |OhosSurface|
-  virtual std::unique_ptr<Surface> CreateSnapshotSurface();
+  virtual std::unique_ptr<Surface> CreateSnapshotSurface() override;
 
   // |GPUSurfaceGLDelegate|
-  std::unique_ptr<GLContextResult> GLContextMakeCurrent();
+  std::unique_ptr<GLContextResult> GLContextMakeCurrent() override;
 
   // |GPUSurfaceGLDelegate|
-  bool GLContextClearCurrent();
+  bool GLContextClearCurrent() override;
 
   // |GPUSurfaceGLDelegate|
-  SurfaceFrame::FramebufferInfo GLContextFramebufferInfo();
+  SurfaceFrame::FramebufferInfo GLContextFramebufferInfo() const override;
 
   // |GPUSurfaceGLDelegate|
-  void GLContextSetDamageRegion(const std::optional<SkIRect>& region);
+  void GLContextSetDamageRegion(const std::optional<SkIRect>& region) override;
 
   // |GPUSurfaceGLDelegate|
-  bool GLContextPresent(const GLPresentInfo& present_info);
+  bool GLContextPresent(const GLPresentInfo& present_info) override;
 
   // |GPUSurfaceGLDelegate|
-  GLFBOInfo GLContextFBO(GLFrameInfo frame_info);
+  GLFBOInfo GLContextFBO(GLFrameInfo frame_info) const override;
 
   // |GPUSurfaceGLDelegate|
-  sk_sp<const GrGLInterface> GetGLInterface();
+  sk_sp<const GrGLInterface> GetGLInterface() const override;
 
   // Obtain a raw pointer to the on-screen OhosEGLSurface.
   //

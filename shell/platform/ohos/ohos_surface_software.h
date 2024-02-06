@@ -28,34 +28,34 @@ class OHOSSurfaceSoftware : public OHOSUnifiedSurface
                                  {
  public:
   OHOSSurfaceSoftware(const std::shared_ptr<OHOSContext>& ohos_context);
-  ~OHOSSurfaceSoftware() override;
+  ~OHOSSurfaceSoftware();
 
-  bool IsValid() const override;
-
-  // |OHOSSurface|
-  bool ResourceContextMakeCurrent() override;
+  bool IsValid() ;
 
   // |OHOSSurface|
-  bool ResourceContextClearCurrent() override;
+  bool ResourceContextMakeCurrent();
+
+  // |OHOSSurface|
+  bool ResourceContextClearCurrent();
 
   // |OHOSSurface|
   std::unique_ptr<Surface> CreateGPUSurface(
-      GrDirectContext* gr_context) override;
+      GrDirectContext* gr_context);
 
   // |OHOSSurface|
-  void TeardownOnScreenContext() override;
+  void TeardownOnScreenContext();
 
   // |OHOSSurface|
-  bool OnScreenSurfaceResize(const SkISize& size) override;
+  bool OnScreenSurfaceResize(const SkISize& size);
 
   // |OHOSSurface|
-  bool SetNativeWindow(fml::RefPtr<OHOSNativeWindow> window) override;
+  bool SetNativeWindow(fml::RefPtr<OHOSNativeWindow> window);
 
   // |GPUSurfaceSoftwareDelegate|
-  sk_sp<SkSurface> AcquireBackingStore(const SkISize& size) override;
+  sk_sp<SkSurface> AcquireBackingStore(const SkISize& size);
 
   // |GPUSurfaceSoftwareDelegate|
-  bool PresentBackingStore(sk_sp<SkSurface> backing_store) override;
+  bool PresentBackingStore(sk_sp<SkSurface> backing_store);
 
  private:
   sk_sp<SkSurface> sk_surface_;
