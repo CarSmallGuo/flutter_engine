@@ -36,7 +36,7 @@ class OhosSurfaceGLSkia final : public OHOSUnifiedSurface
   ~OhosSurfaceGLSkia() override;
 
   // |OhosSurface|
-  bool IsValid() const override;
+  bool IsValid();
 
   // |OhosSurface|
   std::unique_ptr<Surface> CreateGPUSurface(
