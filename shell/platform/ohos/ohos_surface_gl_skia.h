@@ -33,14 +33,19 @@ class OhosSurfaceGLSkia : public OHOSUnifiedSurface
  public:
   OhosSurfaceGLSkia(const std::shared_ptr<OHOSContext>& ohos_context);
 
-  ~OhosSurfaceGLSkia() override;
+  ~OhosSurfaceGLSkia();
+
+
 
   // |OhosSurface|
-  bool IsValid() const override;
+  bool IsValid();
+
+
+
 
   // |OhosSurface|
   std::unique_ptr<Surface> CreateGPUSurface(
-      GrDirectContext* gr_context) override;
+      GrDirectContext* gr_context);
 
   // |OhosSurface|
   void TeardownOnScreenContext() override;
