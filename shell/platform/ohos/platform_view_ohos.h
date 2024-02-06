@@ -45,7 +45,7 @@ class OhosSurfaceFactoryImpl : public OhosSurfaceFactory {
 
   ~OhosSurfaceFactoryImpl() override;
 
-  std::unique_ptr<OHOSSurface> CreateSurface() override;
+  std::unique_ptr<OhosSurfaceGLSkia> CreateSurface() override;
 
  private:
   const std::shared_ptr<OHOSContext>& ohos_context_;
