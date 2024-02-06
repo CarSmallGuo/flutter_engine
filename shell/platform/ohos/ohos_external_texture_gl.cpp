@@ -156,10 +156,10 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     // InitEGLEnv();
     OHOSSurface* ohos_surface_ptr = ohos_surface_.get();
     OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
-    // auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
-    // if (result->GetResult()) {
-    bool result = ohosSurfaceGLSkia_->ResourceContextMakeCurrent();
-    if (result) {
+    auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
+    if (result->GetResult()) {
+    // bool result = ohosSurfaceGLSkia_->ResourceContextMakeCurrent();
+    // if (result) {
       FML_DLOG(INFO)<<"ResourceContextMakeCurrent successed";
       glGenTextures(1, &texture_name_);
       glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_REPEAT);
