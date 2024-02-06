@@ -161,11 +161,12 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
       FML_DLOG(INFO)<<"ResourceContextMakeCurrent successed";
       glGenTextures(1, &texture_name_);
       // glBindTexture(GL_TEXTURE_EXTERNAL_OES, texture_name_);
+
+      int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
       glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_REPEAT);
       glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_REPEAT);
       glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
       if(ret != 0) {
         FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_AttachContext err code:"<< ret;
       }
