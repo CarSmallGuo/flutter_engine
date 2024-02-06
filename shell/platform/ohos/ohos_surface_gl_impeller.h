@@ -26,7 +26,7 @@
 
 namespace flutter {
 
-class OHOSSurfaceGLImpeller final : public OHOSUnifiedSurface
+class OHOSSurfaceGLImpeller : public OHOSUnifiedSurface
                                  {
  public:
   OHOSSurfaceGLImpeller(const std::shared_ptr<OHOSContext>& ohos_context);

@@ -24,7 +24,7 @@
 
 namespace flutter {
 
-class OHOSSurfaceSoftware final : public OHOSUnifiedSurface
+class OHOSSurfaceSoftware : public OHOSUnifiedSurface
                                  {
  public:
   OHOSSurfaceSoftware(const std::shared_ptr<OHOSContext>& ohos_context);

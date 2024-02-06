@@ -28,7 +28,7 @@
 
 namespace flutter {
 
-class OhosSurfaceGLSkia final : public OHOSUnifiedSurface
+class OhosSurfaceGLSkia : public OHOSUnifiedSurface
                                  {
  public:
   OhosSurfaceGLSkia(const std::shared_ptr<OHOSContext>& ohos_context);
