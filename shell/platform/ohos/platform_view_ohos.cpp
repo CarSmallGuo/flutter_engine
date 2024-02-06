@@ -32,13 +32,13 @@
 namespace flutter {
 
 OhosSurfaceFactoryImpl::OhosSurfaceFactoryImpl(
-    const std::shared_ptr<OHOSUnifiedSurface>& context,
+    const std::shared_ptr<OHOSContext>& context,
     bool enable_impeller)
     : ohos_context_(context), enable_impeller_(enable_impeller) {}
 
 OhosSurfaceFactoryImpl::~OhosSurfaceFactoryImpl() = default;
 
-std::unique_ptr<OHOSUnifiedSurface> OhosSurfaceFactoryImpl::CreateSurface() {
+std::unique_ptr<OHOSSurface> OhosSurfaceFactoryImpl::CreateSurface() {
   switch (ohos_context_->RenderingApi()) {
     case OHOSRenderingAPI::kSoftware:
       return std::make_unique<OHOSSurfaceSoftware>(ohos_context_);

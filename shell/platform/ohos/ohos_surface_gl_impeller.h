@@ -22,65 +22,64 @@
 #include "flutter/shell/gpu/gpu_surface_gl_delegate.h"
 #include "surface/ohos_native_window.h"
 #include "surface/ohos_surface.h"
-#include "flutter/shell/platform/ohos/ohos_unified_surface.h"
 
 namespace flutter {
 
-class OHOSSurfaceGLImpeller : public OHOSUnifiedSurface
-                                 {
+class OHOSSurfaceGLImpeller final : public GPUSurfaceGLDelegate,
+                                    public OHOSSurface {
  public:
   OHOSSurfaceGLImpeller(const std::shared_ptr<OHOSContext>& ohos_context);
 
-  ~OHOSSurfaceGLImpeller();
+  ~OHOSSurfaceGLImpeller() override;
 
   // OHOSSurface
-  bool IsValid();
+  bool IsValid() const override;
 
   // OHOSSurface
   std::unique_ptr<Surface> CreateGPUSurface(
-      GrDirectContext* gr_context);
+      GrDirectContext* gr_context) override;
 
   // OHOSSurface
-  void TeardownOnScreenContext();
+  void TeardownOnScreenContext() override;
 
   // OHOSSurface
-  bool OnScreenSurfaceResize(const SkISize& size);
+  bool OnScreenSurfaceResize(const SkISize& size) override;
 
   // OHOSSurface
-  bool ResourceContextMakeCurrent();
+  bool ResourceContextMakeCurrent() override;
 
   // OHOSSurface
-  bool ResourceContextClearCurrent();
+  bool ResourceContextClearCurrent() override;
 
   // OHOSSurface
-  bool SetNativeWindow(fml::RefPtr<OHOSNativeWindow> window);
+  bool SetNativeWindow(fml::RefPtr<OHOSNativeWindow> window) override;
 
   // OHOSSurface
-  std::unique_ptr<Surface> CreateSnapshotSurface();
+  std::unique_ptr<Surface> CreateSnapshotSurface() override;
 
   // OHOSSurface
-  std::shared_ptr<impeller::Context> GetImpellerContext();
+  std::shared_ptr<impeller::Context> GetImpellerContext() override;
 
   // |GPUSurfaceGLDelegate|
-  std::unique_ptr<GLContextResult> GLContextMakeCurrent();
+  std::unique_ptr<GLContextResult> GLContextMakeCurrent() override;
 
   // |GPUSurfaceGLDelegate|
-  bool GLContextClearCurrent();
+  bool GLContextClearCurrent() override;
 
   // |GPUSurfaceGLDelegate|
-  SurfaceFrame::FramebufferInfo GLContextFramebufferInfo();
+  SurfaceFrame::FramebufferInfo GLContextFramebufferInfo() const override;
 
   // |GPUSurfaceGLDelegate|
-  void GLContextSetDamageRegion(const std::optional<SkIRect>& region);
+  void GLContextSetDamageRegion(const std::optional<SkIRect>& region) override;
 
   // |GPUSurfaceGLDelegate|
-  bool GLContextPresent(const GLPresentInfo& present_info);
+  bool GLContextPresent(const GLPresentInfo& present_info) override;
 
   // |GPUSurfaceGLDelegate|
-  GLFBOInfo GLContextFBO(GLFrameInfo frame_info);
+  GLFBOInfo GLContextFBO(GLFrameInfo frame_info) const override;
 
   // |GPUSurfaceGLDelegate|
-  sk_sp<const GrGLInterface> GetGLInterface();
+  sk_sp<const GrGLInterface> GetGLInterface() const override;
 
  private:
   class ReactorWorker;

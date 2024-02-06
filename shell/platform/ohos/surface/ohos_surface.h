@@ -21,7 +21,6 @@
 #include "flutter/shell/platform/ohos/context/ohos_context.h"
 #include "flutter/shell/platform/ohos/surface/ohos_native_window.h"
 #include "third_party/skia/include/core/SkSize.h"
-#include "flutter/shell/platform/ohos/ohos_unified_surface.h"
 
 namespace impeller {
 class Context;
@@ -61,7 +60,7 @@ class OhosSurfaceFactory {
 
   virtual ~OhosSurfaceFactory() = default;
 
-  virtual std::unique_ptr<OHOSUnifiedSurface> CreateSurface() = 0;
+  virtual std::unique_ptr<OHOSSurface> CreateSurface() = 0;
 };
 }  // namespace flutter
 

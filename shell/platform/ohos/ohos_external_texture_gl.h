@@ -29,14 +29,13 @@
 #include <native_image/native_image.h>
 #include <multimedia/image_framework/image_pixel_map_mdk.h>
 #include <native_buffer/native_buffer.h>
-#include "flutter/shell/platform/ohos/ohos_unified_surface.h"
 
 // maybe now unused
 namespace flutter {
 
 class OHOSExternalTextureGL : public flutter::Texture {
  public:
-  explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSUnifiedSurface>& ohos_surface);
+  explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface);
 
   ~OHOSExternalTextureGL() override;
 
@@ -96,7 +95,7 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   GLuint texture_name_ = 0;
 
-  std::shared_ptr<OHOSUnifiedSurface> ohos_surface_;
+  std::shared_ptr<OHOSSurface> ohos_surface_;
 
   SkMatrix transform;
 

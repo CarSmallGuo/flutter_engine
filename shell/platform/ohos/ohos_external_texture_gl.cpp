@@ -42,7 +42,7 @@ constexpr const char *EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
 constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 
-OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSUnifiedSurface>& ohos_surface)
+OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface)
   : Texture(id),ohos_surface_(std::move(ohos_surface)),transform(SkMatrix::I()) {
     nativeImage_ = nullptr;
     nativeWindow_ = nullptr;
@@ -153,7 +153,10 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     return;
   }
   if (state_ == AttachmentState::uninitialized) {
-    auto result = ohos_surface_->GLContextMakeCurrent();
+    // InitEGLEnv();
+    OHOSSurface* ohos_surface_ptr = ohos_surface_.get();
+    OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
+    auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
     if (result->GetResult()) {
       FML_DLOG(FATAL)<<"ResourceContextMakeCurrent successed";
       glGenTextures(1, &texture_name_);
