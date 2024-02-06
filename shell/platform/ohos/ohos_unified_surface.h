@@ -31,52 +31,52 @@ namespace flutter {
 
 class OHOSUnifiedSurface : public GPUSurfaceGLDelegate,
                            public OHOSSurface {
- public:
-  virtual ~OHOSUnifiedSurface();
-  virtual bool IsValid() const = 0;
-  virtual void TeardownOnScreenContext() = 0;
+//  public:
+//   virtual ~OHOSUnifiedSurface();
+//   virtual bool IsValid() const = 0;
+//   virtual void TeardownOnScreenContext() = 0;
 
-  virtual bool OnScreenSurfaceResize(const SkISize& size) = 0;
+//   virtual bool OnScreenSurfaceResize(const SkISize& size) = 0;
 
-  virtual bool ResourceContextMakeCurrent() = 0;
+//   virtual bool ResourceContextMakeCurrent() = 0;
 
-  virtual bool ResourceContextClearCurrent() = 0;
+//   virtual bool ResourceContextClearCurrent() = 0;
 
-  virtual bool SetNativeWindow(fml::RefPtr<OHOSNativeWindow> window) = 0;
+//   virtual bool SetNativeWindow(fml::RefPtr<OHOSNativeWindow> window) = 0;
 
-  virtual std::unique_ptr<Surface> CreateSnapshotSurface();
+//   virtual std::unique_ptr<Surface> CreateSnapshotSurface();
 
-  virtual std::unique_ptr<Surface> CreateGPUSurface(
-      GrDirectContext* gr_context = nullptr) = 0;
+//   virtual std::unique_ptr<Surface> CreateGPUSurface(
+//       GrDirectContext* gr_context = nullptr) = 0;
 
-  virtual std::shared_ptr<impeller::Context> GetImpellerContext();
+//   virtual std::shared_ptr<impeller::Context> GetImpellerContext();
 
-  virtual std::unique_ptr<GLContextResult> GLContextMakeCurrent() = 0;
+//   virtual std::unique_ptr<GLContextResult> GLContextMakeCurrent() = 0;
 
-  virtual bool GLContextClearCurrent() = 0;
+//   virtual bool GLContextClearCurrent() = 0;
 
-  virtual void GLContextSetDamageRegion(const std::optional<SkIRect>& region) {}
+//   virtual void GLContextSetDamageRegion(const std::optional<SkIRect>& region) {}
 
-  virtual bool GLContextPresent(const GLPresentInfo& present_info) = 0;
+//   virtual bool GLContextPresent(const GLPresentInfo& present_info) = 0;
 
-  virtual GLFBOInfo GLContextFBO(GLFrameInfo frame_info) const = 0;
+//   virtual GLFBOInfo GLContextFBO(GLFrameInfo frame_info) const = 0;
 
-  virtual bool GLContextFBOResetAfterPresent() const;
+//   virtual bool GLContextFBOResetAfterPresent() const;
 
-  virtual SurfaceFrame::FramebufferInfo GLContextFramebufferInfo() const;
+//   virtual SurfaceFrame::FramebufferInfo GLContextFramebufferInfo() const;
 
-  virtual SkMatrix GLContextSurfaceTransformation() const;
+//   virtual SkMatrix GLContextSurfaceTransformation() const;
 
-  virtual sk_sp<const GrGLInterface> GetGLInterface() const;
+//   virtual sk_sp<const GrGLInterface> GetGLInterface() const;
 
-  static sk_sp<const GrGLInterface> GetDefaultPlatformGLInterface();
+//   static sk_sp<const GrGLInterface> GetDefaultPlatformGLInterface();
 
-  using GLProcResolver =
-      std::function<void* /* proc name */ (const char* /* proc address */)>;
+//   using GLProcResolver =
+//       std::function<void* /* proc name */ (const char* /* proc address */)>;
  
-  virtual GLProcResolver GetGLProcResolver() const;
+//   virtual GLProcResolver GetGLProcResolver() const;
 
-  virtual bool AllowsDrawingWhenGpuDisabled() const;
+//   virtual bool AllowsDrawingWhenGpuDisabled() const;
 
 };
 
