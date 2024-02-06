@@ -48,43 +48,43 @@ class OhosSurfaceGLSkia : public OHOSUnifiedSurface
       GrDirectContext* gr_context);
 
   // |OhosSurface|
-  void TeardownOnScreenContext() override;
+  void TeardownOnScreenContext();
 
   // |OhosSurface|
-  bool OnScreenSurfaceResize(const SkISize& size) override;
+  bool OnScreenSurfaceResize(const SkISize& size);
 
   // |OhosSurface|
-  bool ResourceContextMakeCurrent() override;
+  bool ResourceContextMakeCurrent();
 
   // |OhosSurface|
-  bool ResourceContextClearCurrent() override;
+  bool ResourceContextClearCurrent();
 
   // |OhosSurface|
-  bool SetNativeWindow(fml::RefPtr<OHOSNativeWindow> window) override;
+  bool SetNativeWindow(fml::RefPtr<OHOSNativeWindow> window);
 
   // |OhosSurface|
-  virtual std::unique_ptr<Surface> CreateSnapshotSurface() override;
+  virtual std::unique_ptr<Surface> CreateSnapshotSurface();
 
   // |GPUSurfaceGLDelegate|
-  std::unique_ptr<GLContextResult> GLContextMakeCurrent() override;
+  std::unique_ptr<GLContextResult> GLContextMakeCurrent();
 
   // |GPUSurfaceGLDelegate|
-  bool GLContextClearCurrent() override;
+  bool GLContextClearCurrent();
 
   // |GPUSurfaceGLDelegate|
-  SurfaceFrame::FramebufferInfo GLContextFramebufferInfo() const override;
+  SurfaceFrame::FramebufferInfo GLContextFramebufferInfo();
 
   // |GPUSurfaceGLDelegate|
-  void GLContextSetDamageRegion(const std::optional<SkIRect>& region) override;
+  void GLContextSetDamageRegion(const std::optional<SkIRect>& region);
 
   // |GPUSurfaceGLDelegate|
-  bool GLContextPresent(const GLPresentInfo& present_info) override;
+  bool GLContextPresent(const GLPresentInfo& present_info);
 
   // |GPUSurfaceGLDelegate|
-  GLFBOInfo GLContextFBO(GLFrameInfo frame_info) const override;
+  GLFBOInfo GLContextFBO(GLFrameInfo frame_info);
 
   // |GPUSurfaceGLDelegate|
-  sk_sp<const GrGLInterface> GetGLInterface() const override;
+  sk_sp<const GrGLInterface> GetGLInterface();
 
   // Obtain a raw pointer to the on-screen OhosEGLSurface.
   //
