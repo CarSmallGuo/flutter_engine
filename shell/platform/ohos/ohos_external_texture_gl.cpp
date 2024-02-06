@@ -218,7 +218,7 @@ void OHOSExternalTextureGL::PaintOrigin(PaintContext& context,
   FML_DLOG(INFO) << "OHOSExternalTextureGL, drawSample tag1";
   // drawSample(context.canvas);
   // drawSample2(context.canvas);
-  drawSample3(context.canvas);
+  //drawSample3(context.canvas);
   FML_DLOG(INFO) << "OHOSExternalTextureGL, drawSample tag2";
 }
 
