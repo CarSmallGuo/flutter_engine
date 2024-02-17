@@ -69,7 +69,7 @@ class OHOSExternalTextureGL : public flutter::Texture {
   void DispatchPixelMap(NativePixelMap* pixelMap);
 
  private:
-  void Attach(int textureName);
+  void Attach();
 
   void Update();
 

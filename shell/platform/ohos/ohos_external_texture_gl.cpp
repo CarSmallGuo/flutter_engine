@@ -23,10 +23,6 @@
 #include "third_party/skia/include/core/SkImage.h"
 #include "third_party/skia/include/gpu/GrBackendSurface.h"
 #include "third_party/skia/include/gpu/GrDirectContext.h"
-#include "third_party/skia/src/gpu/gl/GrGLDefines.h"
-#include "third_party/skia/include/core/SkPaint.h"
-#include "third_party/skia/include/effects/Sk1DPathEffect.h"
-#include "third_party/skia/tools/Registry.h"
 
 #include <sys/mman.h>
 #include <GLES2/gl2ext.h>
@@ -59,89 +55,6 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL() {
   }
 }
 
-// copy from src/third_party/skia/docs/examples/skpaint_skia.cpp
-void drawSample(SkCanvas* canvas) {
-  SkPaint paint1, paint2, paint3;
-
-  paint1.setAntiAlias(true);
-  paint1.setColor(SkColorSetRGB(255, 0, 0));
-  paint1.setStyle(SkPaint::kFill_Style);
-
-  paint2.setAntiAlias(true);
-  paint2.setColor(SkColorSetRGB(0, 136, 0));
-  paint2.setStyle(SkPaint::kStroke_Style);
-  paint2.setStrokeWidth(SkIntToScalar(3));
-
-  paint3.setAntiAlias(true);
-  paint3.setColor(SkColorSetRGB(136, 136, 136));
-
-  sk_sp<SkTextBlob> blob1 =
-          SkTextBlob::MakeFromString("Skia!", SkFont(nullptr, 64.0f, 1.0f, 0.0f));
-  sk_sp<SkTextBlob> blob2 =
-          SkTextBlob::MakeFromString("Skia!", SkFont(nullptr, 64.0f, 1.5f, 0.0f));
-
-  canvas->clear(SK_ColorWHITE);
-  canvas->drawTextBlob(blob1.get(), 20.0f, 64.0f, paint1);
-  canvas->drawTextBlob(blob1.get(), 20.0f, 144.0f, paint2);
-  canvas->drawTextBlob(blob2.get(), 20.0f, 224.0f, paint3);
-}
-
-// copy from src/third_party/skia/docs/examples/skpaint_path_1d_path_effect.cpp
-void drawSample2(SkCanvas* canvas) {
-  SkPaint paint;
-  SkPath path;
-  path.addOval(SkRect::MakeWH(16.0f, 6.0f));
-  paint.setPathEffect(
-          SkPath1DPathEffect::Make(path, 32.0f, 0.0f, SkPath1DPathEffect::kRotate_Style));
-  paint.setAntiAlias(true);
-  canvas->clear(SK_ColorWHITE);
-  canvas->drawCircle(128.0f, 128.0f, 122.0f, paint);
-}
-
-// start drawSample3
-// copy from src/third_party/skia/docs/examples/alpha_bitmap_color_filter_mask_filter.cpp
-static SkBitmap make_alpha_image(int w, int h) {
-    SkBitmap bm;
-    bm.allocPixels(SkImageInfo::MakeA8(w, h));
-    bm.eraseARGB(10, 0, 0, 0);
-    for (int y = 0; y < bm.height(); ++y) {
-        for (int x = y; x < bm.width(); ++x) {
-            *bm.getAddr8(x, y) = 0xFF;
-        }
-    }
-    bm.setImmutable();
-    return bm;
-}
-
-static sk_sp<SkColorFilter> make_color_filter() {
-    SkScalar colorMatrix[20] = {
-        1, 0, 0,   0,   0,
-        0, 1, 0,   0,   0,
-        0, 0, 0.5, 0.5, 0,
-        0, 0, 0.5, 0.5, 0}; // mix G and A.
-    return SkColorFilters::Matrix(colorMatrix);
-}
-
-void drawSample3(SkCanvas* canvas) {
-    auto image = make_alpha_image(96, 96).asImage();
-    SkSamplingOptions sampling;
-    SkPaint paint;
-
-    paint.setColorFilter(make_color_filter());
-    paint.setMaskFilter(SkMaskFilter::MakeBlur(kNormal_SkBlurStyle, 10.0f, false));
-    canvas->drawImage(image.get(), 16, 16, sampling, &paint);
-
-    paint.setColorFilter(nullptr);
-    paint.setShader(SkShaders::Color(SK_ColorCYAN));
-    canvas->drawImage(image.get(), 144, 16, sampling, &paint);
-
-    paint.setColorFilter(make_color_filter());
-    canvas->drawImage(image.get(), 16, 144, sampling, &paint);
-
-    paint.setMaskFilter(nullptr);
-    canvas->drawImage(image.get(), 144, 144, sampling, &paint);
-}
-// end drawSample3
 
 void OHOSExternalTextureGL::Paint(PaintContext& context,
                                   const SkRect& bounds,
@@ -153,6 +66,8 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     return;
   }
   if (state_ == AttachmentState::uninitialized) {
+    // Attach();
+    // state_ = AttachmentState::attached;
     // InitEGLEnv();
     OHOSSurface* ohos_surface_ptr = ohos_surface_.get();
     OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
@@ -162,10 +77,11 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     // if (result) {
       FML_DLOG(INFO)<<"ResourceContextMakeCurrent successed";
       glGenTextures(1, &texture_name_);
-      // glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      // glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_REPEAT);
-      // glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      // glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glBindTexture(GL_TEXTURE_EXTERNAL_OES, texture_name_);
+      glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
       
       if(ret != 0) {
@@ -175,7 +91,6 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     } else {
       FML_DLOG(FATAL)<<"ResourceContextMakeCurrent failed";
     }
-
   }
   if (!freeze && new_frame_ready_) {
     Update();
@@ -192,10 +107,11 @@ void OHOSExternalTextureGL::PaintOrigin(PaintContext& context,
   GrGLTextureInfo textureInfo = {GL_TEXTURE_EXTERNAL_OES, texture_name_,
                                 GL_RGBA8_OES};
   GrBackendTexture backendTexture(720, 1280, GrMipMapped::kNo, textureInfo);
+  FML_DLOG(INFO)<<"OHOSExternalTextureGL::Paint, backendTexture.isValid=" << backendTexture.isValid();
   sk_sp<SkImage> image = SkImage::MakeFromTexture(
       context.gr_context, backendTexture, kTopLeft_GrSurfaceOrigin,
       kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-  FML_DLOG(INFO)<<"OHOSExternalTextureGL::Paint, image=" << image;
+  // glFinish();
   if (image) {
     FML_DLOG(INFO)<<"OHOSExternalTextureGL begin draw 1";
     SkAutoCanvasRestore autoRestore(context.canvas, true);
@@ -203,8 +119,8 @@ void OHOSExternalTextureGL::PaintOrigin(PaintContext& context,
     // The incoming texture is vertically flipped, so we flip it
     // back. OpenGL's coordinate system has Positive Y equivalent to up, while
     // Skia's coordinate system has Negative Y equvalent to up.
-    context.canvas->translate(bounds.x(), bounds.y() + bounds.height());
-    context.canvas->scale(bounds.width(), -bounds.height());
+    // context.canvas->translate(bounds.x(), bounds.y() + bounds.height());
+    // context.canvas->scale(bounds.width(), -bounds.height());
 
     if (!transform.isIdentity()) {
       FML_DLOG(INFO)<<"OHOSExternalTextureGL begin draw 2";
@@ -220,16 +136,11 @@ void OHOSExternalTextureGL::PaintOrigin(PaintContext& context,
     } else {
       FML_DLOG(INFO)<<"OHOSExternalTextureGL begin draw 3";
       // todo 看这里对不对
-      context.canvas->drawImage(image, 0, 0, sampling, context.sk_paint);
-      FML_DLOG(INFO)<<"OHOSExternalTextureGL begin draw 4";
+      SkSamplingOptions samplingTemp;
+      context.canvas->drawImageRect(image, bounds, samplingTemp, nullptr);
+      // glFinish();
     }
   }
-
-  FML_DLOG(INFO) << "OHOSExternalTextureGL, drawSample tag1";
-  // drawSample(context.canvas);
-  // drawSample2(context.canvas);
-  //drawSample3(context.canvas);
-  FML_DLOG(INFO) << "OHOSExternalTextureGL, drawSample tag2";
 }
 
 void OHOSExternalTextureGL::PaintOhImage(PaintContext& context,
@@ -264,24 +175,34 @@ void OHOSExternalTextureGL::OnTextureUnregistered() {
   // do nothing
 }
 
-void OHOSExternalTextureGL::Attach(int textureName) {
+void OHOSExternalTextureGL::Attach() {
   if (eglContext_ == EGL_NO_CONTEXT) {
-    FML_DLOG(INFO)<<"OHOSExternalTextureGL eglContext_ no context, need init";
+    FML_DLOG(INFO) << "OHOSExternalTextureGL eglContext_ no context, need init";
     InitEGLEnv();
   }
 
-  glGenTextures(1, &texture_name_);
-  glBindTexture(GL_TEXTURE_EXTERNAL_OES, texture_name_);
+  if (texture_name_ == 0) {
+    glGenTextures(1, &texture_name_);
+    glBindTexture(GL_TEXTURE_EXTERNAL_OES, texture_name_);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  }
 
-  int32_t ret = OH_NativeImage_AttachContext(nativeImage_, textureName);
+  // 关联上下文
+  if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_)) {
+    EGLint surfaceId = -1;
+    eglQuerySurface(eglDisplay_, EGL_NO_SURFACE, EGL_CONFIG_ID, &surfaceId);
+    FML_DLOG(FATAL) << "OHOSExternalTextureGL Failed to call eglMakeCurrent, error:"
+              << eglGetError();
+  }
+
+  int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
   if (ret != 0) {
     FML_DLOG(FATAL) << "OHOSExternalTextureGL OH_NativeImage_AttachContext err code:" << ret;
   }
 
-  glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 void OHOSExternalTextureGL::Update() {
@@ -407,6 +328,7 @@ EGLDisplay OHOSExternalTextureGL::GetPlatformEglDisplay(EGLenum platform, void *
 
 void OHOSExternalTextureGL::InitEGLEnv()
 {
+  FML_DLOG(INFO) << "OHOSExternalTextureGL InitEGLEnv";
   // 获取当前的显示设备
   eglDisplay_ =
       GetPlatformEglDisplay(EGL_PLATFORM_OHOS_KHR, EGL_DEFAULT_DISPLAY, NULL);
@@ -456,13 +378,7 @@ void OHOSExternalTextureGL::InitEGLEnv()
               << eglGetError();
   }
 
-  // 关联上下文
-  if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_)) {
-    EGLint surfaceId = -1;
-    eglQuerySurface(eglDisplay_, EGL_NO_SURFACE, EGL_CONFIG_ID, &surfaceId);
-    FML_DLOG(FATAL) << "OHOSExternalTextureGL Failed to call eglMakeCurrent, error:"
-              << eglGetError();
-  }
+  FML_DLOG(INFO) << "OHOSExternalTextureGL InitEGLEnv finish";
 }
 
 bool OHOSExternalTextureGL::CheckEglExtension(const char *extensions, const char *extension)
