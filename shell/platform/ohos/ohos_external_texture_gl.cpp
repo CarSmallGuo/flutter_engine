@@ -60,7 +60,6 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
                                   const SkRect& bounds,
                                   bool freeze,
                                   const SkSamplingOptions& sampling) {
-  FML_DLOG(INFO)<<"OHOSExternalTextureGL::Paint";
   if (state_ == AttachmentState::detached) {
     FML_DLOG(ERROR) << "OHOSExternalTextureGL::Paint";
     return;
@@ -77,11 +76,13 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     // if (result) {
       FML_DLOG(INFO)<<"ResourceContextMakeCurrent successed";
       glGenTextures(1, &texture_name_);
-      glBindTexture(GL_TEXTURE_EXTERNAL_OES, texture_name_);
-      glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      // glBindTexture(GL_TEXTURE_EXTERNAL_OES, texture_name_);
+      // glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      // glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      // glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      // glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      FML_DLOG(INFO) << "OHOSExternalTextureGL::Paint, glGenTextures texture_name_=" << texture_name_;
+
       int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
       
       if(ret != 0) {
@@ -96,34 +97,23 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     Update();
     new_frame_ready_ = false;
   }
-  FML_DLOG(INFO)<<"OHOSExternalTextureGL::Paint, texture_name_=" << texture_name_;
-  PaintOrigin(context, bounds, freeze, sampling);
-}
 
-void OHOSExternalTextureGL::PaintOrigin(PaintContext& context,
-             const SkRect& bounds,
-             bool freeze,
-             const SkSamplingOptions& sampling) {
   GrGLTextureInfo textureInfo = {GL_TEXTURE_EXTERNAL_OES, texture_name_,
                                 GL_RGBA8_OES};
-  GrBackendTexture backendTexture(720, 1280, GrMipMapped::kNo, textureInfo);
-  FML_DLOG(INFO)<<"OHOSExternalTextureGL::Paint, backendTexture.isValid=" << backendTexture.isValid();
+  GrBackendTexture backendTexture(1, 1, GrMipMapped::kNo, textureInfo);
   sk_sp<SkImage> image = SkImage::MakeFromTexture(
       context.gr_context, backendTexture, kTopLeft_GrSurfaceOrigin,
       kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-  // glFinish();
   if (image) {
-    FML_DLOG(INFO)<<"OHOSExternalTextureGL begin draw 1";
     SkAutoCanvasRestore autoRestore(context.canvas, true);
 
     // The incoming texture is vertically flipped, so we flip it
     // back. OpenGL's coordinate system has Positive Y equivalent to up, while
     // Skia's coordinate system has Negative Y equvalent to up.
-    // context.canvas->translate(bounds.x(), bounds.y() + bounds.height());
-    // context.canvas->scale(bounds.width(), -bounds.height());
+    context.canvas->translate(bounds.x(), bounds.y());
+    context.canvas->scale(bounds.width(), bounds.height());
 
     if (!transform.isIdentity()) {
-      FML_DLOG(INFO)<<"OHOSExternalTextureGL begin draw 2";
       sk_sp<SkShader> shader = image->makeShader(
           SkTileMode::kRepeat, SkTileMode::kRepeat, sampling, transform);
 
@@ -134,20 +124,9 @@ void OHOSExternalTextureGL::PaintOrigin(PaintContext& context,
       paintWithShader.setShader(shader);
       context.canvas->drawRect(SkRect::MakeWH(1, 1), paintWithShader);
     } else {
-      FML_DLOG(INFO)<<"OHOSExternalTextureGL begin draw 3";
-      // todo 看这里对不对
-      SkSamplingOptions samplingTemp;
-      context.canvas->drawImageRect(image, bounds, samplingTemp, nullptr);
-      // glFinish();
+      context.canvas->drawImage(image, 0, 0, sampling, context.sk_paint);
     }
   }
-}
-
-void OHOSExternalTextureGL::PaintOhImage(PaintContext& context,
-             const SkRect& bounds,
-             bool freeze,
-             const SkSamplingOptions& sampling) {
-  // todo 参考Demo中的方式，测试直接使用egl绘制视频纹理是否可行
 }
 
 void OHOSExternalTextureGL::OnGrContextCreated() {
