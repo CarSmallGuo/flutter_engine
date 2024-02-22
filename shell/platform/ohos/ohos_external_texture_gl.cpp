@@ -36,7 +36,6 @@ constexpr const char *CHARACTER_STRING_WHITESPACE = " ";
 constexpr const char *EGL_EXT_PLATFORM_WAYLAND = "EGL_EXT_platform_wayland";
 constexpr const char *EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
 constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
-constexpr int32_t EGL_CONTEXT_CLIENT_VERSION_NUM = 2;
 
 OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface)
   : Texture(id),ohos_surface_(std::move(ohos_surface)),transform(SkMatrix::I()) {
@@ -65,9 +64,6 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     return;
   }
   if (state_ == AttachmentState::uninitialized) {
-    // Attach();
-    // state_ = AttachmentState::attached;
-    // InitEGLEnv();
     OHOSSurface* ohos_surface_ptr = ohos_surface_.get();
     OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
     auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
@@ -76,11 +72,6 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     // if (result) {
       FML_DLOG(INFO)<<"ResourceContextMakeCurrent successed";
       glGenTextures(1, &texture_name_);
-      // glBindTexture(GL_TEXTURE_EXTERNAL_OES, texture_name_);
-      // glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      // glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_REPEAT);
-      // glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      // glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       FML_DLOG(INFO) << "OHOSExternalTextureGL::Paint, glGenTextures texture_name_=" << texture_name_;
       if (nativeImage_ == nullptr) {
         nativeImage_ = OH_NativeImage_Create(texture_name_, GL_TEXTURE_EXTERNAL_OES);
@@ -117,7 +108,6 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
       context.gr_context, backendTexture, kTopLeft_GrSurfaceOrigin,
       kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
   if (image) {
-    FML_LOG(INFO) << "OHOSExternalTextureGL image w=" << bounds.width() << ", h=" << bounds.height();
     SkAutoCanvasRestore autoRestore(context.canvas, true);
 
     // The incoming texture is vertically flipped, so we flip it
@@ -165,36 +155,6 @@ void OHOSExternalTextureGL::MarkNewFrameAvailable() {
 void OHOSExternalTextureGL::OnTextureUnregistered() {
   FML_DLOG(INFO)<<" OHOSExternalTextureGL::OnTextureUnregistered";
   // do nothing
-}
-
-void OHOSExternalTextureGL::Attach() {
-  if (eglContext_ == EGL_NO_CONTEXT) {
-    FML_DLOG(INFO) << "OHOSExternalTextureGL eglContext_ no context, need init";
-    InitEGLEnv();
-  }
-
-  if (texture_name_ == 0) {
-    glGenTextures(1, &texture_name_);
-    glBindTexture(GL_TEXTURE_EXTERNAL_OES, texture_name_);
-    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  }
-
-  // 关联上下文
-  if (!eglMakeCurrent(eglDisplay_, EGL_NO_SURFACE, EGL_NO_SURFACE, eglContext_)) {
-    EGLint surfaceId = -1;
-    eglQuerySurface(eglDisplay_, EGL_NO_SURFACE, EGL_CONFIG_ID, &surfaceId);
-    FML_DLOG(FATAL) << "OHOSExternalTextureGL Failed to call eglMakeCurrent, error:"
-              << eglGetError();
-  }
-
-  int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
-  if (ret != 0) {
-    FML_DLOG(FATAL) << "OHOSExternalTextureGL OH_NativeImage_AttachContext err code:" << ret;
-  }
-
 }
 
 void OHOSExternalTextureGL::Update() {
@@ -334,61 +294,6 @@ EGLDisplay OHOSExternalTextureGL::GetPlatformEglDisplay(EGLenum platform, void *
   }
 
   return eglGetDisplay((EGLNativeDisplayType)native_display);
-}
-
-void OHOSExternalTextureGL::InitEGLEnv()
-{
-  FML_DLOG(INFO) << "OHOSExternalTextureGL InitEGLEnv";
-  // 获取当前的显示设备
-  eglDisplay_ =
-      GetPlatformEglDisplay(EGL_PLATFORM_OHOS_KHR, EGL_DEFAULT_DISPLAY, NULL);
-  if (eglDisplay_ == EGL_NO_DISPLAY) {
-    FML_DLOG(FATAL) << "OHOSExternalTextureGL Failed to create EGLDisplay gl errno : "
-                    << eglGetError();
-  }
-  EGLint major, minor;
-  // 初始化EGLDisplay
-  if (eglInitialize(eglDisplay_, &major, &minor) == EGL_FALSE) {
-    FML_DLOG(FATAL) << "OHOSExternalTextureGL Failed to initialize EGLDisplay";
-  }
-
-  // 绑定图形绘制的API为OpenGLES
-  if (eglBindAPI(EGL_OPENGL_ES_API) == EGL_FALSE) {
-    FML_DLOG(FATAL) << "OHOSExternalTextureGL Failed to bind OpenGL ES API";
-  }
-  unsigned int ret;
-  EGLint count;
-  EGLint config_attribs[] = {EGL_SURFACE_TYPE,
-                             EGL_WINDOW_BIT,
-                             EGL_RED_SIZE,
-                             8,
-                             EGL_GREEN_SIZE,
-                             8,
-                             EGL_BLUE_SIZE,
-                             8,
-                             EGL_ALPHA_SIZE,
-                             8,
-                             EGL_RENDERABLE_TYPE,
-                             EGL_OPENGL_ES3_BIT,
-                             EGL_NONE};
-  // 获取一个有效的系统配置信息
-  ret = eglChooseConfig(eglDisplay_, config_attribs, &config_, 1, &count);
-  if (!(ret && static_cast<unsigned int>(count) >= 1)) {
-    FML_DLOG(FATAL) << "OHOSExternalTextureGL Failed to eglChooseConfig";
-  }
-
-  const EGLint context_attribs[] = {
-      EGL_CONTEXT_CLIENT_VERSION, EGL_CONTEXT_CLIENT_VERSION_NUM, EGL_NONE};
-
-  // 创建上下文
-  eglContext_ =
-      eglCreateContext(eglDisplay_, config_, EGL_NO_CONTEXT, context_attribs);
-  if (eglContext_ == EGL_NO_CONTEXT) {
-    FML_DLOG(FATAL) << "OHOSExternalTextureGL Failed to create egl context, error:"
-              << eglGetError();
-  }
-
-  FML_DLOG(INFO) << "OHOSExternalTextureGL InitEGLEnv finish";
 }
 
 bool OHOSExternalTextureGL::CheckEglExtension(const char *extensions, const char *extension)

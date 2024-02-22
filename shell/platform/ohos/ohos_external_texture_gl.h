@@ -59,8 +59,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
   void DispatchPixelMap(NativePixelMap* pixelMap);
 
  private:
-  void Attach();
-
   void Update();
 
   void Detach();
@@ -68,8 +66,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
   void UpdateTransform();
 
   EGLDisplay GetPlatformEglDisplay(EGLenum platform, void *native_display, const EGLint *attrib_list);
-
-  void InitEGLEnv();
 
   bool CheckEglExtension(const char *extensions, const char *extension);
 
@@ -103,7 +99,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   EGLContext eglContext_;
   EGLDisplay eglDisplay_;
-  EGLConfig config_;
 
   FML_DISALLOW_COPY_AND_ASSIGN(OHOSExternalTextureGL);
 };
