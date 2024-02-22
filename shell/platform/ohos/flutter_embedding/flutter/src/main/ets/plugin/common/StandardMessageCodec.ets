@@ -76,7 +76,7 @@ export default class StandardMessageCodec implements MessageCodec<ESObject> {
         return stream.buffer
     }
 
-    decodeMessage(message: ArrayBuffer): ESObject {
+    decodeMessage(message: ArrayBuffer | null): ESObject {
         if (message == null) {
             return null
         }
@@ -233,7 +233,7 @@ export default class StandardMessageCodec implements MessageCodec<ESObject> {
     }
 
     readValue(buffer: ByteBuffer): ESObject {
-        let type = buffer.readInt8()
+        let type = buffer.readUint8()
         return this.readValueOfType(type, buffer);
     }
 
