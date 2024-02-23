@@ -1482,7 +1482,7 @@ napi_value PlatformViewOHOSNapi::nativeMarkTextureFrameAvailable(
 }
 
 napi_value PlatformViewOHOSNapi::nativeRegisterPixelMap(napi_env env,
-      napi_callback_info info)
+  napi_callback_info info)
 {
   FML_DLOG(INFO)<<"PlatformViewOHOSNapi::nativeRegisterPixelMap";
   size_t argc = 3;

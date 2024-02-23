@@ -462,7 +462,7 @@ void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id)
 
 void PlatformViewOHOS::RegisterExternalTextureByPixelMap(int64_t texture_id, NativePixelMap* pixelMap)
 {
-  if(ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
     auto iter = external_texture_gl_.find(texture_id);
     if(iter != external_texture_gl_.end()) {
       iter->second->DispatchPixelMap(pixelMap);

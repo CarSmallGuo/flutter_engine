@@ -69,15 +69,12 @@ class OHOSUnifiedSurface : public GPUSurfaceGLDelegate,
   static sk_sp<const GrGLInterface> GetDefaultPlatformGLInterface() {}
 
   using GLProcResolver =
-      std::function<void* /* proc name */ (const char* /* proc address */)>;
+      std::function<void* (const char*)>;
  
   GLProcResolver GetGLProcResolver() {}
 
   bool AllowsDrawingWhenGpuDisabled() {}
-
 };
-
-
 }  // namespace flutter
 
 #endif
