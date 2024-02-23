@@ -38,7 +38,7 @@ constexpr const char *EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
 constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 
 OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface)
-  : Texture(id),ohos_surface_(std::move(ohos_surface)),transform(SkMatrix::I()) {
+  : Texture(id), ohos_surface_(std::move(ohos_surface)), transform(SkMatrix::I()) {
     nativeImage_ = nullptr;
     nativeWindow_ = nullptr;
     eglContext_ =  EGL_NO_CONTEXT;
@@ -68,8 +68,6 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
     auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
     if (result->GetResult()) {
-    // bool result = ohosSurfaceGLSkia_->ResourceContextMakeCurrent();
-    // if (result) {
       FML_DLOG(INFO)<<"ResourceContextMakeCurrent successed";
       glGenTextures(1, &texture_name_);
       FML_DLOG(INFO) << "OHOSExternalTextureGL::Paint, glGenTextures texture_name_=" << texture_name_;
@@ -87,7 +85,6 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
       }
 
       int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
-      
       if(ret != 0) {
         FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_AttachContext err code:"<< ret;
       }
