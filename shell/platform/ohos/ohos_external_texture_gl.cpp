@@ -157,7 +157,7 @@ void OHOSExternalTextureGL::OnTextureUnregistered() {
 void OHOSExternalTextureGL::Update() {
   ProducePixelMapToNativeImage();
   int32_t ret = OH_NativeImage_UpdateSurfaceImage(nativeImage_);
-  if(ret != 0) {
+  if (ret != 0) {
     FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_UpdateSurfaceImage err code:"<< ret;
   }
   UpdateTransform();
@@ -174,7 +174,7 @@ void OHOSExternalTextureGL::UpdateTransform() {
   if(ret != 0) {
     FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_GetTransformMatrix err code:"<< ret;
   }
-  //transform ohos 4x4 matrix to skia 3x3 matrix
+  // transform ohos 4x4 matrix to skia 3x3 matrix
   FML_DLOG(INFO)<<"OHOSExternalTextureGL::UpdateTransform "<<m[0]<<" "<<m[4]<<" "<<m[12];
   FML_DLOG(INFO)<<"OHOSExternalTextureGL::UpdateTransform "<<m[1]<<" "<<m[5]<<" "<<m[13];
   FML_DLOG(INFO)<<"OHOSExternalTextureGL::UpdateTransform "<<m[3]<<" "<<m[7]<<" "<<m[15];
@@ -227,7 +227,7 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
     FML_DLOG(ERROR) << "OHOSExternalTextureGL OH_NativeWindow_NativeWindowRequestBuffer err:" << ret;
   }
   BufferHandle *handle = OH_NativeWindow_GetBufferHandleFromNative(buffer_);
-  //get virAddr of bufferHandl by mmap sys interface
+  // get virAddr of bufferHandl by mmap sys interface
   void *mappedAddr = mmap(handle->virAddr, handle->size, PROT_READ | PROT_WRITE, MAP_SHARED, handle->fd, 0);
   if (mappedAddr == MAP_FAILED) {
     FML_DLOG(FATAL)<<"OHOSExternalTextureGL mmap failed";

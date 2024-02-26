@@ -1423,8 +1423,8 @@ napi_value PlatformViewOHOSNapi::nativeGetSystemLanguages(
 }
 
 napi_value PlatformViewOHOSNapi::nativeInitNativeImage(
-  napi_env env, napi_callback_info info)
-{
+    napi_env env,
+    napi_callback_info info) {
   FML_DLOG(INFO)<<"PlatformViewOHOSNapi::nativeInitNativeImage";
   size_t argc = 3;
   napi_value args[3] = {nullptr};

@@ -464,7 +464,7 @@ void PlatformViewOHOS::RegisterExternalTextureByPixelMap(int64_t texture_id, Nat
 {
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
     auto iter = external_texture_gl_.find(texture_id);
-    if(iter != external_texture_gl_.end()) {
+    if (iter != external_texture_gl_.end()) {
       iter->second->DispatchPixelMap(pixelMap);
     } else {
       std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl = std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_);
