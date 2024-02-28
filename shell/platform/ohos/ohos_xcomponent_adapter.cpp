@@ -14,52 +14,55 @@
  */
 
 #include "ohos_xcomponent_adapter.h"
+
+#include <functional>
+
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "types.h"
-#include <functional>
+
 namespace flutter {
 
-XComponentAdapter XComponentAdapter::mXComponentAdapter;
-
-XComponentAdapter::XComponentAdapter(/* args */) {}
+XComponentAdapter::XComponentAdapter() {}
 
 XComponentAdapter::~XComponentAdapter() {}
 
 XComponentAdapter* XComponentAdapter::GetInstance() {
-  return &XComponentAdapter::mXComponentAdapter;
+  static XComponentAdapter* instance = new XComponentAdapter;
+  return instance;
 }
 
 bool XComponentAdapter::Export(napi_env env, napi_value exports) {
   napi_status status;
-  napi_value exportInstance = nullptr;
-  OH_NativeXComponent* nativeXComponent = nullptr;
+  napi_value export_instance = nullptr;
+  OH_NativeXComponent* native_xcomponent = nullptr;
   int32_t ret;
-  char idStr[OH_XCOMPONENT_ID_LEN_MAX + 1] = {};
-  uint64_t idSize = OH_XCOMPONENT_ID_LEN_MAX + 1;
+  char id_str[OH_XCOMPONENT_ID_LEN_MAX + 1] = {};
+  uint64_t id_size = OH_XCOMPONENT_ID_LEN_MAX + 1;
 
   status = napi_get_named_property(env, exports, OH_NATIVE_XCOMPONENT_OBJ,
-                                   &exportInstance);
+                                   &export_instance);
   LOGD("napi_get_named_property,status = %{public}d", status);
   if (status != napi_ok) {
     return false;
   }
 
-  status = napi_unwrap(env, exportInstance,
-                       reinterpret_cast<void**>(&nativeXComponent));
+  status = napi_unwrap(env, export_instance,
+                       reinterpret_cast<void**>(&native_xcomponent));
   LOGD("napi_unwrap,status = %{public}d", status);
   if (status != napi_ok) {
     return false;
   }
 
-  ret = OH_NativeXComponent_GetXComponentId(nativeXComponent, idStr, &idSize);
-  LOGD("NativeXComponent id:%{public}s", idStr);
+  ret =
+      OH_NativeXComponent_GetXComponentId(native_xcomponent, id_str, &id_size);
+  LOGD("NativeXComponent id:%{public}s", id_str);
   if (ret != OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
     return false;
   }
-  std::string id(idStr);
+  std::string id(id_str);
   auto context = XComponentAdapter::GetInstance();
   if (context) {
-    context->SetNativeXComponent(id, nativeXComponent);
+    context->SetNativeXComponent(id, native_xcomponent);
     return true;
   }
 
@@ -67,37 +70,38 @@ bool XComponentAdapter::Export(napi_env env, napi_value exports) {
 }
 
 void XComponentAdapter::SetNativeXComponent(
-    std::string& id,
-    OH_NativeXComponent* nativeXComponent) {
-  auto iter = xcomponetMap_.find(id);
-  if (iter == xcomponetMap_.end()) {
+    const std::string& id,
+    OH_NativeXComponent* native_xcomponent) {
+  auto iter = xcomponent_map_.find(id);
+  if (iter == xcomponent_map_.end()) {
     XComponentBase* xcomponet = new XComponentBase(id);
-    xcomponetMap_[id] = xcomponet;
+    xcomponent_map_[id] = xcomponet;
   }
 
-  iter = xcomponetMap_.find(id);
-  if (iter != xcomponetMap_.end()) {
-    iter->second->SetNativeXComponent(nativeXComponent);
+  iter = xcomponent_map_.find(id);
+  if (iter != xcomponent_map_.end()) {
+    iter->second->SetNativeXComponent(native_xcomponent);
   }
 }
 
-void XComponentAdapter::AttachFlutterEngine(std::string& id,
-                                            std::string& shellholderId) {
-  auto iter = xcomponetMap_.find(id);
-  if (iter == xcomponetMap_.end()) {
+void XComponentAdapter::AttachFlutterEngine(
+    const std::string& id,
+    const std::string& shell_holder_id) {
+  auto iter = xcomponent_map_.find(id);
+  if (iter == xcomponent_map_.end()) {
     XComponentBase* xcomponet = new XComponentBase(id);
-    xcomponetMap_[id] = xcomponet;
+    xcomponent_map_[id] = xcomponet;
   }
 
-  auto findIter = xcomponetMap_.find(id);
-  if (findIter != xcomponetMap_.end()) {
-    findIter->second->AttachFlutterEngine(shellholderId);
+  auto findIter = xcomponent_map_.find(id);
+  if (findIter != xcomponent_map_.end()) {
+    findIter->second->AttachFlutterEngine(shell_holder_id);
   }
 }
 
-void XComponentAdapter::DetachFlutterEngine(std::string& id) {
-  auto iter = xcomponetMap_.find(id);
-  if (iter != xcomponetMap_.end()) {
+void XComponentAdapter::DetachFlutterEngine(const std::string& id) {
+  auto iter = xcomponent_map_.find(id);
+  if (iter != xcomponent_map_.end()) {
     iter->second->DetachFlutterEngine();
   }
 }
@@ -142,7 +146,7 @@ using OHOS_SurfaceBufferUsage = enum {
   BUFFER_USAGE_VENDOR_PRI18 = (1ULL << 62),  /**< Reserverd for vendor */
   BUFFER_USAGE_VENDOR_PRI19 = (1ULL << 63),  /**< Reserverd for vendor */
 };
-static int32_t SetNativeWindowOpt(OHNativeWindow* nativeWindow,
+static int32_t SetNativeWindowOpt(OHNativeWindow* native_window,
                                   int32_t width,
                                   int height) {
   // Set the read and write scenarios of the native window buffer.
@@ -150,83 +154,79 @@ static int32_t SetNativeWindowOpt(OHNativeWindow* nativeWindow,
   int32_t usage =
       BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA;
   int32_t ret =
-      OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, usage);
+      OH_NativeWindow_NativeWindowHandleOpt(native_window, code, usage);
   if (ret) {
     LOGE(
         "Set NativeWindow Usage Failed :window:%{public}p ,w:%{public}d x "
         "%{public}d:%{public}d",
-        nativeWindow, width, height, ret);
+        native_window, width, height, ret);
   }
   // Set the width and height of the native window buffer.
   code = SET_BUFFER_GEOMETRY;
   ret =
-      OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, width, height);
+      OH_NativeWindow_NativeWindowHandleOpt(native_window, code, width, height);
   if (ret) {
     LOGE(
         "Set NativeWindow GEOMETRY  Failed :window:%{public}p ,w:%{public}d x "
         "%{public}d:%{public}d",
-        nativeWindow, width, height, ret);
+        native_window, width, height, ret);
   }
   // Set the step of the native window buffer.
   code = SET_STRIDE;
   int32_t stride = 0x8;
-  ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, stride);
+  ret = OH_NativeWindow_NativeWindowHandleOpt(native_window, code, stride);
   if (ret) {
     LOGE(
         "Set NativeWindow stride   Failed :window:%{public}p ,w:%{public}d x "
         "%{public}d:%{public}d",
-        nativeWindow, width, height, ret);
+        native_window, width, height, ret);
   }
   // Set the format of the native window buffer.
   code = SET_FORMAT;
   int32_t format = PIXEL_FMT_RGBA_8888;
 
-  ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, format);
+  ret = OH_NativeWindow_NativeWindowHandleOpt(native_window, code, format);
   if (ret) {
     LOGE(
         "Set NativeWindow PIXEL_FMT_RGBA_8888   Failed :window:%{public}p "
         ",w:%{public}d x %{public}d:%{public}d",
-        nativeWindow, width, height, ret);
+        native_window, width, height, ret);
   }
   return ret;
 }
 
 void OnSurfaceCreatedCB(OH_NativeXComponent* component, void* window) {
-  for(auto it: XComponentAdapter::GetInstance()->xcomponetMap_)
-  {
-    if(it.second->nativeXComponent_ == component) {
+  for (auto it : XComponentAdapter::GetInstance()->xcomponent_map()) {
+    if (it.second->native_xcomponent() == component) {
       it.second->OnSurfaceCreated(component, window);
     }
   }
 }
 
 void OnSurfaceChangedCB(OH_NativeXComponent* component, void* window) {
-  for(auto it: XComponentAdapter::GetInstance()->xcomponetMap_)
-  {
-    if(it.second->nativeXComponent_ == component) {
+  for (auto it : XComponentAdapter::GetInstance()->xcomponent_map()) {
+    if (it.second->native_xcomponent() == component) {
       it.second->OnSurfaceChanged(component, window);
     }
   }
 }
 
 void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
-  for(auto it = XComponentAdapter::GetInstance()->xcomponetMap_.begin(); 
-    it != XComponentAdapter::GetInstance()->xcomponetMap_.end();)
-  {
-    if(it->second->nativeXComponent_ == component) {
+  for (auto it = XComponentAdapter::GetInstance()->xcomponent_map().begin();
+       it != XComponentAdapter::GetInstance()->xcomponent_map().end();) {
+    if (it->second->native_xcomponent() == component) {
       it->second->OnSurfaceDestroyed(component, window);
       delete it->second;
-      it = XComponentAdapter::GetInstance()->xcomponetMap_.erase(it);
+      it = XComponentAdapter::GetInstance()->xcomponent_map().erase(it);
     } else {
       ++it;
     }
   }
-
 }
+
 void DispatchTouchEventCB(OH_NativeXComponent* component, void* window) {
-  for(auto it: XComponentAdapter::GetInstance()->xcomponetMap_)
-  {
-    if(it.second->nativeXComponent_ == component) {
+  for (auto it : XComponentAdapter::GetInstance()->xcomponent_map()) {
+    if (it.second->native_xcomponent() == component) {
       it.second->OnDispatchTouchEvent(component, window);
     }
   }
@@ -239,22 +239,22 @@ void XComponentBase::BindXComponentCallback() {
   callback_.DispatchTouchEvent = DispatchTouchEventCB;
 }
 
-XComponentBase::XComponentBase(std::string id){
+XComponentBase::XComponentBase(const std::string& id) {
   id_ = id;
   isEngineAttached_ = false;
 }
 
 XComponentBase::~XComponentBase() {}
 
-void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
+void XComponentBase::AttachFlutterEngine(const std::string& shell_holder_id) {
   LOGD(
       "XComponentManger::AttachFlutterEngine xcomponentId:%{public}s, "
-      "shellholderId:%{public}s",
-      id_.c_str(), shellholderId.c_str());
-  shellholderId_ = shellholderId;
+      "shell_holder_id:%{public}s",
+      id_.c_str(), shell_holder_id.c_str());
+  shell_holder_id_ = shell_holder_id;
   isEngineAttached_ = true;
   if (window_ != nullptr) {
-    PlatformViewOHOSNapi::SurfaceCreated(std::stoll(shellholderId_), window_);
+    PlatformViewOHOSNapi::SurfaceCreated(std::stoll(shell_holder_id_), window_);
   } else {
     LOGE("OnSurfaceCreated XComponentBase is not attached");
   }
@@ -263,22 +263,23 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
 void XComponentBase::DetachFlutterEngine() {
   LOGD(
       "XComponentManger::DetachFlutterEngine xcomponentId:%{public}s, "
-      "shellholderId:%{public}s",
-      id_.c_str(), shellholderId_.c_str());
+      "shell_holder_id:%{public}s",
+      id_.c_str(), shell_holder_id_.c_str());
   if (window_ != nullptr) {
-    PlatformViewOHOSNapi::SurfaceDestroyed(std::stoll(shellholderId_));
+    PlatformViewOHOSNapi::SurfaceDestroyed(std::stoll(shell_holder_id_));
   } else {
     LOGE("DetachFlutterEngine XComponentBase is not attached");
   }
-  shellholderId_ = "";
+  shell_holder_id_ = "";
   isEngineAttached_ = false;
 }
 
-void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
-  nativeXComponent_ = nativeXComponent;
-  if (nativeXComponent_ != nullptr) {
+void XComponentBase::SetNativeXComponent(
+    OH_NativeXComponent* native_xcomponent) {
+  native_xcomponent_ = native_xcomponent;
+  if (native_xcomponent_ != nullptr) {
     BindXComponentCallback();
-    OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
+    OH_NativeXComponent_RegisterCallback(native_xcomponent_, &callback_);
   }
 }
 
@@ -288,7 +289,7 @@ void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component,
       "XComponentManger::OnSurfaceCreated window = %{public}p component = "
       "%{public}p",
       window, component);
-      window_ = window;
+  window_ = window;
   int32_t ret = OH_NativeXComponent_GetXComponentSize(component, window,
                                                       &width_, &height_);
   if (ret == OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
@@ -305,14 +306,14 @@ void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component,
     LOGD("SetNativeWindowOpt failed:%{public}d", ret);
   }
   if (isEngineAttached_) {
-    PlatformViewOHOSNapi::SurfaceCreated(std::stoll(shellholderId_), window);
+    PlatformViewOHOSNapi::SurfaceCreated(std::stoll(shell_holder_id_), window);
   } else {
     LOGE("OnSurfaceCreated XComponentBase is not attached");
   }
 }
 
-void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component, void* window)
-{
+void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component,
+                                      void* window) {
   LOGD("XComponentManger::OnSurfaceChanged ");
   int32_t ret = OH_NativeXComponent_GetXComponentSize(component, window,
                                                       &width_, &height_);
@@ -321,7 +322,7 @@ void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component, void* wind
          static_cast<int>(width_), static_cast<int>(height_));
   }
   if (isEngineAttached_) {
-    PlatformViewOHOSNapi::SurfaceChanged(std::stoll(shellholderId_), width_,
+    PlatformViewOHOSNapi::SurfaceChanged(std::stoll(shell_holder_id_), width_,
                                          height_);
   } else {
     LOGE("OnSurfaceChanged XComponentBase is not attached");
@@ -333,7 +334,7 @@ void XComponentBase::OnSurfaceDestroyed(OH_NativeXComponent* component,
   window_ = nullptr;
   LOGD("XComponentManger::OnSurfaceDestroyed");
   if (isEngineAttached_) {
-    PlatformViewOHOSNapi::SurfaceDestroyed(std::stoll(shellholderId_));
+    PlatformViewOHOSNapi::SurfaceDestroyed(std::stoll(shell_holder_id_));
   } else {
     LOGE("OnSurfaceCreated OnSurfaceDestroyed is not attached");
   }
@@ -343,12 +344,12 @@ void XComponentBase::OnDispatchTouchEvent(OH_NativeXComponent* component,
                                           void* window) {
   LOGD("XComponentManger::DispatchTouchEvent");
   int32_t ret =
-      OH_NativeXComponent_GetTouchEvent(component, window, &touchEvent_);
+      OH_NativeXComponent_GetTouchEvent(component, window, &touch_event_);
   if (ret == OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
     if (isEngineAttached_) {
-       LOGD("XComponentManger::HandleTouchEvent");
-      ohosTouchProcessor_.HandleTouchEvent(std::stoll(shellholderId_),
-                                           component, &touchEvent_);
+      LOGD("XComponentManger::HandleTouchEvent");
+      ohos_touch_processor_.HandleTouchEvent(std::stoll(shell_holder_id_),
+                                             component, &touch_event_);
     } else {
       LOGE(
           "XComponentManger::DispatchTouchEvent XComponentBase is not "
