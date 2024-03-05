@@ -13,7 +13,7 @@
 #define TIMESENSITIVE(x) TimeSensitiveTest_##x
 
 TEST(MessageLoopImpl, TIMESENSITIVE(WakeUpTimersAreSingletons)) {
-  auto loop_impl = fml::MessageLoopImpl::Create();
+  auto loop_impl = fml::MessageLoopImpl::Create(nullptr);
 
   const auto t1 = fml::TimeDelta::FromMilliseconds(10);
   const auto t2 = fml::TimeDelta::FromMilliseconds(30);
