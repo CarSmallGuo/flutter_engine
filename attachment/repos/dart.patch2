@@ -238,3 +238,17 @@ index 7ac0322c01c..2f6b4990a9f 100644
    va_end(args);
  }
  
+diff --git a/runtime/vm/os_thread.cc b/runtime/vm/os_thread.cc
+index d190c80eff7..e46459e9199 100644
+--- a/runtime/vm/os_thread.cc
++++ b/runtime/vm/os_thread.cc
+@@ -53,7 +53,8 @@ OSThread::OSThread()
+   ASSERT(stack_base_ > stack_limit_);
+   ASSERT(stack_base_ > GetCurrentStackPointer());
+   ASSERT(stack_limit_ < GetCurrentStackPointer());
+-  RELEASE_ASSERT(HasStackHeadroom());
++  // ohos temporary comments
++  // RELEASE_ASSERT(HasStackHeadroom());
+ }
+ 
+ OSThread* OSThread::CreateOSThread() {

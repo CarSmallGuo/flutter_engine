@@ -167,7 +167,7 @@ def getNdkHome():
 
 
 # 指定engine编译的配置参数
-def engineConfig(buildInfo, extraParam=""):
+def engineConfig(buildInfo, extraParam=[]):
     OHOS_NDK_HOME = getNdkHome()
     # export PATH=$OHOS_NDK_HOME/build-tools/cmake/bin:$OHOS_NDK_HOME/llvm/bin:$PATH
     lastPath = os.getenv("PATH")
@@ -185,6 +185,9 @@ def engineConfig(buildInfo, extraParam=""):
             + "--target-triple %s " % buildInfo.targetTriple
         )
     OPT = "--unoptimized --no-lto " if buildInfo.buildType == "debug" else ""
+    extraStr = ''
+    for param in extraParam:
+        extraStr += param.replace("\\", "") + " "
     runCommand(
         "%s " % os.path.join("src", "flutter", "tools", "gn")
         + "--ohos "
@@ -198,7 +201,7 @@ def engineConfig(buildInfo, extraParam=""):
         + "--disable-desktop-embeddings "
         + "--no-build-embedder-examples "
         + "--verbose "
-        + extraParam.replace("\\", ""),
+        + extraStr,
         checkCode=False,
         timeout=600,
     )
@@ -346,8 +349,8 @@ def addParseParam(parser):
     parser.add_argument(
         "-g",
         "--gn-extra-param",
-        nargs="?",
-        default="",
+        nargs="+",
+        default=[],
         help='Extra param to src/flutter/tools/gn. Such as: -g "\\--enable-unittests"',
     )
 

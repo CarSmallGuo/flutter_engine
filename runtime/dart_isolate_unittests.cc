@@ -38,6 +38,9 @@ class DartIsolateTest : public FixtureTest {
 };
 
 TEST_F(DartIsolateTest, RootIsolateCreationAndShutdown) {
+#ifdef OHOS_USE_UNITTESTS_SKIP
+  GTEST_SKIP() << "ohos does not support create isolate in root thread";
+#endif
   ASSERT_FALSE(DartVMRef::IsInstanceRunning());
   auto settings = CreateSettingsForFixture();
   auto vm_ref = DartVMRef::Create(settings);
@@ -78,6 +81,9 @@ TEST_F(DartIsolateTest, RootIsolateCreationAndShutdown) {
 }
 
 TEST_F(DartIsolateTest, IsolateShutdownCallbackIsInIsolateScope) {
+#ifdef OHOS_USE_UNITTESTS_SKIP
+  GTEST_SKIP() << "ohos does not support create isolate in root thread";
+#endif
   ASSERT_FALSE(DartVMRef::IsInstanceRunning());
   auto settings = CreateSettingsForFixture();
   auto vm_ref = DartVMRef::Create(settings);
@@ -123,6 +129,9 @@ TEST_F(DartIsolateTest, IsolateShutdownCallbackIsInIsolateScope) {
 }
 
 TEST_F(DartIsolateTest, IsolateCanLoadAndRunDartCode) {
+#ifdef OHOS_USE_UNITTESTS_SKIP
+  GTEST_SKIP() << "ohos does not support create isolate in root thread";
+#endif
   ASSERT_FALSE(DartVMRef::IsInstanceRunning());
   const auto settings = CreateSettingsForFixture();
   auto vm_ref = DartVMRef::Create(settings);
@@ -139,6 +148,9 @@ TEST_F(DartIsolateTest, IsolateCanLoadAndRunDartCode) {
 }
 
 TEST_F(DartIsolateTest, IsolateCannotLoadAndRunUnknownDartEntrypoint) {
+#ifdef OHOS_USE_UNITTESTS_SKIP
+  GTEST_SKIP() << "ohos does not support create isolate in root thread";
+#endif
   ASSERT_FALSE(DartVMRef::IsInstanceRunning());
   const auto settings = CreateSettingsForFixture();
   auto vm_ref = DartVMRef::Create(settings);
@@ -155,6 +167,9 @@ TEST_F(DartIsolateTest, IsolateCannotLoadAndRunUnknownDartEntrypoint) {
 }
 
 TEST_F(DartIsolateTest, CanRunDartCodeCodeSynchronously) {
+#ifdef OHOS_USE_UNITTESTS_SKIP
+  GTEST_SKIP() << "ohos does not support create isolate in root thread";
+#endif
   ASSERT_FALSE(DartVMRef::IsInstanceRunning());
   const auto settings = CreateSettingsForFixture();
   auto vm_ref = DartVMRef::Create(settings);
@@ -179,6 +194,9 @@ TEST_F(DartIsolateTest, CanRunDartCodeCodeSynchronously) {
 }
 
 TEST_F(DartIsolateTest, ImpellerFlagIsCorrectWhenTrue) {
+#ifdef OHOS_USE_UNITTESTS_SKIP
+  GTEST_SKIP() << "ohos does not support create isolate in root thread";
+#endif
   ASSERT_FALSE(DartVMRef::IsInstanceRunning());
   auto settings = CreateSettingsForFixture();
   settings.enable_impeller = true;
@@ -214,6 +232,9 @@ TEST_F(DartIsolateTest, ImpellerFlagIsCorrectWhenTrue) {
 }
 
 TEST_F(DartIsolateTest, ImpellerFlagIsCorrectWhenFalse) {
+#ifdef OHOS_USE_UNITTESTS_SKIP
+  GTEST_SKIP() << "ohos does not support create isolate in root thread";
+#endif
   ASSERT_FALSE(DartVMRef::IsInstanceRunning());
   auto settings = CreateSettingsForFixture();
   settings.enable_impeller = false;
@@ -397,6 +418,10 @@ TEST_F(DartIsolateTest, CanReceiveArguments) {
 }
 
 TEST_F(DartIsolateTest, CanCreateServiceIsolate) {
+#ifdef OHOS_USE_UNITTESTS_SKIP
+  GTEST_SKIP() << "ohos does not support create isolate in root thread";
+#endif
+
 #if (FLUTTER_RUNTIME_MODE != FLUTTER_RUNTIME_MODE_DEBUG) && \
     (FLUTTER_RUNTIME_MODE != FLUTTER_RUNTIME_MODE_PROFILE)
   GTEST_SKIP();
@@ -452,6 +477,9 @@ TEST_F(DartIsolateTest, CanCreateServiceIsolate) {
 
 TEST_F(DartIsolateTest,
        RootIsolateCreateCallbackIsMadeOnceAndBeforeIsolateRunning) {
+#ifdef OHOS_USE_UNITTESTS_SKIP
+  GTEST_SKIP() << "ohos does not support create isolate in root thread";
+#endif
   ASSERT_FALSE(DartVMRef::IsInstanceRunning());
   auto settings = CreateSettingsForFixture();
   size_t create_callback_count = 0u;
@@ -479,6 +507,9 @@ TEST_F(DartIsolateTest,
 
 TEST_F(DartIsolateTest,
        IsolateCreateCallbacksTakeInstanceSettingsInsteadOfVMSettings) {
+#ifdef OHOS_USE_UNITTESTS_SKIP
+  GTEST_SKIP() << "ohos does not support create isolate in root thread";
+#endif
   ASSERT_FALSE(DartVMRef::IsInstanceRunning());
   auto vm_settings = CreateSettingsForFixture();
   auto vm_ref = DartVMRef::Create(vm_settings);
@@ -506,6 +537,9 @@ TEST_F(DartIsolateTest,
 }
 
 TEST_F(DartIsolateTest, InvalidLoadingUnitFails) {
+#ifdef OHOS_USE_UNITTESTS_SKIP
+  GTEST_SKIP() << "ohos does not support create isolate in root thread";
+#endif
   if (!DartVM::IsRunningPrecompiledCode()) {
     FML_LOG(INFO) << "Split AOT does not work in JIT mode";
     return;

@@ -7,6 +7,10 @@ import("//flutter/testing/testing.gni")
 test_fixtures("tonic_fixtures") {
   dart_main = "fixtures/tonic_test.dart"
   fixtures = []
+
+  if (is_ohos) {
+    dest = "/data/flutter_unittests/third_party/tonic/tests"
+  }
 }
 
 executable("tonic_unittests") {
@@ -20,6 +24,13 @@ executable("tonic_unittests") {
     "dart_weak_persistent_handle_unittest.cc",
     "ffi_native_unittest.cc",
   ]
+
+  if (!defined(defines)) {
+    defines = []
+  }
+  if (enable_unittests && is_ohos) {
+    defines += [ "OHOS_USE_UNITTESTS_SKIP" ]
+  }
 
   public_deps = [
     ":tonic_fixtures",

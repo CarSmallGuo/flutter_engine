@@ -1,0 +1,110 @@
+diff --git a/src/Reactor/BUILD.gn b/src/Reactor/BUILD.gn
+index 676f99f1a..36a581f10 100644
+--- a/src/Reactor/BUILD.gn
++++ b/src/Reactor/BUILD.gn
+@@ -95,7 +95,7 @@ if (supports_subzero) {
+     if (is_win) {
+       include_dirs +=
+           [ "../../third_party/llvm-subzero/build/Windows/include/" ]
+-    } else if (is_linux || is_chromeos) {
++    } else if (is_linux || is_chromeos || is_ohos) {
+       include_dirs += [ "../../third_party/llvm-subzero/build/Linux/include/" ]
+     } else if (is_fuchsia) {
+       include_dirs +=
+@@ -328,7 +328,7 @@ if (supports_llvm) {
+       "$llvm_dir/configs/common/include/",
+     ]
+ 
+-    if (is_linux || is_chromeos) {
++    if (is_linux || is_chromeos || is_ohos) {
+       include_dirs += [ "$llvm_dir/configs/linux/include/" ]
+     } else if (is_fuchsia) {
+       include_dirs += [ "$llvm_dir/configs/fuchsia/include/" ]
+diff --git a/src/Reactor/reactor.gni b/src/Reactor/reactor.gni
+index 04fad6f81..324003e35 100644
+--- a/src/Reactor/reactor.gni
++++ b/src/Reactor/reactor.gni
+@@ -14,7 +14,7 @@ declare_args() {
+ }
+ 
+ declare_args() {
+-  supports_llvm = is_linux || is_chromeos || is_fuchsia || is_win || is_android
++  supports_llvm = is_linux || is_chromeos || is_fuchsia || is_win || is_android || is_ohos
+     # LLVM uses C++17 features which require macOS 10.12, while Chrome's minimum platform for x86 is 10.11.
+     # Don't build LLVM on Mac, unless we have to. This only happens on ARM64 devices, which launched with 11.0.
+     # TODO(b/174843857): Remove check for !supports_subzero once Chrome supports macOS 10.12
+diff --git a/src/System/BUILD.gn b/src/System/BUILD.gn
+index 6f61d9f76..bed58a57b 100644
+--- a/src/System/BUILD.gn
++++ b/src/System/BUILD.gn
+@@ -29,7 +29,7 @@ swiftshader_source_set("System_headers") {
+     "SwiftConfig.hpp",
+     "Timer.hpp",
+   ]
+-  if (is_linux || is_chromeos || is_android) {
++  if (is_linux || is_chromeos || is_android || is_ohos) {
+     sources += [
+       "Linux/MemFd.hpp",
+     ]
+@@ -48,7 +48,7 @@ swiftshader_source_set("System") {
+     "SwiftConfig.cpp",
+     "Timer.cpp",
+   ]
+-  if (is_linux || is_chromeos || is_android) {
++  if (is_linux || is_chromeos || is_android || is_ohos) {
+     sources += [
+       "Linux/MemFd.cpp",
+     ]
+diff --git a/third_party/llvm-10.0/BUILD.gn b/third_party/llvm-10.0/BUILD.gn
+index 6c40b2c00..6076f2bea 100644
+--- a/third_party/llvm-10.0/BUILD.gn
++++ b/third_party/llvm-10.0/BUILD.gn
+@@ -100,7 +100,7 @@ llvm_include_dirs = [
+   "configs/common/lib/Transforms/InstCombine/",
+ ]
+ 
+-if (is_linux || is_chromeos) {
++if (is_linux || is_chromeos || is_ohos) {
+   llvm_include_dirs += [ "configs/linux/include/" ]
+ } else if (is_fuchsia) {
+   llvm_include_dirs += [ "configs/fuchsia/include/" ]
+diff --git a/third_party/marl/src/thread.cpp b/third_party/marl/src/thread.cpp
+index 30897f020..80d5e2ee9 100644
+--- a/third_party/marl/src/thread.cpp
++++ b/third_party/marl/src/thread.cpp
+@@ -154,14 +154,15 @@ Thread::Affinity Thread::Affinity::all(
+   auto thread = pthread_self();
+   cpu_set_t cpuset;
+   CPU_ZERO(&cpuset);
+-  if (pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cpuset) == 0) {
+-    int count = CPU_COUNT(&cpuset);
+-    for (int i = 0; i < count; i++) {
+-      Core core;
+-      core.pthread.index = static_cast<uint16_t>(i);
+-      affinity.cores.emplace_back(std::move(core));
+-    }
+-  }
++  // ohos does not suppot pthread_getaffinity_np
++  // if (pthread_getaffinity_np(thread, sizeof(cpu_set_t), &cpuset) == 0) {
++  //   int count = CPU_COUNT(&cpuset);
++  //   for (int i = 0; i < count; i++) {
++  //     Core core;
++  //     core.pthread.index = static_cast<uint16_t>(i);affinity_np
++  //     affinity.cores.emplace_back(std::move(core));
++  //   }
++  // }
+ #elif defined(__FreeBSD__)
+   auto thread = pthread_self();
+   cpuset_t cpuset;
+@@ -385,8 +386,9 @@ class Thread::Impl {
+     for (size_t i = 0; i < count; i++) {
+       CPU_SET(affinity[i].pthread.index, &cpuset);
+     }
+-    auto thread = pthread_self();
+-    pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
++    // ohos does not suppot pthread_setaffinity_np
++    // auto thread = pthread_self();
++    // pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
+ #elif defined(__FreeBSD__)
+     cpuset_t cpuset;
+     CPU_ZERO(&cpuset);

@@ -98,6 +98,7 @@ sk_sp<SkSurface> GPUSurfaceVulkan::CreateSurfaceFromVulkanImage(
     const VkImage image,
     const VkFormat format,
     const SkISize& size) {
+#ifdef SK_VULKAN
   GrVkImageInfo image_info = {
       .fImage = image,
       .fImageTiling = VK_IMAGE_TILING_OPTIMAL,
@@ -126,6 +127,9 @@ sk_sp<SkSurface> GPUSurfaceVulkan::CreateSurfaceFromVulkanImage(
       SkColorSpace::MakeSRGB(),     // color space
       &surface_properties           // surface properties
   );
+#else
+  return nullptr;
+#endif // SK_VULKAN
 }
 
 SkColorType GPUSurfaceVulkan::ColorTypeFromFormat(const VkFormat format) {

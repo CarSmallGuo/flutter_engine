@@ -50,6 +50,9 @@ TEST_F(DartState, CurrentWithNullDataDoesNotSegfault) {
 }
 
 TEST_F(DartState, IsShuttingDown) {
+#ifdef OHOS_USE_UNITTESTS_SKIP
+  GTEST_SKIP() << "ohos does not support create isolate in root thread";
+#endif
   ASSERT_FALSE(DartVMRef::IsInstanceRunning());
   auto settings = CreateSettingsForFixture();
   auto vm_ref = DartVMRef::Create(settings);

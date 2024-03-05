@@ -204,7 +204,9 @@ bool ShouldCreateLogMessage(LogSeverity severity) {
 }
 
 void KillProcess() {
-#ifdef FML_OS_OHOS
+#if defined(OHOS_USE_UNITTESTS)
+  abort();
+#elif defined(FML_OS_OHOS)
   HILOG_ERROR("FML KILL PROCESS");
 #else
   abort();

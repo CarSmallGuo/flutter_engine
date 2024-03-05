@@ -277,10 +277,10 @@ def to_gn_args(args):
   if args.build_web_sdk or args.full_dart_sdk:
     gn_args['build_canvaskit'] = args.build_canvaskit
 
-  if args.enable_unittests:
-    gn_args['enable_unittests'] = args.enable_unittests
-
   gn_args['enable_unittests'] =  False
+  if args.enable_unittests:
+    gn_args['enable_unittests'] = True
+
   print("enable_unittests:%s" % gn_args['enable_unittests'] );
 
   # Skia GN args.
@@ -762,7 +762,7 @@ def parse_args(args):
       '--linux-cpu', type=str, choices=['x64', 'x86', 'arm64', 'arm']
   )
   parser.add_argument(
-      '--ohos-cpu', type=str, choices=['x64', 'x86', 'arm64', 'arm']
+      '--ohos-cpu', type=str, choices=['x64', 'x86', 'arm64', 'arm'], default='arm64'
   )
   parser.add_argument(
       '--ohos-api-int', type=int, choices=[10, 11], default=11

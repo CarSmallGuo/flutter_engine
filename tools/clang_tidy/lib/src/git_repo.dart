@@ -23,7 +23,7 @@ class GitRepo {
   List<io.File>? _changedFiles;
 
   /// Returns a list of all non-deleted files which differ from the nearest
-  /// merge-base with `main`. If it can't find a fork point, uses the default
+  /// merge-base with `master`. If it can't find a fork point, uses the default
   /// merge-base.
   ///
   /// This is only computed once and cached. Subsequent invocations of the
@@ -88,7 +88,7 @@ class GitRepo {
 
   Future<void> _fetch(ProcessRunner processRunner) async {
     final ProcessRunnerResult fetchResult = await processRunner.runProcess(
-      <String>['git', 'fetch', 'upstream', 'main'],
+      <String>['git', 'fetch', 'upstream', 'master'],
       failOk: true,
     );
     if (fetchResult.exitCode != 0) {
@@ -96,7 +96,7 @@ class GitRepo {
         'git',
         'fetch',
         'origin',
-        'main',
+        'master',
       ]);
     }
   }

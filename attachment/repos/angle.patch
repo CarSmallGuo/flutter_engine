@@ -1,8 +1,19 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index efaf09033..73af49870 100644
+index efaf09033..7c65c83ca 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
-@@ -83,7 +83,7 @@ if (angle_build_all) {
+@@ -11,7 +11,9 @@ if (angle_use_wayland) {
+   import("//build_overrides/wayland.gni")
+ }
+ if (angle_has_build) {
+-  import("//build/config/linux/pkg_config.gni")
++  if (!is_ohos) {
++    import("//build/config/linux/pkg_config.gni")
++  }
+   import("//build/config/sanitizers/sanitizers.gni")
+   import("//build/config/ui.gni")
+   import("//testing/libfuzzer/fuzzer_test.gni")
+@@ -83,7 +85,7 @@ if (angle_build_all) {
        ":translator_fuzzer",
        ":xxhash_fuzzer",
        "$angle_root/samples:angle_samples",
@@ -11,7 +22,25 @@ index efaf09033..73af49870 100644
      ]
      if (angle_enable_cl) {
        deps += [ "$angle_root/src/libOpenCL:angle_cl" ]
-@@ -486,7 +486,8 @@ angle_static_library("angle_image_util") {
+@@ -141,7 +143,7 @@ config("internal_config") {
+     if (angle_is_winuwp) {
+       defines += [ "ANGLE_IS_WINUWP" ]
+     }
+-  } else if (is_linux || is_chromeos) {
++  } else if (is_linux || is_chromeos || is_ohos) {
+     defines += [ "ANGLE_IS_LINUX" ]
+   }
+ 
+@@ -443,7 +445,7 @@ angle_static_library("angle_common") {
+     all_dependent_configs = [ ":angle_disable_pool_alloc" ]
+   }
+ 
+-  if (is_linux || is_chromeos) {
++  if (is_linux || is_chromeos || is_ohos) {
+     libs = [ "dl" ]
+   }
+ 
+@@ -486,7 +488,8 @@ angle_static_library("angle_image_util") {
    sources = libangle_image_util_sources
    public_configs += [ ":angle_image_util_config" ]
    public_deps = [ ":angle_image_util_headers" ]
@@ -21,6 +50,15 @@ index efaf09033..73af49870 100644
    if (angle_has_astc_encoder) {
      public_deps += [ "third_party/astc-encoder:astcenc" ]
      include_dirs = [ "third_party/astc-encoder/src/Source/" ]
+@@ -561,7 +564,7 @@ angle_static_library("angle_gpu_info_util") {
+     libs += [ "dxgi.lib" ]
+   }
+ 
+-  if (is_linux || is_chromeos) {
++  if (is_linux || is_chromeos || is_ohos) {
+     sources += libangle_gpu_info_util_linux_sources
+ 
+     if (angle_use_x11 && angle_has_build) {
 diff --git a/gni/angle.gni b/gni/angle.gni
 index b8086660a..d82d056d6 100644
 --- a/gni/angle.gni
@@ -124,3 +162,38 @@ index d67bd812b..00d22d025 100644
  struct SpirvIdAndIdList
  {
      spirv::IdRef id;
+diff --git a/src/libANGLE/renderer/gl/BUILD.gn b/src/libANGLE/renderer/gl/BUILD.gn
+index c675c2607..6cba114ef 100644
+--- a/src/libANGLE/renderer/gl/BUILD.gn
++++ b/src/libANGLE/renderer/gl/BUILD.gn
+@@ -125,7 +125,7 @@ if (angle_use_x11) {
+   ]
+ }
+ 
+-if (is_android || is_linux || is_chromeos) {
++if (is_android || is_linux || is_chromeos || is_ohos) {
+   _gl_backend_sources += [
+     "egl/ContextEGL.cpp",
+     "egl/ContextEGL.h",
+@@ -264,7 +264,7 @@ angle_source_set("angle_gl_backend") {
+       "Xext",
+     ]
+   }
+-  if (is_android || is_linux || is_chromeos) {
++  if (is_android || is_linux || is_chromeos || is_ohos) {
+     deps += [ "$angle_root/src/common/linux:angle_dma_buf" ]
+   }
+   if (is_apple) {
+diff --git a/src/libGLESv2.gni b/src/libGLESv2.gni
+index 723d7f99f..dab8b887c 100644
+--- a/src/libGLESv2.gni
++++ b/src/libGLESv2.gni
+@@ -87,7 +87,7 @@ xxhash_sources = [
+   "src/common/third_party/xxhash/xxhash.h",
+ ]
+ 
+-if (is_linux || is_chromeos || is_android || is_fuchsia) {
++if (is_linux || is_chromeos || is_android || is_fuchsia || is_ohos) {
+   libangle_common_sources += [
+     "src/common/system_utils_linux.cpp",
+     "src/common/system_utils_posix.cpp",

@@ -9,11 +9,15 @@
 #include "flutter/fml/time/time_delta.h"
 #include "flutter/fml/time/time_point.h"
 #include "gtest/gtest.h"
-
+#include "flutter/fml/build_config.h"
 #define TIMESENSITIVE(x) TimeSensitiveTest_##x
 
 TEST(MessageLoopImpl, TIMESENSITIVE(WakeUpTimersAreSingletons)) {
+#if FML_OS_OHOS
+  auto loop_impl = fml::MessageLoopImpl::Create(nullptr);
+#else
   auto loop_impl = fml::MessageLoopImpl::Create();
+#endif
 
   const auto t1 = fml::TimeDelta::FromMilliseconds(10);
   const auto t2 = fml::TimeDelta::FromMilliseconds(30);

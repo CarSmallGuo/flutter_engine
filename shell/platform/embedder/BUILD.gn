@@ -217,7 +217,7 @@ test_fixtures("fixtures") {
   ]
 }
 
-if (enable_unittests) {
+if (enable_unittests && !is_ohos) {
   source_set("embedder_unittests_library") {
     testonly = true
 

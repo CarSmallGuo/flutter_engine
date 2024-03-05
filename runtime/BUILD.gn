@@ -123,6 +123,9 @@ source_set("runtime") {
 if (enable_unittests) {
   test_fixtures("runtime_fixtures") {
     dart_main = "fixtures/runtime_test.dart"
+    if (is_ohos) {
+      dest = "/data/flutter_unittests/runtime"
+    }
   }
 
   executable("runtime_unittests") {
@@ -152,11 +155,21 @@ if (enable_unittests) {
       "//third_party/dart/runtime/bin:elf_loader",
       "//third_party/skia",
     ]
+
+    if (!defined(defines)) {
+      defines = []
+    }
+    if (enable_unittests && is_ohos) {
+      defines += [ "OHOS_USE_UNITTESTS_SKIP" ]
+    }
   }
 
   test_fixtures("no_plugin_registrant") {
     dart_main = "fixtures/no_dart_plugin_registrant_test.dart"
     use_target_as_artifact_prefix = true
+    if (is_ohos) {
+      dest = "/data/flutter_unittests/runtime"
+    }
   }
 
   executable("no_dart_plugin_registrant_unittests") {
@@ -178,6 +191,9 @@ if (enable_unittests) {
   test_fixtures("plugin_registrant") {
     dart_main = "fixtures/dart_tool/flutter_build/dart_plugin_registrant.dart"
     use_target_as_artifact_prefix = true
+    if (is_ohos) {
+      dest = "/data/flutter_unittests/runtime"
+    }
   }
 
   executable("dart_plugin_registrant_unittests") {

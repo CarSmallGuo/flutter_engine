@@ -116,6 +116,7 @@ GrDirectContext* VulkanWindow::GetSkiaGrContext() {
 }
 
 bool VulkanWindow::CreateSkiaGrContext() {
+#ifdef SK_VULKAN
   GrVkBackendContext backend_context;
 
   if (!CreateSkiaBackendContext(&backend_context)) {
@@ -136,6 +137,9 @@ bool VulkanWindow::CreateSkiaGrContext() {
   skia_gr_context_ = context;
 
   return true;
+#else
+  return false;
+#endif
 }
 
 bool VulkanWindow::CreateSkiaBackendContext(GrVkBackendContext* context) {
