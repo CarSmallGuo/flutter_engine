@@ -19,6 +19,12 @@
 #include "third_party/skia/include/gpu/GrBackendSurface.h"
 #include "third_party/skia/include/gpu/GrContextOptions.h"
 
+#if defined(__OHOS__)
+#include "hitrace/trace.h"
+#elif defined(__ANDROID__)
+#include "android/trace.h"
+#endif
+
 // These are common defines present on all OpenGL headers. However, we don't
 // want to perform GL header reasolution on each platform we support. So just
 // define these upfront. It is unlikely we will need more. But, if we do, we can
@@ -268,7 +274,17 @@ bool GPUSurfaceGLSkia::PresentSurface(const SurfaceFrame& frame,
 
   {
     TRACE_EVENT0("flutter", "SkCanvas::Flush");
+    #if defined(__OHOS__)
+    OH_HiTrace_StartTrace("SkCanvas::Flush");
+    #elif defined(__ANDROID__)
+    ATrace_beginSection("SkCanvas::Flush");
+    #endif
     onscreen_surface_->getCanvas()->flush();
+    #if defined(__OHOS__)
+    OH_HiTrace_FinishTrace();
+    #elif defined(__ANDROID__)
+    ATrace_endSection();
+    #endif
   }
 
   GLPresentInfo present_info = {

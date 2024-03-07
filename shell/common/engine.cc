@@ -20,6 +20,11 @@
 #include "flutter/shell/common/shell.h"
 #include "rapidjson/document.h"
 #include "third_party/dart/runtime/include/dart_tools_api.h"
+#if defined(__OHOS__)
+#include "hitrace/trace.h"
+#elif defined(__ANDROID__)
+#include "android/trace.h"
+#endif
 
 namespace flutter {
 
@@ -148,7 +153,17 @@ fml::WeakPtr<Engine> Engine::GetWeakPtr() const {
 
 void Engine::SetupDefaultFontManager() {
   TRACE_EVENT0("flutter", "Engine::SetupDefaultFontManager");
+#if defined(__OHOS__)
+  OH_HiTrace_StartTrace("Engine::SetupDefaultFontManager");
+#elif defined(__ANDROID__)
+  ATrace_beginSection("Engine::SetupDefaultFontManager");
+#endif
   font_collection_->SetupDefaultFontManager(settings_.font_initialization_data);
+#if defined(__OHOS__)
+  OH_HiTrace_FinishTrace();
+#elif defined(__ANDROID__)
+  ATrace_endSection();
+#endif
 }
 
 std::shared_ptr<AssetManager> Engine::GetAssetManager() {
@@ -438,7 +453,17 @@ std::string Engine::DefaultRouteName() {
 }
 
 void Engine::ScheduleFrame(bool regenerate_layer_tree) {
+#if defined(__OHOS__)
+  OH_HiTrace_StartTrace("Engine::ScheduleFrame");
+#elif defined(__ANDROID__)
+  ATrace_beginSection("Engine::ScheduleFrame");
+#endif
   animator_->RequestFrame(regenerate_layer_tree);
+#if defined(__OHOS__)
+  OH_HiTrace_FinishTrace();
+#elif defined(__ANDROID__)
+  ATrace_endSection();
+#endif
 }
 
 void Engine::Render(std::shared_ptr<flutter::LayerTree> layer_tree) {

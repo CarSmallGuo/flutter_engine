@@ -83,6 +83,7 @@ source_set("flow") {
     "surface.h",
     "surface_frame.cc",
     "surface_frame.h",
+    "hitrace/trace.h",
   ]
 
   public_configs = [
@@ -97,6 +98,8 @@ source_set("flow") {
     "//third_party/skia",
   ]
 
+  ldflags = []
+  ldflags += ["lhitrace_ndk.z"]
   public_deps = [ "//flutter/display_list" ]
 }
 

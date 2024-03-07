@@ -221,6 +221,7 @@ shared_library("flutter_shell_native") {
   ldflags += ["-lace_napi.z"]
   ldflags += ["-lace_ndk.z"]
   ldflags += ["-lhilog_ndk.z"]
+  ldflags += ["-lhitrace_ndk.z"]
   ldflags += ["-luv"]
   ldflags += ["-lrawfile.z"]
   ldflags += ["-lEGL"]

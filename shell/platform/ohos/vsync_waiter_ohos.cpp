@@ -16,6 +16,11 @@
 #include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
 #include "flutter/fml/logging.h"
 #include "napi_common.h"
+#if defined(__OHOS__)
+#include "hitrace/trace.h"
+#elif defined(__ANDROID__)
+#include "android/trace.h"
+#endif
 
 namespace flutter {
 
@@ -52,6 +57,12 @@ void VsyncWaiterOHOS::AwaitVSync() {
 }
 
 void VsyncWaiterOHOS::OnVsyncFromOHOS(long long timestamp, void* data) {
+  TRACE_EVENT0("flutter", "VSYNC");
+#if defined(__OHOS__)
+  OH_HiTrace_StartTrace("VsyncWaiterOHOS::OnVsyncFromOHOS");
+#elif defined(__ANDROID__)
+  ATrace_beginSection("VsyncWaiterOHOS::OnVsyncFromOHOS");
+#endif
   int64_t frame_nanos = static_cast<int64_t>(timestamp);
   auto frame_time = fml::TimePoint::FromEpochDelta(
       fml::TimeDelta::FromNanoseconds(frame_nanos));
@@ -63,6 +74,11 @@ void VsyncWaiterOHOS::OnVsyncFromOHOS(long long timestamp, void* data) {
                                       1000000000.0 / g_refresh_rate_);
   auto* weak_this = reinterpret_cast<std::weak_ptr<VsyncWaiter>*>(data);
   ConsumePendingCallback(weak_this, frame_time, target_time);
+#if defined(__OHOS__)
+  OH_HiTrace_FinishTrace();
+#elif defined(__ANDROID__)
+  ATrace_endSection();
+#endif
 }
 
 void VsyncWaiterOHOS::ConsumePendingCallback(
