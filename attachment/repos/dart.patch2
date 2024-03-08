@@ -1,4 +1,4 @@
-diff --git a/runtime/BUILD.gn b/runtime/BUILD.gn
+diff --git a/runtime/BUILD.gn b/runtime/BUILD.gn 
 index 7f89f9fcd06..edeb765c7e4 100644
 --- a/runtime/BUILD.gn
 +++ b/runtime/BUILD.gn
