@@ -18,6 +18,7 @@
 
 #include <ace/xcomponent/native_interface_xcomponent.h>
 #include <map>
+#include <native_window/external_window.h>
 #include <string>
 
 #include "flutter/shell/platform/ohos/ohos_touch_processor.h"
