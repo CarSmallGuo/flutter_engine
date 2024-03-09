@@ -25,7 +25,6 @@
 #include "napi_common.h"
 
 namespace flutter {
-using OHNativeWindowHandle = void*;
 class XComponentBase {
  public:
     explicit XComponentBase(const std::string& id);
@@ -36,10 +35,10 @@ class XComponentBase {
     void SetNativeXComponent(OH_NativeXComponent* native_xcomponent);
 
     // Callback, called by ACE XComponent
-    void OnSurfaceCreated(OH_NativeXComponent* component, OHNativeWindowHandle window);
-    void OnSurfaceChanged(OH_NativeXComponent* component, OHNativeWindowHandle window);
-    void OnSurfaceDestroyed(OH_NativeXComponent* component, OHNativeWindowHandle window);
-    void OnDispatchTouchEvent(OH_NativeXComponent* component, OHNativeWindowHandle window);
+    void OnSurfaceCreated(OH_NativeXComponent* component, OHNativeWindow* window);
+    void OnSurfaceChanged(OH_NativeXComponent* component, OHNativeWindow* window);
+    void OnSurfaceDestroyed(OH_NativeXComponent* component, OHNativeWindow* window);
+    void OnDispatchTouchEvent(OH_NativeXComponent* component, OHNativeWindow* window);
 
     OH_NativeXComponent* native_xcomponent() const { return native_xcomponent_; }
 
