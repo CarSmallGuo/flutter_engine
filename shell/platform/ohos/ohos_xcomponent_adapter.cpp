@@ -151,7 +151,7 @@ using OHOS_SurfaceBufferUsage = enum {
     BUFFER_USAGE_VENDOR_PRI18 = (1ULL << 62),  /**< Reserverd for vendor */
     BUFFER_USAGE_VENDOR_PRI19 = (1ULL << 63),  /**< Reserverd for vendor */
 };
-static int32_t SetNativeWindowOpt(OHNativeWindow* native_window,
+static int32_t SetNativeWindowOpt(void* native_window,
                                   int32_t width,
                                   int height)
 {
@@ -201,7 +201,7 @@ static int32_t SetNativeWindowOpt(OHNativeWindow* native_window,
     return ret;
 }
 
-void OnSurfaceCreatedCB(OH_NativeXComponent* component, OHNativeWindow* window)
+void OnSurfaceCreatedCB(OH_NativeXComponent* component, void* window)
 {
     for (auto it : XComponentAdapter::GetInstance()->xcomponent_map()) {
         if (it.second->native_xcomponent() == component) {
@@ -210,7 +210,7 @@ void OnSurfaceCreatedCB(OH_NativeXComponent* component, OHNativeWindow* window)
     }
 }
 
-void OnSurfaceChangedCB(OH_NativeXComponent* component, OHNativeWindow* window)
+void OnSurfaceChangedCB(OH_NativeXComponent* component, void* window)
 {
     for (auto it : XComponentAdapter::GetInstance()->xcomponent_map()) {
         if (it.second->native_xcomponent() == component) {
@@ -219,7 +219,7 @@ void OnSurfaceChangedCB(OH_NativeXComponent* component, OHNativeWindow* window)
     }
 }
 
-void OnSurfaceDestroyedCB(OH_NativeXComponent* component, OHNativeWindow* window)
+void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window)
 {
     for (auto it = XComponentAdapter::GetInstance()->xcomponent_map().begin();
         it != XComponentAdapter::GetInstance()->xcomponent_map().end();) {
@@ -233,7 +233,7 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent* component, OHNativeWindow* window
     }
 }
 
-void DispatchTouchEventCB(OH_NativeXComponent* component, OHNativeWindow* window)
+void DispatchTouchEventCB(OH_NativeXComponent* component, void* window)
 {
     for (auto it : XComponentAdapter::GetInstance()->xcomponent_map()) {
         if (it.second->native_xcomponent() == component) {
@@ -299,7 +299,7 @@ void XComponentBase::SetNativeXComponent(
 }
 
 void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component,
-                                      OHNativeWindow* window)
+                                      void* window)
 {
     LOGD(
         "XComponentManger::OnSurfaceCreated window = %{public}p component = "
@@ -329,7 +329,7 @@ void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component,
 }
 
 void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component,
-                                      OHNativeWindow* window)
+                                      void* window)
 {
     LOGD("XComponentManger::OnSurfaceChanged ");
     int32_t ret = OH_NativeXComponent_GetXComponentSize(component, window,
@@ -347,7 +347,7 @@ void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component,
 }
 
 void XComponentBase::OnSurfaceDestroyed(OH_NativeXComponent* component,
-                                        OHNativeWindow* window)
+                                        void* window)
 {
     window_ = nullptr;
     LOGD("XComponentManger::OnSurfaceDestroyed");
@@ -359,7 +359,7 @@ void XComponentBase::OnSurfaceDestroyed(OH_NativeXComponent* component,
 }
 
 void XComponentBase::OnDispatchTouchEvent(OH_NativeXComponent* component,
-                                          OHNativeWindow* window)
+                                          void* window)
 {
     LOGD("XComponentManger::DispatchTouchEvent");
     int32_t ret =
