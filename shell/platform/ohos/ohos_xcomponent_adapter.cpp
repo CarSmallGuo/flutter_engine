@@ -42,14 +42,14 @@ bool XComponentAdapter::Export(napi_env env, napi_value exports)
     uint64_t id_size = OH_XCOMPONENT_ID_LEN_MAX + 1;
 
     status = napi_get_named_property(env, exports, OH_NATIVE_XCOMPONENT_OBJ,
-                                    &export_instance);
+                                     &export_instance);
     LOGD("napi_get_named_property,status = %{public}d", status);
     if (status != napi_ok) {
         return false;
     }
 
     status = napi_unwrap(env, export_instance,
-                        reinterpret_cast<void**>(&native_xcomponent));
+                         reinterpret_cast<void**>(&native_xcomponent));
     LOGD("napi_unwrap,status = %{public}d", status);
     if (status != napi_ok) {
         return false;
@@ -340,7 +340,7 @@ void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component,
     }
     if (isEngineAttached_) {
         PlatformViewOHOSNapi::SurfaceChanged(std::stoll(shell_holder_id_), width_,
-                                            height_);
+                                             height_);
     } else {
         LOGE("OnSurfaceChanged XComponentBase is not attached");
     }
@@ -368,7 +368,7 @@ void XComponentBase::OnDispatchTouchEvent(OH_NativeXComponent* component,
         if (isEngineAttached_) {
             LOGD("XComponentManger::HandleTouchEvent");
             ohos_touch_processor_.HandleTouchEvent(std::stoll(shell_holder_id_),
-                                                    component, &touch_event_);
+                                                   component, &touch_event_);
         } else {
             LOGE(
                 "XComponentManger::DispatchTouchEvent XComponentBase is not "
