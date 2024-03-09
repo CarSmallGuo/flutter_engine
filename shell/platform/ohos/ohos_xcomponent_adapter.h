@@ -28,6 +28,7 @@ namespace flutter {
 
 class XComponentBase {
  public:
+    using NativeWindowHandle = void*;
     explicit XComponentBase(const std::string& id);
     ~XComponentBase();
 
@@ -36,10 +37,10 @@ class XComponentBase {
     void SetNativeXComponent(OH_NativeXComponent* native_xcomponent);
 
     // Callback, called by ACE XComponent
-    void OnSurfaceCreated(OH_NativeXComponent* component, void* window);
-    void OnSurfaceChanged(OH_NativeXComponent* component, void* window);
-    void OnSurfaceDestroyed(OH_NativeXComponent* component, void* window);
-    void OnDispatchTouchEvent(OH_NativeXComponent* component, void* window);
+    void OnSurfaceCreated(OH_NativeXComponent* component, NativeWindowHandle window);
+    void OnSurfaceChanged(OH_NativeXComponent* component, NativeWindowHandle window);
+    void OnSurfaceDestroyed(OH_NativeXComponent* component, NativeWindowHandle window);
+    void OnDispatchTouchEvent(OH_NativeXComponent* component, NativeWindowHandle window);
 
     OH_NativeXComponent* native_xcomponent() const { return native_xcomponent_; }
 
