@@ -151,7 +151,7 @@ using OHOS_SurfaceBufferUsage = enum {
     BUFFER_USAGE_VENDOR_PRI18 = (1ULL << 62),  /**< Reserverd for vendor */
     BUFFER_USAGE_VENDOR_PRI19 = (1ULL << 63),  /**< Reserverd for vendor */
 };
-static int32_t SetNativeWindowOpt(void* native_window,
+static int32_t SetNativeWindowOpt(OHNativeWindow* native_window,
                                   int32_t width,
                                   int height)
 {
