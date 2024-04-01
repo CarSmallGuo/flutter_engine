@@ -22,6 +22,7 @@ import KeyboardManager from '../embedding/ohos/KeyboardManager';
 import MouseCursorPlugin from '../plugin/mouse/MouseCursorPlugin';
 import Any from '../plugin/common/Any';
 import Settings from '../embedding/ohos/Settings';
+import UIContext from '@ohos.arkui.UIContext';
 
 const TAG = "FlutterView";
 
