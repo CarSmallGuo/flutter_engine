@@ -12,6 +12,10 @@
 #include "flutter/impeller/toolkit/egl/surface.h"
 #include "flutter/shell/gpu/gpu_surface_gl_impeller.h"
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wreturn-type"
+#endif
+
 namespace flutter {
 
 class AndroidSurfaceGLImpeller::ReactorWorker final

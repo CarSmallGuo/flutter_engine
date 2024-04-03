@@ -12,6 +12,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+import Any from '../../plugin/common/Any';
 import { PlatformViewWrapper } from '../../plugin/platform/PlatformViewWrapper';
 import { RootDvModeManager } from '../../plugin/platform/RootDvModelManager';
 import Log from '../../util/Log';
@@ -25,6 +26,8 @@ import {
 } from '../../view/DynamicView/dynamicView';
 import { createDVModelFromJson } from '../../view/DynamicView/dynamicViewJson';
 import { FlutterView } from '../../view/FlutterView';
+import ApplicationInfoLoader from '../engine/loader/ApplicationInfoLoader';
+import FlutterApplicationInfo from '../engine/loader/FlutterApplicationInfo';
 import KeyEventChannel from '../engine/systemchannels/KeyEventChannel';
 import FlutterManager from './FlutterManager';
 
@@ -35,18 +38,20 @@ const TAG = "FlutterPage";
  */
 @Component
 export struct FlutterPage {
-  @State rootDvModel: DVModel | undefined = undefined
+  @State rootDvModel: DVModelChildren | undefined = undefined
   @Prop viewId: string = ""
+  @Prop xComponentType: XComponentType = XComponentType.SURFACE
   private flutterView?: FlutterView | null
+  private applicationInfo = ApplicationInfoLoader.load(getContext());
 
   aboutToAppear() {
     this.flutterView = FlutterManager.getInstance().getFlutterView(this.viewId);
-    this.rootDvModel = this.flutterView!!.getDVModel()
+    this.rootDvModel = this.flutterView!!.getDVModel().children
   }
 
   build() {
     Stack() {
-      XComponent({ id: this.viewId, type: 'texture', libraryname: 'flutter' })
+      XComponent({ id: this.viewId, type: this.xComponentType, libraryname: 'flutter' })
         .focusable(true)
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
@@ -56,13 +61,16 @@ export struct FlutterPage {
           Log.d(TAG, "XComponent onDestroy ");
           this.flutterView?.onSurfaceDestroyed()
         })
-      DynamicView({
-        model: this.rootDvModel,
-        params: this.rootDvModel!!.params as DVModelParameters,
-        events: this.rootDvModel!!.events as DVModelEvents,
-        children: this.rootDvModel!!.children as DVModelChildren,
-        customBuilder: this.rootDvModel!!.builder as ($$: Record<"params", DVModelParameters>) => void
-        //customBuilder: this.rootDvModel.model.builder as ($$: { params: DVModelParameters }) => void
+        .backgroundColor(Color.Transparent)
+
+      ForEach(this.rootDvModel!!, (child:Any) =>{
+        DynamicView({
+          model: child as DVModel,
+          params:child.params,
+          events:child.events,
+          children:child.children,
+          customBuilder:child.builder
+        })
       })
     }
     .onAreaChange((oldValue: Area, newValue: Area) => {

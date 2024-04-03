@@ -1,4 +1,4 @@
-diff --git a/BUILD.gn b/BUILD.gn
+diff --git a/BUILD.gn b/BUILD.gn 
 index a25f379b0ff..c413327b217 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn

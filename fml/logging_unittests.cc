@@ -16,6 +16,10 @@
 #include "gmock/gmock.h"
 #endif
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wreturn-type"
+#endif
+
 namespace fml {
 namespace testing {
 
