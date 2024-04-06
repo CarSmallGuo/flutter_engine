@@ -570,8 +570,8 @@ export class ByteBuffer {
    * @param littleEndian If the value is little endian.
    * @returns The value.
    */
-  getInt64(byteOffset: number, littleEndian?: boolean): bigint {
-    return this.getBigInt64(byteOffset, littleEndian)
+  getInt64(byteOffset: number, littleEndian?: boolean): number {
+    return Number(this.getBigInt64(byteOffset, littleEndian))
   }
 
   /**
@@ -579,7 +579,7 @@ export class ByteBuffer {
    * @param littleEndian If the value is little endian.
    * @returns The value.
    */
-  readInt64(littleEndian?: boolean): bigint {
+  readInt64(littleEndian?: boolean): number {
     const value = this.getInt64(this.mByteOffset, littleEndian)
     this.mByteOffset += 8
     return value
