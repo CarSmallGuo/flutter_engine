@@ -1,4 +1,4 @@
-diff --git a/pkg/dds/lib/dds.dart b/pkg/dds/lib/dds.dart
+diff --git a/pkg/dds/lib/dds.dart b/pkg/dds/lib/dds.dart 
 index 177a9265649..c7038c56ad7 100644
 --- a/pkg/dds/lib/dds.dart
 +++ b/pkg/dds/lib/dds.dart
