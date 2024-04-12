@@ -30,7 +30,7 @@ export interface SurfaceTextureEntry {
 
   getSurfaceId(): number;
 
-  getImageReceiver(): image.ImageReceiver;
+  getImageReceiver(): image.ImageReceiver | null;
 
   release(): void;
 }

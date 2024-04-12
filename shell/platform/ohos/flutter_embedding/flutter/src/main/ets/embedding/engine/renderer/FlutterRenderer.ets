@@ -18,7 +18,6 @@ import { BusinessError } from '@ohos.base';
 import { SurfaceTextureEntry, TextureRegistry } from '../../../view/TextureRegistry';
 import { FlutterAbility } from '../../ohos/FlutterAbility';
 import FlutterNapi from '../FlutterNapi';
-import { SurfaceTextureWrapper } from './SurfaceTextureWrapper';
 import Log from '../../../util/Log';
 
 const TAG = "FlutterRenderer"
@@ -52,7 +51,7 @@ export class FlutterRenderer implements TextureRegistry {
     this.nextTextureId = this.nextTextureId + 1;
     let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.nextTextureId);
     surfaceTextureRegistryEntry.setImageReceiver(receiver);
-    this.registerImage(surfaceTextureRegistryEntry.getTextureId(), surfaceTextureRegistryEntry.textureWrapper());
+    this.registerImage(surfaceTextureRegistryEntry.getTextureId(), surfaceTextureRegistryEntry.getImageReceiver()!);
     return surfaceTextureRegistryEntry;
   }
 
@@ -78,8 +77,8 @@ export class FlutterRenderer implements TextureRegistry {
     }
     return receiver;
   }
-  private registerImage(textureId: number, surfaceTextureWrapper: SurfaceTextureWrapper): void {
-    let receiver = surfaceTextureWrapper.getImageReceiver();
+
+  private registerImage(textureId: number, receiver: image.ImageReceiver): void {
     receiver.on('imageArrival', () => {
       receiver.readNextImage((err: BusinessError, nextImage: image.Image) => {
         if (err || nextImage === undefined) {
@@ -102,19 +101,18 @@ export class FlutterRenderer implements TextureRegistry {
 export class SurfaceTextureRegistryEntry implements SurfaceTextureEntry {
   private textureId: number = 0;
   private surfaceId: number = 0;
-  private surfaceTextureWrapper: SurfaceTextureWrapper | null = null;
-  private released: boolean = false;
+  private imageReceiver: image.ImageReceiver | null = null;
 
   constructor(id: number) {
     this.textureId = id;
   }
 
-  getImageReceiver(): image.ImageReceiver {
-    return this.surfaceTextureWrapper!.getImageReceiver();
+  getImageReceiver(): image.ImageReceiver | null {
+    return this.imageReceiver;
   }
 
   setImageReceiver(receiver: image.ImageReceiver): void {
-    this.surfaceTextureWrapper = new SurfaceTextureWrapper(receiver);
+    this.imageReceiver = receiver;
   }
 
   getTextureId(): number {
@@ -129,9 +127,6 @@ export class SurfaceTextureRegistryEntry implements SurfaceTextureEntry {
     this.surfaceId = surfaceId;
   }
 
-  textureWrapper(): SurfaceTextureWrapper {
-    return this.surfaceTextureWrapper!;
-  }
   release() {
     throw new Error('Method not implemented.');
   }
