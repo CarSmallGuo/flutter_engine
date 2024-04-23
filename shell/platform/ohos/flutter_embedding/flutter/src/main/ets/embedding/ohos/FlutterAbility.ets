@@ -18,6 +18,7 @@ import window from '@ohos.window';
 import { FlutterAbilityAndEntryDelegate, Host } from './FlutterAbilityAndEntryDelegate';
 import Log from '../../util/Log';
 import FlutterEngine from '../engine/FlutterEngine';
+import PlatformPlugin from '../../plugin/PlatformPlugin';
 import FlutterShellArgs from '../engine/FlutterShellArgs';
 import FlutterAbilityLaunchConfigs from './FlutterAbilityLaunchConfigs';
 import common from '@ohos.app.ability.common';
@@ -161,6 +162,7 @@ export class FlutterAbility extends UIAbility implements Host {
           Log.e(TAG, 'Failed to load the content. Cause: %{public}s', JSON.stringify(err) ?? '');
           return;
         }
+        this.flutterView?.onWindowCreated();
 
         Log.i(TAG, 'Succeeded in loading the content. Data: %{public}s', JSON.stringify(data) ?? '');
       });
@@ -220,10 +222,12 @@ export class FlutterAbility extends UIAbility implements Host {
     return null;
   }
 
+  providePlatformPlugin(flutterEngine: FlutterEngine): PlatformPlugin | undefined {
+    return new PlatformPlugin(flutterEngine.getPlatformChannel()!, this.context, this);
+  }
+
   configureFlutterEngine(flutterEngine: FlutterEngine) {
-    let _UIContext = this.mainWindow?.getUIContext();
-    this.delegate?.setUIContext(_UIContext);
-    this.delegate?.sendSettings();
+
   }
 
   cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
@@ -298,11 +302,6 @@ export class FlutterAbility extends UIAbility implements Host {
       return false;
     }
     return true;
-  }
-
-  getPlugins(): List<FlutterPlugin>{
-    // Subclasses should override this function.
-    return new List()
   }
 
   getExclusiveAppComponent(): ExclusiveAppComponent<UIAbility> | null {

@@ -32,14 +32,11 @@ import { FlutterPlugin } from '../engine/plugins/FlutterPlugin';
 import FlutterEngineCache from '../engine/FlutterEngineCache';
 import FlutterEngineGroupCache from '../engine/FlutterEngineGroupCache';
 import FlutterEngineGroup, { Options } from '../engine/FlutterEngineGroup';
-import Settings from './Settings';
 import FlutterNapi from '../engine/FlutterNapi';
-import List from '@ohos.util.List';
-import GeneratedPluginRegister from '../engine/plugins/util/GeneratedPluginRegister';
-import { UIContext } from '@ohos.arkui.UIContext';
 import { FlutterView } from '../../view/FlutterView';
 import FlutterManager from './FlutterManager';
 import router from '@ohos.router';
+import Any from '../../plugin/common/Any';
 
 const TAG = "FlutterAbilityDelegate";
 const PLUGINS_RESTORATION_BUNDLE_KEY = "plugins";
@@ -51,15 +48,13 @@ const FRAMEWORK_RESTORATION_BUNDLE_KEY = "framework";
  * 2、处理ability生命周期回调
  */
 class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility> {
-  private host?: Host | null;
+  protected host?: Host | null;
   flutterEngine?: FlutterEngine | null;
   platformPlugin?: PlatformPlugin;
-  private context?: common.Context;
-  private uiContext?: UIContext | undefined;
-  private textInputPlugin?: TextInputPlugin;
-  private isFlutterEngineFromHostOrCache: boolean = false;
+  protected context?: common.Context;
+  protected textInputPlugin?: TextInputPlugin;
+  protected isFlutterEngineFromHostOrCache: boolean = false;
   private engineGroup?: FlutterEngineGroup;
-  private settings?: Settings;
   private isHost:boolean = false;
   private flutterView?: FlutterView
 
@@ -89,17 +84,11 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
       this.flutterEngine?.getAbilityControlSurface()?.attachToAbility(this);
     }
     //providePlatformPlugin
-
+    this.platformPlugin = this.host?.providePlatformPlugin(this.flutterEngine!)
     //configureFlutterEngine
     this.isAttached = true;
-    const plugins = this.host?.getPlugins()
-    if (plugins) {
-      GeneratedPluginRegister.registerGeneratedPlugins(this.flutterEngine!, plugins);
-    }
     if (this.flutterEngine) {
       this.textInputPlugin = new TextInputPlugin(this.flutterEngine.getTextInputChannel()!);
-      this.platformPlugin = new PlatformPlugin(this.flutterEngine.getPlatformChannel()!, this.context, this);
-      this.settings = new Settings(this.flutterEngine.getSettingsChannel()!);
       this.flutterEngine.getSystemLanguages();
     }
     if (this.flutterEngine && this.flutterView) {
@@ -170,8 +159,8 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
       return result
     }
     if (typeof wantParam[FRAMEWORK_RESTORATION_BUNDLE_KEY] == 'object') {
-      let data: Record<string, ESObject> = wantParam[FRAMEWORK_RESTORATION_BUNDLE_KEY] as Record<string,
-      ESObject>;
+      let data: Record<string, Any> = wantParam[FRAMEWORK_RESTORATION_BUNDLE_KEY] as Record<string,
+      Any>;
       let byteArray: Array<number> = new Array;
       Object.keys(data).forEach(
         key => {
@@ -247,7 +236,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
     }
     if (this.context) {
       this.flutterEngine = await group?.createAndRunEngineByOptions(this.addEntrypointOptions(new Options(this.context)
-        .setAutomaticallyRegisterPlugins(false)
         .setWaitForRestorationData(this.host?.shouldRestoreAndSaveState() || false)));
     }
     this.isFlutterEngineFromHostOrCache = false;
@@ -304,10 +292,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
 
     if (this.host?.shouldDispatchAppLifecycleState() && this.flutterEngine != null) {
       this.flutterEngine?.getLifecycleChannel()?.appIsDetached();
-    }
-
-    if (this.textInputPlugin) {
-      this.textInputPlugin?.detach();
     }
 
     if (this.platformPlugin) {
@@ -471,19 +455,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
     this.flutterEngine?.getPlugins()?.remove(plugin.getUniqueClassName())
   }
 
-  sendSettings(): void {
-    if (this.uiContext != undefined) {
-      this.settings?.sendSettings(this.uiContext.getMediaQuery());
-    } else {
-      Log.e(TAG, "UIContext is null, cannot send Settings!");
-    }
-
-  }
-
-  setUIContext(uiContext: UIContext | undefined): void {
-    this.uiContext = uiContext;
-  }
-
   isFlutterEngineFromHost(): boolean {
     return this.isFlutterEngineFromHostOrCache;
   }
@@ -542,11 +513,10 @@ interface Host extends FlutterEngineProvider, FlutterEngineConfigurator, Platfor
 
   shouldRestoreAndSaveState(): boolean;
 
-  /** Return the plugins */
-  getPlugins(): List<FlutterPlugin>;
-
   /* Return the ExclusiveAppComponent */
   getExclusiveAppComponent(): ExclusiveAppComponent<UIAbility> | null
+
+  providePlatformPlugin(flutterEngine: FlutterEngine): PlatformPlugin | undefined
 }
 
 export { Host, FlutterAbilityAndEntryDelegate }

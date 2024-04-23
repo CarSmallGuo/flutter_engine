@@ -32,12 +32,19 @@ import FlutterApplicationInfo from './src/main/ets/embedding/engine/loader/Flutt
 import FlutterLoader from './src/main/ets/embedding/engine/loader/FlutterLoader';
 import { FlutterMutatorView } from './src/main/ets/embedding/engine/mutatorsstack/FlutterMutatorView';
 import { FlutterMutatorsStack } from './src/main/ets/embedding/engine/mutatorsstack/FlutterMutatorsStack';
-import { FlutterPlugin } from './src/main/ets/embedding/engine/plugins/FlutterPlugin';
+import { FlutterPlugin, FlutterPluginBinding, FlutterAssets } from './src/main/ets/embedding/engine/plugins/FlutterPlugin';
+import PluginRegistry from './src/main/ets/embedding/engine/plugins/PluginRegistry';
 import AbilityAware from './src/main/ets/embedding/engine/plugins/ability/AbilityAware';
 import AbilityControlSurface from './src/main/ets/embedding/engine/plugins/ability/AbilityControlSurface';
-import { AbilityPluginBinding } from './src/main/ets/embedding/engine/plugins/ability/AbilityPluginBinding';
-import GeneratedPluginRegister from './src/main/ets/embedding/engine/plugins/util/GeneratedPluginRegister';
+import {
+  AbilityPluginBinding,
+  NewWantListener,
+  WindowFocusChangedListener,
+  OnSaveStateListener,
+} from './src/main/ets/embedding/engine/plugins/ability/AbilityPluginBinding';
+import { FlutterRenderer, SurfaceTextureRegistryEntry } from './src/main/ets/embedding/engine/renderer/FlutterRenderer';
 import { FlutterUiDisplayListener } from './src/main/ets/embedding/engine/renderer/FlutterUiDisplayListener';
+import { SurfaceTextureWrapper } from './src/main/ets/embedding/engine/renderer/SurfaceTextureWrapper'; 
 import AccessibilityChannel from './src/main/ets/embedding/engine/systemchannels/AccessibilityChannel';
 import KeyEventChannel from './src/main/ets/embedding/engine/systemchannels/KeyEventChannel';
 import LifecycleChannel from './src/main/ets/embedding/engine/systemchannels/LifecycleChannel';
@@ -53,7 +60,7 @@ import TestChannel from './src/main/ets/embedding/engine/systemchannels/TestChan
 import TextInputChannel from './src/main/ets/embedding/engine/systemchannels/TextInputChannel';
 import ExclusiveAppComponent from './src/main/ets/embedding/ohos/ExclusiveAppComponent';
 import { FlutterAbility } from './src/main/ets/embedding/ohos/FlutterAbility';
-import { FlutterAbilityAndEntryDelegate } from './src/main/ets/embedding/ohos/FlutterAbilityAndEntryDelegate';
+import { FlutterAbilityAndEntryDelegate, Host } from './src/main/ets/embedding/ohos/FlutterAbilityAndEntryDelegate';
 import FlutterAbilityLaunchConfigs from './src/main/ets/embedding/ohos/FlutterAbilityLaunchConfigs';
 import FlutterEngineConfigurator from './src/main/ets/embedding/ohos/FlutterEngineConfigurator';
 import FlutterEngineProvider from './src/main/ets/embedding/ohos/FlutterEngineProvider';
@@ -76,7 +83,7 @@ import JSONMessageCodec from './src/main/ets/plugin/common/JSONMessageCodec';
 import JSONMethodCodec from './src/main/ets/plugin/common/JSONMethodCodec';
 import MessageCodec from './src/main/ets/plugin/common/MessageCodec';
 import MethodCall from './src/main/ets/plugin/common/MethodCall';
-import MethodChannel from './src/main/ets/plugin/common/MethodChannel';
+import MethodChannel, { MethodCallHandler, MethodResult } from './src/main/ets/plugin/common/MethodChannel';
 import MethodCodec from './src/main/ets/plugin/common/MethodCodec';
 import StandardMessageCodec from './src/main/ets/plugin/common/StandardMessageCodec';
 import StandardMethodCodec from './src/main/ets/plugin/common/StandardMethodCodec';
@@ -98,7 +105,7 @@ import PlatformViewsController from './src/main/ets/plugin/platform/PlatformView
 import AccessibilityBridge from './src/main/ets/view/AccessibilityBridge';
 import { FlutterCallbackInformation } from './src/main/ets/view/FlutterCallbackInformation';
 import FlutterRunArguments from './src/main/ets/view/FlutterRunArguments';
-import { FlutterView } from './src/main/ets/view/FlutterView';
+import { FirstFrameListener, FlutterView } from './src/main/ets/view/FlutterView';
 import { TextureRegistry } from './src/main/ets/view/TextureRegistry';
 import { ByteBuffer } from './src/main/ets/util/ByteBuffer';
 import Log from './src/main/ets/util/Log';
@@ -107,6 +114,7 @@ import PathUtils from './src/main/ets/util/PathUtils';
 import StringUtils from './src/main/ets/util/StringUtils';
 import ToolUtils from './src/main/ets/util/ToolUtils';
 import { TraceSection } from './src/main/ets/util/TraceSection';
+import Any from './src/main/ets/plugin/common/Any';
 
 export {
   FlutterInjector,
@@ -129,11 +137,19 @@ export {
   FlutterMutatorView,
   FlutterMutatorsStack,
   FlutterPlugin,
+  FlutterPluginBinding,
+  FlutterAssets,
+  PluginRegistry,
   AbilityAware,
   AbilityControlSurface,
   AbilityPluginBinding,
-  GeneratedPluginRegister,
+  NewWantListener,
+  WindowFocusChangedListener,
+  OnSaveStateListener,
+  FlutterRenderer,
+  SurfaceTextureRegistryEntry,
   FlutterUiDisplayListener,
+  SurfaceTextureWrapper,
   AccessibilityChannel,
   KeyEventChannel,
   LifecycleChannel,
@@ -150,6 +166,7 @@ export {
   ExclusiveAppComponent,
   FlutterAbility,
   FlutterAbilityAndEntryDelegate,
+  Host,
   FlutterAbilityLaunchConfigs,
   FlutterEngineConfigurator,
   FlutterEngineProvider,
@@ -171,7 +188,9 @@ export {
   JSONMethodCodec,
   MessageCodec,
   MethodCall,
+  MethodCallHandler,
   MethodChannel,
+  MethodResult,
   MethodCodec,
   StandardMessageCodec,
   StandardMethodCodec,
@@ -202,4 +221,6 @@ export {
   StringUtils,
   ToolUtils,
   TraceSection,
+  Any,
+  FirstFrameListener,
 }
