@@ -21,6 +21,8 @@ import window from '@ohos.window';
 import KeyboardManager from '../embedding/ohos/KeyboardManager';
 import MouseCursorPlugin from '../plugin/mouse/MouseCursorPlugin';
 import Any from '../plugin/common/Any';
+import Settings from '../embedding/ohos/Settings';
+import ArrayList from '@ohos.util.ArrayList';
 
 const TAG = "FlutterView";
 
@@ -53,6 +55,10 @@ export class FlutterView {
   private keyboardManager: KeyboardManager | null = null;
   private mainWindow: window.Window
   private mouseCursorPlugin?: MouseCursorPlugin;
+  private uiContext?: UIContext | undefined;
+  private settings?: Settings;
+  private mFirstFrameListeners: ArrayList<FirstFrameListener>;
+  private isFlutterUiDisplayed: boolean = false;
 
   constructor(viewId: string, context: Context) {
     this.id = viewId
@@ -61,6 +67,7 @@ export class FlutterView {
     this.mainWindow = FlutterManager.getInstance()
       .getWindowStage(FlutterManager.getInstance().getUIAbility(context))
       .getMainWindowSync();
+    this.mFirstFrameListeners = new ArrayList<FirstFrameListener>();
 
     this.mainWindow?.on('windowSizeChange', this.windowSizeChangeCallback);
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
@@ -121,6 +128,12 @@ export class FlutterView {
     this.updateViewportMetrics()
     let windowId = this.mainWindow?.getWindowProperties()?.id
     this.mouseCursorPlugin = new MouseCursorPlugin(windowId, this.flutterEngine?.getMouseCursorChannel()!);
+    this.settings = new Settings(this.flutterEngine.getSettingsChannel()!);
+    this.sendSettings();
+    this.isFlutterUiDisplayed = this.flutterEngine.getFlutterNapi().isDisplayingFlutterUi;
+    if (this.isFlutterUiDisplayed) {
+      this.onFirstFrame();
+    }
   }
 
   detachFromFlutterEngine(): void {
@@ -135,6 +148,22 @@ export class FlutterView {
     this.flutterEngine?.getPlatformViewsController()?.detachFromView();
     this.flutterEngine = null;
     this.keyboardManager = null;
+  }
+
+  onWindowCreated() {
+    Log.d(TAG, "received onwindowCreated.");
+    let _UIContext = this.mainWindow?.getUIContext();
+    this.uiContext = _UIContext;
+    this.sendSettings();
+    Log.d(TAG, "uiContext init and sendSettings finished.");
+  }
+
+  sendSettings(): void {
+    if (this.uiContext != undefined && this.isAttachedToFlutterEngine()) {
+      this.settings?.sendSettings(this.uiContext.getMediaQuery());
+    } else {
+      Log.e(TAG, "UIContext is null, cannot send Settings!");
+    }
   }
 
   onSurfaceCreated() {
@@ -161,7 +190,13 @@ export class FlutterView {
       this.viewportMetrics.physicalHeight = vp2px(newArea.height as number);
     }
 
-    this.viewportMetrics.physicalViewPaddingTop = systemAvoidArea!.topRect.height
+    // 根据是否全屏显示，设置标题栏高度
+    if (this.mainWindow.getWindowProperties().isLayoutFullScreen) { // 全屏显示
+      this.viewportMetrics.physicalViewPaddingTop = systemAvoidArea!.topRect.height
+    } else { // 非全屏显示
+      this.viewportMetrics.physicalViewPaddingTop = 0;
+    }
+
     this.viewportMetrics.physicalViewPaddingLeft = systemAvoidArea!.leftRect.width
     this.viewportMetrics.physicalViewPaddingBottom = systemAvoidArea!.bottomRect.height
     this.viewportMetrics.physicalViewPaddingRight = systemAvoidArea!.rightRect.width
@@ -209,4 +244,27 @@ export class FlutterView {
   onKeyEvent(event: KeyEvent) {
     this.keyboardManager?.handleKeyEvent(event)
   }
+
+  addFirstFrameListener(listener: FirstFrameListener) {
+    this.mFirstFrameListeners.add(listener);
+  }
+
+  removeFirstFrameListener(listener: FirstFrameListener) {
+    this.mFirstFrameListeners.remove(listener);
+  }
+
+  hasRenderedFirstFrame(): boolean {
+    return this.isFlutterUiDisplayed;
+  }
+
+  onFirstFrame() {
+    let listeners = this.mFirstFrameListeners.clone();
+    listeners.forEach((listener) => {
+      listener.onFirstFrame();
+    })
+  }
+}
+
+export interface FirstFrameListener {
+  onFirstFrame(): void;
 }

@@ -26,6 +26,7 @@ import { Action } from '../../view/AccessibilityBridge'
 import LocalizationPlugin from '../../plugin/localization/LocalizationPlugin';
 import i18n from '@ohos.i18n';
 import Any from '../../plugin/common/Any';
+import FlutterManager from '../ohos/FlutterManager';
 
 const TAG = "FlutterNapi";
 
@@ -47,6 +48,8 @@ export default class FlutterNapi {
   private engineLifecycleListeners = new Set<EngineLifecycleListener>();
   accessibilityDelegate: AccessibilityDelegate | null = null;
   localizationPlugin: LocalizationPlugin | null = null;
+
+  isDisplayingFlutterUi: boolean = false;
 
   /**
    * 更新刷新率
@@ -252,7 +255,11 @@ export default class FlutterNapi {
 
   // Called by native to notify first Flutter frame rendered.
   onFirstFrame(): void {
+    this.isDisplayingFlutterUi = true;
     Log.d(TAG, "called onFirstFrame")
+    FlutterManager.getInstance().getFlutterViewList().forEach((value)=> {
+      value.onFirstFrame();
+    });
   }
 
   // Called by native.

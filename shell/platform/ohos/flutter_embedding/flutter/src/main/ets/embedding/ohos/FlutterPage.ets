@@ -13,20 +13,9 @@
 * limitations under the License.
 */
 import Any from '../../plugin/common/Any';
-import { PlatformViewWrapper } from '../../plugin/platform/PlatformViewWrapper';
-import { RootDvModeManager } from '../../plugin/platform/RootDvModelManager';
 import Log from '../../util/Log';
-import {
-  DVModel,
-  DVModelChildren,
-  DVModelContainer,
-  DVModelEvents,
-  DVModelParameters,
-  DynamicView
-} from '../../view/DynamicView/dynamicView';
-import { createDVModelFromJson } from '../../view/DynamicView/dynamicViewJson';
+import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
 import { FlutterView } from '../../view/FlutterView';
-import KeyEventChannel from '../engine/systemchannels/KeyEventChannel';
 import FlutterManager from './FlutterManager';
 
 const TAG = "FlutterPage";
@@ -38,17 +27,33 @@ const TAG = "FlutterPage";
 export struct FlutterPage {
   @State rootDvModel: DVModelChildren | undefined = undefined
   @Prop viewId: string = ""
+  @Prop xComponentType: XComponentType = XComponentType.TEXTURE
+
+  @Builder doNothingBuilder() {}
+  @BuilderParam splashScreenView: () => void = this.doNothingBuilder;
+  @State showSplashScreen: boolean = true;
+
   private flutterView?: FlutterView | null
 
   aboutToAppear() {
     this.flutterView = FlutterManager.getInstance().getFlutterView(this.viewId);
     this.rootDvModel = this.flutterView!!.getDVModel().children
+    this.flutterView?.addFirstFrameListener(this)
+  }
+
+  aboutToDisappear() {
+    this.flutterView?.removeFirstFrameListener(this);
+  }
+
+  onFirstFrame() {
+    this.showSplashScreen = false;
   }
 
   build() {
     Stack() {
-      XComponent({ id: this.viewId, type: XComponentType.SURFACE, libraryname: 'flutter' })
+      XComponent({ id: this.viewId, type: this.xComponentType, libraryname: 'flutter' })
         .focusable(true)
+        .focusOnTouch(true)
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
@@ -57,15 +62,21 @@ export struct FlutterPage {
           Log.d(TAG, "XComponent onDestroy ");
           this.flutterView?.onSurfaceDestroyed()
         })
-      ForEach(this.rootDvModel!!, (child:Any) =>{
+        .backgroundColor(Color.Transparent)
+
+      ForEach(this.rootDvModel!!, (child: Any) => {
         DynamicView({
           model: child as DVModel,
-          params:child.params,
-          events:child.events,
-          children:child.children,
-          customBuilder:child.builder
+          params: child.params,
+          events: child.events,
+          children: child.children,
+          customBuilder: child.builder
         })
       })
+
+      if (this.showSplashScreen) {
+        this.splashScreenView();
+      }
     }
     .onAreaChange((oldValue: Area, newValue: Area) => {
       Log.d(TAG, "onAreaChange ");
