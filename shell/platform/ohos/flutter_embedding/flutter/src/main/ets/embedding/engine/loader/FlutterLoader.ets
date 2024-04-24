@@ -178,12 +178,20 @@ export default class FlutterLoader {
           + this.flutterApplicationInfo!.nativeLibraryDir
           + FILE_SEPARATOR
           + this.flutterApplicationInfo!.aotSharedLibraryName);
-      const ICUPath = fs.listFileSync(OH_ICU_DATA_FILE_PATH);
-      if (ICUPath.length == 1) {
-        shellArgs.push("--icu-data-file-path=" + OH_ICU_DATA_FILE_PATH + ICUPath[0]);
+
+      const fileIsAccess = fs.accessSync(OH_ICU_DATA_FILE_PATH)
+
+      if (fileIsAccess) {
+        const ICUPath = fs.listFileSync(OH_ICU_DATA_FILE_PATH);
+        if (ICUPath.length == 1) {
+          shellArgs.push("--icu-data-file-path=" + OH_ICU_DATA_FILE_PATH + ICUPath[0]);
+        } else {
+          Log.e(TAG, "The file in the " + OH_ICU_DATA_FILE_PATH + " directory is not unique")
+        }
       } else {
-        Log.e(TAG, "Unable to find the 'icudtl. dat' file or the file under " + OH_ICU_DATA_FILE_PATH + " is not unique")
+        Log.e(TAG, "The file " + OH_ICU_DATA_FILE_PATH + " does not exist")
       }
+
       if (this.flutterApplicationInfo!.isProfile) {
         shellArgs.push("--" + AOT_VMSERVICE_SHARED_LIBRARY_NAME + "=" + VMSERVICE_SNAPSHOT_LIBRARY);
       }
