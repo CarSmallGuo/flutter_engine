@@ -20,7 +20,7 @@ import PlatformViewsChannel, {
   PlatformViewResizeRequest,
   PlatformViewsHandler, PlatformViewTouch, PlatformViewBufferSize
 } from '../../../ets/embedding/engine/systemchannels/PlatformViewsChannel';
-import PlatformView from './PlatformView';
+import PlatformView, { Params } from './PlatformView';
 import { DVModel, DVModelContainer, DVModelParameters, DynamicView } from '../../view/DynamicView/dynamicView';
 import display from '@ohos.display';
 import { FlutterView } from '../../view/FlutterView';
@@ -42,9 +42,11 @@ import OhosTouchProcessor from '../../embedding/ohos/OhosTouchProcessor'
 import PlatformViewFactory from './PlatformViewFactory'
 import { ByteBuffer } from '../../util/ByteBuffer';
 import Any from '../common/Any';
+import { RawPointerCoords } from './RawPointerCoord';
+import { ArrayList } from '@kit.ArkTS';
 
 const TAG = "PlatformViewsController"
-
+let tsp: number = 52086377781000
 export default class PlatformViewsController implements PlatformViewsAccessibilityDelegate, PlatformViewsHandler {
   private registry: PlatformViewRegistryImpl;
   private context: Context | null = null;
@@ -57,6 +59,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
   private usesSoftwareRendering: boolean = false;
 
   private platformViews: Map<number, PlatformView>;
+  private viewIdWithTextureId: Map<number, number>;
   private overlayLayerViews: Map<number, PlatformOverlayView>;
   private viewWrappers: Map<number, PlatformViewWrapper>;
   private currentFrameUsedOverlayLayerIds: HashSet<number>;
@@ -71,6 +74,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     this.currentFrameUsedPlatformViewIds = new HashSet();
     this.viewWrappers = new Map();
     this.platformViews = new Map();
+    this.viewIdWithTextureId = new Map();
     this.platformViewParent = new Map();
   }
 
@@ -107,6 +111,11 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       return;
     }
     this.platformViews.delete(viewId);
+    let textureId = this.viewIdWithTextureId.get(viewId);
+
+    if (textureId != undefined) {
+      this.textureRegistry!.unregisterTexture(textureId);
+    }
 
     try {
       platformView.dispose();
@@ -114,21 +123,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       Log.e(TAG, "Disposing platform view threw an exception", err);
     }
 
-    let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
-    if (viewWrapper != null) {
-      let children = viewWrapper.getDvModel().children;
-      if (this.flutterView) {
-        let index = this.flutterView.getDVModel().children.indexOf(viewWrapper.getDvModel());
-        children.splice(0, children.length);
-        this.flutterView.getDVModel().children.splice(index, 1);
-      }
-      this.viewWrappers.delete(viewId);
-    }
 
-    let parentView: FlutterMutatorView | null = this.platformViewParent.get(viewId) || null;
-    if (parentView != null) {
-      this.platformViewParent.delete(viewId);
-    }
   }
 
   setParams: (params: DVModelParameters, key: string, element: Any ) => void = (params: DVModelParameters, key: string, element: Any): void => {
@@ -141,40 +136,10 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     let physicalHeight: number = this.toPhysicalPixels(request.newLogicalHeight);
     let viewId: number = request.viewId;
     Log.i(TAG, `Resize viewId ${viewId}, pw:${physicalWidth}, ph:${physicalHeight},lw:${request.newLogicalWidth}, lh:${request.newLogicalHeight}`);
+    this.flutterView!.getPlatformViewSize().width = physicalWidth;
+    this.flutterView!.getPlatformViewSize().height = physicalHeight;
+    
 
-    let platformView: PlatformView | null = this.platformViews.get(viewId) || null;
-    let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
-    if (platformView == null || viewWrapper == null) {
-      Log.e(TAG, "Resizing unknown platform view with id: " + viewId);
-      return;
-    }
-
-    let viewWrapperLayoutParams: DVModelParameters | undefined = viewWrapper.getDvModel()?.getLayoutParams();
-    if (physicalWidth && viewWrapperLayoutParams) {
-      this.setParams(viewWrapperLayoutParams, "width", physicalWidth);
-      // viewWrapperLayoutParams.width = physicalWidth;
-    }
-
-    if (physicalHeight && viewWrapperLayoutParams) {
-      this.setParams(viewWrapperLayoutParams, "height", physicalHeight);
-      // viewWrapperLayoutParams.height = physicalHeight;
-    }
-
-    let embeddedView: DVModel = platformView.getView();
-    if (embeddedView != null) {
-      let embeddedViewLayoutParams = embeddedView.getLayoutParams();
-      if (physicalWidth) {
-        this.setParams(embeddedViewLayoutParams, "width", physicalWidth);
-        // embeddedViewLayoutParams.width = physicalWidth;
-      }
-
-      if (physicalHeight) {
-        this.setParams(embeddedViewLayoutParams, "height", physicalHeight);
-        // embeddedViewLayoutParams.height = physicalHeight;
-      }
-    }
-
-    onComplete.run(new PlatformViewBufferSize(request.newLogicalWidth, request.newLogicalHeight));
   }
 
   offset(viewId: number, top: number, left: number): void {
@@ -194,42 +159,91 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
   }
 
   onTouch(touch: PlatformViewTouch): void {
-    let viewId: number = touch.viewId;
-    let density: number = display.getDefaultDisplaySync().densityDPI;
+    console.log("nodeController onTouch:")
+    let xx = 0;
+    let yy = 0;
+    let rawPointerCoords1: Array<ESObject> = touch.rawPointerCoords as Array<ESObject> ;
+    let length = rawPointerCoords1.length
+    rawPointerCoords1.forEach((item: ESObject) => {
+      let rawPoints: ArrayList<ESObject> = item as ArrayList<ESObject>;
+      let length2 = rawPoints.length
+      xx = rawPoints[7];
+      yy = rawPoints[8];
+      console.log("nodeController onTouch rawPoints.x :" + rawPoints[7])
+      console.log("nodeController onTouch rawPoints.y :" + rawPoints[8])
+    })
 
-    let platformView: PlatformView | null = this.platformViews.get(viewId) ?? null;
-    if (platformView == null) {
-      Log.e(TAG, "Sending touch to an unknown platform view with id: " + viewId);
-      return;
+ 
+
+    let touches1: TouchObject = {
+      type: touch.action,
+      id: 0,
+      displayX: xx,
+      displayY: yy,
+      windowX: xx,
+      windowY: yy,
+      screenX: xx,
+      screenY: yy,
+      x: xx,
+      y: yy,
     }
-    let dvModel: DVModel = platformView.getView();
-    if (dvModel == null) {
-      Log.e(TAG, "Sending touch to a null dv model with id: " + viewId);
+
+
+    let changedTouches1: TouchObject = {
+      type: touch.action,
+      id: 0,
+      displayX: xx,
+      displayY: yy,
+      windowX: xx,
+      windowY: yy,
+      screenX: xx,
+      screenY: yy,
+      x: xx,
+      y: yy,
     }
-    Log.e(TAG, "Sending touch to a dv model with id: " + viewId.toString());
-    sendEventByKey(viewId.toString(), 10, "");
+
+
+    tsp = tsp + 10000;
+    let touchEvent1: TouchEvent = {
+      type: touch.action,
+      source: 2,
+      sourceTool: 1,
+      pressure: 1,
+      timestamp: tsp,
+      touches: [touches1],
+      changedTouches: [changedTouches1],
+      tiltX: 0,
+      tiltY: 0,
+      stopPropagation: () => {
+      },
+      getHistoricalPoints: () => {
+        return [];
+      },
+      target: {
+        area: {
+          width: 1,
+          height: 1,
+          position: {
+            x: 1,
+            y: 1
+          },
+          globalPosition: {
+            x: 1,
+            y: 1
+          }
+        }
+      },
+    }
+
+    console.log("nodeController onTouch type " + touch.action)
+    console.log("nodeController onTouch timestamp " + tsp)
+    if (this.flutterView == null) {
+      console.log("nodeController flutterView == null")
+    }
+    this.flutterView?.getEmbeddingNodeController().postEvent(touchEvent1)
   }
 
   setDirection(viewId: number, direction: number): void {
-    if (!this.validateDirection(direction)) {
-      throw new Error("Trying to set unknown direction value: "
-        + direction
-        + "(view id: "
-        + viewId
-        + ")");
-    }
-
-    const platformView = this.platformViews.get(viewId);
-    if (platformView == null) {
-      Log.e(TAG, "Setting direction to an unknown view with id: " + viewId);
-      return;
-    }
-    const embeddedView = platformView.getView();
-    if (embeddedView == null) {
-      Log.e(TAG, "Setting direction to a null view with id: " + viewId);
-      return;
-    }
-    this.setParams(embeddedView.params, "direction", direction);
     // embeddedView.params.direction = direction;
   }
 
@@ -258,15 +272,10 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     Log.i(TAG, "Enter createForTextureLayer");
     this.ensureValidRequest(request);
 
-    let viewId: number = request.viewId;
-    if (this.viewWrappers.get(request.viewId) != null) {
-      throw new Error(
-        "Trying to create an already created platform view, view id: " + viewId);
-    }
-
     let platformView: PlatformView = this.createPlatformView(request, true);
-    let dynamicView: DVModel = platformView.getView();
-    return this.configureForTextureLayerComposition(platformView, request);
+    let textureId = this.configureForTextureLayerComposition(platformView, request);
+    this.viewIdWithTextureId.set(request.viewId, textureId);
+    return textureId;
   }
 
   private ensureValidRequest(request: PlatformViewCreationRequest): void {
@@ -297,13 +306,11 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     }
     let platformView = viewFactory.create(this.context, request.viewId, createParams);
 
-    let embeddedView: DVModel =  platformView.getView();
+    let embeddedView: WrappedBuilder<[Params]> = platformView.getView();
     if (embeddedView == null) {
       throw new Error("PlatformView#getView() returned null, but an dynamic view reference was expected.");
     }
 
-    this.setParams(embeddedView.params, "direction", request.direction);
-    // embeddedView.params.direction = request.direction;
 
     this.platformViews.set(request.viewId, platformView);
     return platformView;
@@ -317,43 +324,18 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
   private configureForTextureLayerComposition(platformView: PlatformView, request: PlatformViewCreationRequest): number {
     Log.i(TAG, "Hosting view in view hierarchy for platform view: " + request.viewId);
 
-    let viewWrapper: PlatformViewWrapper = new PlatformViewWrapper();
+    // let viewWrapper: PlatformViewWrapper = new PlatformViewWrapper();
     let textureId: number = 0;
-
-    let physicalTop: number = this.toPhysicalPixels(request.logicalTop);
-    let physicalLeft: number = this.toPhysicalPixels(request.logicalLeft);
-
-    Log.i(TAG, `View pW:${request.logicalWidth}, pH:${request.logicalHeight}, pT:${physicalTop}, pL:${physicalLeft}`);
-
-    let param: DVModelParameters = new DVModelParameters();
-
-    this.setParams(param, "marginLeft", physicalLeft);
-    this.setParams(param, "marginTop", physicalTop);
-    // param.marginLeft = physicalLeft;
-    // param.marginTop = physicalTop;
-
-    let model = platformView.getView();
-    if (request.logicalWidth != null) {
-      let physicalWidth: number = this.toPhysicalPixels(request.logicalWidth);
-      this.setParams(model.params, "width", physicalWidth);
-      this.setParams(param, "width", physicalWidth);
-      // model.params.width = physicalWidth;
-      // param.width = physicalWidth;
+    if (this.textureRegistry != null) {
+      textureId = this.textureRegistry!.getTextureId();
+      let surfaceId: string = this.textureRegistry!.registerTexture(textureId).getSurfaceId().toString();
+      Log.i(TAG, "nodeController getSurfaceId: " + surfaceId);
+      this.flutterView!.setSurfaceId(surfaceId);
     }
 
-    if (request.logicalHeight != null) {
-      let physicalHeight: number = this.toPhysicalPixels(request.logicalHeight);
-      this.setParams(model.params, "height", physicalHeight);
-      this.setParams(param, "height", physicalHeight);
-      // model.params.height = physicalHeight;
-      // param.height = physicalHeight;
-    }
-
-    viewWrapper.setLayoutParams(param);
-    viewWrapper.addDvModel(model);
-
-    this.flutterView?.getDVModel().children.push(viewWrapper.getDvModel()!);
-    this.viewWrappers.set(request.viewId, viewWrapper);
+    let wrappedBuilder: WrappedBuilder<[Params]> = platformView.getView();
+    this.flutterView?.setWrappedBuilder(wrappedBuilder);
+    this.flutterView?.setPlatformView(platformView);
     Log.i(TAG, "Create platform view success");
 
     return textureId;
@@ -452,28 +434,6 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
   }
 
   private initializeRootImageViewIfNeeded(): void {
-  }
-
-  initializePlatformViewIfNeeded(viewId: number): void {
-    let platformView: PlatformView = this.platformViews[viewId];
-    if (platformView == null) {
-      throw new Error("Platform view hasn't been initialized from the platform view channel.");
-    }
-    if (this.platformViewParent[viewId] == null) {
-      return;
-    }
-    let dvModel: DVModel = platformView.getView();
-    if (dvModel == null) {
-      throw new Error("PlatformView#getView() returned null, but an ohos dv model reference was expected.");
-    }
-    let parentView: FlutterMutatorView = new FlutterMutatorView();
-    parentView.setOnDescendantFocusChangeListener(() => {
-      this.platformViewsChannel?.invokeViewFocused(viewId);
-    }, () => {
-      if (this.textInputPlugin != null) {
-        this.textInputPlugin.clearTextInputClient();
-      }
-    });
   }
 
   public onDisplayOverlaySurface(id: number, x: number, y: number, width: number, height: number): void {
