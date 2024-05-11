@@ -46,6 +46,12 @@
         "type": "patch",
         "file_path": "../flutter/attachment/repos/build.patch"
     },
+	{
+		"name": "build_ohos_opt",
+		"target": "./src/build",
+		"type": "patch",
+		"file_path": "../flutter/attachment/repos/build_ohos_opt.patch"
+	},
     {
         "name": "zlib",
         "target": "./src/third_party/zlib",
