@@ -301,6 +301,7 @@ void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessage(
   if (message->hasData()) {
     fml::MallocMapping mapping = message->releaseData();
     char* mapData = (char*)mapping.Release();
+    mapData[mapping.GetSize()] = '\0';
     status = napi_create_string_utf8(env_, mapData, strlen(mapData),
                                      &callbackParam[3]);
     if (status != napi_ok) {
@@ -1511,12 +1512,6 @@ void PlatformViewOHOSNapi::SurfaceCreated(int64_t shell_holder, void* window) {
   auto native_window = fml::MakeRefCounted<OHOSNativeWindow>(
       static_cast<OHNativeWindow*>(window));
   OHOS_SHELL_HOLDER->GetPlatformView()->NotifyCreate(std::move(native_window));
-}
-
-void PlatformViewOHOSNapi::SurfaceWindowChanged(int64_t shell_holder, void* window) {
-  auto native_window = fml::MakeRefCounted<OHOSNativeWindow>(
-          static_cast<OHNativeWindow*>(window));
-  OHOS_SHELL_HOLDER->GetPlatformView()->NotifySurfaceWindowChanged(std::move(native_window));
 }
 
 void PlatformViewOHOSNapi::SurfaceChanged(int64_t shell_holder,
