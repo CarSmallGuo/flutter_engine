@@ -336,6 +336,8 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     let wrappedBuilder: WrappedBuilder<[Params]> = platformView.getView();
     this.flutterView?.setWrappedBuilder(wrappedBuilder);
     this.flutterView?.setPlatformView(platformView);
+    this.flutterView!.getPlatformViewSize().width = request.logicalWidth;
+    this.flutterView!.getPlatformViewSize().height = request.logicalHeight;
     Log.i(TAG, "Create platform view success");
 
     return textureId;

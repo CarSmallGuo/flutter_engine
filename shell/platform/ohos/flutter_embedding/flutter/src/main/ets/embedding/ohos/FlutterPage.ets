@@ -34,6 +34,8 @@ export struct FlutterPage {
   @Builder doNothingBuilder() {}
   @BuilderParam splashScreenView: () => void = this.doNothingBuilder;
   @State showSplashScreen: boolean = true;
+  @State nodeContainerWidth: string | number = '100%'
+  @State nodeContainerHeight: string | number = '100%'
 
   private flutterView?: FlutterView | null
   private nodeController: EmbeddingNodeController | undefined = undefined
@@ -53,6 +55,10 @@ export struct FlutterPage {
     if (this.flutterView != null) {
       let surfaceId: string = this.flutterView?.getSurfaceId()
       Log.d(TAG, "nodeController onLoad surfaceId:" + surfaceId);
+      this.nodeContainerWidth = this.flutterView?.getPlatformViewSize().width;
+      this.nodeContainerHeight = this.flutterView?.getPlatformViewSize().height;
+      Log.d(TAG, "nodeController nodeContainerWidth :" + this.nodeContainerWidth);
+      Log.d(TAG, "nodeController nodeContainerHeight :" + this.nodeContainerHeight);
       this.nodeController!!.setRenderOption(this.flutterView?.getPlatformView()!, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500);
       Log.d(TAG, "nodeController rebuild");
       this.nodeController!!.rebuild();
@@ -62,8 +68,8 @@ export struct FlutterPage {
   build() {
     Stack() {
       NodeContainer(this.nodeController)
-        .width('100%')
-        .height('50%')
+        .width(this.nodeContainerWidth)
+        .height(this.nodeContainerHeight)
         .onAppear(() => {
           console.log("nodeController nodeContainer appear")
           sleep(200);
@@ -89,15 +95,15 @@ export struct FlutterPage {
         })
         .backgroundColor(Color.Transparent)
 
-      ForEach(this.rootDvModel!!, (child: Any) => {
-        DynamicView({
-          model: child as DVModel,
-          params: child.params,
-          events: child.events,
-          children: child.children,
-          customBuilder: child.builder
-        })
-      })
+      // ForEach(this.rootDvModel!!, (child: Any) => {
+      //   DynamicView({
+      //     model: child as DVModel,
+      //     params: child.params,
+      //     events: child.events,
+      //     children: child.children,
+      //     customBuilder: child.builder
+      //   })
+      // })
 
       if (this.showSplashScreen) {
         this.splashScreenView();
