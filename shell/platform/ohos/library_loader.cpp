@@ -120,8 +120,8 @@ static napi_value Init(napi_env env, napi_value exports) {
           "nativeMarkTextureFrameAvailable",
           flutter::PlatformViewOHOSNapi::nativeMarkTextureFrameAvailable),
       DECLARE_NAPI_FUNCTION(
-          "nativeRegisterPixelMap",
-          flutter::PlatformViewOHOSNapi::nativeRegisterPixelMap),
+          "nativeUpdatePixelMap",
+          flutter::PlatformViewOHOSNapi::nativeUpdatePixelMap),
 
   };
 
