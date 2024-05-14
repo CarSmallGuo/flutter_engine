@@ -23,11 +23,13 @@ import Log from '../../../util/Log';
 
 const TAG = "FlutterRenderer"
 export class FlutterRenderer implements TextureRegistry {
-  private nextTextureId: number = 0;
+  private static nextTextureId: number = 0;
+  private textureId: number = 0;
   private flutterNapi: FlutterNapi;
 
   constructor(flutterNapi: FlutterNapi) {
     this.flutterNapi = flutterNapi;
+    this.textureId = ++ FlutterRenderer.nextTextureId;
   }
   createSurfaceTexture(): SurfaceTextureEntry {
     let receiver: image.ImageReceiver = this.getImageReceiver();
@@ -35,13 +37,12 @@ export class FlutterRenderer implements TextureRegistry {
   }
 
   getTextureId(): number {
-    this.nextTextureId = this.nextTextureId + 1;
-    Log.i(TAG, "getTextureId: ", this.nextTextureId )
-    return this.nextTextureId;
+    Log.i(TAG, "getTextureId: ", this.textureId )
+    return this.textureId;
   }
 
   registerTexture(textureId: number): SurfaceTextureEntry {
-    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.nextTextureId);
+    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.textureId);
     let surfaceId = this.flutterNapi.registerTexture(textureId);
     Log.i(TAG, "registerTexture, surfaceId=" + surfaceId);
     surfaceTextureRegistryEntry.setSurfaceId(surfaceId);
@@ -49,17 +50,19 @@ export class FlutterRenderer implements TextureRegistry {
   }
 
   registerSurfaceTexture(receiver: image.ImageReceiver): SurfaceTextureEntry {
-    this.nextTextureId = this.nextTextureId + 1;
-    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.nextTextureId);
+    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.textureId);
     surfaceTextureRegistryEntry.setImageReceiver(receiver);
     this.registerImage(surfaceTextureRegistryEntry.getTextureId(), surfaceTextureRegistryEntry.textureWrapper());
     return surfaceTextureRegistryEntry;
   }
 
-  registerPixelMap(pixelMap: PixelMap): number {
-    this.nextTextureId = this.nextTextureId + 1;
-    this.flutterNapi.registerPixelMap(this.nextTextureId, pixelMap);
-    return this.nextTextureId;
+  updatePixelMap(pixelMap: image.PixelMap): number {
+    this.flutterNapi.updatePixelMap(this.textureId, pixelMap);
+    return this.textureId;
+  }
+
+  markTextureFrameAvailable(textureId: number): void {
+    this.flutterNapi.markTextureFrameAvailable(textureId);
   }
 
   unregisterTexture(textureId: number): void {

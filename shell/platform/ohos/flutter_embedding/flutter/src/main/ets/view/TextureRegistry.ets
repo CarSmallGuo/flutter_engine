@@ -20,7 +20,10 @@ export interface TextureRegistry {
   getTextureId(): number;
   registerTexture(textureId: number): SurfaceTextureEntry;
   registerSurfaceTexture(receiver: image.ImageReceiver): SurfaceTextureEntry;
-  registerPixelMap(pixelMap: PixelMap): number;
+  //update a new PixelMap to engine texture
+  updatePixelMap(pixelMap: PixelMap): number;
+  //mark a texture frame available after updatePixelMap
+  markTextureFrameAvailable(textureId: number): void;
   unregisterTexture(textureId: number): void;
   onTrimMemory(level: number) : void;
 }

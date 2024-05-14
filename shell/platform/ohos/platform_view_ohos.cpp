@@ -464,8 +464,11 @@ void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id)
   UnregisterTexture(texture_id);
 }
 
-void PlatformViewOHOS::RegisterExternalTextureByPixelMap(int64_t texture_id, NativePixelMap* pixelMap)
+void PlatformViewOHOS::UpdatePixelMap(int64_t texture_id, NativePixelMap* pixelMap)
 {
+  if(pixelMap == nullptr) {
+    return;
+  }
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
     auto iter = external_texture_gl_.find(texture_id);
     if (iter != external_texture_gl_.end()) {
@@ -477,7 +480,6 @@ void PlatformViewOHOS::RegisterExternalTextureByPixelMap(int64_t texture_id, Nat
       RegisterTexture(ohos_external_gl);
       ohos_external_gl->DispatchPixelMap(pixelMap);
     }
-    MarkTextureFrameAvailable(texture_id);
   }
 }
 

@@ -155,11 +155,11 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);
 
-  static napi_value nativeRegisterPixelMap(
+  static napi_value nativeRegisterTexture(
       napi_env env,
       napi_callback_info info);
 
-  static napi_value nativeRegisterTexture(
+  static napi_value nativeUpdatePixelMap(
       napi_env env,
       napi_callback_info info);
 
