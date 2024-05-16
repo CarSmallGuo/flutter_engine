@@ -140,7 +140,7 @@ export class PlatformPluginCallback implements PlatformMessageHandler {
 
   setPreferredOrientations(ohosOrientation: number) {
     Log.d(PlatformPluginCallback.TAG, "ohosOrientation: " + ohosOrientation);
-    this.mainWindow?.setPreferredOrientation(ohosOrientation);
+    this.lastWindow?.setPreferredOrientation(ohosOrientation);
   }
 
   setApplicationSwitcherDescription(description: AppSwitcherDescription) {
