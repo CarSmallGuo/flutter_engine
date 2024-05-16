@@ -42,7 +42,7 @@ export interface OhosTexture {
   /*
    * mark a texture frame available after updatePixelMap
    */
-  markTextureFrameAvailable(textureId: number): void;
+  markTextureFrameAvailable(): void;
   /*
    * release engine texture resource, e.g. OHOSExternalTextureGL
    */

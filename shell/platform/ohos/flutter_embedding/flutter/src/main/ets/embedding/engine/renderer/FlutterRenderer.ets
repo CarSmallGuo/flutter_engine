@@ -57,8 +57,8 @@ export class OhosTextureWrapper implements OhosTexture {
     return this.textureId;
   }
 
-  markTextureFrameAvailable(textureId: number): void {
-    this.flutterNapi.markTextureFrameAvailable(textureId);
+  markTextureFrameAvailable(): void {
+    this.flutterNapi.markTextureFrameAvailable(this.textureId);
   }
 
   release(): void {
