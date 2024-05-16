@@ -29,7 +29,7 @@ export interface OhosTexture {
 
   /*
    * get OHOS NativeImage Surface id which create in flutter engine, same as NDK function "OH_NativeImage_GetSurfaceId"
-   * this Surface id could be used to consume video frame date to external texture, e.g. camera preview output
+   * this Surface id could be used to consume video frame and update to external texture, e.g. camera preview output
    * if camera preview frame arrived, it will callback to NativeImage in engine, then update frame to real texture
    */
   getSurfaceId(): number;
