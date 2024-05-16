@@ -464,9 +464,9 @@ void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id)
   UnregisterTexture(texture_id);
 }
 
-void PlatformViewOHOS::UpdatePixelMap(int64_t texture_id, NativePixelMap* pixelMap)
-{
-  if(pixelMap == nullptr) {
+void PlatformViewOHOS::UpdatePixelMap(int64_t texture_id,
+                                      NativePixelMap* pixelMap) {
+  if (pixelMap == nullptr) {
     return;
   }
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
