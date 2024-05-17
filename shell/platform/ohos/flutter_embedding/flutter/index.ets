@@ -42,9 +42,8 @@ import {
   WindowFocusChangedListener,
   OnSaveStateListener,
 } from './src/main/ets/embedding/engine/plugins/ability/AbilityPluginBinding';
-import { FlutterRenderer, SurfaceTextureRegistryEntry } from './src/main/ets/embedding/engine/renderer/FlutterRenderer';
+import { FlutterRenderer, OhosTextureWrapper } from './src/main/ets/embedding/engine/renderer/FlutterRenderer';
 import { FlutterUiDisplayListener } from './src/main/ets/embedding/engine/renderer/FlutterUiDisplayListener';
-import { SurfaceTextureWrapper } from './src/main/ets/embedding/engine/renderer/SurfaceTextureWrapper'; 
 import AccessibilityChannel from './src/main/ets/embedding/engine/systemchannels/AccessibilityChannel';
 import KeyEventChannel from './src/main/ets/embedding/engine/systemchannels/KeyEventChannel';
 import LifecycleChannel from './src/main/ets/embedding/engine/systemchannels/LifecycleChannel';
@@ -106,7 +105,7 @@ import AccessibilityBridge from './src/main/ets/view/AccessibilityBridge';
 import { FlutterCallbackInformation } from './src/main/ets/view/FlutterCallbackInformation';
 import FlutterRunArguments from './src/main/ets/view/FlutterRunArguments';
 import { FirstFrameListener, FlutterView } from './src/main/ets/view/FlutterView';
-import { TextureRegistry } from './src/main/ets/view/TextureRegistry';
+import { TextureRegistry, OhosTexture } from './src/main/ets/view/TextureRegistry';
 import { ByteBuffer } from './src/main/ets/util/ByteBuffer';
 import Log from './src/main/ets/util/Log';
 import MessageChannelUtils from './src/main/ets/util/MessageChannelUtils';
@@ -147,9 +146,8 @@ export {
   WindowFocusChangedListener,
   OnSaveStateListener,
   FlutterRenderer,
-  SurfaceTextureRegistryEntry,
+  OhosTextureWrapper,
   FlutterUiDisplayListener,
-  SurfaceTextureWrapper,
   AccessibilityChannel,
   KeyEventChannel,
   LifecycleChannel,
@@ -214,6 +212,7 @@ export {
   FlutterRunArguments,
   FlutterView,
   TextureRegistry,
+  OhosTexture,
   ByteBuffer,
   Log,
   MessageChannelUtils,

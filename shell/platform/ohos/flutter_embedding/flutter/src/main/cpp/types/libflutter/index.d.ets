@@ -105,6 +105,8 @@ export const nativeInitNativeImage: (nativeShellHolderId: number, textureId: num
 
 export const nativeUnregisterTexture: (nativeShellHolderId: number, textureId: number) => void;
 
-export const nativeRegisterPixelMap: (nativeShellHolderId: number, textureId: number, pixelMap: PixelMap) => void;
-
 export const nativeRegisterTexture: (nativeShellHolderId: number, textureId: number) => number;
+
+export const nativeUpdatePixelMap: (nativeShellHolderId: number, textureId: number, pixelMap: PixelMap) => void;
+
+export const nativeMarkTextureFrameAvailable: (nativeShellHolderId: number, textureId: number) => void;

@@ -94,7 +94,7 @@ class PlatformViewOHOS final : public PlatformView {
 
   uint64_t RegisterExternalTexture(int64_t texture_id);
 
-  void RegisterExternalTextureByPixelMap(int64_t texture_id, NativePixelMap* pixelMap);
+  void UpdatePixelMap(int64_t texture_id, NativePixelMap* pixelMap);
 
   void UnRegisterExternalTexture(int64_t texture_id);
 
