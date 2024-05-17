@@ -15,7 +15,7 @@
 import Any from '../../plugin/common/Any';
 import Log from '../../util/Log';
 import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
-import { FlutterView } from '../../view/FlutterView';
+import { FlutterView, PlatformViewSize } from '../../view/FlutterView';
 import { EmbeddingNodeController } from './EmbeddingNodeController';
 import FlutterManager from './FlutterManager';
 import { NodeRenderType } from '@ohos.arkui.node';
@@ -36,6 +36,7 @@ export struct FlutterPage {
   @State showSplashScreen: boolean = true;
   @State nodeContainerWidth: string | number = '100%'
   @State nodeContainerHeight: string | number = '100%'
+  @State platformViewSize: PlatformViewSize = new PlatformViewSize();
 
   private flutterView?: FlutterView | null
   private nodeController: EmbeddingNodeController | undefined = undefined
@@ -57,6 +58,7 @@ export struct FlutterPage {
       Log.d(TAG, "nodeController onLoad surfaceId:" + surfaceId);
       this.nodeContainerWidth = this.flutterView?.getPlatformViewSize().width;
       this.nodeContainerHeight = this.flutterView?.getPlatformViewSize().height;
+      this.platformViewSize =  this.flutterView?.getPlatformViewSize();
       Log.d(TAG, "nodeController nodeContainerWidth :" + this.nodeContainerWidth);
       Log.d(TAG, "nodeController nodeContainerHeight :" + this.nodeContainerHeight);
       this.nodeController!!.setRenderOption(this.flutterView?.getPlatformView()!, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500);
@@ -68,11 +70,13 @@ export struct FlutterPage {
   build() {
     Stack() {
       NodeContainer(this.nodeController)
-        .width(this.nodeContainerWidth)
-        .height(this.nodeContainerHeight)
-        .onAppear(() => {
+        // .width(this.nodeContainerWidth)
+        // .height(this.nodeContainerHeight)
+        .width(this.platformViewSize.width)
+        .height(this.platformViewSize.height)
+        .onAppear(async () => {
           console.log("nodeController nodeContainer appear")
-          sleep(200);
+          await sleep(200);
           if (this.flutterView != null) {
             let surfaceId: string = this.flutterView?.getSurfaceId()
             Log.d(TAG, "nodeController onLoad surfaceId:" + surfaceId);

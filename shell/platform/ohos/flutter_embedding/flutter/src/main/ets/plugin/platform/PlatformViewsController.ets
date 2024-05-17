@@ -44,6 +44,7 @@ import { ByteBuffer } from '../../util/ByteBuffer';
 import Any from '../common/Any';
 import { RawPointerCoords } from './RawPointerCoord';
 import { ArrayList } from '@kit.ArkTS';
+import { CustomTouchEvent, CustomTouchObject } from './CustomTouchEvent';
 
 const TAG = "PlatformViewsController"
 let tsp: number = 52086377781000
@@ -136,26 +137,29 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     let physicalHeight: number = this.toPhysicalPixels(request.newLogicalHeight);
     let viewId: number = request.viewId;
     Log.i(TAG, `Resize viewId ${viewId}, pw:${physicalWidth}, ph:${physicalHeight},lw:${request.newLogicalWidth}, lh:${request.newLogicalHeight}`);
-    this.flutterView!.getPlatformViewSize().width = physicalWidth;
-    this.flutterView!.getPlatformViewSize().height = physicalHeight;
+    this.flutterView!.getPlatformViewSize().width = request.newLogicalWidth;
+    this.flutterView!.getPlatformViewSize().height = request.newLogicalHeight;
     
 
   }
 
   offset(viewId: number, top: number, left: number): void {
     Log.i(TAG, `Offset is id${viewId}, t:${top}, l:${left}`);
-    let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
-    if (viewWrapper == null) {
-      Log.e(TAG, "Setting offset for an unknown platform view with id: " + viewId);
-      return;
-    }
 
-    let physicalTop = this.toPhysicalPixels(top);
-    let physicalLeft = this.toPhysicalPixels(left);
-    let params = viewWrapper.getDvModel()!.params;
-    this.setParams(params!, "marginTop", physicalTop);
-    this.setParams(params!, "marginLeft", physicalLeft);
-    viewWrapper.setLayoutParams(params!);
+
+    // let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
+    // if (viewWrapper == null) {
+    //   Log.e(TAG, "Setting offset for an unknown platform view with id: " + viewId);
+    //   return;
+    // }
+    //
+    // let physicalTop = this.toPhysicalPixels(top);
+    // let physicalLeft = this.toPhysicalPixels(left);
+    // let params = viewWrapper.getDvModel()!.params;
+    // this.setParams(params!, "marginTop", physicalTop);
+    // this.setParams(params!, "marginLeft", physicalLeft);
+    // viewWrapper.setLayoutParams(params!);
+
   }
 
   onTouch(touch: PlatformViewTouch): void {
@@ -175,72 +179,18 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
 
  
 
-    let touches1: TouchObject = {
-      type: touch.action,
-      id: 0,
-      displayX: xx,
-      displayY: yy,
-      windowX: xx,
-      windowY: yy,
-      screenX: xx,
-      screenY: yy,
-      x: xx,
-      y: yy,
-    }
-
-
-    let changedTouches1: TouchObject = {
-      type: touch.action,
-      id: 0,
-      displayX: xx,
-      displayY: yy,
-      windowX: xx,
-      windowY: yy,
-      screenX: xx,
-      screenY: yy,
-      x: xx,
-      y: yy,
-    }
-
-
     tsp = tsp + 10000;
-    let touchEvent1: TouchEvent = {
-      type: touch.action,
-      source: 2,
-      sourceTool: 1,
-      pressure: 1,
-      timestamp: tsp,
-      touches: [touches1],
-      changedTouches: [changedTouches1],
-      tiltX: 0,
-      tiltY: 0,
-      stopPropagation: () => {
-      },
-      getHistoricalPoints: () => {
-        return [];
-      },
-      target: {
-        area: {
-          width: 1,
-          height: 1,
-          position: {
-            x: 1,
-            y: 1
-          },
-          globalPosition: {
-            x: 1,
-            y: 1
-          }
-        }
-      },
-    }
+    let touches1: CustomTouchObject = new CustomTouchObject(touch.action, 0, xx, yy, xx, yy, xx, yy, xx, yy);
+    let changedTouches1: CustomTouchObject = new CustomTouchObject(touch.action, 0, xx, yy, xx, yy, xx, yy, xx, yy);
+    let customTouchEvent1: CustomTouchEvent = new CustomTouchEvent(touch.action, [touches1], [changedTouches1], tsp, 2, 1, 0, 0, 1);
+
 
     console.log("nodeController onTouch type " + touch.action)
     console.log("nodeController onTouch timestamp " + tsp)
     if (this.flutterView == null) {
       console.log("nodeController flutterView == null")
     }
-    this.flutterView?.getEmbeddingNodeController().postEvent(touchEvent1)
+    this.flutterView?.getEmbeddingNodeController().postEvent(customTouchEvent1)
   }
 
   setDirection(viewId: number, direction: number): void {
