@@ -196,8 +196,8 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
   }
 
   setDirection(viewId: number, direction: Direction): void {
-    this.flutterView!.getPlatformViewSize().direction = direction;
-    // this.flutterView!.getEmbeddingNodeController().setRenderOption(platformView, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500, request.direction);
+    // this.flutterView!.getPlatformViewSize().direction = direction;
+    this.flutterView!.getEmbeddingNodeController().setRenderOption(this.flutterView!.getPlatformView()!, this.flutterView!.getSurfaceId(), NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500, direction);
     this.flutterView!.getEmbeddingNodeController().rebuild();
     // embeddedView.params.direction = direction;
   }

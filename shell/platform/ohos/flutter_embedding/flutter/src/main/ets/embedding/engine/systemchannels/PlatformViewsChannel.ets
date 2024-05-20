@@ -65,9 +65,9 @@ export default class PlatformViewsChannel {
 
     let direction: Direction = Direction.Ltr;
     if (createArgs.get("direction") == 0) {
-      direction = Direction.Rtl;
-    } else if (createArgs.get("direction") == 1) {
       direction = Direction.Ltr;
+    } else if (createArgs.get("direction") == 1) {
+      direction = Direction.Rtl;
     }
 
     try {
@@ -206,13 +206,13 @@ export default class PlatformViewsChannel {
   setDirection(call: MethodCall, result: MethodResult): void {
     const setDirectionArgs: Map<string, Any> = call.args;
     const newDirectionViewId: number = setDirectionArgs.get("id");
-    const directionNumber: number = setDirectionArgs.get("direction");
-    let direction: Direction = Direction.Ltr;
-    if (directionNumber == 0) {
-      direction = Direction.Rtl;
-    } else if (directionNumber == 1) {
-      direction = Direction.Ltr;
-    }
+    const direction: number = setDirectionArgs.get("direction");
+    // let direction: Direction = Direction.Ltr;
+    // if (directionNumber == 0) {
+    //   direction = Direction.Ltr;
+    // } else if (directionNumber == 1) {
+    //   direction = Direction.Ltr;
+    // }
 
     try {
       this.handler?.setDirection(newDirectionViewId, direction);
