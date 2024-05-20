@@ -143,6 +143,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     this.flutterView!.getPlatformViewSize().height = request.newLogicalHeight;
     
 
+    onComplete.run(new PlatformViewBufferSize(request.newLogicalWidth, request.newLogicalHeight));
   }
 
   offset(viewId: number, top: number, left: number): void {
