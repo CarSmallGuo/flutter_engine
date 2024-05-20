@@ -99,7 +99,7 @@ export PATH=/home/<user>/ohos/command-line-tools/tool/node/bin:$PATH
     nodejs.dir=<nodejs的sdk目录>
     ```
 
-2. 你需要复制文件到 `shell/platform/ohos/flutter_embedding/flutter/libs/arm64-v8a/`
+2. 你需要从编译后的 `engine` 目录中，复制文件到 `shell/platform/ohos/flutter_embedding/flutter/libs/arm64-v8a/`
    1. debug/release，复制 `libflutter.so`
    2. profile，复制 `libflutter.so` 和 `libvmservice_snapshot.so`
 
@@ -110,6 +110,10 @@ export PATH=/home/<user>/ohos/command-line-tools/tool/node/bin:$PATH
     hvigorw --mode module -p module=flutter@default -p product=default -p buildMode=debug assembleHar --no-daemon
     ```
 
-4. har文件输出路径为：shell/platform/ohos/flutter_embedding/flutter/build/default/outputs/default/flutter.har
+4. har文件输出路径为：`shell/platform/ohos/flutter_embedding/flutter/build/default/outputs/default/flutter.har`
+
+5. 获得 har 文件后，按 `flutter.har.BUILD_TYPE.API` 格式重命名文件，其中`BUILD_TYPE`指`debug`、`release`、`profile`，`API`指当前 SDK 版本，如 api11 就是 11；比如当前构建的是 api11 的 debug 版本，则重命名为 `flutter.har.debug.11`；
+
+6. 替换 `flutter_flutter/packages/flutter_tools/templates/app_shared/ohos.tmpl/har/har_product.tmpl/` 目录下对应文件，重新运行项目工程即可生效。
 
 ps:如果你使用的是DevEco Studio的Beta版本，编译工程时遇到“must have required property 'compatibleSdkVersion', location: build-profile.json5:17:11"错误，请参考《DevEco Studio环境配置指导.docx》中的‘6 创建工程和运行Hello World’【配置插件】章节修改 shell/platform/ohos/flutter_embedding/hvigor/hvigor-config.json5文件。
