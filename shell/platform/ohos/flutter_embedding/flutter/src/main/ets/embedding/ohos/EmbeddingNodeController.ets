@@ -59,10 +59,12 @@ export class EmbeddingNodeController extends NodeController {
   private renderType_ :NodeRenderType = NodeRenderType.RENDER_TYPE_DISPLAY;
   private width_ : number = 0;
   private height_ : number = 0;
+  private direction: Direction = Direction.Auto;
   private type_ : string = "";
   private isDestroy_ : boolean = false;
 
-  setRenderOption(platformView: PlatformView, surfaceId: string, renderType: NodeRenderType, width: number, height: number) {
+
+  setRenderOption(platformView: PlatformView, surfaceId: string, renderType: NodeRenderType, width: number, height: number, direction: Direction) {
     if (platformView == undefined) {
       console.log("nodeController platformView undefined")
     } else {
@@ -74,6 +76,7 @@ export class EmbeddingNodeController extends NodeController {
     this.renderType_ = renderType;
     this.width_ = width;
     this.height_ = height;
+    this.direction = direction;
   }
   makeNode(uiContext: UIContext): FrameNode | null{
     this.rootNode = new BuilderNode(uiContext, { surfaceId: this.surfaceId_, type: this.renderType_});
@@ -82,7 +85,7 @@ export class EmbeddingNodeController extends NodeController {
       this.rootNode.build(wrapBuilder(ButtonBuilder), {width : this.width_, height : this.height_});
     } else {
       console.log("nodeController makeNode 2")
-      this.rootNode.build(this.wrappedBuilder, {width : this.width_, height : this.height_, platformView: this.platformView});
+      this.rootNode.build(this.wrappedBuilder, {width : this.width_, height : this.height_, direction: this.direction, platformView: this.platformView});
     }
     return this.rootNode.getFrameNode();
   }

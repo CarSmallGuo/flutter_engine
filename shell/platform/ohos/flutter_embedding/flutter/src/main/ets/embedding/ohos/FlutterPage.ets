@@ -15,7 +15,7 @@
 import Any from '../../plugin/common/Any';
 import Log from '../../util/Log';
 import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
-import { FlutterView, PlatformViewSize } from '../../view/FlutterView';
+import { FlutterView, PlatformViewParas } from '../../view/FlutterView';
 import { EmbeddingNodeController } from './EmbeddingNodeController';
 import FlutterManager from './FlutterManager';
 import { NodeRenderType } from '@ohos.arkui.node';
@@ -36,7 +36,7 @@ export struct FlutterPage {
   @State showSplashScreen: boolean = true;
   @State nodeContainerWidth: string | number = '100%'
   @State nodeContainerHeight: string | number = '100%'
-  @State platformViewSize: PlatformViewSize = new PlatformViewSize();
+  @State platformViewSize: PlatformViewParas = new PlatformViewParas();
 
   private flutterView?: FlutterView | null
   private nodeController: EmbeddingNodeController | undefined = undefined
@@ -61,9 +61,9 @@ export struct FlutterPage {
       this.platformViewSize =  this.flutterView?.getPlatformViewSize();
       Log.d(TAG, "nodeController nodeContainerWidth :" + this.nodeContainerWidth);
       Log.d(TAG, "nodeController nodeContainerHeight :" + this.nodeContainerHeight);
-      this.nodeController!!.setRenderOption(this.flutterView?.getPlatformView()!, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500);
-      Log.d(TAG, "nodeController rebuild");
-      this.nodeController!!.rebuild();
+      // this.nodeController!!.setRenderOption(this.flutterView?.getPlatformView()!, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500, this.platformViewSize.direction);
+      // Log.d(TAG, "nodeController rebuild");
+      // this.nodeController!!.rebuild();
     }
   }
 
@@ -74,17 +74,19 @@ export struct FlutterPage {
         // .height(this.nodeContainerHeight)
         .width(this.platformViewSize.width)
         .height(this.platformViewSize.height)
-        .onAppear(async () => {
-          console.log("nodeController nodeContainer appear")
-          await sleep(200);
-          if (this.flutterView != null) {
-            let surfaceId: string = this.flutterView?.getSurfaceId()
-            Log.d(TAG, "nodeController onLoad surfaceId:" + surfaceId);
-            this.nodeController!!.setRenderOption(this.flutterView?.getPlatformView()!, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500);
-            Log.d(TAG, "nodeController rebuild");
-            this.nodeController!!.rebuild();
-          }
-        })
+        // .width(this.storageLinkWidth)
+        // .height(this.storageLinkHeight)
+        // .onAppear(async () => {
+        //   console.log("nodeController nodeContainer appear")
+        //   await sleep(200);
+        //   if (this.flutterView != null) {
+        //     let surfaceId: string = this.flutterView?.getSurfaceId()
+        //     Log.d(TAG, "nodeController onLoad surfaceId:" + surfaceId);
+        //     this.nodeController!!.setRenderOption(this.flutterView?.getPlatformView()!, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500);
+        //     Log.d(TAG, "nodeController rebuild");
+        //     this.nodeController!!.rebuild();
+        //   }
+        // })
 
       XComponent({ id: this.viewId, type: this.xComponentType, libraryname: 'flutter' })
         .focusable(true)

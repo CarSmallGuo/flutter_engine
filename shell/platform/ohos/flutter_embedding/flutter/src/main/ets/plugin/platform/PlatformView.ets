@@ -18,6 +18,7 @@ import { DVModel, DynamicView } from '../../view/DynamicView/dynamicView'
 export declare class Params {
   width : number
   height : number
+  direction: Direction
   platformView : PlatformView
 }
 

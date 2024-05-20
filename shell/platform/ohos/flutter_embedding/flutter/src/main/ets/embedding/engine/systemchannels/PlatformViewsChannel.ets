@@ -65,9 +65,9 @@ export default class PlatformViewsChannel {
 
     let direction: Direction = Direction.Ltr;
     if (createArgs.get("direction") == 0) {
-      direction = Direction.Ltr;
-    } else if (createArgs.get("direction") == 1) {
       direction = Direction.Rtl;
+    } else if (createArgs.get("direction") == 1) {
+      direction = Direction.Ltr;
     }
 
     try {
@@ -206,7 +206,13 @@ export default class PlatformViewsChannel {
   setDirection(call: MethodCall, result: MethodResult): void {
     const setDirectionArgs: Map<string, Any> = call.args;
     const newDirectionViewId: number = setDirectionArgs.get("id");
-    const direction: number = setDirectionArgs.get("direction");
+    const directionNumber: number = setDirectionArgs.get("direction");
+    let direction: Direction = Direction.Ltr;
+    if (directionNumber == 0) {
+      direction = Direction.Rtl;
+    } else if (directionNumber == 1) {
+      direction = Direction.Ltr;
+    }
 
     try {
       this.handler?.setDirection(newDirectionViewId, direction);
@@ -307,7 +313,7 @@ export interface  PlatformViewsHandler {
    * The Flutter application would like to change the layout direction of an existing Android
    * {@code View}, i.e., platform view.
    */
-  setDirection(viewId: number, direction: number): void;
+  setDirection(viewId: number, direction: Direction): void;
 
   /** Clears the focus from the platform view with a give id if it is currently focused. */
   clearFocus(viewId: number): void;
@@ -355,7 +361,7 @@ export class PlatformViewCreationRequest {
   /**
    * The layout direction of the new platform view.
    */
-  public direction: number;
+  public direction: Direction;
   public displayMode: RequestedDisplayMode;
 
   /** Custom parameters that are unique to the desired platform view. */

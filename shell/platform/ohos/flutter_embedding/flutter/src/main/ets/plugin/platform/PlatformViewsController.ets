@@ -45,6 +45,8 @@ import Any from '../common/Any';
 import { RawPointerCoords } from './RawPointerCoord';
 import { ArrayList } from '@kit.ArkTS';
 import { CustomTouchEvent, CustomTouchObject } from './CustomTouchEvent';
+import { NodeRenderType } from '@kit.ArkUI';
+
 
 const TAG = "PlatformViewsController"
 let tsp: number = 52086377781000
@@ -193,7 +195,10 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     this.flutterView?.getEmbeddingNodeController().postEvent(customTouchEvent1)
   }
 
-  setDirection(viewId: number, direction: number): void {
+  setDirection(viewId: number, direction: Direction): void {
+    this.flutterView!.getPlatformViewSize().direction = direction;
+    // this.flutterView!.getEmbeddingNodeController().setRenderOption(platformView, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500, request.direction);
+    this.flutterView!.getEmbeddingNodeController().rebuild();
     // embeddedView.params.direction = direction;
   }
 
@@ -275,10 +280,11 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     Log.i(TAG, "Hosting view in view hierarchy for platform view: " + request.viewId);
 
     // let viewWrapper: PlatformViewWrapper = new PlatformViewWrapper();
+    let surfaceId: string  = '0';
     let textureId: number = 0;
     if (this.textureRegistry != null) {
       textureId = this.textureRegistry!.getTextureId();
-      let surfaceId: string = this.textureRegistry!.registerTexture(textureId).getSurfaceId().toString();
+      surfaceId = this.textureRegistry!.registerTexture(textureId).getSurfaceId().toString();
       Log.i(TAG, "nodeController getSurfaceId: " + surfaceId);
       this.flutterView!.setSurfaceId(surfaceId);
     }
@@ -288,6 +294,9 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     this.flutterView?.setPlatformView(platformView);
     this.flutterView!.getPlatformViewSize().width = request.logicalWidth;
     this.flutterView!.getPlatformViewSize().height = request.logicalHeight;
+    this.flutterView!.getPlatformViewSize().direction = request.direction;
+    this.flutterView!.getEmbeddingNodeController().setRenderOption(platformView, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500, request.direction);
+    this.flutterView!.getEmbeddingNodeController().rebuild();
     Log.i(TAG, "Create platform view success");
 
     return textureId;

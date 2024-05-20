@@ -47,9 +47,10 @@ class ViewportMetrics {
   physicalTouchSlop = -1;
 }
 
-export class PlatformViewSize {
+export class PlatformViewParas {
   width: number = 0;
   height: number = 0;
+  direction: Direction = Direction.Auto;
 }
 export class FlutterView {
   private flutterEngine: FlutterEngine | null = null
@@ -69,7 +70,7 @@ export class FlutterView {
   private isFlutterUiDisplayed: boolean = false;
   private surfaceId: string = "0";
   private nodeController: EmbeddingNodeController = new EmbeddingNodeController();
-  private platformViewSize: PlatformViewSize = new PlatformViewSize();
+  private platformViewSize: PlatformViewParas = new PlatformViewParas();
 
   constructor(viewId: string, context: Context) {
     this.id = viewId
@@ -130,7 +131,7 @@ export class FlutterView {
     return this.platformView;
   }
 
-  getPlatformViewSize(): PlatformViewSize {
+  getPlatformViewSize(): PlatformViewParas {
     return this.platformViewSize;
   }
 
