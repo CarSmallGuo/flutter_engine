@@ -37,10 +37,14 @@ export struct FlutterPage {
   @State nodeContainerWidth: string | number = '100%'
   @State nodeContainerHeight: string | number = '100%'
   @State platformViewSize: PlatformViewParas = new PlatformViewParas();
+  @StorageLink('nodeWidth') storageLinkWidth: number = 0;
+  @StorageLink('nodeHeight') storageLinkHeight: number = 0;
 
   private flutterView?: FlutterView | null
   private nodeController: EmbeddingNodeController | undefined = undefined
   aboutToAppear() {
+    AppStorage.setOrCreate('nodeWidth', 100);
+    AppStorage.setOrCreate('nodeHeight', 200);
     this.flutterView = FlutterManager.getInstance().getFlutterView(this.viewId);
     this.rootDvModel = this.flutterView!!.getDVModel().children;
     this.nodeController = this.flutterView!!.getEmbeddingNodeController();
@@ -70,12 +74,8 @@ export struct FlutterPage {
   build() {
     Stack() {
       NodeContainer(this.nodeController)
-        // .width(this.nodeContainerWidth)
-        // .height(this.nodeContainerHeight)
-        .width(this.platformViewSize.width)
-        .height(this.platformViewSize.height)
-        // .width(this.storageLinkWidth)
-        // .height(this.storageLinkHeight)
+         .width(this.storageLinkWidth)
+         .height(this.storageLinkHeight)
         // .onAppear(async () => {
         //   console.log("nodeController nodeContainer appear")
         //   await sleep(200);

@@ -102,7 +102,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     Log.i(TAG, "Enter createForPlatformViewLayer");
     this.ensureValidRequest(request);
 
-    let platformView: PlatformView = this.createPlatformView(request, false);
+    let platformView: PlatformView = this.createPlatformView(request);
 
     this.configureForHybridComposition(platformView, request);
   }
@@ -139,11 +139,18 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     let physicalHeight: number = this.toPhysicalPixels(request.newLogicalHeight);
     let viewId: number = request.viewId;
     Log.i(TAG, `Resize viewId ${viewId}, pw:${physicalWidth}, ph:${physicalHeight},lw:${request.newLogicalWidth}, lh:${request.newLogicalHeight}`);
-    this.flutterView!.getPlatformViewSize().width = request.newLogicalWidth;
-    this.flutterView!.getPlatformViewSize().height = request.newLogicalHeight;
+    let link1: SubscribedAbstractProperty<number> = AppStorage.link('nodeWidth');
+    let link2: SubscribedAbstractProperty<number> = AppStorage.link('nodeHeight');
+    link1.set(physicalWidth);
+    link2.set(physicalHeight);
+    // this.flutterView!.getPlatformViewSize().width = request.newLogicalWidth;
+    // this.flutterView!.getPlatformViewSize().height = request.newLogicalHeight;
+    this.flutterView!.getPlatformViewSize().direction = Direction.Rtl;
+    this.flutterView!.getEmbeddingNodeController().setRenderOption(this.flutterView!.getPlatformView()!, this.flutterView!.getSurfaceId(), NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500, this.flutterView!.getPlatformViewSize().direction);
+    this.flutterView!.getEmbeddingNodeController().rebuild();
     
 
-    onComplete.run(new PlatformViewBufferSize(request.newLogicalWidth, request.newLogicalHeight));
+    onComplete.run(new PlatformViewBufferSize(physicalWidth, physicalHeight));
   }
 
   offset(viewId: number, top: number, left: number): void {
@@ -218,7 +225,8 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       Log.e(TAG, "Setting direction to a null view with id: " + viewId);
       return;
     }
-    focusControl.requestFocus("flutterXComponent");
+    // focusControl.requestFocus("flutterXComponent");
+    focusControl.requestFocus(this.flutterView?.getId());
   }
   synchronizeToNativeViewHierarchy(yes: boolean): void {
     throw new Error('Method not implemented.');
@@ -244,8 +252,8 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     }
   }
 
-  private createPlatformView(request: PlatformViewCreationRequest, wrapContext: boolean): PlatformView {
-    Log.i(TAG, "Enter createPlatformView");
+  private createPlatformView(request: PlatformViewCreationRequest): PlatformView {
+    Log.i(TAG, "begin createPlatformView");
     const viewFactory: PlatformViewFactory = this.registry.getFactory(request.viewType);
     if (viewFactory == null) {
       throw new Error("Trying to create a platform view of unregistered type: " + request.viewType)
@@ -293,9 +301,13 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     let wrappedBuilder: WrappedBuilder<[Params]> = platformView.getView();
     this.flutterView?.setWrappedBuilder(wrappedBuilder);
     this.flutterView?.setPlatformView(platformView);
-    this.flutterView!.getPlatformViewSize().width = request.logicalWidth;
-    this.flutterView!.getPlatformViewSize().height = request.logicalHeight;
-    this.flutterView!.getPlatformViewSize().direction = request.direction;
+    // this.flutterView!.getPlatformViewSize().width = request.logicalWidth;
+    // this.flutterView!.getPlatformViewSize().height = request.logicalHeight;
+    // this.flutterView!.getPlatformViewSize().direction = request.direction;
+    let link1: SubscribedAbstractProperty<number> = AppStorage.link('nodeWidth');
+    let link2: SubscribedAbstractProperty<number> = AppStorage.link('nodeHeight');
+    link1.set(request.logicalWidth);
+    link2.set(request.logicalHeight);
     this.flutterView!.getEmbeddingNodeController().setRenderOption(platformView, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500, request.direction);
     this.flutterView!.getEmbeddingNodeController().rebuild();
     Log.i(TAG, "Create platform view success");
