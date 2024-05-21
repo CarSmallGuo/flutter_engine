@@ -12,26 +12,40 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import image from '@ohos.multimedia.image';
 
 export interface TextureRegistry {
-
-  createSurfaceTexture(): SurfaceTextureEntry;
-  getTextureId(): number;
-  registerTexture(textureId: number): SurfaceTextureEntry;
-  registerSurfaceTexture(receiver: image.ImageReceiver): SurfaceTextureEntry;
-  registerPixelMap(pixelMap: PixelMap): number;
-  unregisterTexture(textureId: number): void;
-  onTrimMemory(level: number) : void;
+  /*
+   * create a OhosTextureWrapper, OhosTextureWrapper is mapping to OHOSExternalTextureGL in flutter engine
+   * if OhosTextureWrapper end of used, call release() to release engine resource
+   */
+  registerOhosTexture(): OhosTexture;
 }
 
-export interface SurfaceTextureEntry {
+export interface OhosTexture {
+  /*
+   * get TextureWrapper id ,not real Texture id
+   */
   getTextureId(): number;
 
+  /*
+   * get OHOS NativeImage Surface id which create in flutter engine, same as NDK function "OH_NativeImage_GetSurfaceId"
+   * this Surface id could be used to consume video frame and update to external texture, e.g. camera preview output
+   * if camera preview frame arrived, it will callback to NativeImage in engine, then update frame to real texture
+   */
   getSurfaceId(): number;
 
-  getImageReceiver(): image.ImageReceiver;
+  /*
+   * update a new PixelMap to engine external texture
+   */
+  updatePixelMap(pixelMap: PixelMap): number;
 
+  /*
+   * mark a texture frame available after updatePixelMap
+   */
+  markTextureFrameAvailable(): void;
+  /*
+   * release engine texture resource, e.g. OHOSExternalTextureGL
+   */
   release(): void;
 }
 
