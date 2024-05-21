@@ -62,11 +62,13 @@ class BuildInfo:
         targetOS="ohos",
         targetArch="arm64",
         targetTriple="arm64-%s-ohos" % OS_NAME,
+        abi="arm64-v8a",
     ):
         self.buildType = buildType
         self.targetOS = targetOS
         self.targetArch = targetArch
         self.targetTriple = targetTriple
+        self.abi = abi
 
     def __repr__(self):
         return "BuildInfo(buildType=%s)" % (self.buildType)
@@ -134,7 +136,7 @@ def getNdkHome():
         for dir in dirs:
             if isNdkValid(dir):
                 OHOS_NDK_HOME = dir
-                break;
+                break
     logging.info("OHOS_NDK_HOME = %s" % OHOS_NDK_HOME)
     if not isNdkValid(OHOS_NDK_HOME):
         logging.error(
@@ -146,15 +148,16 @@ def getNdkHome():
         exit(10)
     return OHOS_NDK_HOME
 
+
 # 校验 native
 def isNdkValid(path):
     if not path:
         return False
     dirs = [
         os.path.join(path),
-        os.path.join(path, 'sysroot'),
-        os.path.join(path, 'llvm', 'bin'),
-        os.path.join(path, 'build-tools', 'cmake', 'bin')
+        os.path.join(path, "sysroot"),
+        os.path.join(path, "llvm", "bin"),
+        os.path.join(path, "build-tools", "cmake", "bin"),
     ]
     for dir in dirs:
         if not os.path.exists(dir):
@@ -163,7 +166,7 @@ def isNdkValid(path):
 
 
 # 指定engine编译的配置参数
-def engineConfig(buildInfo, extraParam=""):
+def engineConfig(buildInfo, args):
     OHOS_NDK_HOME = getNdkHome()
     # export PATH=$OHOS_NDK_HOME/build-tools/cmake/bin:$OHOS_NDK_HOME/llvm/bin:$PATH
     lastPath = os.getenv("PATH")
@@ -193,8 +196,9 @@ def engineConfig(buildInfo, extraParam=""):
         + "--embedder-for-target "
         + "--disable-desktop-embeddings "
         + "--no-build-embedder-examples "
+        + "--ohos-api-int %s " % args.ohos_api_int
         + "--verbose "
-        + extraParam.replace("\\", ""),
+        + args.gn_extra_param.replace("\\", ""),
         checkCode=False,
         timeout=600,
     )
@@ -206,20 +210,23 @@ def engineCompile(buildInfo):
 
 
 # 编译har文件
-def harBuild(buildInfo):
+def harBuild(buildInfo, args):
     buildType = buildInfo.buildType
     buildOut = getOutput(buildInfo)
-    runCommand(
-        "python3 ./src/build/ohos/ohos_create_flutter_har.py "
-        + "--embedding_src ./src/flutter/shell/platform/ohos/flutter_embedding "
-        + "--build_dir ./src/out/%s/obj/ohos/flutter_embedding " % buildOut
-        + "--build_type %s " % buildType
-        + "--output ./src/out/%s/flutter.har " % buildOut
-        + "--native_lib ./src/out/%s/libflutter.so " % buildOut
-        + "--ohos_abi %s " % "arm64-v8a"
-        + "--ohos_api_int %s " % 11
-    )
-    
+    command = "python3 ./src/flutter/attachment/scripts/ohos_create_flutter_har.py "
+    command += "--embedding_src ./src/flutter/shell/platform/ohos/flutter_embedding "
+    command += "--build_dir ./src/out/%s/obj/ohos/flutter_embedding " % buildOut
+    command += "--build_type %s " % buildType
+    command += "--output ./src/out/%s/flutter.har " % buildOut
+    command += "--native_lib ./src/out/%s/libflutter.so " % buildOut
+    if buildType == "profile":
+        command += (
+            "--native_lib ./src/out/%s/gen/flutter/shell/vmservice/ohos/libs/%s/libvmservice_snapshot.so "
+            % (buildOut, buildInfo.abi)
+        )
+    command += "--ohos_abi %s " % "arm64-v8a"
+    command += "--ohos_api_int %s " % args.ohos_api_int
+    runCommand(command)
 
 
 def isPathValid(filepath, filename, includes, excludes):
@@ -268,8 +275,8 @@ def zipFileDir(
 
 def zipFiles(buildInfo, useZip2=False):
     logging.info("zipFiles buildInfo=%s" % buildInfo)
-    sdkVer = ''
-    if ('openharmony' in getNdkHome()):
+    sdkVer = ""
+    if "openharmony" in getNdkHome():
         sdkVer = getNdkHome()[-9:-7]
     else:
         sdkVer = getNdkHome()[-30:-12]
@@ -318,6 +325,9 @@ def addParseParam(parser):
         default="",
         help='Extra param to src/flutter/tools/gn. Such as: -g "\\--enable-unittests"',
     )
+    parser.add_argument(
+        "--ohos_api_int", type=int, choices=[11, 12], default=12, help="Ohos api int."
+    )
 
 
 def updateCode(args):
@@ -353,9 +363,9 @@ def buildByNameAndType(args):
             if "clean" == buildName:
                 engineClean(buildInfo)
             elif "config" == buildName:
-                engineConfig(buildInfo, args.gn_extra_param)
+                engineConfig(buildInfo, args)
             elif "har" == buildName:
-                harBuild(buildInfo)
+                harBuild(buildInfo, args)
             elif "compile" == buildName:
                 engineCompile(buildInfo)
             elif "zip" == buildName:
