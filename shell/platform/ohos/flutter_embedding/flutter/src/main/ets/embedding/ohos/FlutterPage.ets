@@ -12,13 +12,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import Any from '../../plugin/common/Any';
+
 import Log from '../../util/Log';
-import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
-import { FlutterView, PlatformViewParas } from '../../view/FlutterView';
+import { FlutterView } from '../../view/FlutterView';
 import { EmbeddingNodeController } from './EmbeddingNodeController';
 import FlutterManager from './FlutterManager';
-import { NodeRenderType } from '@ohos.arkui.node';
 
 const TAG = "FlutterPage";
 
@@ -27,26 +25,19 @@ const TAG = "FlutterPage";
  */
 @Component
 export struct FlutterPage {
-  @State rootDvModel: DVModelChildren | undefined = undefined
   @Prop viewId: string = ""
   @Prop xComponentType: XComponentType = XComponentType.TEXTURE
 
   @Builder doNothingBuilder() {}
   @BuilderParam splashScreenView: () => void = this.doNothingBuilder;
   @State showSplashScreen: boolean = true;
-  @State nodeContainerWidth: string | number = '100%'
-  @State nodeContainerHeight: string | number = '100%'
-  @State platformViewSize: PlatformViewParas = new PlatformViewParas();
   @StorageLink('nodeWidth') storageLinkWidth: number = 0;
   @StorageLink('nodeHeight') storageLinkHeight: number = 0;
 
   private flutterView?: FlutterView | null
   private nodeController: EmbeddingNodeController | undefined = undefined
   aboutToAppear() {
-    AppStorage.setOrCreate('nodeWidth', 100);
-    AppStorage.setOrCreate('nodeHeight', 200);
     this.flutterView = FlutterManager.getInstance().getFlutterView(this.viewId);
-    this.rootDvModel = this.flutterView!!.getDVModel().children;
     this.nodeController = this.flutterView!!.getEmbeddingNodeController();
     this.flutterView?.addFirstFrameListener(this)
   }
@@ -57,18 +48,6 @@ export struct FlutterPage {
 
   onFirstFrame() {
     this.showSplashScreen = false;
-    if (this.flutterView != null) {
-      let surfaceId: string = this.flutterView?.getSurfaceId()
-      Log.d(TAG, "nodeController onLoad surfaceId:" + surfaceId);
-      this.nodeContainerWidth = this.flutterView?.getPlatformViewSize().width;
-      this.nodeContainerHeight = this.flutterView?.getPlatformViewSize().height;
-      this.platformViewSize =  this.flutterView?.getPlatformViewSize();
-      Log.d(TAG, "nodeController nodeContainerWidth :" + this.nodeContainerWidth);
-      Log.d(TAG, "nodeController nodeContainerHeight :" + this.nodeContainerHeight);
-      // this.nodeController!!.setRenderOption(this.flutterView?.getPlatformView()!, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500, this.platformViewSize.direction);
-      // Log.d(TAG, "nodeController rebuild");
-      // this.nodeController!!.rebuild();
-    }
   }
 
   build() {
@@ -76,17 +55,6 @@ export struct FlutterPage {
       NodeContainer(this.nodeController)
          .width(this.storageLinkWidth)
          .height(this.storageLinkHeight)
-        // .onAppear(async () => {
-        //   console.log("nodeController nodeContainer appear")
-        //   await sleep(200);
-        //   if (this.flutterView != null) {
-        //     let surfaceId: string = this.flutterView?.getSurfaceId()
-        //     Log.d(TAG, "nodeController onLoad surfaceId:" + surfaceId);
-        //     this.nodeController!!.setRenderOption(this.flutterView?.getPlatformView()!, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, 300, 500);
-        //     Log.d(TAG, "nodeController rebuild");
-        //     this.nodeController!!.rebuild();
-        //   }
-        // })
 
       XComponent({ id: this.viewId, type: this.xComponentType, libraryname: 'flutter' })
         .focusable(true)
@@ -100,16 +68,6 @@ export struct FlutterPage {
           this.flutterView?.onSurfaceDestroyed()
         })
         .backgroundColor(Color.Transparent)
-
-      // ForEach(this.rootDvModel!!, (child: Any) => {
-      //   DynamicView({
-      //     model: child as DVModel,
-      //     params: child.params,
-      //     events: child.events,
-      //     children: child.children,
-      //     customBuilder: child.builder
-      //   })
-      // })
 
       if (this.showSplashScreen) {
         this.splashScreenView();

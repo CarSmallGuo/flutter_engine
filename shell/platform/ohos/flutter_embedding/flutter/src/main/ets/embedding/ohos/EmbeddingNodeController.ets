@@ -38,8 +38,6 @@ struct ButtonComponent {
         .border({ width: 2, color: Color.Red})
         .backgroundColor(this.bkColor)
     }
-    .width(this.params.width)
-    .height(this.params.height)
   }
 }
 
@@ -54,38 +52,32 @@ export class EmbeddingNodeController extends NodeController {
   private rootNode: BuilderNode<[Params]> | undefined | null = null;
   private wrappedBuilder: WrappedBuilder<[Params]> | null = null;
   private platformView: PlatformView | undefined = undefined;
-  private embedId_ : string = "";
-  private surfaceId_ : string = "";
-  private renderType_ :NodeRenderType = NodeRenderType.RENDER_TYPE_DISPLAY;
-  private width_ : number = 0;
-  private height_ : number = 0;
+  private embedId : string = "";
+  private surfaceId : string = "";
+  private renderType :NodeRenderType = NodeRenderType.RENDER_TYPE_DISPLAY;
   private direction: Direction = Direction.Auto;
-  private type_ : string = "";
-  private isDestroy_ : boolean = false;
+  private isDestroy : boolean = false;
 
-
-  setRenderOption(platformView: PlatformView, surfaceId: string, renderType: NodeRenderType, width: number, height: number, direction: Direction) {
+  setRenderOption(platformView: PlatformView, surfaceId: string, renderType: NodeRenderType, direction: Direction) {
     if (platformView == undefined) {
       console.log("nodeController platformView undefined")
     } else {
       this.wrappedBuilder = platformView.getView();
     }
-
     this.platformView = platformView;
-    this.surfaceId_ = surfaceId;
-    this.renderType_ = renderType;
-    this.width_ = width;
-    this.height_ = height;
+    this.surfaceId = surfaceId;
+    this.renderType = renderType;
     this.direction = direction;
   }
+
   makeNode(uiContext: UIContext): FrameNode | null{
-    this.rootNode = new BuilderNode(uiContext, { surfaceId: this.surfaceId_, type: this.renderType_});
+    this.rootNode = new BuilderNode(uiContext, { surfaceId: this.surfaceId, type: this.renderType});
     if (this.wrappedBuilder == null) {
       console.log("nodeController makeNode 1")
-      this.rootNode.build(wrapBuilder(ButtonBuilder), {width : this.width_, height : this.height_});
+      this.rootNode.build(wrapBuilder(ButtonBuilder), {});
     } else {
       console.log("nodeController makeNode 2")
-      this.rootNode.build(this.wrappedBuilder, {width : this.width_, height : this.height_, direction: this.direction, platformView: this.platformView});
+      this.rootNode.build(this.wrappedBuilder, {direction: this.direction, platformView: this.platformView});
     }
     return this.rootNode.getFrameNode();
   }
@@ -102,12 +94,12 @@ export class EmbeddingNodeController extends NodeController {
     this.rootNode?.update(arg);
   }
   getEmbedId() : string {
-    return this.embedId_;
+    return this.embedId;
   }
 
   setDestroy(isDestroy : boolean) : void {
-    this.isDestroy_ = isDestroy;
-    if (this.isDestroy_) {
+    this.isDestroy = isDestroy;
+    if (this.isDestroy) {
       this.rootNode = null;
     }
   }
