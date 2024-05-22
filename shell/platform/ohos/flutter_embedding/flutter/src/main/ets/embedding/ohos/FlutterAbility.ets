@@ -127,6 +127,7 @@ export class FlutterAbility extends UIAbility implements Host {
    */
   onWindowStageCreate(windowStage: window.WindowStage) {
     FlutterManager.getInstance().pushWindowStage(this, windowStage);
+    this.delegate?.initWindow();
     this.mainWindow = windowStage.getMainWindowSync();
     try {
       windowStage.on('windowStageEvent', (data) => {
@@ -361,6 +362,10 @@ export class FlutterAbility extends UIAbility implements Host {
       .setAlwaysUse24HourFormat(I18n.System.is24HourClock())
       .setPlatformBrightness(config.colorMode != ConfigurationConstant.ColorMode.COLOR_MODE_DARK
         ? PlatformBrightness.LIGHT : PlatformBrightness.DARK);
+
+    if (config.language != '') {
+      this.getFlutterEngine()?.getLocalizationPlugin()?.sendLocaleToFlutter();
+    }
   }
 
   getFlutterEngine(): FlutterEngine | null {
