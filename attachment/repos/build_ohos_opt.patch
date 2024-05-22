@@ -1,0 +1,116 @@
+From 3add13b9a03fc327393f00cd5bad6d52bdd06b11 Mon Sep 17 00:00:00 2001
+From: Geng Chen <14006291+geng-chen-4000@user.noreply.gitee.com>
+Date: Sat, 11 May 2024 15:47:25 +0800
+Subject: [PATCH] enable lto,O3 compiler opts
+
+---
+ build/config/compiler/BUILD.gn | 53 +++++++++++++++++++++++++++++-----
+ 1 file changed, 45 insertions(+), 8 deletions(-)
+
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index ba20010..91ccc43 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -191,10 +191,16 @@ config("compiler") {
+     # CPU architecture. We may or may not be doing a cross compile now, so for
+     # simplicity we always explicitly set the architecture.
+     if (current_cpu == "x64") {
+-      cflags += [
+-        "-m64",
+-        "-march=x86-64",
+-      ]
++      if (is_ohos) {
++        cflags += [
++          "-m64",
++        ]
++      } else {
++        cflags += [
++          "-m64",
++          "-march=x86-64",
++        ]
++      }
+       ldflags += [ "-m64" ]
+     } else if (current_cpu == "x86") {
+       cflags += [ "-m32" ]
+@@ -315,7 +321,7 @@ config("compiler") {
+ 
+   # Linux/Android common flags setup.
+   # ---------------------------------
+-  if (is_linux || is_android) {
++  if (is_linux || is_android || is_ohos) {
+     cflags += [
+       "-fPIC",
+       "-pipe",  # Use pipes for communicating between sub-processes. Faster.
+@@ -334,7 +340,16 @@ config("compiler") {
+ 
+   # Linux-specific compiler flags setup.
+   # ------------------------------------
+-  if (is_linux) {
++  if (is_ohos) {
++    cflags += [ "-pthread" ]
++    ldflags += [ "-pthread" ]
++
++    if (current_cpu == "arm64") {
++      cflags += [ "--target=aarch64-linux-ohos" ]
++      ldflags += [ "--target=aarch64-linux-ohos" ]
++      cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
++    }
++  } else if (is_linux) {
+     cflags += [ "-pthread" ]
+     ldflags += [ "-pthread" ]
+ 
+@@ -521,9 +536,13 @@ config("runtime_library") {
+       ldflags += [ "-nostdlib++" ]
+     }
+     include_dirs = [
+-      "//third_party/libcxx/include",
+       "//third_party/libcxxabi/include",
+     ]
++    if (custom_toolchain != "") {
++      include_dirs += [ "$custom_toolchain/include/c++/v1" ]
++    } else {
++      include_dirs += [ "//third_party/libcxx/include" ]
++    }
+   }
+ 
+   # Android standard library setup.
+@@ -860,17 +879,35 @@ config("optimize") {
+     cflags = [ "-Oz" ] + common_optimize_on_cflags  # Favor size over speed.
+   } else if (is_wasm) {
+     cflags = [ "-Oz" ]
++  } else if (is_ohos) {
++    cflags = [ "-O3" ] + common_optimize_on_cflags
+   } else {
+     cflags = [ "-O2" ] + common_optimize_on_cflags
+   }
+ 
+   lto_flags = []
+-  if (enable_lto && (is_ios || is_android || is_fuchsia || is_wasm)) {
++  if (enable_lto && (is_ios || is_android || is_fuchsia || is_wasm || is_ohos)) {
+     lto_flags += [ "-flto" ]
+   }
+ 
++  if (is_ohos) {
++    cflags += [
++	  "-mcpu=tsv110",
++	  "-fwhole-program-vtables"
++	]
++  }
++
+   ldflags = common_optimize_on_ldflags + lto_flags
+   cflags += lto_flags
++  
++  if (is_ohos) {
++    ld_flags += [
++	  "-Wl,--lto-O2",
++	  "-Wl,--plugin-opt=-mcpu=tsv110",
++	  "-Wl,-mllvm",
++	  "-Wl,-wholeprogramdevirt-check=fallback",
++	]
++  }
+ }
+ 
+ # Turn off optimizations.
+-- 
+2.35.0.windows.1
+
