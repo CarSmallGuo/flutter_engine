@@ -144,6 +144,9 @@ export default class FlutterLoader {
 
   /**
    * 初始化dart虚拟机方法
+   * <p>It does not support Impeller. Do not allow adding shellArgs "--enable-impeller".
+   * <p>It does not support Software Rendering. Do not allow adding shellArgs "--enable-software-rendering".
+   *
    * @param flutterShellArgs
    */
   ensureInitializationComplete(shellArgs: Array<string> | null) {
@@ -208,11 +211,6 @@ export default class FlutterLoader {
     shellArgs.push("--prefetched-default-font-manager");
 
     shellArgs.push("--leak-vm=" + true);
-
-    // It does not support Impeller.
-    // shellArgs.push("--enable-impeller");
-    // It does not support Software Rendering.
-    // shellArgs.push("--enable-software-rendering");
 
     // //最终初始化操作
     const costTime = Date.now() - this.initStartTimestampMillis;
