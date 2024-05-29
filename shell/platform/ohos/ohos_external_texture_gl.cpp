@@ -101,7 +101,8 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
   if (state_ == AttachmentState::uninitialized) {
     Attach();
   }
-  if (!freeze && new_frame_ready_) {
+  if (!freeze && new_frame_ready_ && pixelMap_ != nullptr) {
+    ProducePixelMapToNativeImage();
     Update();
     new_frame_ready_ = false;
   }
@@ -146,7 +147,7 @@ void OHOSExternalTextureGL::OnGrContextCreated()
 void OHOSExternalTextureGL::OnGrContextDestroyed()
 {
   FML_DLOG(INFO)<<" OHOSExternalTextureGL::OnGrContextDestroyed";
-  if (state_ == AttachmentState::attached) {
+  if (state_ == AttachmentState::attached && pixelMap_ == nullptr) {
     Detach();
     glDeleteTextures(1, &texture_name_);
     OH_NativeImage_Destroy(&nativeImage_);
@@ -158,6 +159,7 @@ void OHOSExternalTextureGL::MarkNewFrameAvailable()
 {
   FML_DLOG(INFO)<<" OHOSExternalTextureGL::MarkNewFrameAvailable";
   new_frame_ready_ = true;
+  Update();
 }
 
 void OHOSExternalTextureGL::OnTextureUnregistered()
@@ -168,7 +170,6 @@ void OHOSExternalTextureGL::OnTextureUnregistered()
 
 void OHOSExternalTextureGL::Update()
 {
-  ProducePixelMapToNativeImage();
   int32_t ret = OH_NativeImage_UpdateSurfaceImage(nativeImage_);
   if (ret != 0) {
     FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_UpdateSurfaceImage err code:"<< ret;
@@ -258,10 +259,6 @@ void OHOSExternalTextureGL::HandlePixelMapBuffer()
 
 void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
 {
-  if (pixelMap_ == nullptr) {
-    FML_DLOG(ERROR) << "OHOSExternalTextureGL pixelMap in null";
-    return;
-  }
   if (state_ == AttachmentState::detached) {
     FML_DLOG(ERROR) << "OHOSExternalTextureGL AttachmentState err";
     return;
@@ -271,7 +268,7 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
   if (ret != 0) {
     FML_DLOG(ERROR) << "OHOSExternalTextureGL OH_PixelMap_GetImageInfo err:" << ret;
   }
-  
+
   int code = SET_BUFFER_GEOMETRY;
   ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, code, pixelMapInfo.width, pixelMapInfo.height);
   if (ret != 0) {

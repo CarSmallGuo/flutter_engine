@@ -20,11 +20,11 @@
 #include "flutter/shell/common/shell_io_manager.h"
 #include "flutter/shell/platform/ohos/ohos_context_gl_skia.h"
 #include "flutter/shell/platform/ohos/ohos_surface_gl_skia.h"
-#include "flutter/shell/platform/ohos/ohos_surface_software.h"
+// #include "flutter/shell/platform/ohos/ohos_surface_software.h"
 #include "flutter/shell/platform/ohos/platform_message_response_ohos.h"
 #include "napi_common.h"
-#include "ohos_context_gl_impeller.h"
-#include "ohos_surface_gl_impeller.h"
+// #include "ohos_context_gl_impeller.h"
+// #include "ohos_surface_gl_impeller.h"
 #include "ohos_external_texture_gl.h"
 
 #include <GLES2/gl2ext.h>
@@ -41,10 +41,14 @@ OhosSurfaceFactoryImpl::~OhosSurfaceFactoryImpl() = default;
 std::unique_ptr<OHOSSurface> OhosSurfaceFactoryImpl::CreateSurface() {
   switch (ohos_context_->RenderingApi()) {
     case OHOSRenderingAPI::kSoftware:
-      return std::make_unique<OHOSSurfaceSoftware>(ohos_context_);
+      FML_LOG(ERROR) << "It does not support Software Rendering.";
+      return nullptr;
+      // return std::make_unique<OHOSSurfaceSoftware>(ohos_context_);
     case OHOSRenderingAPI::kOpenGLES:
       if (enable_impeller_) {
-        return std::make_unique<OHOSSurfaceGLImpeller>(ohos_context_);
+        FML_LOG(ERROR) << "It does not support Impeller.";
+        return nullptr;
+        // return std::make_unique<OHOSSurfaceGLImpeller>(ohos_context_);
       } else {
         FML_LOG(INFO) << "OhosSurfaceFactoryImpl::OhosSurfaceGLSkia ";
         return std::make_unique<OhosSurfaceGLSkia>(ohos_context_);
@@ -61,10 +65,14 @@ std::unique_ptr<OHOSContext> CreateOHOSContext(
     uint8_t msaa_samples,
     bool enable_impeller) {
   if (use_software_rendering) {
-    return std::make_unique<OHOSContext>(OHOSRenderingAPI::kSoftware);
+    FML_LOG(ERROR) << "It does not support Software Rendering.";
+    return nullptr;
+    // return std::make_unique<OHOSContext>(OHOSRenderingAPI::kSoftware);
   }
   if (enable_impeller) {
-    return std::make_unique<OHOSContextGLImpeller>();
+    FML_LOG(ERROR) << "It does not support Impeller.";
+    return nullptr;
+    // return std::make_unique<OHOSContextGLImpeller>();
   }
 
   return std::make_unique<OhosContextGLSkia>(
