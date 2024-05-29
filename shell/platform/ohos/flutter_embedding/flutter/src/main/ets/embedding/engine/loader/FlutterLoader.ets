@@ -209,7 +209,10 @@ export default class FlutterLoader {
 
     shellArgs.push("--leak-vm=" + true);
 
-    //shellArgs.push("--enable-impeller");
+    // It does not support Impeller.
+    // shellArgs.push("--enable-impeller");
+    // It does not support Software Rendering.
+    // shellArgs.push("--enable-software-rendering");
 
     // //最终初始化操作
     const costTime = Date.now() - this.initStartTimestampMillis;

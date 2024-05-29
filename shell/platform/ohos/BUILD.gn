@@ -34,7 +34,7 @@ group("ohos") {
   }
 }
 shell_gpu_configuration("ohos_gpu_configuration") {
-  enable_software = true
+  enable_software = false
   enable_gl = true
   enable_vulkan = false
   enable_metal = false
@@ -73,7 +73,7 @@ source_set("flutter_ohos_sources") {
              "vsync_waiter_ohos.h",
              "ohos_logger.h" ,
              "ohos_display.h",
-             "ohos_surface_software.h",
+             # "ohos_surface_software.h",
              "./context/ohos_context.h",
              "./surface/ohos_native_window.h",
              "./surface/ohos_surface.h",
@@ -94,7 +94,7 @@ source_set("flutter_ohos_sources") {
       "ohos_shell_holder.cpp",
       "platform_view_ohos.cpp",
       "ohos_display.cpp",
-      "ohos_surface_software.cpp",
+      # "ohos_surface_software.cpp",
       "platform_message_handler_ohos.cpp",
       "platform_message_response_ohos.cpp",
       "vsync_waiter_ohos.cpp",
@@ -105,8 +105,8 @@ source_set("flutter_ohos_sources") {
       "ohos_touch_processor.cpp",
       "ohos_main.cpp" ,
       "ohos_logger.c" ,
-      "ohos_context_gl_impeller.cpp",
-      "ohos_surface_gl_impeller.cpp",
+      # "ohos_context_gl_impeller.cpp",
+      # "ohos_surface_gl_impeller.cpp",
       # "//flutter/impeller/toolkit/egl/display.cc",
       "ohos_context_gl_skia.cpp" ,
       "ohos_egl_surface.cpp" ,
