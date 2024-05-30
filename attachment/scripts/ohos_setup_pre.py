@@ -15,4 +15,4 @@
 import ohos_setup
 
 # 在预编译脚本中使用的配置
-ohos_setup.parse_config("{}/scripts/config_pre.json".format(ohos_setup.ROOT), useStash=False)
+ohos_setup.parse_config("{}/scripts/config_pre.json".format(ohos_setup.ATTACH_ROOT), useStash=False)

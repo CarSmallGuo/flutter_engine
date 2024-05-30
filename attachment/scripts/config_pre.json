@@ -1,61 +1,62 @@
 [
     {
         "name": "bootstrap",
-        "target": "./",
-        "type": "files"
+        "target": "../",
+        "type": "files",
+        "file_path": "flutter/attachment/repos/bootstrap"
     },
     {
         "name": "dart0",
-        "target": "./src/third_party/dart",
+        "target": "third_party/dart",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/dart.patch0"
+        "file_path": "flutter/attachment/repos/dart.patch0"
     },
 	{
         "name": "dart1",
-        "target": "./src/third_party/dart",
+        "target": "third_party/dart",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/dart.patch1"
+        "file_path": "flutter/attachment/repos/dart.patch1"
     },
     {
         "name": "dart2",
-        "target": "./src/third_party/dart",
+        "target": "third_party/dart",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/dart.patch2"
+        "file_path": "flutter/attachment/repos/dart.patch2"
     },
     {
         "name": "skia",
-        "target": "./src/third_party/skia",
+        "target": "third_party/skia",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/skia.patch"
+        "file_path": "flutter/attachment/repos/skia.patch"
     },
     {
         "name": "spirv-headers",
-        "target": "./src/third_party/vulkan-deps/spirv-headers/src",
+        "target": "third_party/vulkan-deps/spirv-headers/src",
         "type": "patch",
-        "file_path": "../../../../flutter/attachment/repos/spirv-headers.patch"
+        "file_path": "flutter/attachment/repos/spirv-headers.patch"
     },
     {
         "name": "angle",
-        "target": "./src/third_party/angle",
+        "target": "third_party/angle",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/angle.patch"
+        "file_path": "flutter/attachment/repos/angle.patch"
     },
     {
         "name": "build",
-        "target": "./src/build",
+        "target": "build",
         "type": "patch",
-        "file_path": "../flutter/attachment/repos/build.patch"
+        "file_path": "flutter/attachment/repos/build.patch"
     },
     {
         "name": "zlib",
-        "target": "./src/third_party/zlib",
+        "target": "third_party/zlib",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/zlib.patch"
+        "file_path": "flutter/attachment/repos/zlib.patch"
     },
 	{
         "name": "boringssl",
-        "target": "./src/third_party/boringssl",
+        "target": "third_party/boringssl",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/boringssl.patch"
+        "file_path": "flutter/attachment/repos/boringssl.patch"
     }
 ]

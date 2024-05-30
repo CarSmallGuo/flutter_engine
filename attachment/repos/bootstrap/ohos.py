@@ -132,6 +132,7 @@ def getNdkHome():
         dirs = []
         findFile(os.getenv("OHOS_SDK_HOME"), "native", dirs)
         findFile(os.getenv("HOS_SDK_HOME"), "native", dirs)
+        findFile(os.getenv("DEVECO_SDK_HOME"), "native", dirs)
         dirs.sort(reverse=True)
         for dir in dirs:
             if isNdkValid(dir):
@@ -141,7 +142,7 @@ def getNdkHome():
     if not isNdkValid(OHOS_NDK_HOME):
         logging.error(
             """
-    Please set the environment variables for HarmonyOS SDK to "HOS_SDK_HOME" or "OHOS_SDK_HOME".
+    Please set the environment variables for HarmonyOS SDK to "DEVECO_SDK_HOME".
     We will use both native/llvm and native/sysroot.
     Please ensure that the file "native/llvm/bin/clang" exists and is executable."""
         )
@@ -273,17 +274,12 @@ def zipFileDir(
         os.remove(fileOut2)
 
 
-def zipFiles(buildInfo, useZip2=False):
+def zipFiles(buildInfo, useZip2=False, args=any):
     logging.info("zipFiles buildInfo=%s" % buildInfo)
-    sdkVer = ""
-    if "openharmony" in getNdkHome():
-        sdkVer = getNdkHome()[-9:-7]
-    else:
-        sdkVer = getNdkHome()[-30:-12]
     outputName = getOutput(buildInfo)
     fileIn = os.path.abspath("%s/src/out/%s" % (DIR_ROOT, outputName))
     fileName = "ohos_%s_%s-%s-%s-%s" % (
-        sdkVer,
+        args.ohos_api_int,
         buildInfo.buildType,
         OS_NAME,
         platform.machine(),
@@ -369,9 +365,9 @@ def buildByNameAndType(args):
             elif "compile" == buildName:
                 engineCompile(buildInfo)
             elif "zip" == buildName:
-                zipFiles(buildInfo)
+                zipFiles(buildInfo, False, args)
             elif "zip2" == buildName:
-                zipFiles(buildInfo, True)
+                zipFiles(buildInfo, True, args)
             else:
                 logging.warning("Other name=%s" % buildName)
 

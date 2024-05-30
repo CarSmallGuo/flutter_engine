@@ -55,10 +55,12 @@ This warehouse is based on the extension of Flutter's official engine warehouse 
 4. Download sdk: From [HarmonyOS Kit List]（ https://developer.harmonyos.com/deveco-developer-suite/enabling/kit?currentPage=1&pageSize=100 ）Download supporting development tools, currently not supporting packages downloaded from other channels
 
 ```sh
-# Unzip file commandline/commandline_tools_xxxx.zip
-export HOS_SDK_HOME=/home/<user>/ohos/command-line-tools/sdk
-export PATH=/home/<user>/ohos/command-line-tools/bin:$PATH
-export PATH=/home/<user>/ohos/command-line-tools/tool/node/bin:$PATH
+# Environment variables that need to be set: HarmonyOS SDK, ohpm, hvigor, node
+export TOOL_HOME=/Applications/DevEco-Studio-5.0.3.300.app/Contents # For mac
+export DEVECO_SDK_HOME=$TOOL_HOME/sdk # command-line-tools/sdk
+export PATH=$TOOL_HOME/tools/ohpm/bin:$PATH # command-line-tools/ohpm/bin
+export PATH=$TOOL_HOME/tools/hvigor/bin:$PATH # command-line-tools/hvigor/bin
+export PATH=$TOOL_HOME/tools/node/bin:$PATH # command-line-tools/tool/node/bin
 ```
 
 5. Start building: In the engine directory, execute `./ohos` to start building the flutter engine that supports ohos devices.

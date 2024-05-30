@@ -25,15 +25,14 @@ import os
 2.拷贝repos下文件，覆盖执行路径目录
 3.修改DEPS,忽视dart、angle、skia的同步
 """
-
-ROOT = './src/flutter/attachment'
-REPOS_ROOT = ROOT + '/repos'
+ENGINE_ROOT = os.path.abspath("src")
+ATTACH_ROOT = os.path.abspath(os.path.join(ENGINE_ROOT, "flutter/attachment"))
 
 def apply_patch(task, log=False):
-    file_path = task['file_path']
-    target_path = task['target']
+    file_path = os.path.abspath(os.path.join(ENGINE_ROOT, task['file_path']))
+    target_path = os.path.abspath(os.path.join(ENGINE_ROOT, task['target']))
     retcode,stdout,stderr = sub_process_with_timeout.excuteArr(
-        ['git', 'apply', '--ignore-whitespace', '--whitespace=nowarn', file_path], target_path, log, timeout=20)
+        ['git', '-C', target_path, 'apply', '--ignore-whitespace', '--whitespace=nowarn', file_path], target_path, log, timeout=20)
     if retcode == 0 and log:
         print("Apply succeded. file path:" + file_path)
     if log:
@@ -47,7 +46,7 @@ def apply_patch(task, log=False):
 def stashChanges(task, log):
     if task['type'] != 'patch':
         return
-    target_path = task['target']
+    target_path = os.path.abspath(os.path.join(ENGINE_ROOT, task['target']))
     sub_process_with_timeout.excuteArr([
         'git', 'add', '-A'
     ], target_path, log)
@@ -57,10 +56,10 @@ def stashChanges(task, log):
 
 
 def apply_check(task, log=False):
-    file_path = task['file_path']
-    target_path = task['target']
+    file_path = os.path.abspath(os.path.join(ENGINE_ROOT, task['file_path']))
+    target_path = os.path.abspath(os.path.join(ENGINE_ROOT, task['target']))
     retcode,stdout,stderr = sub_process_with_timeout.excuteArr(
-        ['git', 'apply', '--check', '--ignore-whitespace', file_path], target_path, log, timeout=20)
+        ['git', '-C', target_path, 'apply', '--check', '--ignore-whitespace', file_path], target_path, log, timeout=20)
     if log:
         print("retcode:" + str(retcode))
         print(str(stdout))
@@ -71,8 +70,8 @@ def apply_check(task, log=False):
 
 
 def doTask(task, log=False):
-    sourceFile = "{}/repos/{}".format(ROOT, task['name'])
-    targetFile = task['target']
+    sourceFile = os.path.abspath(os.path.join(ENGINE_ROOT, task['file_path']))
+    targetFile = os.path.abspath(os.path.join(ENGINE_ROOT, task['target']))
     if (task['type'] == 'dir'):
         file_util.copy_dir(sourceFile, targetFile, log)
     elif (task['type'] == 'files'):
@@ -85,7 +84,7 @@ def doTask(task, log=False):
         pass
 
 
-def parse_config(config_file="{}/scripts/config.json".format(ROOT), useStash=True):
+def parse_config(config_file="{}/scripts/config.json".format(ATTACH_ROOT), useStash=True):
     log = False
     if (len(sys.argv) > 1): 
       if(sys.argv[1] == '-v'):

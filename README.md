@@ -56,10 +56,12 @@ Flutter Engine
 4. 下载sdk： 从[鸿蒙套件列表](https://developer.harmonyos.com/deveco-developer-suite/enabling/kit?currentPage=1&pageSize=100)下载配套开发工具，暂不支持非该渠道下载的套件
 
 ```sh
-# 解压文件 commandline/commandline-tools-xxxx.zip
-export HOS_SDK_HOME=/home/<user>/ohos/command-line-tools/sdk
-export PATH=/home/<user>/ohos/command-line-tools/bin:$PATH
-export PATH=/home/<user>/ohos/command-line-tools/tool/node/bin:$PATH
+# 需要设置的环境变量: HarmonyOS SDK, ohpm, hvigor, node
+export TOOL_HOME=/Applications/DevEco-Studio-5.0.3.300.app/Contents # mac环境
+export DEVECO_SDK_HOME=$TOOL_HOME/sdk # command-line-tools/sdk
+export PATH=$TOOL_HOME/tools/ohpm/bin:$PATH # command-line-tools/ohpm/bin
+export PATH=$TOOL_HOME/tools/hvigor/bin:$PATH # command-line-tools/hvigor/bin
+export PATH=$TOOL_HOME/tools/node/bin:$PATH # command-line-tools/tool/node/bin
 ```
 
 5. 开始构建：在engine目录，执行`./ohos`，即可开始构建支持ohos设备的flutter engine。
