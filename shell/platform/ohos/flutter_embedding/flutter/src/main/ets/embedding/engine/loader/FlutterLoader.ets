@@ -145,7 +145,6 @@ export default class FlutterLoader {
   /**
    * 初始化dart虚拟机方法
    * <p>It does not support Impeller. Do not allow adding shellArgs "--enable-impeller".
-   * <p>It does not support Software Rendering. Do not allow adding shellArgs "--enable-software-rendering".
    *
    * @param flutterShellArgs
    */

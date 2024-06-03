@@ -20,6 +20,7 @@
 #include "flutter/shell/common/shell_io_manager.h"
 #include "flutter/shell/platform/ohos/ohos_context_gl_skia.h"
 #include "flutter/shell/platform/ohos/ohos_surface_gl_skia.h"
+#include "flutter/shell/platform/ohos/ohos_surface_software.h"
 #include "flutter/shell/platform/ohos/platform_message_response_ohos.h"
 #include "napi_common.h"
 #include "ohos_external_texture_gl.h"
@@ -38,8 +39,7 @@ OhosSurfaceFactoryImpl::~OhosSurfaceFactoryImpl() = default;
 std::unique_ptr<OHOSSurface> OhosSurfaceFactoryImpl::CreateSurface() {
   switch (ohos_context_->RenderingApi()) {
     case OHOSRenderingAPI::kSoftware:
-      FML_LOG(ERROR) << "It does not support Software Rendering.";
-      return nullptr;
+      return std::make_unique<OHOSSurfaceSoftware>(ohos_context_);
     case OHOSRenderingAPI::kOpenGLES:
       if (enable_impeller_) {
         FML_LOG(ERROR) << "It does not support Impeller.";
@@ -60,8 +60,7 @@ std::unique_ptr<OHOSContext> CreateOHOSContext(
     uint8_t msaa_samples,
     bool enable_impeller) {
   if (use_software_rendering) {
-    FML_LOG(ERROR) << "It does not support Software Rendering.";
-    return nullptr;
+    return std::make_unique<OHOSContext>(OHOSRenderingAPI::kSoftware);
   }
   if (enable_impeller) {
     FML_LOG(ERROR) << "It does not support Impeller.";
