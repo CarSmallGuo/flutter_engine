@@ -118,8 +118,8 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     // The incoming texture is vertically flipped, so we flip it
     // back. OpenGL's coordinate system has Positive Y equivalent to up, while
     // Skia's coordinate system has Negative Y equvalent to up.
-    context.canvas->translate(bounds.x(), bounds.y());
-    context.canvas->scale(bounds.width(), bounds.height());
+    context.canvas->translate(bounds.x(), bounds.y() + bounds.height());
+    context.canvas->scale(bounds.width(), -bounds.height());
 
     if (!transform.isIdentity()) {
       sk_sp<SkShader> shader = image->makeShader(
@@ -185,9 +185,9 @@ void OHOSExternalTextureGL::Detach()
 void OHOSExternalTextureGL::UpdateTransform()
 {
   float m[16] = { 0.0f };
-  int32_t ret = OH_NativeImage_GetTransformMatrix(nativeImage_, m);
+  int32_t ret = OH_NativeImage_GetTransformMatrixV2(nativeImage_, m);
   if (ret != 0) {
-    FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_GetTransformMatrix err code:"<< ret;
+    FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_GetTransformMatrixV2 err code:"<< ret;
   }
   // transform ohos 4x4 matrix to skia 3x3 matrix
   SkScalar matrix3[] = {
