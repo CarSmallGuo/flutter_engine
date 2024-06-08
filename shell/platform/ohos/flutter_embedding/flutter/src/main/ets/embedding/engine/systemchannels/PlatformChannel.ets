@@ -399,7 +399,7 @@ class PlatformMethodCallback implements MethodCallHandler {
           let systemPasteboard = pasteboard.getSystemPasteboard();
           systemPasteboard.hasData().then((hasData) => {
             if (!hasData) {
-              response.value = hasData;
+              response.set("value", hasData);
               result.success(response);
             }
           }).catch((err: Any) => {
@@ -407,7 +407,7 @@ class PlatformMethodCallback implements MethodCallHandler {
           })
           systemPasteboard.getData().then((pasteData) => {
             hasStrings = pasteData.hasType(pasteboard.MIMETYPE_TEXT_PLAIN);
-            response.value = hasStrings;
+            response.set("value", hasStrings);
             result.success(response);
           }).catch((err: Any) => {
             Log.e(PlatformMethodCallback.TAG, "getData err: " + JSON.stringify(err));
