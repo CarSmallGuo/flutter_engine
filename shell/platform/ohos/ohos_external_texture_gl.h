@@ -57,6 +57,8 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   void DispatchImage(ImageNative* image);
 
+  void setBackground(int32_t width, int32_t height);
+
   void DispatchPixelMap(NativePixelMap* pixelMap);
 
  private:
@@ -81,6 +83,8 @@ class OHOSExternalTextureGL : public flutter::Texture {
   AttachmentState state_ = AttachmentState::uninitialized;
 
   bool new_frame_ready_ = false;
+
+  bool first_update_ = false;
 
   GLuint texture_name_ = 0;
 
