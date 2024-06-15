@@ -165,7 +165,7 @@ void OHOSExternalTextureGL::OnGrContextCreated()
 void OHOSExternalTextureGL::OnGrContextDestroyed()
 {
   FML_DLOG(INFO)<<" OHOSExternalTextureGL::OnGrContextDestroyed";
-  if (state_ == AttachmentState::attached && pixelMap_ == nullptr) {
+  if (state_ == AttachmentState::attached) {
     Detach();
     glDeleteTextures(1, &texture_name_);
   }
@@ -192,6 +192,7 @@ void OHOSExternalTextureGL::Update()
   int32_t ret = OH_NativeImage_UpdateSurfaceImage(nativeImage_);
   if (ret != 0) {
     FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_UpdateSurfaceImage err code:"<< ret;
+    return;
   }
   UpdateTransform();
 }
@@ -242,11 +243,13 @@ void OHOSExternalTextureGL::setBackground(int32_t width, int32_t height)
   int32_t ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, code, width, height);
   if (ret != 0) {
     FML_DLOG(ERROR) << "OHOSExternalTextureGL in setBackground OH_NativeWindow_NativeWindowHandleOpt err:" << ret;
+    return;
   }
 
   ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow_, &buffer_, &fenceFd);
   if (ret != 0) {
     FML_DLOG(ERROR) << "OHOSExternalTextureGL in setBackground OH_NativeWindow_NativeWindowRequestBuffer err:" << ret;
+    return;
   }
 
   BufferHandle *handle = OH_NativeWindow_GetBufferHandleFromNative(buffer_);
