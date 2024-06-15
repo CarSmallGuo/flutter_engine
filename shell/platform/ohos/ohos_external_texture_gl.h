@@ -100,6 +100,8 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   ImageNative* lastImage_;
 
+  bool isEmulator_;
+
   OhosPixelMapInfos pixelMapInfo;
 
   int fenceFd = -1;
