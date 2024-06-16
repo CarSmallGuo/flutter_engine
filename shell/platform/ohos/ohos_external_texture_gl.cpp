@@ -65,25 +65,24 @@ void OHOSExternalTextureGL::Attach()
   OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
   auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
   if (result->GetResult()) {
-    FML_DLOG(INFO)<<"ResourceContextMakeCurrent successed";
     glGenTextures(1, &texture_name_);
-    FML_DLOG(INFO) << "OHOSExternalTextureGL::Paint, glGenTextures texture_name_=" << texture_name_;
-    if (nativeImage_ == nullptr) {
+    if (!nativeImage_) {
       nativeImage_ = OH_NativeImage_Create(texture_name_, GL_TEXTURE_EXTERNAL_OES);
-      if (nativeImage_ == nullptr) {
-        FML_DLOG(ERROR) << "Error with OH_NativeImage_Create";
+      if (!nativeImage_) {
+        FML_DLOG(ERROR) << "Failed to create OH_NativeImage";
         return;
       }
       nativeWindow_ = OH_NativeImage_AcquireNativeWindow(nativeImage_);
-      if (nativeWindow_ == nullptr) {
-        FML_DLOG(ERROR) << "Error with OH_NativeImage_AcquireNativeWindow";
+      if (!nativeWindow_) {
+        FML_DLOG(ERROR) << "Failed to acquire OHNativeWindow";
         return;
       }
     }
 
     int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
     if (ret != 0) {
-      FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_AttachContext err code:"<< ret;
+      FML_DLOG(FATAL) << "Failed to attach current GL context. ErrorCode:" << ret;
+      return;
     }
     state_ = AttachmentState::attached;
   } else {
@@ -175,6 +174,13 @@ void OHOSExternalTextureGL::OnGrContextDestroyed()
 void OHOSExternalTextureGL::MarkNewFrameAvailable()
 {
   FML_DLOG(INFO)<<" OHOSExternalTextureGL::MarkNewFrameAvailable";
+  if (state_ == AttachmentState::detached) {
+    return;
+  }
+  if (state_ == AttachmentState::uninitialized) {
+    Attach();
+  }
+
   new_frame_ready_ = true;
   first_update_ = true;
   Update();
@@ -182,16 +188,17 @@ void OHOSExternalTextureGL::MarkNewFrameAvailable()
 
 void OHOSExternalTextureGL::OnTextureUnregistered()
 {
-  FML_DLOG(INFO)<<" OHOSExternalTextureGL::OnTextureUnregistered";
+  FML_DLOG(INFO) << "OHOSExternalTextureGL::OnTextureUnregistered";
   OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);
   OH_NativeImage_Destroy(&nativeImage_);
 }
 
 void OHOSExternalTextureGL::Update()
 {
+  FML_DLOG(INFO) << "OHOSExternalTextureGL::Update";
   int32_t ret = OH_NativeImage_UpdateSurfaceImage(nativeImage_);
   if (ret != 0) {
-    FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_UpdateSurfaceImage err code:"<< ret;
+    FML_DLOG(FATAL) << "Failed to update GL texture. err code:" << ret;
     return;
   }
   UpdateTransform();
@@ -199,16 +206,18 @@ void OHOSExternalTextureGL::Update()
 
 void OHOSExternalTextureGL::Detach()
 {
+  FML_DLOG(INFO) << "OHOSExternalTextureGL::Detach";
   OH_NativeImage_DetachContext(nativeImage_);
   OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
 }
 
 void OHOSExternalTextureGL::UpdateTransform()
 {
+  FML_DLOG(INFO) << "OHOSExternalTextureGL::UpdateTransform";
   float m[16] = { 0.0f };
   int32_t ret = OH_NativeImage_GetTransformMatrixV2(nativeImage_, m);
   if (ret != 0) {
-    FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_GetTransformMatrixV2 err code:"<< ret;
+    FML_DLOG(FATAL) << "Failed to get the transformation matrix of the texture image. err code:" << ret;
   }
   // transform ohos 4x4 matrix to skia 3x3 matrix
   SkScalar matrix3[] = {
@@ -219,22 +228,24 @@ void OHOSExternalTextureGL::UpdateTransform()
   transform.set9(matrix3);
   SkMatrix inverted;
   if (!transform.invert(&inverted)) {
-    FML_LOG(FATAL) << "OHOSExternalTextureGL Invalid SurfaceTexture transformation matrix";
+    FML_LOG(FATAL) << "Invalid SurfaceTexture transformation matrix";
   }
   transform = inverted;
 }
 
 void OHOSExternalTextureGL::DispatchImage(ImageNative* image)
 {
+  FML_DLOG(INFO) << "OHOSExternalTextureGL::DispatchImage";
   lastImage_ = image;
 }
 
 void OHOSExternalTextureGL::setBackground(int32_t width, int32_t height)
 {
+  FML_DLOG(INFO) << "OHOSExternalTextureGL::setBackground";
   if (nativeWindow_ == nullptr) {
     nativeWindow_ = OH_NativeImage_AcquireNativeWindow(nativeImage_);
     if (nativeWindow_ == nullptr) {
-      FML_DLOG(ERROR) << "OHOSExternalTextureGL  in setBackground Error with OH_NativeImage_AcquireNativeWindow";
+      FML_DLOG(ERROR) << "Failed to obtain an **OHNativeWindow** instance";
       return;
     }
   }
@@ -242,20 +253,20 @@ void OHOSExternalTextureGL::setBackground(int32_t width, int32_t height)
   int code = SET_BUFFER_GEOMETRY;
   int32_t ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, code, width, height);
   if (ret != 0) {
-    FML_DLOG(ERROR) << "OHOSExternalTextureGL in setBackground OH_NativeWindow_NativeWindowHandleOpt err:" << ret;
+    FML_DLOG(ERROR) << "Failed to set the attributes of an **OHNativeWindow** instance. err code:" << ret;
     return;
   }
 
   ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow_, &buffer_, &fenceFd);
   if (ret != 0) {
-    FML_DLOG(ERROR) << "OHOSExternalTextureGL in setBackground OH_NativeWindow_NativeWindowRequestBuffer err:" << ret;
+    FML_DLOG(ERROR) << " Failed to requests an **OHNativeWindowBuffer**. err code:" << ret;
     return;
   }
 
   BufferHandle *handle = OH_NativeWindow_GetBufferHandleFromNative(buffer_);
   void *mappedAddr = mmap(handle->virAddr, handle->size, PROT_READ | PROT_WRITE, MAP_SHARED, handle->fd, 0);
   if (mappedAddr == MAP_FAILED) {
-    FML_DLOG(FATAL)<<"OHOSExternalTextureGL in setBackground mmap failed";
+    FML_DLOG(FATAL) << "No successful return from mmap()";
     return;
   }
 
@@ -268,36 +279,37 @@ void OHOSExternalTextureGL::setBackground(int32_t width, int32_t height)
     }
   }
 
-    // munmap after use
+  // munmap after use
   ret = munmap(mappedAddr, handle->size);
   if (ret == -1) {
-    FML_DLOG(FATAL)<<"OHOSExternalTextureGL in setBackground munmap failed";
+    FML_DLOG(FATAL) << "Failed to unmap pages of memory";
     return;
   }
 
   Region region{nullptr, 0};
   ret = OH_NativeWindow_NativeWindowFlushBuffer(nativeWindow_, buffer_, fenceFd, region);
   if (ret != 0) {
-    FML_DLOG(FATAL)<<"OHOSExternalTextureGL in setBackground OH_NativeWindow_NativeWindowFlushBuffer err:"<< ret;
+    FML_DLOG(FATAL) << "Failed to flush the buffer to the consumer. err code:" << ret;
   }
 }
 
 void OHOSExternalTextureGL::HandlePixelMapBuffer()
 {
+  FML_DLOG(INFO) << "OHOSExternalTextureGL::HandlePixelMapBuffer";
   BufferHandle *handle = OH_NativeWindow_GetBufferHandleFromNative(buffer_);
   // get virAddr of bufferHandl by mmap sys interface
   uint32_t stride = handle->stride;
   FML_DLOG(INFO) << "OHOSExternalTextureGL stride:" << stride;
   void *mappedAddr = mmap(handle->virAddr, handle->size, PROT_READ | PROT_WRITE, MAP_SHARED, handle->fd, 0);
   if (mappedAddr == MAP_FAILED) {
-    FML_DLOG(FATAL)<<"OHOSExternalTextureGL mmap failed";
+    FML_DLOG(FATAL) << "Failed to map pages of memory";
     return;
   }
 
   void *pixelAddr = nullptr;
   int64_t ret = OH_PixelMap_AccessPixels(pixelMap_, &pixelAddr);
   if (ret != IMAGE_RESULT_SUCCESS) {
-    FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_PixelMap_AccessPixels err:"<< ret;
+    FML_DLOG(FATAL) << "Failed to obtain the memory address of the PixelMap object and lock the memory. err code:" << ret;
     return;
   }
 
@@ -325,13 +337,14 @@ void OHOSExternalTextureGL::HandlePixelMapBuffer()
   // munmap after use
   ret = munmap(mappedAddr, handle->size);
   if (ret == -1) {
-    FML_DLOG(FATAL)<<"OHOSExternalTextureGL munmap failed";
+    FML_DLOG(FATAL) << "Failed to unmap pages of memory";
     return;
   }
 }
 
 void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
 {
+  FML_DLOG(INFO) << "OHOSExternalTextureGL::ProducePixelMapToNativeImage";
   if (state_ == AttachmentState::detached) {
     FML_DLOG(ERROR) << "OHOSExternalTextureGL AttachmentState err";
     return;
@@ -367,6 +380,7 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
 EGLDisplay OHOSExternalTextureGL::GetPlatformEglDisplay(EGLenum platform, void *native_display,
     const EGLint *attrib_list)
 {
+  FML_DLOG(INFO) << "OHOSExternalTextureGL::GetPlatformEglDisplay";
   GetPlatformDisplayExt eglGetPlatformDisplayExt = NULL;
 
   if (!eglGetPlatformDisplayExt) {
@@ -387,6 +401,7 @@ EGLDisplay OHOSExternalTextureGL::GetPlatformEglDisplay(EGLenum platform, void *
 
 bool OHOSExternalTextureGL::CheckEglExtension(const char *extensions, const char *extension)
 {
+  FML_DLOG(INFO) << "OHOSExternalTextureGL::CheckEglExtension";
   size_t extlen = strlen(extension);
   const char *end = extensions + strlen(extensions);
   while (extensions < end) {
@@ -406,6 +421,7 @@ bool OHOSExternalTextureGL::CheckEglExtension(const char *extensions, const char
 
 void OHOSExternalTextureGL::DispatchPixelMap(NativePixelMap* pixelMap)
 {
+  FML_DLOG(INFO) << "OHOSExternalTextureGL::DispatchPixelMap";
   if (pixelMap != nullptr) {
     pixelMap_ = pixelMap;
   }
