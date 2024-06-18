@@ -86,7 +86,8 @@ void OHOSExternalTextureGL::Attach()
 
     int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
     if (ret != 0) {
-      FML_DLOG(FATAL)<<"OHOSExternalTextureGL OH_NativeImage_AttachContext err code:"<< ret;
+      FML_DLOG(FATAL) << "Failed to attach current GL context. ErrorCode:" << ret;
+      return;
     }
     state_ = AttachmentState::attached;
   } else {
@@ -174,7 +175,13 @@ void OHOSExternalTextureGL::OnGrContextDestroyed()
 
 void OHOSExternalTextureGL::MarkNewFrameAvailable()
 {
-  FML_DLOG(INFO)<<" OHOSExternalTextureGL::MarkNewFrameAvailable";
+  FML_DLOG(INFO)<< "OHOSExternalTextureGL::MarkNewFrameAvailable";
+  if (state_ == AttachmentState::detached) {
+    return;
+  }
+  if (state_ == AttachmentState::uninitialized) {
+    Attach();
+  }
   new_frame_ready_ = true;
   Update();
 }
