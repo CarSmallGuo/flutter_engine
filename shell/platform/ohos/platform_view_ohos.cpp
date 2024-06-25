@@ -115,11 +115,23 @@ PlatformViewOHOS::PlatformViewOHOS(
   }
 }
 
-PlatformViewOHOS::~PlatformViewOHOS() {}
+PlatformViewOHOS::~PlatformViewOHOS() {
+  FML_LOG(INFO) << "PlatformViewOHOS::~PlatformViewOHOS";
+  for (std::map<int64_t, void*>::iterator it = contextDatas_.begin(); it != contextDatas_.end(); ++it) {
+    if (it->second != nullptr) {
+      OhosImageFrameData* data = reinterpret_cast<OhosImageFrameData *>(it->second);
+      delete data;
+      data = nullptr;
+      it->second = nullptr;
+    }
+  }
+  contextDatas_.clear();
+}
 
 void PlatformViewOHOS::NotifyCreate(
     fml::RefPtr<OHOSNativeWindow> native_window) {
   LOGI("NotifyCreate start");
+  SetDestroyed(false);
   if (ohos_surface_) {
     InstallFirstFrameCallback();
     LOGI("NotifyCreate start1");
@@ -169,9 +181,27 @@ void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
   }
 }
 
+pthread_mutex_t PlatformViewOHOS::mutex_;
+bool PlatformViewOHOS::isDestroyed_ = false;
+
+bool PlatformViewOHOS::GetDestroyed() {
+  bool ret;
+  pthread_mutex_lock(&mutex_);
+  ret = isDestroyed_;
+  pthread_mutex_unlock(&mutex_);
+  return ret;
+}
+
+void PlatformViewOHOS::SetDestroyed(bool isDestroyed) {
+  pthread_mutex_lock(&mutex_);
+  isDestroyed_ = isDestroyed;
+  pthread_mutex_unlock(&mutex_);
+}
+
 // |PlatformView|
 void PlatformViewOHOS::NotifyDestroyed()
 {
+  SetDestroyed(true);
   LOGI("PlatformViewOHOS NotifyDestroyed enter");
   PlatformView::NotifyDestroyed();
   if (ohos_surface_) {
@@ -422,6 +452,7 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
       return surface_id;
     }
     void* contextData = new OhosImageFrameData(this, texture_id);
+    contextDatas_.insert(std::pair<int64_t, void*>(texture_id, contextData));
     OH_OnFrameAvailableListener listener;
     listener.context = contextData;
     listener.onFrameAvailable = &PlatformViewOHOS::OnNativeImageFrameAvailable;
@@ -448,12 +479,22 @@ void PlatformViewOHOS::OnNativeImageFrameAvailable(void *data)
     FML_DLOG(ERROR) << "OnNativeImageFrameAvailable, frameData or context_ is null.";
     return;
   }
+
+  if (frameData->context_->GetDestroyed()) {
+    FML_LOG(ERROR) << "OnNativeImageFrameAvailable NotifyDstroyed, will not MarkTextureFrameAvailable";
+    return;
+  }
+
   std::shared_ptr<OHOSSurface> ohos_surface = frameData->context_->ohos_surface_;
   const TaskRunners task_runners = frameData->context_->task_runners_;
   if (ohos_surface) {
     fml::TaskRunner::RunNowOrPostTask(
         task_runners.GetPlatformTaskRunner(),
         [frameData]() {
+          if (frameData->context_->GetDestroyed()) {
+            FML_LOG(ERROR) << "OnNativeImageFrameAvailable NotifyDstroyed, will not MarkTextureFrameAvailable";
+            return;
+          }
           frameData->context_->MarkTextureFrameAvailable(frameData->texture_id_);
         });
   }
@@ -463,6 +504,20 @@ void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id)
 {
   external_texture_gl_.erase(texture_id);
   UnregisterTexture(texture_id);
+  std::map<int64_t, void*>::iterator it = contextDatas_.find(texture_id);
+  if (it != contextDatas_.end()) {
+    if (it->second != nullptr) {
+      OhosImageFrameData* data = reinterpret_cast<OhosImageFrameData *>(it->second);
+      task_runners_.GetPlatformTaskRunner()->PostDelayedTask(
+      [data_ = data]() {
+        delete data_;
+      },
+      fml::TimeDelta::FromSeconds(2));
+      data = nullptr;
+      it->second = nullptr;
+    }
+    contextDatas_.erase(texture_id);
+  }
 }
 
 void PlatformViewOHOS::RegisterExternalTextureByPixelMap(int64_t texture_id, NativePixelMap* pixelMap)
