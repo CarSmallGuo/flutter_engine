@@ -23,6 +23,11 @@
 #include "third_party/skia/include/utils/SkBase64.h"
 
 #include "flutter/fml/logging.h"
+#if defined(__OHOS__)
+#include "hitrace/trace.h"
+#elif defined(__ANDROID__)
+#include "android/trace.h"
+#endif
 
 namespace flutter {
 
@@ -179,6 +184,12 @@ RasterStatus Rasterizer::Draw(
     const std::shared_ptr<LayerTreePipeline>& pipeline,
     LayerTreeDiscardCallback discard_callback) {
   TRACE_EVENT0("flutter", "GPURasterizer::Draw");
+#if defined(__OHOS__)
+  OH_HiTrace_StartTrace("Rasterizer::Draw");
+#elif defined(__ANDROID__)
+  ATrace_beginSection("Rasterizer::Draw");
+#endif
+  
   if (raster_thread_merger_ &&
       !raster_thread_merger_->IsOnRasterizingThread()) {
     // we yield and let this frame be serviced on the right thread.
@@ -248,7 +259,11 @@ RasterStatus Rasterizer::Draw(
     default:
       break;
   }
-
+#if defined(__OHOS__)
+  OH_HiTrace_FinishTrace();
+#elif defined(__ANDROID__)
+  ATrace_endSection();
+#endif
   return raster_status;
 }
 
@@ -289,6 +304,11 @@ std::unique_ptr<Rasterizer::GpuImageResult> Rasterizer::MakeSkiaGpuImage(
     sk_sp<DisplayList> display_list,
     const SkImageInfo& image_info) {
   TRACE_EVENT0("flutter", "Rasterizer::MakeGpuImage");
+#if defined(__OHOS__)
+  OH_HiTrace_StartTrace("Rasterizer::MakeGpuImage");
+#elif defined(__ANDROID__)
+  ATrace_beginSection("Rasterizer::MakeGpuImage");
+#endif
   FML_DCHECK(display_list);
 
 // TODO(dnfield): the Linux embedding is in a rough state right now and
@@ -346,6 +366,11 @@ std::unique_ptr<Rasterizer::GpuImageResult> Rasterizer::MakeSkiaGpuImage(
             result = std::make_unique<SnapshotDelegate::GpuImageResult>(
                 texture, sk_ref_sp(context), nullptr, "");
           }));
+#if defined(__OHOS__)
+  OH_HiTrace_FinishTrace();
+#elif defined(__ANDROID__)
+  ATrace_endSection();
+#endif
   return result;
 }
 
@@ -371,7 +396,11 @@ RasterStatus Rasterizer::DoDraw(
   FML_DCHECK(delegate_.GetTaskRunners()
                  .GetRasterTaskRunner()
                  ->RunsTasksOnCurrentThread());
-
+#if defined(__OHOS__)
+  OH_HiTrace_StartTrace("Rasterizer::DoDraw");
+#elif defined(__ANDROID__)
+  ATrace_beginSection("Rasterizer::DoDraw");
+#endif
   if (!layer_tree || !surface_) {
     return RasterStatus::kFailed;
   }
@@ -460,6 +489,11 @@ RasterStatus Rasterizer::DoDraw(
       return RasterStatus::kEnqueuePipeline;
     }
   }
+#if defined(__OHOS__)
+  OH_HiTrace_FinishTrace();
+#elif defined(__ANDROID__)
+  ATrace_endSection();
+#endif
 
   return raster_status;
 }
@@ -468,6 +502,11 @@ RasterStatus Rasterizer::DrawToSurface(
     FrameTimingsRecorder& frame_timings_recorder,
     flutter::LayerTree& layer_tree) {
   TRACE_EVENT0("flutter", "Rasterizer::DrawToSurface");
+#if defined(__OHOS__)
+  OH_HiTrace_StartTrace("Rasterizer::Draw");
+#elif defined(__ANDROID__)
+  ATrace_beginSection("Rasterizer::Draw");
+#endif
   FML_DCHECK(surface_);
 
   RasterStatus raster_status;
@@ -482,7 +521,11 @@ RasterStatus Rasterizer::DrawToSurface(
                   DrawToSurfaceUnsafe(frame_timings_recorder, layer_tree);
             }));
   }
-
+#if defined(__OHOS__)
+  OH_HiTrace_FinishTrace();
+#elif defined(__ANDROID__)
+  ATrace_endSection();
+#endif
   return raster_status;
 }
 

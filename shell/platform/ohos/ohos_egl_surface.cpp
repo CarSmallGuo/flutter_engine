@@ -21,6 +21,11 @@
 #include <list>
 
 #include "flutter/fml/trace_event.h"
+#if defined(__OHOS__)
+#include "hitrace/trace.h"
+#elif defined(__ANDROID__)
+#include "android/trace.h"
+#endif
 
 namespace flutter {
 
@@ -239,7 +244,18 @@ bool OhosEGLSurface::SetPresentationTime(
 
 bool OhosEGLSurface::SwapBuffers(const std::optional<SkIRect>& surface_damage) {
   TRACE_EVENT0("flutter", "OhosContextGL::SwapBuffers");
-  return damage_->SwapBuffersWithDamage(display_, surface_, surface_damage);
+#if defined(__OHOS__)
+  OH_HiTrace_StartTrace("Rasterizer::Draw");
+#elif defined(__ANDROID__)
+  ATrace_beginSection("Rasterizer::Draw");
+#endif
+  bool ret = damage_->SwapBuffersWithDamage(display_, surface_, surface_damage);
+#if defined(__OHOS__)
+  OH_HiTrace_FinishTrace();
+#elif defined(__ANDROID__)
+  ATrace_endSection();
+#endif
+  return ret;
 }
 
 bool OhosEGLSurface::SupportsPartialRepaint() const {

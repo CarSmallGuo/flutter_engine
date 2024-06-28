@@ -9,6 +9,11 @@
 #include "flutter/fml/trace_event.h"
 #include "third_party/dart/runtime/include/dart_tools_api.h"
 #include "flutter/fml/logging.h"
+#if defined(__OHOS__)
+#include "hitrace/trace.h"
+#elif defined(__ANDROID__)
+#include "android/trace.h"
+#endif
 
 namespace flutter {
 
@@ -90,7 +95,17 @@ void Animator::BeginFrame(
       // full because the consumer is being too slow. Try again at the next
       // frame interval.
       TRACE_EVENT0("flutter", "PipelineFull");
+#if defined(__OHOS__)
+      OH_HiTrace_StartTrace("animator RequestFrame");
+#elif defined(__ANDROID__)
+      ATrace_beginSection("animator RequestFrame");
+#endif
       RequestFrame();
+#if defined(__OHOS__)
+      OH_HiTrace_FinishTrace();
+#elif defined(__ANDROID__)
+      ATrace_endSection();
+#endif
       return;
     }
   }
@@ -184,7 +199,11 @@ void Animator::DrawLastLayerTree(
   // This method is very cheap, but this makes it explicitly clear in trace
   // files.
   TRACE_EVENT0("flutter", "Animator::DrawLastLayerTree");
-
+#if defined(__OHOS__)
+  OH_HiTrace_StartTrace("animator Animator::DrawLastLayerTree");
+#elif defined(__ANDROID__)
+  ATrace_beginSection("animator Animator::DrawLastLayerTree");
+#endif
   pending_frame_semaphore_.Signal();
   // In this case BeginFrame doesn't get called, we need to
   // adjust frame timings to update build start and end times,
@@ -194,6 +213,11 @@ void Animator::DrawLastLayerTree(
   frame_timings_recorder->RecordBuildStart(now);
   frame_timings_recorder->RecordBuildEnd(now);
   delegate_.OnAnimatorDrawLastLayerTree(std::move(frame_timings_recorder));
+#if defined(__OHOS__)
+  OH_HiTrace_FinishTrace();
+#elif defined(__ANDROID__)
+  ATrace_endSection();
+#endif
 }
 
 void Animator::RequestFrame(bool regenerate_layer_tree) {

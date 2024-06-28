@@ -34,6 +34,12 @@
 #include "third_party/skia/include/utils/SkBase64.h"
 #include "third_party/tonic/common/log.h"
 
+#if defined(__OHOS__)
+#include "hitrace/trace.h"
+#elif defined(__ANDROID__)
+#include "android/trace.h"
+#endif
+
 namespace flutter {
 
 constexpr char kSkiaChannel[] = "flutter/skia";
@@ -1086,8 +1092,17 @@ void Shell::OnPlatformViewMarkTextureFrameAvailable(int64_t texture_id) {
         if (!texture) {
           return;
         }
-
+#if defined(__OHOS__)
+  OH_HiTrace_StartTrace("Shell::OnPlatformViewMarkTextureFrameAvailable");
+#elif defined(__ANDROID__)
+  ATrace_beginSection("Shell::OnPlatformViewMarkTextureFrameAvailable");
+#endif
         texture->MarkNewFrameAvailable();
+#if defined(__OHOS__)
+  OH_HiTrace_FinishTrace();
+#elif defined(__ANDROID__)
+  ATrace_endSection();
+#endif
       });
 
   // Schedule a new frame without having to rebuild the layer tree.
