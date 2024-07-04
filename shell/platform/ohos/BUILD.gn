@@ -105,8 +105,6 @@ source_set("flutter_ohos_sources") {
       "ohos_touch_processor.cpp",
       "ohos_main.cpp" ,
       "ohos_logger.c" ,
-      "ohos_context_gl_impeller.cpp",
-      "ohos_surface_gl_impeller.cpp",
       # "//flutter/impeller/toolkit/egl/display.cc",
       "ohos_context_gl_skia.cpp" ,
       "ohos_egl_surface.cpp" ,
@@ -232,6 +230,7 @@ shared_library("flutter_shell_native") {
   ldflags += ["-lm"]
   ldflags += ["-lpthread"]
   ldflags += ["-lpixelmap_ndk.z"]
+  ldflags += ["-lqos"]
 
   public_configs = [ "//flutter:config" ]
 }
@@ -292,7 +291,7 @@ declare_args() {
 }
 
 action("ohos_har") {
-  script = "//build/ohos/ohos_create_flutter_har.py"
+  script = "//flutter/attachment/scripts/ohos_create_flutter_har.py"
 
   if (stripped_symbols) {
     engine_library = "libflutter.so"

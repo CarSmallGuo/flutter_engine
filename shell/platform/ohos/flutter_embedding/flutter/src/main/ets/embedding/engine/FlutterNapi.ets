@@ -27,6 +27,7 @@ import LocalizationPlugin from '../../plugin/localization/LocalizationPlugin';
 import i18n from '@ohos.i18n';
 import Any from '../../plugin/common/Any';
 import FlutterManager from '../ohos/FlutterManager';
+import deviceInfo from '@ohos.deviceInfo';
 
 const TAG = "FlutterNapi";
 
@@ -70,7 +71,7 @@ export default class FlutterNapi {
     }
     this.hasInit = true;
     Log.w(TAG, "init: bundlePath=" + bundlePath + "  appStoragePath=" + appStoragePath + "  engineCachesPath=" + engineCachesPath + "  args=" + JSON.stringify(args));
-    flutter.nativeInit(context, args, bundlePath, appStoragePath, engineCachesPath, initTimeMillis);
+    flutter.nativeInit(context, args, bundlePath, appStoragePath, engineCachesPath, initTimeMillis, deviceInfo.productModel);
   }
 
   attachToNative(): void {
@@ -370,7 +371,7 @@ export default class FlutterNapi {
    * xcomponet绑定flutterEngine
    * @param xcomponentId
    */
-  xComponentAttachFlutterEngine(xcomponentId: number) {
+  xComponentAttachFlutterEngine(xcomponentId: string) {
     flutter.nativeXComponentAttachFlutterEngine(xcomponentId, this.nativeShellHolderId!);
   }
 
@@ -378,7 +379,7 @@ export default class FlutterNapi {
    * xcomponet解除绑定flutterEngine
    * @param xcomponentId
    */
-  xComponentDetachFlutterEngine(xcomponentId: number) {
+  xComponentDetachFlutterEngine(xcomponentId: string) {
     flutter.nativeXComponentDetachFlutterEngine(xcomponentId, this.nativeShellHolderId!);
   }
 
@@ -402,7 +403,7 @@ export default class FlutterNapi {
   }
 
   registerTexture(textureId: number): number {
-    Log.d(TAG, "called unregisterTexture ");
+    Log.d(TAG, "called registerTexture ");
     return flutter.nativeRegisterTexture(this.nativeShellHolderId!, textureId);
   }
 }

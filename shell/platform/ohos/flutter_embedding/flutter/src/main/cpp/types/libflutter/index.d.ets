@@ -42,7 +42,8 @@ export const nativeInit: (
   bundlePath: string,
   appStoragePath: string,
   engineCachesPath: string,
-  initTimeMillis: number
+  initTimeMillis: number,
+  productModel: string
 ) => void;
 
 export const nativeAttach: (napi: FlutterNapi) => number;
@@ -89,9 +90,9 @@ export const nativeImageDecodeCallback: (width: number, height: number, imageGen
 
 export const nativeGetSystemLanguages: (nativeShellHolderId: number, languages: Array<string>) => void;
 
-export const nativeXComponentAttachFlutterEngine: (xcomponentId: number, nativeShellHolderId: number) => void;
+export const nativeXComponentAttachFlutterEngine: (xcomponentId: string, nativeShellHolderId: number) => void;
 
-export const nativeXComponentDetachFlutterEngine: (xcomponentId: number, nativeShellHolderId: number) => void;
+export const nativeXComponentDetachFlutterEngine: (xcomponentId: string, nativeShellHolderId: number) => void;
 
 /**
  * Detaches flutterNapi和engine之间的关联

@@ -1543,7 +1543,7 @@ napi_value PlatformViewOHOSNapi::nativeXComponentAttachFlutterEngine(
     napi_status ret;
     size_t argc = 2;
     napi_value args[2] = {nullptr};
-    int64_t xcomponent_id;
+    std::string xcomponent_id;
     int64_t shell_holder;
     ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
     if (ret != napi_ok) {
@@ -1551,24 +1551,23 @@ napi_value PlatformViewOHOSNapi::nativeXComponentAttachFlutterEngine(
                         << ret;
         return nullptr;
     }
-    ret = napi_get_value_int64(env, args[0], &xcomponent_id);
-    if (ret != napi_ok) {
-        FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine xcomponent_id napi_get_value_int64 error";
+
+    if (fml::napi::GetString(env, args[0], xcomponent_id) != 0) {
+        FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine xcomponent_id GetString error";
         return nullptr;
     }
+
     ret = napi_get_value_int64(env, args[1], &shell_holder);
     if (ret != napi_ok) {
         FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine shell_holder napi_get_value_int64 error";
         return nullptr;
     }
-    std::string xcomponent_id_str = std::to_string(xcomponent_id);
     std::string shell_holder_str = std::to_string(shell_holder);
 
-    LOGD("nativeXComponentAttachFlutterEngine xcomponent_id: %{public}ld , shell_holder: %{public}ld ",
-         xcomponent_id, shell_holder);
+    LOGD("nativeXComponentAttachFlutterEngine xcomponent_id: %{public}s, shell_holder: %{public}ld ",
+         xcomponent_id.c_str(), shell_holder);
 
-    XComponentAdapter::GetInstance()->AttachFlutterEngine(xcomponent_id_str,
-                                                          shell_holder_str);
+    XComponentAdapter::GetInstance()->AttachFlutterEngine(xcomponent_id, shell_holder_str);
     return nullptr;
 }
 /**
@@ -1584,7 +1583,7 @@ napi_value PlatformViewOHOSNapi::nativeXComponentDetachFlutterEngine(
     napi_status ret;
     size_t argc = 2;
     napi_value args[2] = {nullptr};
-    int64_t xcomponent_id;
+    std::string xcomponent_id;
     int64_t shell_holder;
     ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
     if (ret != napi_ok) {
@@ -1592,9 +1591,8 @@ napi_value PlatformViewOHOSNapi::nativeXComponentDetachFlutterEngine(
                         << ret;
         return nullptr;
     }
-    ret = napi_get_value_int64(env, args[0], &xcomponent_id);
-    if (ret != napi_ok) {
-        FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine xcomponent_id napi_get_value_int64 error";
+    if (fml::napi::GetString(env, args[0], xcomponent_id) != 0) {
+        FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine xcomponent_id GetString error";
         return nullptr;
     }
     ret = napi_get_value_int64(env, args[1], &shell_holder);
@@ -1602,11 +1600,9 @@ napi_value PlatformViewOHOSNapi::nativeXComponentDetachFlutterEngine(
         FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine shell_holder napi_get_value_int64 error";
         return nullptr;
     }
-    std::string xcomponent_id_str = std::to_string(xcomponent_id);
 
-    LOGD("nativeXComponentDetachFlutterEngine xcomponent_id: %{public}ld",
-         xcomponent_id);
-    XComponentAdapter::GetInstance()->DetachFlutterEngine(xcomponent_id_str);
+    LOGD("nativeXComponentDetachFlutterEngine xcomponent_id: %{public}s", xcomponent_id.c_str());
+    XComponentAdapter::GetInstance()->DetachFlutterEngine(xcomponent_id);
     return nullptr;
 }
 

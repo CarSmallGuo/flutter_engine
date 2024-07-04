@@ -76,7 +76,7 @@ export default class PlatformChannel {
       case 0x01:
         return window.Orientation.PORTRAIT;
       case 0x02:
-        return window.Orientation.LANDSCAPE;
+        return window.Orientation.LANDSCAPE_INVERTED;
       case 0x03:
       case 0x04:
         return window.Orientation.PORTRAIT_INVERTED;
@@ -85,7 +85,7 @@ export default class PlatformChannel {
       case 0x06:
       case 0x07:
       case 0x08:
-        return window.Orientation.LANDSCAPE_INVERTED;
+        return window.Orientation.LANDSCAPE;
       case 0x09:
       case 0x0a:
         return window.Orientation.AUTO_ROTATION_LANDSCAPE;
@@ -98,11 +98,11 @@ export default class PlatformChannel {
               case 0x01:
                 return bundleManager.DisplayOrientation.PORTRAIT;
               case 0x02:
-                return bundleManager.DisplayOrientation.LANDSCAPE;
+                return bundleManager.DisplayOrientation.LANDSCAPE_INVERTED;
               case 0x04:
                 return bundleManager.DisplayOrientation.PORTRAIT_INVERTED;
               case 0x08:
-                return bundleManager.DisplayOrientation.LANDSCAPE_INVERTED;
+                return bundleManager.DisplayOrientation.LANDSCAPE;
             }
       case 0x0f:
     }
@@ -189,7 +189,7 @@ export interface PlatformMessageHandler {
 
   vibrateHapticFeedback(feedbackType: HapticFeedbackType): void;
 
-  setPreferredOrientations(ohosOrientation: number): void;
+  setPreferredOrientations(ohosOrientation: number, result: MethodResult): void;
 
   setApplicationSwitcherDescription(description: AppSwitcherDescription): void;
 
@@ -205,9 +205,9 @@ export interface PlatformMessageHandler {
 
   popSystemNavigator(): void;
 
-  getClipboardData(format: ClipboardContentFormat): string;
+  getClipboardData(result: MethodResult): void;
 
-  setClipboardData(text: string): void;
+  setClipboardData(text: string, result: MethodResult): void;
 
   clipboardHasStrings(): boolean;
 }
@@ -314,15 +314,8 @@ class PlatformMethodCallback implements MethodCallHandler {
           break;
         case "SystemChrome.setPreferredOrientations":
           Log.d(PlatformMethodCallback.TAG, "setPreferredOrientations: " + JSON.stringify(args));
-          try {
-            let ohosOrientation = this.platform.decodeOrientations(args as string[]);
-            this.platform.platformMessageHandler.setPreferredOrientations(ohosOrientation);
-            result.success(null);
-          } catch (err) {
-            Log.e(PlatformMethodCallback.TAG, "setPreferredOrientations err:" + JSON.stringify(err));
-            result.error("error", JSON.stringify(err), null);
-          }
-
+          let ohosOrientation = this.platform.decodeOrientations(args as string[]);
+          this.platform.platformMessageHandler.setPreferredOrientations(ohosOrientation, result);
           break;
         case "SystemChrome.setApplicationSwitcherDescription":
           Log.d(PlatformMethodCallback.TAG, "setApplicationSwitcherDescription: " + JSON.stringify(args));
@@ -379,19 +372,11 @@ class PlatformMethodCallback implements MethodCallHandler {
           result.success(null);
           break;
         case "Clipboard.getData":
-          let pasteBoard = pasteboard.getSystemPasteboard();
-          pasteBoard.getData().then((pasteData) => {
-            let text = pasteData.getPrimaryText();
-            let response: Any = new Map().set("text", text);
-            result.success(response);
-          }).catch((err: Any) => {
-            Log.e(PlatformMethodCallback.TAG, "Failed to get PasteData. Cause: " + JSON.stringify(err));
-          });
+          this.platform.platformMessageHandler.getClipboardData(result);
           break;
         case "Clipboard.setData":
           let clipboardContent: string = args.get('text');
-          this.platform.platformMessageHandler.setClipboardData(clipboardContent);
-          result.success(null);
+          this.platform.platformMessageHandler.setClipboardData(clipboardContent, result);
           break;
         case "Clipboard.hasStrings":
           let hasStrings: boolean = false;
@@ -399,7 +384,7 @@ class PlatformMethodCallback implements MethodCallHandler {
           let systemPasteboard = pasteboard.getSystemPasteboard();
           systemPasteboard.hasData().then((hasData) => {
             if (!hasData) {
-              response.value = hasData;
+              response.set("value", hasData);
               result.success(response);
             }
           }).catch((err: Any) => {
@@ -407,7 +392,7 @@ class PlatformMethodCallback implements MethodCallHandler {
           })
           systemPasteboard.getData().then((pasteData) => {
             hasStrings = pasteData.hasType(pasteboard.MIMETYPE_TEXT_PLAIN);
-            response.value = hasStrings;
+            response.set("value", hasStrings);
             result.success(response);
           }).catch((err: Any) => {
             Log.e(PlatformMethodCallback.TAG, "getData err: " + JSON.stringify(err));

@@ -36,6 +36,7 @@ import errorManager from '@ohos.app.ability.errorManager';
 import appRecovery from '@ohos.app.ability.appRecovery';
 import FlutterManager from './FlutterManager';
 import { FlutterView } from '../../view/FlutterView';
+import ApplicationInfoLoader from '../engine/loader/ApplicationInfoLoader';
 
 const TAG = "FlutterAbility";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
@@ -81,14 +82,11 @@ export class FlutterAbility extends UIAbility implements Host {
       this.delegate?.onCreate();
     }
 
-    if (this.stillAttachedForEvent("onWindowStageCreate")) {
-      this?.delegate?.onWindowStageCreate();
-    }
-
     console.log('MyAbility onCreate');
 
     this.context.eventHub.on(EVENT_BACK_PRESS, () => {
       this.delegate?.flutterEngine?.getNavigationChannel()?.popRoute();
+      this.delegate?.flutterEngine?.getPlatformViewsController()?.setBackNodeControllers();
     });
     let observer:errorManager.ErrorObserver = {
       onUnhandledException(errorMsg) {
@@ -127,7 +125,7 @@ export class FlutterAbility extends UIAbility implements Host {
    */
   onWindowStageCreate(windowStage: window.WindowStage) {
     FlutterManager.getInstance().pushWindowStage(this, windowStage);
-    this.delegate?.initWindow();
+    this.delegate?.onWindowStageCreate();
     this.mainWindow = windowStage.getMainWindowSync();
     try {
       windowStage.on('windowStageEvent', (data) => {
