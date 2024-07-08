@@ -48,10 +48,25 @@ class ViewportMetrics {
 }
 
 export class PlatformViewParas {
-  width: number = 0;
-  height: number = 0;
+  width: number = 0.0;
+  height: number = 0.0;
+  top: number = 0.0;
+  left: number = 0.0;
   direction: Direction = Direction.Auto;
+
+  setValue(width: number, height: number, top: number, left: number): void {
+    this.width = width;
+    this.height = height;
+    this.top = top;
+    this.left = left;
+  }
+
+  setOffset(top: number, left: number): void {
+    this.top = top;
+    this.left = left;
+  }
 }
+
 export class FlutterView {
   private flutterEngine: FlutterEngine | null = null
   private id: string = ""

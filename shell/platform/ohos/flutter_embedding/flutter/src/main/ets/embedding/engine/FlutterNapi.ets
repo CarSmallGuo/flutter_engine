@@ -28,6 +28,7 @@ import i18n from '@ohos.i18n';
 import Any from '../../plugin/common/Any';
 import FlutterManager from '../ohos/FlutterManager';
 import deviceInfo from '@ohos.deviceInfo';
+import TouchEventProcessor from '../ohos/TouchEventProcessor.ets';
 
 const TAG = "FlutterNapi";
 
@@ -406,6 +407,20 @@ export default class FlutterNapi {
     Log.d(TAG, "called registerTexture ");
     return flutter.nativeRegisterTexture(this.nativeShellHolderId!, textureId);
   }
+
+  /** Dispatch Touch Event */
+  onTouchEvent(strings: Array<string>): void {
+    Log.d(TAG, "called onTouchEvent ");
+    FlutterManager.getInstance().getFlutterViewList().forEach((value) => {
+      let top: number = value.getPlatformViewSize().top;
+      let left: number = value.getPlatformViewSize().left;
+
+      value.getEmbeddingNodeController().postEvent(
+        TouchEventProcessor.getInstance().constureCustomTouchEvent(strings, top, left)
+      );
+    });
+  }
+
 }
 
 export interface AccessibilityDelegate {
