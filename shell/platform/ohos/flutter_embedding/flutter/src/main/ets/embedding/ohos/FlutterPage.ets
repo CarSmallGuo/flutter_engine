@@ -42,6 +42,7 @@ export struct FlutterPage {
   private flutterView?: FlutterView | null
   private nodeController: EmbeddingNodeController | undefined = undefined
   private lastArea?: Area;
+  private panOption: PanGestureOptions = new PanGestureOptions({ direction: PanDirection.Up | PanDirection.Down });
 
   aboutToAppear() {
     this.flutterView = FlutterManager.getInstance().getFlutterView(this.viewId);
@@ -102,5 +103,17 @@ export struct FlutterPage {
       Log.d(TAG, "onKeyEvent " + event.type);
       this.flutterView?.onKeyEvent(event)
     })
+    .gesture(
+      PanGesture(this.panOption)
+        .onActionStart((event: GestureEvent) => {
+          this.flutterView?.onMouseWheel("actionStart", event);
+        })
+        .onActionUpdate((event: GestureEvent) => {
+          this.flutterView?.onMouseWheel("actionUpdate", event);
+        })
+        .onActionEnd((event: GestureEvent) => {
+          this.flutterView?.onMouseWheel("actionEnd", event);
+        })
+    )
   }
 }
