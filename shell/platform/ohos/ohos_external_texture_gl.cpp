@@ -379,6 +379,11 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
   usage |= NATIVEBUFFER_USAGE_CPU_READ;
   OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, SET_USAGE, usage);
 
+  int32_t usage = 0;
+  OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, GET_USAGE, &usage);
+  usage |= NATIVEBUFFER_USAGE_CPU_READ;
+  OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, SET_USAGE, usage);
+
   if (buffer_ != nullptr) {
     OH_NativeWindow_NativeWindowAbortBuffer(nativeWindow_, buffer_);
     buffer_ = nullptr;
