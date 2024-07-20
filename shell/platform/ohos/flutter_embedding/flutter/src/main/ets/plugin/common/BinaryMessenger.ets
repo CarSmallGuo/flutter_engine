@@ -21,20 +21,23 @@
  * channels' constructors to control the threading policy for handling platform channels'
  * messages.
  */
+
+import SendableBinaryMessageHandler from './SendableBinaryMessageHandler'
+
 export interface TaskQueue {}
 
 /** Options that control how a TaskQueue should operate and be created. */
 export class TaskQueueOptions {
-    private isSerial = true;
+  private isSerial = true;
 
-    getIsSerial() {
-        return this.isSerial;
-    }
+  getIsSerial() {
+    return this.isSerial;
+  }
 
-    setIsSerial(isSerial: boolean): TaskQueueOptions {
-        this.isSerial = isSerial;
-        return this;
-    }
+  setIsSerial(isSerial: boolean): TaskQueueOptions {
+    this.isSerial = isSerial;
+    return this;
+  }
 }
 
 /**
@@ -49,7 +52,7 @@ export interface BinaryReply {
      *     outgoing replies must place the reply bytes between position zero and current position.
      *     Reply receivers can read from the buffer directly.
      */
-    reply(reply: ArrayBuffer | null): void;
+    reply: (reply: ArrayBuffer | null) => void;
 }
 
 /** Handler for incoming binary messages from Flutter. */
@@ -69,6 +72,7 @@ export interface BinaryMessageHandler {
      */
     onMessage(message: ArrayBuffer, reply: BinaryReply): void;
 }
+
 
 /**
  * Facility for communicating with Flutter using asynchronous message passing with binary messages.
@@ -126,11 +130,5 @@ export interface BinaryMessenger {
      * @param taskQueue a {@link BinaryMessenger.TaskQueue} that specifies what thread will execute
      *     the handler. Specifying null means execute on the platform thread.
      */
-    //setMessageHandler(channel: String, handler: BinaryMessageHandler)
-    setMessageHandler(channel: String, handler: BinaryMessageHandler | null, taskQueue?: TaskQueue): void;
-    // {
-    //     if (taskQueue != null) {
-    //         throw new Error("setMessageHandler called with nonnull taskQueue is not supported.")
-    //     }
-    // }
+    setMessageHandler(channel: String, handler: BinaryMessageHandler | SendableBinaryMessageHandler | null, taskQueue?: TaskQueue): void;
 }
