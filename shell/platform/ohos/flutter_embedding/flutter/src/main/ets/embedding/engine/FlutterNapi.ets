@@ -30,6 +30,7 @@ import FlutterManager from '../ohos/FlutterManager';
 import deviceInfo from '@ohos.deviceInfo';
 import TouchEventProcessor from '../ohos/TouchEventProcessor';
 import { EmbeddingNodeController } from '../ohos/EmbeddingNodeController';
+import { CustomTouchEvent } from '../../plugin/platform/CustomTouchEvent';
 
 const TAG = "FlutterNapi";
 
@@ -404,17 +405,33 @@ export default class FlutterNapi {
 
   /** Dispatch Touch Event */
   onTouchEvent(strings: Array<string>): void {
-    Log.d(TAG, "called onTouchEvent ");
     FlutterManager.getInstance().getFlutterViewList().forEach((value) => {
-      let length = value.getDVModel().children.length;
+      let length = value.getDVModel().children.length
       for (let index = length - 1; index >= 0; index--) {
-        let dvModel = value.getDVModel().children[index];
-        let params = dvModel.getLayoutParams();
-        let params2 = params as Record<string, Any>;
-        let nodeController = params2['nodeController'] as EmbeddingNodeController;
-        let left = params2['left'] as number ?? 0;
-        let top = params2['top'] as number ?? 0;
-        nodeController.postEvent(TouchEventProcessor.getInstance().constureCustomTouchEvent(strings, top, left));
+        let dvModel = value.getDVModel().children[index]
+        let params = dvModel.getLayoutParams() as Record<string, Any>;
+        let left = params['left'] as number ?? 0;
+        let top = params['top'] as number ?? 0;
+        let down = params['down'] as boolean ?? false;
+        if (down) {
+          //如果flutter端判断当前platformView是可点击的，则将事件分发出去
+          let touchEvent = TouchEventProcessor.getInstance().constureCustomTouchEvent(strings, top, left);
+          let nodeController = params['nodeController'] as EmbeddingNodeController;
+          nodeController.postEvent(touchEvent)
+        } else if (strings[6] == '0' && !down) {
+          //如果触摸事件为OH_NATIVEXCOMPONENT_DOWN=0类型，且在flutter端还没判断当前view是否处于点击区域内，则
+          //将点击事件存储在list列表中。
+          let touchEvent = TouchEventProcessor.getInstance().constureCustomTouchEvent(strings, top, left);
+          let array: Array<CustomTouchEvent> | undefined = params['touchEvent'] as Array<CustomTouchEvent>
+          if (array == undefined) {
+            array = []
+            params['touchEvent'] = array
+          }
+          array.push(touchEvent)
+        } else if (strings[0] == '1' && strings[6] == '1') {
+          //如果当前触控手指的个数为1个，且当前点击类型为OH_NATIVEXCOMPONENT_UP，则清空列表数据
+          params['touchEvent'] = undefined
+        }
       }
     });
   }
