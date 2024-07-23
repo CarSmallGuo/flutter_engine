@@ -33,6 +33,8 @@ export const nativeUpdateRefreshRate: (
   ate: number
 ) => void;
 
+export const nativePrefetchDefaultFontManager: () => void;
+
 /**
  * 初始化dart vm和flutter engine
  */
