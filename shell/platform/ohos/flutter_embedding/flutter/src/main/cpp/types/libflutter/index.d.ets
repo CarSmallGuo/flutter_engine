@@ -33,6 +33,11 @@ export const nativeUpdateRefreshRate: (
   ate: number
 ) => void;
 
+/*
+ * 初始化SkFontMgr::RefDefault()
+ */
+export const nativePrefetchDefaultFontManager: () => void;
+
 /**
  * 初始化dart vm和flutter engine
  */
