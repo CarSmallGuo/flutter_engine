@@ -44,7 +44,7 @@ export const nativeInit: (
   engineCachesPath: string,
   initTimeMillis: number,
   productModel: string
-) => void;
+) => number | null;
 
 export const nativeAttach: (napi: FlutterNapi) => number;
 
