@@ -55,6 +55,12 @@ const TIMESTAMP_PREFIX = "res_timestamp-";
 
 const OH_ICU_DATA_FILE_PATH = "/system/usr/ohos_icu/"
 
+async function prefetchDefaultFontManager(): Promise<void> {
+  await new Promise<void>((resolve: Function) => {
+    FlutterNapi.prefetchDefaultFontManager()
+  })
+}
+
 /**
  * 定位在hap包中的flutter资源，并且加载flutter native library.
  */
@@ -87,6 +93,7 @@ export default class FlutterLoader {
     this.initStartTimestampMillis = Date.now();
     this.context = context;
     this.flutterApplicationInfo = ApplicationInfoLoader.load(context);
+    await prefetchDefaultFontManager();
     if (this.flutterApplicationInfo!.isDebugMode) {
       await this.copyResource(context)
     }
