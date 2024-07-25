@@ -38,7 +38,6 @@
 #endif  //  defined(OS_FUCHSIA)
 
 
-//#define FML_OS_OHOS
 #if defined(FML_OS_OHOS)
 
 #include <cstdio>
@@ -55,7 +54,6 @@ public:
       if (fmt != nullptr) {
           va_list args;
           va_start(args, fmt);
-          // int32_t ret = vsprintf(title, fmt, args);
           int32_t ret = vsnprintf(title, 1000, fmt, args);
           va_end(args);
           if (ret != -1) {
