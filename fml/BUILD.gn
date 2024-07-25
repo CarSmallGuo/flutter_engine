@@ -204,6 +204,7 @@ source_set("fml") {
     libs += [ "hilog_ndk.z" ]
     libs += [ "ace_napi.z" ]
     libs += [ "uv" ]
+    libs += [ "hitrace_ndk.z" ]
   }else if (is_linux) {
     sources += [
       "platform/linux/message_loop_linux.cc",

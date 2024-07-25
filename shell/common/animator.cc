@@ -197,6 +197,7 @@ void Animator::DrawLastLayerTree(
 }
 
 void Animator::RequestFrame(bool regenerate_layer_tree) {
+  TRACE_EVENT0("flutter", "Animator::RequestFrame");
   if (regenerate_layer_tree) {
     // This event will be closed by BeginFrame. BeginFrame will only be called
     // if regenerating the layer tree. If a frame has been requested to update
@@ -210,6 +211,7 @@ void Animator::RequestFrame(bool regenerate_layer_tree) {
   if (!pending_frame_semaphore_.TryWait()) {
     // Multiple calls to Animator::RequestFrame will still result in a
     // single request to the VsyncWaiter.
+    TRACE_EVENT0("flutter", "Animator::pending_frame_semaphore");
     return;
   }
 
@@ -231,6 +233,7 @@ void Animator::RequestFrame(bool regenerate_layer_tree) {
 }
 
 void Animator::AwaitVSync() {
+  TRACE_EVENT0("flutter", "Animator::AwaitVSync");
   waiter_->AsyncWaitForVsync(
       [self = weak_factory_.GetWeakPtr()](
           std::unique_ptr<FrameTimingsRecorder> frame_timings_recorder) {

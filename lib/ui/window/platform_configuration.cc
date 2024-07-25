@@ -12,6 +12,7 @@
 #include "flutter/lib/ui/window/platform_message_response_dart_port.h"
 #include "flutter/lib/ui/window/viewport_metrics.h"
 #include "flutter/lib/ui/window/window.h"
+#include "flutter/fml/trace_event.h"
 #include "third_party/tonic/converter/dart_converter.h"
 #include "third_party/tonic/dart_args.h"
 #include "third_party/tonic/dart_library_natives.h"
@@ -203,6 +204,7 @@ void PlatformConfiguration::DispatchSemanticsAction(int32_t id,
 
 void PlatformConfiguration::BeginFrame(fml::TimePoint frameTime,
                                        uint64_t frame_number) {
+  TRACE_EVENT0("flutter", "PlatformConfiguration::BeginFrame");
   std::shared_ptr<tonic::DartState> dart_state =
       begin_frame_.dart_state().lock();
   if (!dart_state) {
@@ -212,6 +214,7 @@ void PlatformConfiguration::BeginFrame(fml::TimePoint frameTime,
 
   int64_t microseconds = (frameTime - fml::TimePoint()).ToMicroseconds();
 
+  TRACE_EVENT0("flutter", "PlatformConfiguration::begin_frame_");
   tonic::CheckAndHandleError(
       tonic::DartInvoke(begin_frame_.Get(), {
                                                 Dart_NewInteger(microseconds),
@@ -220,6 +223,7 @@ void PlatformConfiguration::BeginFrame(fml::TimePoint frameTime,
 
   UIDartState::Current()->FlushMicrotasksNow();
 
+  TRACE_EVENT0("flutter", "PlatformConfiguration::draw_frame_");
   tonic::CheckAndHandleError(tonic::DartInvokeVoid(draw_frame_.Get()));
 }
 
