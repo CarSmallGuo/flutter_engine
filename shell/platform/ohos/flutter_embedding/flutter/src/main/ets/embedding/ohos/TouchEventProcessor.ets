@@ -19,7 +19,8 @@
 
 import { CustomTouchEvent, CustomTouchObject } from '../../plugin/platform/CustomTouchEvent';
 import display from '@ohos.display';
-
+import FlutterManager from './FlutterManager';
+import { EmbeddingNodeController } from './EmbeddingNodeController';
 
 
 const OH_NATIVEXCOMPONENT_UNKNOWN = 4;
@@ -243,15 +244,44 @@ export default class TouchEventProcessor {
     return customTouchEvent;
   }
 
-  // private onTouchEvent(strings: Array<string>): void {
-  //   Log.d(TAG, "called onTouchEvent ");
-  //   FlutterManager.getInstance().getFlutterViewList().forEach((value) => {
-  //     let top: number = value.getPlatformViewSize().top;
-  //     let left: number = value.getPlatformViewSize().left;
-  //     let densityPixels:number = display.getDefaultDisplaySync().densityPixels;
+  public postTouchEvent(strings: Array<string>) {
+    FlutterManager.getInstance().getFlutterViewList().forEach((value) => {
+      let length = value.getDVModel().children.length
+      for (let index = length - 1; index >= 0; index--) {
+        let dvModel = value.getDVModel().children[index]
+        let params = dvModel.getLayoutParams() as Record<string, ESObject>;
+        let left = params['marginLeft'] as number ?? 0;
+        let top = params['marginTop'] as number ?? 0;
+        let down = params['down'] as boolean ?? false;
+        if (down) {
+          //如果flutter端判断当前platformView是可点击的，则将事件分发出去
+          let touchEvent = TouchEventProcessor.getInstance().constureCustomTouchEvent(strings, top, left);
+          let nodeController = params['nodeController'] as EmbeddingNodeController;
+          nodeController.postEvent(touchEvent)
+        } else if (strings[6] == '0' && !down) {
+          //如果触摸事件为OH_NATIVEXCOMPONENT_DOWN=0，且只有一个手指，说明是下一次点击了，这时候需要清空上一次的数据
+          if (strings[6] == '0' && strings[0] == '1') {
+            params['touchEvent'] = undefined
+          }
+          //如果触摸事件为OH_NATIVEXCOMPONENT_DOWN=0类型，且在flutter端还没判断当前view是否处于点击区域内，则
+          //将点击事件存储在list列表中。
+          let touchEvent = TouchEventProcessor.getInstance().constureCustomTouchEvent(strings, top, left);
+          let array: Array<CustomTouchEvent> | undefined = params['touchEvent'] as Array<CustomTouchEvent>
+          if (array == undefined) {
+            array = []
+            params['touchEvent'] = array
+          }
+          array.push(touchEvent)
+        }
+      }
+    });
+  }
 
-  //     let touchPacket: TouchPacket = this.decodeTouchPacket(strings, densityPixels, top, left);
-  //     value.getEmbeddingNodeController().postEvent(this.constureCustomTouchEvent(touchPacket));
-  //   });
-  // }
+  public checkHitPlatformView(left: number, top: number, width: number, height: number, x: number, y: number): boolean {
+    if (x >= left && x <= (left + width) && y >= top && y <= (top + height)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

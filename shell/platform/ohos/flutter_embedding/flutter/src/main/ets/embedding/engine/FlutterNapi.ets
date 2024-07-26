@@ -30,7 +30,6 @@ import FlutterManager from '../ohos/FlutterManager';
 import deviceInfo from '@ohos.deviceInfo';
 import TouchEventProcessor from '../ohos/TouchEventProcessor';
 import { EmbeddingNodeController } from '../ohos/EmbeddingNodeController';
-import { CustomTouchEvent } from '../../plugin/platform/CustomTouchEvent';
 
 const TAG = "FlutterNapi";
 
@@ -43,7 +42,7 @@ enum ContextType {
  * 提供arkTs的flutterNAPI接口
  */
 export default class FlutterNapi {
-  hasInit: boolean = false;
+  private static hasInit: boolean = false;
   //是否已实现
   hasImplemented: boolean = false;
 
@@ -54,7 +53,6 @@ export default class FlutterNapi {
   localizationPlugin: LocalizationPlugin | null = null;
 
   isDisplayingFlutterUi: boolean = false;
-
   /**
    * 更新刷新率
    * @param rate
@@ -69,15 +67,32 @@ export default class FlutterNapi {
        appStoragePath: string,
        engineCachesPath: string,
        initTimeMillis: number) {
-    if (this.hasInit) {
-      throw Error("the engine has init");
+    if (FlutterNapi.hasInit) {
+      Log.e(TAG, "the engine has init");
+      return;
     }
-    this.hasInit = true;
-    Log.w(TAG, "init: bundlePath=" + bundlePath + "  appStoragePath=" + appStoragePath + "  engineCachesPath=" + engineCachesPath + "  args=" + JSON.stringify(args));
-    flutter.nativeInit(context, args, bundlePath, appStoragePath, engineCachesPath, initTimeMillis, deviceInfo.productModel);
+    Log.w(TAG, JSON.stringify({
+      "name": "init, initTimeMillis=" + initTimeMillis,
+      "bundlePath": bundlePath,
+      "appStoragePath": appStoragePath,
+      "engineCachesPath": engineCachesPath,
+      "args": args,
+    }));
+    let code: number | null = flutter.nativeInit(context, args, bundlePath, appStoragePath,
+      engineCachesPath, initTimeMillis, deviceInfo.productModel);
+    FlutterNapi.hasInit = code == 0;
+    Log.i(TAG, "init code=" + code + ", FlutterNapi.hasInit" + FlutterNapi.hasInit);
+  }
+
+  static prefetchDefaultFontManager(): void {
+    flutter.nativePrefetchDefaultFontManager();
   }
 
   attachToNative(): void {
+    if (!FlutterNapi.hasInit) {
+      Log.e(TAG, "attachToNative fail, FlutterNapi.hasInit=" + FlutterNapi.hasInit);
+      return;
+    }
     this.nativeShellHolderId = flutter.nativeAttach(this);
     Log.w(TAG, "nativeShellHolderId=" + this.nativeShellHolderId);
   }
@@ -88,6 +103,10 @@ export default class FlutterNapi {
     pathToEntrypointFunction: string,
     assetManager: resourceManager.ResourceManager,
     entrypointArgs: Array<string>) {
+    if (!FlutterNapi.hasInit) {
+      Log.e(TAG, "runBundleAndSnapshotFromLibrary fail, FlutterNapi.hasInit=" + FlutterNapi.hasInit);
+      return;
+    }
     Log.w(TAG, "init: bundlePath=" + bundlePath + "  entrypointFunctionName=" + entrypointFunctionName + "  pathToEntrypointFunction=" + pathToEntrypointFunction + "  entrypointArgs=" + JSON.stringify(entrypointArgs))
     flutter.nativeRunBundleAndSnapshotFromLibrary(this.nativeShellHolderId!, bundlePath, entrypointFunctionName, pathToEntrypointFunction, assetManager, entrypointArgs);
   };
@@ -405,35 +424,7 @@ export default class FlutterNapi {
 
   /** Dispatch Touch Event */
   onTouchEvent(strings: Array<string>): void {
-    FlutterManager.getInstance().getFlutterViewList().forEach((value) => {
-      let length = value.getDVModel().children.length
-      for (let index = length - 1; index >= 0; index--) {
-        let dvModel = value.getDVModel().children[index]
-        let params = dvModel.getLayoutParams() as Record<string, Any>;
-        let left = params['left'] as number ?? 0;
-        let top = params['top'] as number ?? 0;
-        let down = params['down'] as boolean ?? false;
-        if (down) {
-          //如果flutter端判断当前platformView是可点击的，则将事件分发出去
-          let touchEvent = TouchEventProcessor.getInstance().constureCustomTouchEvent(strings, top, left);
-          let nodeController = params['nodeController'] as EmbeddingNodeController;
-          nodeController.postEvent(touchEvent)
-        } else if (strings[6] == '0' && !down) {
-          //如果触摸事件为OH_NATIVEXCOMPONENT_DOWN=0类型，且在flutter端还没判断当前view是否处于点击区域内，则
-          //将点击事件存储在list列表中。
-          let touchEvent = TouchEventProcessor.getInstance().constureCustomTouchEvent(strings, top, left);
-          let array: Array<CustomTouchEvent> | undefined = params['touchEvent'] as Array<CustomTouchEvent>
-          if (array == undefined) {
-            array = []
-            params['touchEvent'] = array
-          }
-          array.push(touchEvent)
-        } else if (strings[0] == '1' && strings[6] == '1') {
-          //如果当前触控手指的个数为1个，且当前点击类型为OH_NATIVEXCOMPONENT_UP，则清空列表数据
-          params['touchEvent'] = undefined
-        }
-      }
-    });
+    TouchEventProcessor.getInstance().postTouchEvent(strings);
   }
 
 }
