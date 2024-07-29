@@ -76,7 +76,7 @@ export struct FlutterPage {
           children: child.children,
           customBuilder: child.builder
         })
-          .position({x: (child.params as Record<string, ESObject>)['marginLeft'] as number, y: (child.params as Record<string, ESObject>)['marginTop'] as number})
+          .position({ x: 0, y: 0 })
       }, (child: ESObject) => `${child.id_}`)
 
 
