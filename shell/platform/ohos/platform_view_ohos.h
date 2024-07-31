@@ -121,6 +121,7 @@ class PlatformViewOHOS final : public PlatformView {
       const override {
     return platform_message_handler_;
   }
+  void OnTouchEvent(std::shared_ptr<std::string[]> touchPacketString, int size);
 
  private:
   const std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;
