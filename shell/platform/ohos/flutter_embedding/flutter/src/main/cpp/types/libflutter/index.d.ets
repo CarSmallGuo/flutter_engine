@@ -99,6 +99,16 @@ export const nativeXComponentAttachFlutterEngine: (xcomponentId: string, nativeS
 
 export const nativeXComponentDetachFlutterEngine: (xcomponentId: string, nativeShellHolderId: number) => void;
 
+export const nativeXComponentDispatchMouseWheel: (nativeShellHolderId: number,
+                                                  xcomponentId: string,
+                                                  eventType: string,
+                                                  fingerId: number,
+                                                  globalX: number,
+                                                  globalY: number,
+                                                  offsetY: number,
+                                                  timestamp: number
+                                                  ) => void;
+
 /**
  * Detaches flutterNapi和engine之间的关联
  * 这个方法执行前提是flutterNapi已经和engine关联
