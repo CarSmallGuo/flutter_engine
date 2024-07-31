@@ -44,9 +44,9 @@ class OhosTouchProcessor {
   flutter::PointerData::DeviceKind getPointerDeviceTypeForToolType(
       int toolType);
   flutter::PointerData::Change getPointerChangeForMouseAction(
-    OH_NativeXComponent_MouseEventAction mouseAction);
+      OH_NativeXComponent_MouseEventAction mouseAction);
   PointerButtonMouse getPointerButtonFromMouse(
-    OH_NativeXComponent_MouseEventButton mouseButton);
+      OH_NativeXComponent_MouseEventButton mouseButton);
 
  private:
   std::shared_ptr<std::string[]> packagePacketData(std::unique_ptr<OhosTouchProcessor::TouchPacket> touchPacket);
