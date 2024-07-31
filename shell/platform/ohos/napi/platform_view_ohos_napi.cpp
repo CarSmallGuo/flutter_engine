@@ -1705,7 +1705,7 @@ napi_value PlatformViewOHOSNapi::nativeXComponentDispatchMouseWheel(napi_env env
         offsetY,
         timestamp
     };
-    XComponentAdapter::GetInstance()->OnMouseWheel(xcomponent_id, event);
+    XComponentAdapter::GetInstance()->OnMouseWheel(xcomponentId, event);
     return nullptr;
 }
 
