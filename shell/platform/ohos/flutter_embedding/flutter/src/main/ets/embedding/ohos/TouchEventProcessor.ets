@@ -246,22 +246,32 @@ export default class TouchEventProcessor {
 
   public postTouchEvent(strings: Array<string>) {
     FlutterManager.getInstance().getFlutterViewList().forEach((value) => {
-      let length = value.getDVModel().children.length;
+      let length = value.getDVModel().children.length
       for (let index = length - 1; index >= 0; index--) {
-        let dvModel = value.getDVModel().children[index];
-        let params = dvModel.getLayoutParams();
-        let params2 = params as Record<string, ESObject>;
-        let nodeController = params2['nodeController'] as EmbeddingNodeController;
-        let left = params2['left'] as number ?? 0;
-        let top = params2['top'] as number ?? 0;
-        let width = params2['width'] as number ?? 0;
-        let height = params2['height'] as number ?? 0;
-        let customTouchEvent = TouchEventProcessor.instance.constureCustomTouchEvent(strings, top, left);
-        let x = customTouchEvent.changedTouches[0].screenX;
-        let y = customTouchEvent.changedTouches[0].screenY;
-        if (TouchEventProcessor.instance.checkHitPlatformView(left, top, width, height, x, y)) {
-          nodeController.postEvent(customTouchEvent);
-          break;
+        let dvModel = value.getDVModel().children[index]
+        let params = dvModel.getLayoutParams() as Record<string, ESObject>;
+        let left = params['left'] as number ?? 0;
+        let top = params['top'] as number ?? 0;
+        let down = params['down'] as boolean ?? false;
+        if (down) {
+          //如果flutter端判断当前platformView是可点击的，则将事件分发出去
+          let touchEvent = TouchEventProcessor.getInstance().constureCustomTouchEvent(strings, top, left);
+          let nodeController = params['nodeController'] as EmbeddingNodeController;
+          nodeController.postEvent(touchEvent)
+        } else if (strings[6] == '0' && !down) {
+          //如果触摸事件为OH_NATIVEXCOMPONENT_DOWN=0，且只有一个手指，说明是下一次点击了，这时候需要清空上一次的数据
+          if (strings[6] == '0' && strings[0] == '1') {
+            params['touchEvent'] = undefined
+          }
+          //如果触摸事件为OH_NATIVEXCOMPONENT_DOWN=0类型，且在flutter端还没判断当前view是否处于点击区域内，则
+          //将点击事件存储在list列表中。
+          let touchEvent = TouchEventProcessor.getInstance().constureCustomTouchEvent(strings, top, left);
+          let array: Array<CustomTouchEvent> | undefined = params['touchEvent'] as Array<CustomTouchEvent>
+          if (array == undefined) {
+            array = []
+            params['touchEvent'] = array
+          }
+          array.push(touchEvent)
         }
       }
     });
