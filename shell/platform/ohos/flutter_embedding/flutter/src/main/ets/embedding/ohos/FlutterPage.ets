@@ -76,7 +76,6 @@ export struct FlutterPage {
           children: child.children,
           customBuilder: child.builder
         })
-          .position({ x: 0, y: 0 })
       }, (child: ESObject) => `${child.id_}`)
 
 
