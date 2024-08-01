@@ -37,6 +37,16 @@ struct locale {
   std::string region;
 };
 
+struct mouseWheelEvent {
+    std::string eventType;
+    int64_t shellHolder;
+    int64_t fingerId;
+    double globalX;
+    double globalY;
+    double offsetY;
+    int64_t timestamp;
+};
+
 class PlatformViewOHOSNapi {
  public:
   static napi_value nativeDispatchEmptyPlatformMessage(
@@ -179,6 +189,9 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);
   static napi_value nativeXComponentDetachFlutterEngine(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeXComponentDispatchMouseWheel(
       napi_env env,
       napi_callback_info info);
 
