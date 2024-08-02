@@ -317,6 +317,7 @@ constexpr FlutterGPUShaderStage FromImpellerShaderStage(
                      << static_cast<size_t>(value);
       FML_UNREACHABLE();
   }
+  return FlutterGPUShaderStage::kVertex;
 }
 
 enum class FlutterGPUMinMagFilter {

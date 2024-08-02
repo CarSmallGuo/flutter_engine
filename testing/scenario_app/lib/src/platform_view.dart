@@ -802,6 +802,7 @@ class PlatformViewLargeClipRRectScenario extends PlatformViewScenario {
   }
 }
 
+
 /// Platform view with clip path.
 class PlatformViewClipPathScenario extends PlatformViewScenario {
   /// Constructs a platform view with clip path scenario.
@@ -961,6 +962,7 @@ class PlatformViewLargeClipRRectWithTransformScenario extends PlatformViewScenar
     finishBuilder(builder);
   }
 }
+
 
 /// Platform view with clip path after transformed.
 class PlatformViewClipPathWithTransformScenario extends PlatformViewScenario {

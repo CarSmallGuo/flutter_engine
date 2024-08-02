@@ -199,7 +199,10 @@ class FakeCommandBuffer : public CommandBuffer {
                                                  render_target);
   }
 
-  std::shared_ptr<BlitPass> OnCreateBlitPass() override { FML_UNREACHABLE() }
+  std::shared_ptr<BlitPass> OnCreateBlitPass() override {
+    FML_UNREACHABLE();
+    return nullptr;
+  }
 
   virtual bool OnSubmitCommands(CompletionCallback callback) { return true; }
 
@@ -207,6 +210,7 @@ class FakeCommandBuffer : public CommandBuffer {
 
   std::shared_ptr<ComputePass> OnCreateComputePass() override {
     FML_UNREACHABLE();
+    return nullptr;
   }
 };
 

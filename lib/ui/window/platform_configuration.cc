@@ -20,6 +20,8 @@
 #include "third_party/tonic/logging/dart_invoke.h"
 #include "third_party/tonic/typed_data/dart_byte_data.h"
 
+#include "flutter/fml/platform/ohos/hisysevent_c.h"
+
 namespace flutter {
 namespace {
 
@@ -293,6 +295,8 @@ void PlatformConfiguration::DispatchPlatformMessage(
     std::unique_ptr<PlatformMessage> message) {
   std::shared_ptr<tonic::DartState> dart_state =
       dispatch_platform_message_.dart_state().lock();
+
+  FML_DLOG(INFO) << "DispatchPlatformMessage channel: " << message->channel();
   if (!dart_state) {
     FML_DLOG(WARNING)
         << "Dropping platform message for lack of DartState on channel: "
@@ -346,6 +350,7 @@ void PlatformConfiguration::DispatchSemanticsAction(int32_t node_id,
                                                     fml::MallocMapping args) {
   std::shared_ptr<tonic::DartState> dart_state =
       dispatch_semantics_action_.dart_state().lock();
+  FML_DLOG(INFO) << "DispatchSemanticsAction : " << node_id;
   if (!dart_state) {
     return;
   }
@@ -375,6 +380,7 @@ void PlatformConfiguration::BeginFrame(fml::TimePoint frameTime,
 
   int64_t microseconds = (frameTime - fml::TimePoint()).ToMicroseconds();
 
+  HISYSEVENT_WRITE_DURATION("flutter build frame time");
   tonic::CheckAndHandleError(
       tonic::DartInvoke(begin_frame_.Get(), {
                                                 Dart_NewInteger(microseconds),
@@ -533,6 +539,8 @@ Dart_Handle PlatformConfigurationNativeApi::SendPortPlatformMessage(
 void PlatformConfigurationNativeApi::RespondToPlatformMessage(
     int response_id,
     const tonic::DartByteData& data) {
+  FML_DLOG(INFO) << "PlatformConfigurationNativeApi::RespondToPlatformMessage:"
+                 << response_id;
   if (Dart_IsNull(data.dart_handle())) {
     UIDartState::Current()
         ->platform_configuration()

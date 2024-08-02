@@ -431,7 +431,7 @@ shared_library("flutter_engine_library") {
   if (is_mac && !embedder_for_target) {
     ldflags += [ "-Wl,-install_name,@rpath/FlutterEmbedder.framework/$_framework_binary_subpath" ]
   }
-  if (is_linux) {
+  if (is_ohos || is_linux) {
     ldflags += [ "-Wl,--version-script=" + rebase_path("embedder_exports.lst") ]
   }
 

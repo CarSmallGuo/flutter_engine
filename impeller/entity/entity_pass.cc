@@ -751,6 +751,7 @@ EntityPass::EntityResult EntityPass::GetEntityForElement(
     return EntityPass::EntityResult::Success(std::move(element_entity));
   }
   FML_UNREACHABLE();
+  return EntityPass::EntityResult::Failure();
 }
 
 static void SetClipScissor(std::optional<Rect> clip_coverage,

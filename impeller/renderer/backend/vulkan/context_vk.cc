@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// FLUTTER_NOLINT: https://github.com/flutter/flutter/issues/68331
+#pragma clang diagnostic ignored "-Wc++11-narrowing"
+
 #include "impeller/renderer/backend/vulkan/context_vk.h"
 
 #include "fml/concurrent_message_loop.h"

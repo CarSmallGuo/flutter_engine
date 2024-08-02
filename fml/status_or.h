@@ -77,6 +77,7 @@ class StatusOr {
     }
     FML_LOG(FATAL) << "StatusOr::value() called on error Status";
     FML_UNREACHABLE();
+    return value_.value();
   }
 
   T& value() {
@@ -86,6 +87,7 @@ class StatusOr {
     }
     FML_LOG(FATAL) << "StatusOr::value() called on error Status";
     FML_UNREACHABLE();
+    return value_.value();
   }
 
  private:

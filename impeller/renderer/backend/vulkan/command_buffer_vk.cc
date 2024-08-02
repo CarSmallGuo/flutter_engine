@@ -51,6 +51,7 @@ const std::shared_ptr<CommandEncoderVK>& CommandBufferVK::GetEncoder() {
 
 bool CommandBufferVK::OnSubmitCommands(CompletionCallback callback) {
   FML_UNREACHABLE()
+  return false;
 }
 
 void CommandBufferVK::OnWaitUntilScheduled() {}

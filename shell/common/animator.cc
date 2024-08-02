@@ -9,6 +9,7 @@
 #include "flutter/fml/time/time_point.h"
 #include "flutter/fml/trace_event.h"
 #include "third_party/dart/runtime/include/dart_tools_api.h"
+#include "flutter/fml/logging.h"
 
 namespace flutter {
 
@@ -163,6 +164,7 @@ void Animator::EndFrame() {
     // time to start doing GC work.
     task_runners_.GetUITaskRunner()->PostDelayedTask(
         [self = weak_factory_.GetWeakPtr()]() {
+
           if (!self) {
             return;
           }
