@@ -250,8 +250,8 @@ export default class TouchEventProcessor {
       for (let index = length - 1; index >= 0; index--) {
         let dvModel = value.getDVModel().children[index]
         let params = dvModel.getLayoutParams() as Record<string, ESObject>;
-        let left = params['left'] as number ?? 0;
-        let top = params['top'] as number ?? 0;
+        let left = params['marginLeft'] as number ?? 0;
+        let top = params['marginTop'] as number ?? 0;
         let down = params['down'] as boolean ?? false;
         if (down) {
           //如果flutter端判断当前platformView是可点击的，则将事件分发出去
