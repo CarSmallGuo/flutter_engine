@@ -15,7 +15,6 @@
 import StringUtils from '../../util/StringUtils';
 
 import MessageCodec from './MessageCodec';
-import MethodCodec from './MethodCodec';
 import StringCodec from './StringCodec';
 import TreeMap from '@ohos.util.TreeMap';
 import HashMap from '@ohos.util.HashMap';
@@ -26,7 +25,7 @@ import LinkedList from '@ohos.util.LinkedList';
 import Any from './Any';
 
 /**
- * A {@link MethodCodec} using UTF-8 encoded JSON method calls and result envelopes.
+ * A {@link MessageCodec} using UTF-8 encoded JSON method calls and result envelopes.
  *
  * <p>This codec is guaranteed to be compatible with the corresponding <a
  * href="https://api.flutter.dev/flutter/services/JSONMethodCodec-class.html">JSONMethodCodec</a> on

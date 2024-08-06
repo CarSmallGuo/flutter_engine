@@ -28,6 +28,9 @@ import i18n from '@ohos.i18n';
 import Any from '../../plugin/common/Any';
 import FlutterManager from '../ohos/FlutterManager';
 import deviceInfo from '@ohos.deviceInfo';
+import TouchEventProcessor from '../ohos/TouchEventProcessor';
+import { EmbeddingNodeController } from '../ohos/EmbeddingNodeController';
+import BuildProfile from '../../../../../BuildProfile';
 
 const TAG = "FlutterNapi";
 
@@ -40,7 +43,7 @@ enum ContextType {
  * 提供arkTs的flutterNAPI接口
  */
 export default class FlutterNapi {
-  hasInit: boolean = false;
+  private static hasInit: boolean = false;
   //是否已实现
   hasImplemented: boolean = false;
 
@@ -51,7 +54,6 @@ export default class FlutterNapi {
   localizationPlugin: LocalizationPlugin | null = null;
 
   isDisplayingFlutterUi: boolean = false;
-
   /**
    * 更新刷新率
    * @param rate
@@ -66,17 +68,35 @@ export default class FlutterNapi {
        appStoragePath: string,
        engineCachesPath: string,
        initTimeMillis: number) {
-    if (this.hasInit) {
-      throw Error("the engine has init");
+    if (FlutterNapi.hasInit) {
+      Log.e(TAG, "the engine has init");
+      return;
     }
-    this.hasInit = true;
-    Log.w(TAG, "init: bundlePath=" + bundlePath + "  appStoragePath=" + appStoragePath + "  engineCachesPath=" + engineCachesPath + "  args=" + JSON.stringify(args));
-    flutter.nativeInit(context, args, bundlePath, appStoragePath, engineCachesPath, initTimeMillis, deviceInfo.productModel);
+    Log.d(TAG, "HAR_VERSION=" + BuildProfile.HAR_VERSION);
+    Log.d(TAG, JSON.stringify({
+      "name": "init, initTimeMillis=" + initTimeMillis,
+      "bundlePath": bundlePath,
+      "appStoragePath": appStoragePath,
+      "engineCachesPath": engineCachesPath,
+      "args": args,
+    }));
+    let code: number | null = flutter.nativeInit(context, args, bundlePath, appStoragePath,
+      engineCachesPath, initTimeMillis, deviceInfo.productModel);
+    FlutterNapi.hasInit = code == 0;
+    Log.d(TAG, "init code=" + code + ", FlutterNapi.hasInit" + FlutterNapi.hasInit);
+  }
+
+  static prefetchDefaultFontManager(): void {
+    flutter.nativePrefetchDefaultFontManager();
   }
 
   attachToNative(): void {
+    if (!FlutterNapi.hasInit) {
+      Log.e(TAG, "attachToNative fail, FlutterNapi.hasInit=" + FlutterNapi.hasInit);
+      return;
+    }
     this.nativeShellHolderId = flutter.nativeAttach(this);
-    Log.w(TAG, "nativeShellHolderId=" + this.nativeShellHolderId);
+    Log.d(TAG, "nativeShellHolderId=" + this.nativeShellHolderId);
   }
 
   runBundleAndSnapshotFromLibrary(
@@ -85,7 +105,11 @@ export default class FlutterNapi {
     pathToEntrypointFunction: string,
     assetManager: resourceManager.ResourceManager,
     entrypointArgs: Array<string>) {
-    Log.w(TAG, "init: bundlePath=" + bundlePath + "  entrypointFunctionName=" + entrypointFunctionName + "  pathToEntrypointFunction=" + pathToEntrypointFunction + "  entrypointArgs=" + JSON.stringify(entrypointArgs))
+    if (!FlutterNapi.hasInit) {
+      Log.e(TAG, "runBundleAndSnapshotFromLibrary fail, FlutterNapi.hasInit=" + FlutterNapi.hasInit);
+      return;
+    }
+    Log.d(TAG, "init: bundlePath=" + bundlePath + "  entrypointFunctionName=" + entrypointFunctionName + "  pathToEntrypointFunction=" + pathToEntrypointFunction + "  entrypointArgs=" + JSON.stringify(entrypointArgs))
     flutter.nativeRunBundleAndSnapshotFromLibrary(this.nativeShellHolderId!, bundlePath, entrypointFunctionName, pathToEntrypointFunction, assetManager, entrypointArgs);
   };
 
@@ -152,13 +176,6 @@ export default class FlutterNapi {
   dispatchPlatformMessage(channel: String, message: ArrayBuffer, position: number, responseId: number): void {
     this.ensureRunningOnMainThread();
     if (this.isAttached()) {
-
-      const uintArrayBuff = new Uint8Array(message)
-      let text = ''
-      for (let i = 0; i < uintArrayBuff.byteLength; i++) {
-        text += uintArrayBuff[i] + ','
-      }
-      Log.w(TAG, "message=" + message.byteLength + ",text=" + text);
       flutter.nativeDispatchPlatformMessage(this.nativeShellHolderId!, channel, message, position, responseId);
     } else {
       Log.w(
@@ -240,7 +257,7 @@ export default class FlutterNapi {
 
   //Called by native to respond to a platform message that we sent.
   handlePlatformMessageResponse(replyId: number, reply: ArrayBuffer): void {
-    Log.w(TAG, "called handlePlatformMessageResponse Response ID: " + replyId);
+    Log.d(TAG, "called handlePlatformMessageResponse Response ID: " + replyId);
     if (this.platformMessageHandler != null) {
       this.platformMessageHandler.handlePlatformMessageResponse(replyId, reply);
     }
@@ -248,7 +265,7 @@ export default class FlutterNapi {
 
   // Called by native on any thread.
   handlePlatformMessage(channel: string, message: ArrayBuffer, replyId: number, messageData: number): void {
-    Log.w(TAG, "called handlePlatformMessage Channel: " + channel + ". Response ID: " + replyId);
+    Log.d(TAG, "called handlePlatformMessage Channel: " + channel + ". Response ID: " + replyId);
     if (this.platformMessageHandler != null) {
       this.platformMessageHandler.handleMessageFromDart(channel, message, replyId, messageData);
     }
@@ -383,6 +400,33 @@ export default class FlutterNapi {
     flutter.nativeXComponentDetachFlutterEngine(xcomponentId, this.nativeShellHolderId!);
   }
 
+  /**
+   * xcomponent send mouseWheel event to flutterEngine
+   * @param xcomponentId
+   * @param eventType
+   * @param event
+   */
+  xComponentDisPatchMouseWheel(xcomponentId: string, eventType: string, event: PanGestureEvent) {
+    // only mouse
+    if (event.source !== SourceType.Mouse) {
+      return;
+    }
+    const vaildFinger = event.fingerList?.find(item => item.globalX && item.globalY);
+    if (!vaildFinger) {
+      return;
+    }
+    flutter.nativeXComponentDispatchMouseWheel(
+      this.nativeShellHolderId!!,
+      xcomponentId,
+      eventType,
+      vaildFinger?.id,
+      vaildFinger?.localX,
+      vaildFinger?.localY,
+      event.offsetY,
+      event.timestamp
+    );
+  }
+
   detachFromNativeAndReleaseResources() {
     flutter.nativeDestroy(this.nativeShellHolderId!!);
   }
@@ -406,6 +450,12 @@ export default class FlutterNapi {
     Log.d(TAG, "called registerTexture ");
     return flutter.nativeRegisterTexture(this.nativeShellHolderId!, textureId);
   }
+
+  /** Dispatch Touch Event */
+  onTouchEvent(strings: Array<string>): void {
+    TouchEventProcessor.getInstance().postTouchEvent(strings);
+  }
+
 }
 
 export interface AccessibilityDelegate {

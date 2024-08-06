@@ -37,6 +37,80 @@
 
 #endif  //  defined(OS_FUCHSIA)
 
+
+#if defined(FML_OS_OHOS)
+
+#include <cstdio>
+#include <cstdarg>
+#include <hitrace/trace.h>
+
+class OHFlutterTrace {
+public:
+    explicit OHFlutterTrace(const char *fmt, ...)
+    {
+//#if !defined(_WIN32) && !defined(_APPLE)
+      char title[1000] = "OHFlutterTrace";
+      const char *title_ = title;
+      if (fmt != nullptr) {
+          va_list args;
+          va_start(args, fmt);
+          int32_t ret = vsnprintf(title, 1000, fmt, args);
+          va_end(args);
+          if (ret != -1) {
+              title_ = title;
+          } else {
+              title_ = "OHFlutterTraceFmt Format Error";
+          }
+      }
+      OH_HiTrace_StartTrace(title_);
+//#endif
+    }
+    ~OHFlutterTrace()
+    {
+//#if !defined(_WIN32) && !defined(_APPLE)
+      OH_HiTrace_FinishTrace();
+//#endif
+    }
+};
+
+#define TRACE_NAME(x, y) x##y
+
+#define TRACE_DURATION_LINE(l, a, args...) OHFlutterTrace TRACE_NAME(trace, l)(a, args)
+
+#define TRACE_DURATION(a, args...) TRACE_DURATION_LINE(__LINE__, a, args)
+
+
+#define FML_TRACE_EVENT(a, b, args...)
+#define FML_TRACE_COUNTER(a, b, c, arg1, ...)
+
+#define TRACE_FLOW_BEGIN(category, name, id) OH_HiTrace_StartAsyncTrace(category#name, id)
+
+#define TRACE_FLOW_STEP(category, name, id)
+
+#define TRACE_FLOW_END(category, name, id) OH_HiTrace_FinishAsyncTrace(category#name, id)
+
+#define TRACE_FMT "%s:%s "
+#define TRACE_EVENT0(a, b) TRACE_DURATION(TRACE_FMT, a, b)
+#define TRACE_EVENT1(a, b, c, d) TRACE_DURATION(TRACE_FMT TRACE_FMT, a, b, c, d)
+#define TRACE_EVENT2(a, b, c, d, e, f) TRACE_DURATION(TRACE_FMT TRACE_FMT TRACE_FMT TRACE_FMT, a, b, c, d, e, f)
+
+#define TRACE_EVENT_ASYNC_BEGIN0(a, b, c) OH_HiTrace_StartAsyncTrace(a#b, c)
+#define TRACE_EVENT_ASYNC_END0(a, b, c) OH_HiTrace_FinishAsyncTrace(a#b, c)
+
+#define TRACE_EVENT_ASYNC_BEGIN1(a, b, c, d, e)
+#define TRACE_EVENT_ASYNC_END1(a, b, c, d, e)
+
+#define TRACE_INSTANT(category_literal, name_literal, scope, args...)
+
+#define TRACE_EVENT_INSTANT0(a, b) TRACE_INSTANT(a, b, TRACE_SCOPE_THREAD)
+#define TRACE_EVENT_INSTANT1(a, b, k1, v1) \
+  TRACE_INSTANT(a, b, TRACE_SCOPE_THREAD, k1, v1)
+#define TRACE_EVENT_INSTANT2(a, b, k1, v1, k2, v2) \
+  TRACE_INSTANT(a, b, TRACE_SCOPE_THREAD, k1, v1, k2, v2)
+
+#endif // defined(FML_OS_OHOS)
+
+
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -53,7 +127,7 @@
 #define FLUTTER_TIMELINE_ENABLED 1
 #endif
 
-#if !defined(OS_FUCHSIA)
+#if !defined(OS_FUCHSIA) && !defined(FML_OS_OHOS)
 #ifndef TRACE_EVENT_HIDE_MACROS
 
 #define __FML__TOKEN_CAT__(x, y) x##y
