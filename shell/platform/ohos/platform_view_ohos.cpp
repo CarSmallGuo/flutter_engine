@@ -467,6 +467,7 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
       FML_DLOG(ERROR) << "Error with OH_NativeImage_GetSurfaceId";
       return surface_id;
     }
+    external_texture_gl_[texture_id] = ohos_external_gl;
     RegisterTexture(ohos_external_gl);
   }
   return surface_id;
@@ -534,6 +535,16 @@ void PlatformViewOHOS::RegisterExternalTextureByPixelMap(int64_t texture_id, Nat
       ohos_external_gl->DispatchPixelMap(pixelMap);
     }
     MarkTextureFrameAvailable(texture_id);
+  }
+}
+
+void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(int64_t texture_id, NativePixelMap* pixelMap)
+{
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    auto iter = external_texture_gl_.find(texture_id);
+    if (iter != external_texture_gl_.end()) {
+      iter->second->DispatchBackGroundPixelMap(pixelMap);
+    }
   }
 }
 
