@@ -150,6 +150,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
 
     let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
     if (viewWrapper != null) {
+      this.viewIdWithNodeController.get(viewId)?.setDestroy(true)
       if (this.flutterView) {
         let index = this.flutterView.getDVModel().children.indexOf(viewWrapper.getDvModel()!);
         this.flutterView.getDVModel().children.splice(index, 1);

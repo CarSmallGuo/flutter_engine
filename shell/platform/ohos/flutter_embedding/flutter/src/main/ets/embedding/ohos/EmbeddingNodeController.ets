@@ -77,6 +77,7 @@ export class EmbeddingNodeController extends NodeController {
   setDestroy(isDestroy : boolean) : void {
     this.isDestroy = isDestroy;
     if (this.isDestroy) {
+      this.rootNode?.dispose()
       this.rootNode = null;
     }
   }
