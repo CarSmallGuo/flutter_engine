@@ -184,8 +184,8 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     let viewWrapper=this.viewWrappers.get(viewId)
     if(viewWrapper!=undefined){
       let params: DVModelParameters | undefined = viewWrapper?.getDvModel()!.params
-      this.setParams(params!, "left", left);
-      this.setParams(params!, "top", top);
+      this.setParams(params!, "marginLeft", left);
+      this.setParams(params!, "marginTop", top);
     }
   }
 
@@ -327,8 +327,8 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
         "width": physicalWidth,
         "height": physicalHeight,
         "nodeController": nodeController,
-        "left": request.logicalLeft,
-        "top": request.logicalTop
+        "marginLeft": request.logicalLeft,
+        "marginTop": request.logicalTop
       },
       {},
       undefined));
