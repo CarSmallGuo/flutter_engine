@@ -24,6 +24,12 @@
         "file_path": "flutter/attachment/repos/dart.patch2"
     },
     {
+        "name": "dart3",
+        "target": "third_party/dart",
+        "type": "patch",
+        "file_path": "flutter/attachment/repos/dart.patch3"
+    },
+    {
         "name": "skia",
         "target": "third_party/skia",
         "type": "patch",

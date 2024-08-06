@@ -33,6 +33,11 @@ export const nativeUpdateRefreshRate: (
   ate: number
 ) => void;
 
+/*
+ * 初始化SkFontMgr::RefDefault()
+ */
+export const nativePrefetchDefaultFontManager: () => void;
+
 /**
  * 初始化dart vm和flutter engine
  */
@@ -44,7 +49,7 @@ export const nativeInit: (
   engineCachesPath: string,
   initTimeMillis: number,
   productModel: string
-) => void;
+) => number | null;
 
 export const nativeAttach: (napi: FlutterNapi) => number;
 
@@ -93,6 +98,16 @@ export const nativeGetSystemLanguages: (nativeShellHolderId: number, languages: 
 export const nativeXComponentAttachFlutterEngine: (xcomponentId: string, nativeShellHolderId: number) => void;
 
 export const nativeXComponentDetachFlutterEngine: (xcomponentId: string, nativeShellHolderId: number) => void;
+
+export const nativeXComponentDispatchMouseWheel: (nativeShellHolderId: number,
+                                                  xcomponentId: string,
+                                                  eventType: string,
+                                                  fingerId: number,
+                                                  globalX: number,
+                                                  globalY: number,
+                                                  offsetY: number,
+                                                  timestamp: number
+                                                  ) => void;
 
 /**
  * Detaches flutterNapi和engine之间的关联

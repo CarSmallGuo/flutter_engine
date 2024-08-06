@@ -24,6 +24,9 @@ import Log from '../../util/Log';
 import { EditingStateWatcher, ListenableEditingState } from './ListenableEditingState';
 import Any from '../common/Any';
 
+/// 临时规避缺少newline对应枚举问题
+const NEWLINE_KEY_TYPE: number = 8;
+
 export default class TextInputPlugin implements EditingStateWatcher {
   private static TAG = "TextInputPlugin";
   private textInputChannel: TextInputChannel;
@@ -157,6 +160,20 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     }
   }
 
+  async resetAttach(): Promise<void> {
+    try {
+      let textConfig: inputMethod.TextConfig = {
+        inputAttribute: {
+          textInputType: 0,
+          enterKeyType: 1
+        } 
+      };
+      await this.inputMethodController.attach(false, textConfig);
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to attach:" + JSON.stringify(err));
+    }
+  }
+
   setTextInputClient(client: number, configuration: Configuration | null): void {
     const INPUT_TYPE_NAME = ['NONE', 'TEXT', 'MULTILINE', 'NUMBER', 'PHONE', 'DATETIME', 'EMAIL_ADDRESS', 'URL', 'VISIBLE_PASSWORD']
     if (configuration) {
@@ -220,7 +237,8 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
     try {
       this.inputMethodController.on('sendFunctionKey', (functionKey) => {
-        if(functionKey.enterKeyType == inputMethod.EnterKeyType.NONE) {
+        /// 临时规避缺少newline对应枚举类型问题
+        if(functionKey.enterKeyType == NEWLINE_KEY_TYPE) {
           this.mEditable.handleNewlineEvent();
         }
         this.mEditable.handleFunctionKey(functionKey);
@@ -235,8 +253,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       this.inputMethodController.on('sendKeyboardStatus', (state) => {
         if (state == inputMethod.KeyboardStatus.HIDE) {
           this.plugin.textInputChannel.onConnectionClosed(this.inputTarget.id);
-          this.inputMethodController.detach();
-          this.cancelListenKeyBoardEvent();
+          this.resetAttach();
         }
       })
     } catch (err) {
@@ -275,6 +292,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.mEditable.removeEditingStateListener(this.plugin);
     this.configuration = null;
     this.inputTarget = new InputTarget(Type.NO_TARGET, 0);
+    this.resetAttach();
   }
 }
 
