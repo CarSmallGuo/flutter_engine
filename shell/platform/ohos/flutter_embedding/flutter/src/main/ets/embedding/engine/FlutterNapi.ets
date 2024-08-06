@@ -72,8 +72,8 @@ export default class FlutterNapi {
       Log.e(TAG, "the engine has init");
       return;
     }
-    Log.i(TAG, "HAR_VERSION=" + BuildProfile.HAR_VERSION);
-    Log.w(TAG, JSON.stringify({
+    Log.d(TAG, "HAR_VERSION=" + BuildProfile.HAR_VERSION);
+    Log.d(TAG, JSON.stringify({
       "name": "init, initTimeMillis=" + initTimeMillis,
       "bundlePath": bundlePath,
       "appStoragePath": appStoragePath,
@@ -83,7 +83,7 @@ export default class FlutterNapi {
     let code: number | null = flutter.nativeInit(context, args, bundlePath, appStoragePath,
       engineCachesPath, initTimeMillis, deviceInfo.productModel);
     FlutterNapi.hasInit = code == 0;
-    Log.i(TAG, "init code=" + code + ", FlutterNapi.hasInit" + FlutterNapi.hasInit);
+    Log.d(TAG, "init code=" + code + ", FlutterNapi.hasInit" + FlutterNapi.hasInit);
   }
 
   static prefetchDefaultFontManager(): void {
@@ -96,7 +96,7 @@ export default class FlutterNapi {
       return;
     }
     this.nativeShellHolderId = flutter.nativeAttach(this);
-    Log.w(TAG, "nativeShellHolderId=" + this.nativeShellHolderId);
+    Log.d(TAG, "nativeShellHolderId=" + this.nativeShellHolderId);
   }
 
   runBundleAndSnapshotFromLibrary(
@@ -109,7 +109,7 @@ export default class FlutterNapi {
       Log.e(TAG, "runBundleAndSnapshotFromLibrary fail, FlutterNapi.hasInit=" + FlutterNapi.hasInit);
       return;
     }
-    Log.w(TAG, "init: bundlePath=" + bundlePath + "  entrypointFunctionName=" + entrypointFunctionName + "  pathToEntrypointFunction=" + pathToEntrypointFunction + "  entrypointArgs=" + JSON.stringify(entrypointArgs))
+    Log.d(TAG, "init: bundlePath=" + bundlePath + "  entrypointFunctionName=" + entrypointFunctionName + "  pathToEntrypointFunction=" + pathToEntrypointFunction + "  entrypointArgs=" + JSON.stringify(entrypointArgs))
     flutter.nativeRunBundleAndSnapshotFromLibrary(this.nativeShellHolderId!, bundlePath, entrypointFunctionName, pathToEntrypointFunction, assetManager, entrypointArgs);
   };
 
@@ -257,7 +257,7 @@ export default class FlutterNapi {
 
   //Called by native to respond to a platform message that we sent.
   handlePlatformMessageResponse(replyId: number, reply: ArrayBuffer): void {
-    Log.w(TAG, "called handlePlatformMessageResponse Response ID: " + replyId);
+    Log.d(TAG, "called handlePlatformMessageResponse Response ID: " + replyId);
     if (this.platformMessageHandler != null) {
       this.platformMessageHandler.handlePlatformMessageResponse(replyId, reply);
     }
@@ -265,7 +265,7 @@ export default class FlutterNapi {
 
   // Called by native on any thread.
   handlePlatformMessage(channel: string, message: ArrayBuffer, replyId: number, messageData: number): void {
-    Log.w(TAG, "called handlePlatformMessage Channel: " + channel + ". Response ID: " + replyId);
+    Log.d(TAG, "called handlePlatformMessage Channel: " + channel + ". Response ID: " + replyId);
     if (this.platformMessageHandler != null) {
       this.platformMessageHandler.handleMessageFromDart(channel, message, replyId, messageData);
     }
