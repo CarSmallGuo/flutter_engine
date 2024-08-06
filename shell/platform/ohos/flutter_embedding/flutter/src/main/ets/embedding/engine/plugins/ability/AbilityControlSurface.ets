@@ -12,14 +12,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
-import AbilityConstant from '@ohos.app.ability.AbilityConstant';
-import Want from '@ohos.app.ability.Want';
-import UIAbility from '@ohos.app.ability.UIAbility';
+import { AbilityConstant, Want, common } from '@kit.AbilityKit';
 import ExclusiveAppComponent from '../../../ohos/ExclusiveAppComponent';
 
 export default interface ActivityControlSurface {
-  attachToAbility(exclusiveActivity: ExclusiveAppComponent<UIAbility>): void;
+  attachToAbility(exclusiveActivity: ExclusiveAppComponent<common.UIAbilityContext>): void;
   detachFromAbility(): void;
   onNewWant(want: Want, launchParams: AbilityConstant.LaunchParam): void;
   onWindowFocusChanged(hasFocus: boolean): void;

@@ -12,8 +12,16 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
-import UIAbility from '@ohos.app.ability.UIAbility';
+import {
+  AbilityConstant,
+  Configuration,
+  ConfigurationConstant,
+  UIAbility,
+  Want,
+  appRecovery,
+  common,
+  errorManager
+} from '@kit.AbilityKit';
 import window from '@ohos.window';
 import { FlutterAbilityAndEntryDelegate, Host } from './FlutterAbilityAndEntryDelegate';
 import Log from '../../util/Log';
@@ -21,18 +29,10 @@ import FlutterEngine from '../engine/FlutterEngine';
 import PlatformPlugin from '../../plugin/PlatformPlugin';
 import FlutterShellArgs from '../engine/FlutterShellArgs';
 import FlutterAbilityLaunchConfigs from './FlutterAbilityLaunchConfigs';
-import common from '@ohos.app.ability.common';
-import Want from '@ohos.app.ability.Want';
 import { FlutterPlugin } from '../engine/plugins/FlutterPlugin';
-import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 import I18n from '@ohos.i18n'
 import { PlatformBrightness } from '../engine/systemchannels/SettingsChannel';
-import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
-import { Configuration } from '@ohos.app.ability.Configuration';
-
 import ExclusiveAppComponent from './ExclusiveAppComponent';
-import errorManager from '@ohos.app.ability.errorManager';
-import appRecovery from '@ohos.app.ability.appRecovery';
 import FlutterManager from './FlutterManager';
 import { FlutterView } from '../../view/FlutterView';
 import ApplicationInfoLoader from '../engine/loader/ApplicationInfoLoader';
@@ -72,12 +72,9 @@ export class FlutterAbility extends UIAbility implements Host {
     AppStorage.setOrCreate('fontSizeScale', this.context.config.fontSizeScale);
 
     Log.i(TAG, "bundleCodeDir=" + this.context.bundleCodeDir);
-    FlutterManager.getInstance().pushUIAbility(this)
-
     this.delegate = new FlutterAbilityAndEntryDelegate(this);
     await this?.delegate?.onAttach(this.context);
     Log.i(TAG, 'onAttach end');
-    this?.delegate?.platformPlugin?.setUIAbilityContext(this.context);
     this?.delegate?.onRestoreInstanceState(want);
 
     if (this.stillAttachedForEvent("onCreate")) {
@@ -111,7 +108,6 @@ export class FlutterAbility extends UIAbility implements Host {
   }
 
   onDestroy() {
-    FlutterManager.getInstance().popUIAbility(this);
     this.context.eventHub.off(EVENT_BACK_PRESS);
     errorManager.off('error', this.errorManagerId);
 
@@ -136,7 +132,6 @@ export class FlutterAbility extends UIAbility implements Host {
    * @param windowStage
    */
   onWindowStageCreate(windowStage: window.WindowStage) {
-    FlutterManager.getInstance().pushWindowStage(this, windowStage);
     this.delegate?.initWindow();
     this.mainWindow = windowStage.getMainWindowSync();
     try {
@@ -188,7 +183,6 @@ export class FlutterAbility extends UIAbility implements Host {
   }
 
   onWindowStageDestroy() {
-    FlutterManager.getInstance().popWindowStage(this);
     if (this.stillAttachedForEvent("onWindowStageDestroy")) {
       this?.delegate?.onWindowStageDestroy();
     }
@@ -217,8 +211,8 @@ export class FlutterAbility extends UIAbility implements Host {
    * host所有实现方法开始======start
    */
 
-  getAbility(): UIAbility {
-    return this;
+  getAbilityContext(): common.UIAbilityContext {
+    return this.context;
   }
 
   getFlutterAbilityAndEntryDelegate(): FlutterAbilityAndEntryDelegate | null{
@@ -319,7 +313,7 @@ export class FlutterAbility extends UIAbility implements Host {
     return true;
   }
 
-  getExclusiveAppComponent(): ExclusiveAppComponent<UIAbility> | null {
+  getExclusiveAppComponent(): ExclusiveAppComponent<common.UIAbilityContext> | null {
     return this.delegate ? this.delegate : null
   }
 

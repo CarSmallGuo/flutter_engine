@@ -12,19 +12,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+import { Want, common } from '@kit.AbilityKit';
+import { window } from '@kit.ArkUI';
 
 import FlutterEngine from '../engine/FlutterEngine';
 import PlatformPlugin from '../../plugin/PlatformPlugin';
-import Want from '@ohos.app.ability.Want';
 import FlutterShellArgs from '../engine/FlutterShellArgs';
-import UIAbility from '@ohos.app.ability.UIAbility';
 import ExclusiveAppComponent from './ExclusiveAppComponent';
 import { FlutterAbilityAndEntryDelegate, Host } from './FlutterAbilityAndEntryDelegate';
 import FlutterAbilityLaunchConfigs from './FlutterAbilityLaunchConfigs';
 import Log from '../../util/Log';
 import { FlutterView } from '../../view/FlutterView';
-import FlutterManager from './FlutterManager';
-import window from '@ohos.window';
 import FlutterEngineConfigurator from './FlutterEngineConfigurator';
 import { FlutterPlugin } from '../engine/plugins/FlutterPlugin';
 
@@ -33,20 +31,18 @@ const TAG = "FlutterEntry";
 export default class FlutterEntry implements Host {
   private static ARG_SHOULD_ATTACH_ENGINE_TO_ABILITY: string =  "should_attach_engine_to_ability";
 
-  protected uiAbility: UIAbility | null = null
   protected delegate: FlutterAbilityAndEntryDelegate | null = null
   protected flutterView: FlutterView | null = null
-  protected context: Context;
+  protected context: common.UIAbilityContext;
   protected windowStage: window.WindowStage | null = null
   private parameters: Record<string, Object> = {};
   protected engineConfigurator: FlutterEngineConfigurator | null = null
   protected hasInit: boolean = false;
 
-  constructor(context: Context, params: Record<string, Object> = {}) {
+  constructor(context: common.UIAbilityContext, params: Record<string, Object> = {}) {
     this.context = context;
-    this.uiAbility = FlutterManager.getInstance().getUIAbility(context);
     this.parameters = params;
-    this.windowStage = FlutterManager.getInstance().getWindowStage(this.uiAbility);
+    this.windowStage = this.context.windowStage;
     this.hasInit = false;
   }
 
@@ -58,7 +54,6 @@ export default class FlutterEntry implements Host {
       this.flutterView?.onWindowCreated();
       await this?.delegate?.onAttach(this.context);
       Log.i(TAG, 'onAttach end');
-      this?.delegate?.platformPlugin?.setUIAbilityContext(this.uiAbility!!.context);
       this.delegate?.onCreate();
       this.delegate?.onWindowStageCreate()
       this.windowStage?.on('windowStageEvent', this.windowStageEventCallback);
@@ -140,12 +135,11 @@ export default class FlutterEntry implements Host {
     }
   }
 
-  getAbility(): UIAbility {
-    return this.uiAbility!!
+  getAbilityContext(): common.UIAbilityContext {
+    return this.context;
   }
 
   loadContent() {
-
   }
 
   shouldAttachEngineToAbility(): boolean {
@@ -220,7 +214,7 @@ export default class FlutterEntry implements Host {
     return true;
   }
 
-  getExclusiveAppComponent(): ExclusiveAppComponent<UIAbility> | null {
+  getExclusiveAppComponent(): ExclusiveAppComponent<common.UIAbilityContext> | null {
     return this.delegate ? this.delegate : null
   }
 

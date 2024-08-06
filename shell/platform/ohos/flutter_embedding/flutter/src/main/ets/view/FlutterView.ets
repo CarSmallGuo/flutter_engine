@@ -12,6 +12,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+import { common } from '@kit.AbilityKit';
 import FlutterEngine from '../embedding/engine/FlutterEngine';
 import Log from '../util/Log';
 import { DVModel, DVModelChildren, DVModelEvents, DVModelParameters } from './DynamicView/dynamicView';
@@ -92,17 +93,16 @@ export class FlutterView {
   private checkKeyboard: boolean = true;
   private checkGesture: boolean = true;
 
-  constructor(viewId: string, context: Context) {
+  constructor(viewId: string, context: common.UIAbilityContext) {
     this.id = viewId
     this.displayInfo = display.getDefaultDisplaySync();
+
     this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
     this.viewportMetrics.physicalTouchSlop = 1.0 * this.displayInfo?.densityPixels;
 
-    this.mainWindow = FlutterManager.getInstance()
-      .getWindowStage(FlutterManager.getInstance().getUIAbility(context))
-      .getMainWindowSync();
     this.mFirstFrameListeners = new ArrayList<FirstFrameListener>();
 
+    this.mainWindow = context.windowStage.getMainWindowSync();
     this.mainWindow?.on('windowSizeChange', this.windowSizeChangeCallback);
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
     this.mainWindow?.on('windowStatusChange', this.windowStatusChangeCallback);
