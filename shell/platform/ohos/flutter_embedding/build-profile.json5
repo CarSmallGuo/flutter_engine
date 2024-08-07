@@ -15,7 +15,21 @@
 
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\Lenovo\\.ohos\\config\\default_flutter_embedding_p0O9TETzADHWYDdHzCHvk0j0VZtvELp9efBkMnDAgw4=.cer",
+          "storePassword": "000000186D3C53D9596BCEA85CC838E3A67BF553502AE87E866E6B96FBEEB4082727584F07FD63BB",
+          "keyAlias": "debugKey",
+          "keyPassword": "000000186E4C61E716C0B371F0B05CDBF36FFA52F49E639C21713DD9CFC4A63C8279537E802831D0",
+          "profile": "C:\\Users\\Lenovo\\.ohos\\config\\default_flutter_embedding_p0O9TETzADHWYDdHzCHvk0j0VZtvELp9efBkMnDAgw4=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\Lenovo\\.ohos\\config\\default_flutter_embedding_p0O9TETzADHWYDdHzCHvk0j0VZtvELp9efBkMnDAgw4=.p12"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",
