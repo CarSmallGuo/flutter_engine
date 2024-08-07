@@ -127,12 +127,12 @@ std::unique_ptr<fml::Mapping> OHOSAssetProvider::GetAsMapping(
   }
   std::string relativePath = dir_ + "/" + asset_name;
 
-  LOGE("GetAsMapping=%{public}s->%{public}s", asset_name.c_str(),
+  LOGD("GetAsMapping=%{public}s->%{public}s", asset_name.c_str(),
        relativePath.c_str());
 
   RawFile* fileHandle =
       OH_ResourceManager_OpenRawFile(nativeResMgr, relativePath.c_str());
-  LOGE("GetAsMapping=%{public}s->%{public}p", relativePath.c_str(), fileHandle);
+  LOGD("GetAsMapping=%{public}s->%{public}p", relativePath.c_str(), fileHandle);
 
   if (fileHandle == nullptr) {
     fileHandle =
@@ -140,7 +140,7 @@ std::unique_ptr<fml::Mapping> OHOSAssetProvider::GetAsMapping(
     LOGE("GetAsMapping2 ..fallback:%{public}s->%{public}p", asset_name.c_str(),
          fileHandle);
   }
-  LOGE("GetAsMappingend:%{public}p", fileHandle);
+  LOGD("GetAsMappingend:%{public}p", fileHandle);
   return fileHandle == nullptr
              ? nullptr
              : (std::make_unique<FileDescriptionMapping>(fileHandle));
