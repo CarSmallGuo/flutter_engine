@@ -373,7 +373,7 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
   if (ret != 0) {
     FML_DLOG(ERROR) << "OHOSExternalTextureGL OH_NativeWindow_NativeWindowHandleOpt err:" << ret;
   }
-  
+
   int32_t usage = 0;
   OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, GET_USAGE, &usage);
   usage |= NATIVEBUFFER_USAGE_CPU_READ;
