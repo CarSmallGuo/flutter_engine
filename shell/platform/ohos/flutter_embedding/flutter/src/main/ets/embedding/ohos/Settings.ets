@@ -17,11 +17,13 @@ import SettingsChannel, { PlatformBrightness } from '../engine/systemchannels/Se
 import I18n from '@ohos.i18n'
 import Log from '../../util/Log';
 import { MediaQuery } from '@ohos.arkui.UIContext';
-
+import FlutterEngine from '../engine/FlutterEngine'
 
 const TAG = "Settings";
+
 export default class Settings {
   settingsChannel: SettingsChannel | null;
+  flutterEngine: FlutterEngine | undefined;
 
   constructor(settingsChannel: SettingsChannel | null) {
     this.settingsChannel = settingsChannel;
@@ -30,22 +32,31 @@ export default class Settings {
   sendSettings(mediaQuery: MediaQuery): void {
     this.settingsChannel?.startMessage()
       .setAlwaysUse24HourFormat(I18n.System.is24HourClock())
-      .setTextScaleFactor(1.0)
+      .setTextScaleFactor(this.getTextScaleFactor())
       .setNativeSpellCheckServiceDefined(false)
       .setBrieflyShowPassword(false)
-      .setPlatformBrightness(this.getDarkMode(mediaQuery))
+      .setPlatformBrightness(this.getThemeMode(mediaQuery))
       .send();
   }
 
-  getDarkMode(mediaQuery: MediaQuery): PlatformBrightness {
-
+  getThemeMode(mediaQuery: MediaQuery): PlatformBrightness {
     let listener = mediaQuery.matchMediaSync('(dark-mode: true)');
     if (listener.matches) {
-      Log.i(TAG,"return dark");
+      Log.i(TAG, "return themeMode.dark");
       return PlatformBrightness.DARK;
     } else {
-      Log.i(TAG,"return light");
+      Log.i(TAG, "return themeMode.light");
       return PlatformBrightness.LIGHT;
     }
+  }
+
+  getTextScaleFactor(): number { // 传递从冷启动获取的当前系统设置字体大小
+    let sysTextScaleFactor = AppStorage.get<number>('fontSizeScale');
+    if (sysTextScaleFactor == undefined) {
+      sysTextScaleFactor = 1.0;
+      Log.e(TAG, "get the textScaleFactor error, it will be assigned to " + sysTextScaleFactor)
+    }
+    Log.i(TAG, "return textScaleFactor = " + JSON.stringify(sysTextScaleFactor));
+    return sysTextScaleFactor;
   }
 }

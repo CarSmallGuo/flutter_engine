@@ -28,18 +28,18 @@ import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 import I18n from '@ohos.i18n'
 import { PlatformBrightness } from '../engine/systemchannels/SettingsChannel';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
-import { Configuration } from '@ohos.app.ability.Configuration';
 
-import List from '@ohos.util.List';
 import ExclusiveAppComponent from './ExclusiveAppComponent';
 import errorManager from '@ohos.app.ability.errorManager';
 import appRecovery from '@ohos.app.ability.appRecovery';
 import FlutterManager from './FlutterManager';
 import { FlutterView } from '../../view/FlutterView';
 import ApplicationInfoLoader from '../engine/loader/ApplicationInfoLoader';
+import {Configuration} from '@kit.AbilityKit';
 
 const TAG = "FlutterAbility";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
+let callbackId: number; // debug
 
 /**
  * flutter ohos基础ability，请在让主ability继承自该类。
@@ -69,6 +69,9 @@ export class FlutterAbility extends UIAbility implements Host {
    * 4. setContentView()  noNeed
    */
   async onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
+    // 冷启动通过上下文信息获取当前系统文字大小
+    AppStorage.setOrCreate('fontSizeScale', this.context.config.fontSizeScale);
+
     Log.i(TAG, "bundleCodeDir=" + this.context.bundleCodeDir);
     FlutterManager.getInstance().pushUIAbility(this)
 
@@ -366,10 +369,15 @@ export class FlutterAbility extends UIAbility implements Host {
 
   onConfigurationUpdated(config: Configuration){
     Log.i(TAG, 'onConfigurationUpdated config:' + JSON.stringify(config));
+
     this?.delegate?.flutterEngine?.getSettingsChannel()?.startMessage()
+      .setNativeSpellCheckServiceDefined(false)
+      .setBrieflyShowPassword(false)
       .setAlwaysUse24HourFormat(I18n.System.is24HourClock())
+      .setTextScaleFactor(config.fontSizeScale == undefined? 1.0 : config.fontSizeScale)
       .setPlatformBrightness(config.colorMode != ConfigurationConstant.ColorMode.COLOR_MODE_DARK
-        ? PlatformBrightness.LIGHT : PlatformBrightness.DARK);
+        ? PlatformBrightness.LIGHT : PlatformBrightness.DARK)
+      .send();  // 热启动生命周期内，监听系统设置改变并发送相应信息
 
     if (config.language != '') {
       this.getFlutterEngine()?.getLocalizationPlugin()?.sendLocaleToFlutter();
@@ -379,4 +387,7 @@ export class FlutterAbility extends UIAbility implements Host {
   getFlutterEngine(): FlutterEngine | null {
     return this.delegate?.flutterEngine || null;
   }
+
+
+
 }

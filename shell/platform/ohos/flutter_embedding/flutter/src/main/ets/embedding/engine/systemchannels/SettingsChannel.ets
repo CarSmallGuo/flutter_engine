@@ -76,7 +76,7 @@ class MessageBuilder {
   }
 
   send(): void {
-    Log.i(TAG, "Sending message: \n"
+    Log.i(TAG, "Sending message: "
       + TEXT_SCALE_FACTOR + " : "
       + this.settingsMessage.getTextScaleFactor()
       + ", " + NATIVE_SPELL_CHECK_SERVICE_DEFINED + " : "
@@ -87,6 +87,7 @@ class MessageBuilder {
       + this.settingsMessage.getAlwaysUse24HourFormat()
       + ", " + PLATFORM_BRIGHTNESS + " : "
       + this.settingsMessage.getPlatformBrightness());
+
     this.channel.send(this.settingsMessage)
   }
 }
