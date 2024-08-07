@@ -60,7 +60,7 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
   if (state_ == AttachmentState::attached) {
     glDeleteTextures(1, &texture_name_);
   }
-  if(backGroundTextureName_ != 0) {
+  if (backGroundTextureName_ != 0) {
     glDeleteTextures(1, &backGroundTextureName_);
   }
 }
@@ -173,7 +173,7 @@ void OHOSExternalTextureGL::OnGrContextDestroyed()
     glDeleteTextures(1, &texture_name_);
   }
   state_ = AttachmentState::detached;
-  if(backGroundTextureName_ != 0) {
+  if (backGroundTextureName_ != 0) {
     glDeleteTextures(1, &backGroundTextureName_);
   }
 }
@@ -272,14 +272,14 @@ void OHOSExternalTextureGL::setBackground(int32_t width, int32_t height)
   } else {
     FML_DLOG(FATAL)<<"ResourceContextMakeCurrent failed";
   }
-  if(backGroundPixelMap_ != nullptr) {
+  if (backGroundPixelMap_ != nullptr) {
     ProducePixelMapToBackGroundImage();
   } else {
     ProduceColorToBackGroundImage(width, height);
   }
 }
 
-void OHOSExternalTextureGL::ProduceColorToBackGroundImage(int32_t width, int32_t height) 
+void OHOSExternalTextureGL::ProduceColorToBackGroundImage(int32_t width, int32_t height)
 {
   FML_DLOG(INFO) << "OHOSExternalTextureGL::ProduceColorToBackGroundImage";
   int code = SET_BUFFER_GEOMETRY;
@@ -305,7 +305,7 @@ void OHOSExternalTextureGL::ProduceColorToBackGroundImage(int32_t width, int32_t
   uint32_t* destAddr = static_cast<uint32_t *>(mappedAddr);
   uint32_t value = 0xFFFFFFFF;
 
-  for(int32_t x = 0; x < handle->width; x++) {
+  for (int32_t x = 0; x < handle->width; x++) {
     for (int32_t y = 0; y < handle->height; y++) {
       *destAddr++ = value;
     }
@@ -330,19 +330,25 @@ void OHOSExternalTextureGL::ProduceColorToBackGroundImage(int32_t width, int32_t
   }
 }
 
-void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage() 
+void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
 {
   FML_DLOG(INFO) << "OHOSExternalTextureGL::ProducePixelMapToBackGroundImage";
   int32_t ret = -1;
   ret = OH_PixelMap_GetImageInfo(backGroundPixelMap_, &pixelMapInfo);
   if (ret != 0) {
-    FML_DLOG(ERROR) << "OHOSExternalTextureGL::ProducePixelMapToBackGroundImage OH_PixelMap_GetImageInfo err:" << ret;
+    FML_DLOG(ERROR)
+        << "OHOSExternalTextureGL::ProducePixelMapToBackGroundImage "
+           "OH_PixelMap_GetImageInfo err:"
+        << ret;
     return;
   }
   int code = SET_BUFFER_GEOMETRY;
   ret = OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, code, pixelMapInfo.width, pixelMapInfo.height);
   if (ret != 0) {
-    FML_DLOG(ERROR) << "OHOSExternalTextureGL::ProducePixelMapToBackGroundImage OH_NativeWindow_NativeWindowHandleOpt err:" << ret;
+    FML_DLOG(ERROR)
+        << "OHOSExternalTextureGL::ProducePixelMapToBackGroundImage "
+           "OH_NativeWindow_NativeWindowHandleOpt err:"
+        << ret;
     return;
   }
   
@@ -357,18 +363,27 @@ void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
   }
   ret = OH_NativeWindow_NativeWindowRequestBuffer(backGroundNativeWindow_, &backGroundBuffer_, &backGroundFenceFd);
   if (ret != 0) {
-    FML_DLOG(ERROR) << "OHOSExternalTextureGL::ProducePixelMapToBackGroundImage OH_NativeWindow_NativeWindowRequestBuffer err:" << ret;
+    FML_DLOG(ERROR)
+        << "OHOSExternalTextureGL::ProducePixelMapToBackGroundImage "
+           "OH_NativeWindow_NativeWindowRequestBuffer err:"
+        << ret;
     return;
   }
   HandlePixelMapBuffer(backGroundPixelMap_, backGroundBuffer_);
   Region region{nullptr, 0};
   ret = OH_NativeWindow_NativeWindowFlushBuffer(backGroundNativeWindow_, backGroundBuffer_, backGroundFenceFd, region);
   if (ret != 0) {
-    FML_DLOG(FATAL)<<"OHOSExternalTextureGL::ProducePixelMapToBackGroundImage OH_NativeWindow_NativeWindowFlushBuffer err:"<< ret;
+    FML_DLOG(FATAL)
+        << "OHOSExternalTextureGL::ProducePixelMapToBackGroundImage "
+           "OH_NativeWindow_NativeWindowFlushBuffer err:"
+        << ret;
   }
   ret = OH_NativeImage_UpdateSurfaceImage(backGroundNativeImage_);
   if (ret != 0) {
-    FML_DLOG(FATAL)<<"OHOSExternalTextureGL::ProducePixelMapToBackGroundImage OH_NativeImage_UpdateSurfaceImage err code:"<< ret;
+    FML_DLOG(FATAL)
+        << "OHOSExternalTextureGL::ProducePixelMapToBackGroundImage "
+           "OH_NativeImage_UpdateSurfaceImage err code:"
+        << ret;
     return;
   }
   UpdateTransform(backGroundNativeImage_);
