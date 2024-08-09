@@ -63,10 +63,15 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
   if (backGroundTextureName_ != 0) {
     glDeleteTextures(1, &backGroundTextureName_);
   }
+  state_ = AttachmentState::uninitialized;
 }
 
 void OHOSExternalTextureGL::Attach()
 {
+  if (state_ != AttachmentState::uninitialized) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL::Attach ";
+    return;
+  }
   OHOSSurface* ohos_surface_ptr = ohos_surface_.get();
   OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
   auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
@@ -207,10 +212,16 @@ void OHOSExternalTextureGL::Update()
 
 void OHOSExternalTextureGL::Detach()
 {
+  if (state_ != AttachmentState::attached) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL::Detach ";
+    return;
+  }
   OH_NativeImage_DetachContext(nativeImage_);
   OH_NativeImage_DetachContext(backGroundNativeImage_);
   OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
   OH_NativeWindow_DestroyNativeWindow(backGroundNativeWindow_);
+  nativeImage_ = nullptr;
+  nativeWindow_ = nullptr;
 }
 
 void OHOSExternalTextureGL::UpdateTransform(OH_NativeImage *image)
@@ -454,7 +465,7 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
   if (ret != 0) {
     FML_DLOG(ERROR) << "OHOSExternalTextureGL OH_NativeWindow_NativeWindowHandleOpt err:" << ret;
   }
-  
+
   int32_t usage = 0;
   OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, GET_USAGE, &usage);
   usage |= NATIVEBUFFER_USAGE_CPU_READ;

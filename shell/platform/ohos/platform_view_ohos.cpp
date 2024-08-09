@@ -439,6 +439,12 @@ void PlatformViewOHOS::RegisterExternalTextureByImage(
   }
 }
 
+PointerDataDispatcherMaker PlatformViewOHOS::GetDispatcherMaker() {
+  return [](DefaultPointerDataDispatcher::Delegate& delegate) {
+    return std::make_unique<SmoothPointerDataDispatcher>(delegate);
+  };
+}
+
 uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
 {
   uint64_t surface_id = 0;
