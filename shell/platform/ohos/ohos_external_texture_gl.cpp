@@ -60,10 +60,15 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
   if (state_ == AttachmentState::attached) {
     glDeleteTextures(1, &texture_name_);
   }
+  state_ = AttachmentState::uninitialized;
 }
 
 void OHOSExternalTextureGL::Attach()
 {
+  if (state_ != AttachmentState::uninitialized) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL::Attach ";
+    return;
+  }
   OHOSSurface* ohos_surface_ptr = ohos_surface_.get();
   OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
   auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
@@ -200,8 +205,14 @@ void OHOSExternalTextureGL::Update()
 
 void OHOSExternalTextureGL::Detach()
 {
+  if (state_ != AttachmentState::attached) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL::Detach ";
+    return;
+  }
   OH_NativeImage_DetachContext(nativeImage_);
   OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
+  nativeImage_ = nullptr;
+  nativeWindow_ = nullptr;
 }
 
 void OHOSExternalTextureGL::UpdateTransform()
