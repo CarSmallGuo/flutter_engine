@@ -23,6 +23,7 @@ import inputMethod from '@ohos.inputMethod';
 import Log from '../../util/Log';
 import { EditingStateWatcher, ListenableEditingState } from './ListenableEditingState';
 import Any from '../common/Any';
+import { window } from '@kit.ArkUI';
 
 /// 临时规避缺少newline对应枚举问题
 const NEWLINE_KEY_TYPE: number = 8;
@@ -80,6 +81,8 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private mRestartInputPending: boolean = false;
   private plugin: EditingStateWatcher | Any;
   private imcFlag: boolean = false;
+  private noShowKeyboard: boolean = true;
+  private keyboardView: boolean = false;
 
   constructor(plugin: TextInputPlugin | Any) {
     this.textConfig = {
@@ -133,15 +136,42 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   private async showTextInput(): Promise<void> {
-    await this.attach(true);
-    if (this.imcFlag != true) {
-      this.listenKeyBoardEvent();
+    /// 添加监听软键盘弹出方法
+    /// noShowKeyboard对是否已弹出软键盘进行判断
+    /// keyboardView对同一个页面不同TextField切换进行判断，主要用于软键盘初始化
+    /// 暂时规避方案，有其他方案可修改
+    this.listenKeyboardHeight();
+    if ( this.noShowKeyboard && !this.keyboardView ) {
+      await this.attach(true);
+      if (this.imcFlag != true) {
+        this.listenKeyBoardEvent();
+      }
+      this.inputMethodController.showTextInput().then(() => {
+        Log.d(TextInputMethodHandlerImpl.TAG, "Succeeded in showing softKeyboard");
+      }).catch((err: Any) => {
+        Log.e(TextInputMethodHandlerImpl.TAG, "Failed to show softKeyboard:" + JSON.stringify(err));
+      });
+      this.keyboardView = true
     }
-    this.inputMethodController.showTextInput().then(() => {
-      Log.d(TextInputMethodHandlerImpl.TAG, "Succeeded in showing softKeyboard");
-    }).catch((err: Any) => {
-      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to show softKeyboard:" + JSON.stringify(err));
-    });
+  }
+
+  listenKeyboardHeight() {
+    window.getLastWindow(getContext(this)).then(currentWindow =>{
+      try {
+        currentWindow.on('keyboardHeightChange', (data) => {
+          console.info('Succeeded in enabling the listener for keyboard height changes. Data: ' + JSON.stringify(data));
+          if (data == 0) {
+            this.noShowKeyboard = true
+            this.keyboardView = false
+          } else {
+            this.noShowKeyboard = false
+            this.keyboardView = true
+          }
+        });
+      } catch (exception) {
+        console.error(`Failed to enable the listener for keyboard height changes. Cause code: ${exception.code}, message: ${exception.message}`);
+      }
+    })
   }
 
   private async hideTextInput(): Promise<void> {
@@ -166,7 +196,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
         inputAttribute: {
           textInputType: 0,
           enterKeyType: 1
-        } 
+        }
       };
       await this.inputMethodController.attach(false, textConfig);
     } catch (err) {
@@ -253,6 +283,8 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       this.inputMethodController.on('sendKeyboardStatus', (state) => {
         if (state == inputMethod.KeyboardStatus.HIDE) {
           this.plugin.textInputChannel.onConnectionClosed(this.inputTarget.id);
+          this.noShowKeyboard = true
+          this.keyboardView = false
           this.resetAttach();
         }
       })
@@ -292,6 +324,8 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.mEditable.removeEditingStateListener(this.plugin);
     this.configuration = null;
     this.inputTarget = new InputTarget(Type.NO_TARGET, 0);
+    this.noShowKeyboard = true
+    this.keyboardView = false
     this.resetAttach();
   }
 }
