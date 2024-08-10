@@ -98,13 +98,13 @@ public:
 #include "flutter/fml/time/time_point.h"
 #include "third_party/dart/runtime/include/dart_tools_api.h"
 
-#if (FLUTTER_RELEASE && !defined(OS_FUCHSIA) && !defined(FML_OS_ANDROID))
+#if (FLUTTER_RELEASE && !defined(OS_FUCHSIA) && !defined(FML_OS_ANDROID) && !defined(FML_OS_OHOS))
 #define FLUTTER_TIMELINE_ENABLED 0
 #else
 #define FLUTTER_TIMELINE_ENABLED 1
 #endif
 
-#if !defined(OS_FUCHSIA) && !defined(FML_OS_OHOS)
+#if !defined(OS_FUCHSIA)
 #ifndef TRACE_EVENT_HIDE_MACROS
 
 #define __FML__TOKEN_CAT__(x, y) x##y
@@ -134,71 +134,100 @@ public:
 // ```
 //
 // Instead, either use different `name` or `arg1` parameter names.
-#define FML_TRACE_EVENT(category_group, name, ...)                    \
-  ::fml::tracing::TraceEvent((category_group), (name), __VA_ARGS__);  \
-  __FML__AUTO_TRACE_END(name);                                        \
-  OH_TRACE_DURATION((category_group), (name))
+#define FML_TRACE_EVENT(category_group, name, ...)                      \
+  do {                                                                  \
+    ::fml::tracing::TraceEvent((category_group), (name), __VA_ARGS__);  \
+    __FML__AUTO_TRACE_END(name);                                        \
+    OH_TRACE_DURATION((category_group), (name));                        \
+  } while (0)
 
-#define TRACE_EVENT0(category_group, name)            \
-  ::fml::tracing::TraceEvent0(category_group, name);  \
-  __FML__AUTO_TRACE_END(name);                        \
-  OH_TRACE_DURATION((category_group), (name))
+#define TRACE_EVENT0(category_group, name)                              \
+  do {                                                                  \
+    ::fml::tracing::TraceEvent0(category_group, name);                  \
+    __FML__AUTO_TRACE_END(name);                                        \
+    OH_TRACE_DURATION((category_group), (name));                        \
+  } while (0)
 
-#define TRACE_EVENT1(category_group, name, arg1_name, arg1_val)           \
-  ::fml::tracing::TraceEvent1(category_group, name, arg1_name, arg1_val); \
-  __FML__AUTO_TRACE_END(name);                                            \
-  OH_TRACE_DURATION((category_group), (name))
+#define TRACE_EVENT1(category_group, name, arg1_name, arg1_val)             \
+  do {                                                                      \
+    ::fml::tracing::TraceEvent1(category_group, name, arg1_name, arg1_val); \
+    __FML__AUTO_TRACE_END(name);                                            \
+    OH_TRACE_DURATION((category_group), (name));                            \
+  } while (0)
+
 
 #define TRACE_EVENT2(category_group, name, arg1_name, arg1_val, arg2_name,  \
                      arg2_val)                                              \
-  ::fml::tracing::TraceEvent2(category_group, name, arg1_name, arg1_val,    \
-                              arg2_name, arg2_val);                         \
-  __FML__AUTO_TRACE_END(name);                                              \
-  OH_TRACE_DURATION((category_group), (name))
+  do {                                                                      \
+    ::fml::tracing::TraceEvent2(category_group, name, arg1_name, arg1_val,  \
+                                arg2_name, arg2_val);                       \
+    __FML__AUTO_TRACE_END(name);                                            \
+    OH_TRACE_DURATION((category_group), (name));                            \
+  } while (0)
 
 #define TRACE_EVENT_ASYNC_BEGIN0(category_group, name, id)                  \
-  ::fml::tracing::TraceEventAsyncBegin0(category_group, name, id);          \
-  OH_TRACE_ASYNC_BEGIN(category, name, id)
+  do {                                                                      \
+    ::fml::tracing::TraceEventAsyncBegin0(category_group, name, id);        \
+    OH_TRACE_ASYNC_BEGIN(category, name, id);                               \
+  } while (0)
 
 #define TRACE_EVENT_ASYNC_END0(category_group, name, id)                    \
-  ::fml::tracing::TraceEventAsyncEnd0(category_group, name, id);            \
-  OH_TRACE_ASYNC_END(category, name, id)
+  do {                                                                      \
+    ::fml::tracing::TraceEventAsyncEnd0(category_group, name, id);          \
+    OH_TRACE_ASYNC_END(category, name, id);                                 \
+  } while (0)
 
-#define TRACE_EVENT_ASYNC_BEGIN1(category_group, name, id, arg1_name,         \
-                                 arg1_val)                                    \
-  ::fml::tracing::TraceEventAsyncBegin1(category_group, name, id, arg1_name,  \
-                                        arg1_val);                            \
-  OH_TRACE_ASYNC_BEGIN(category, name, id)
+#define TRACE_EVENT_ASYNC_BEGIN1(category_group, name, id, arg1_name,           \
+                                 arg1_val)                                      \
+  do {                                                                          \
+    ::fml::tracing::TraceEventAsyncBegin1(category_group, name, id, arg1_name,  \
+                                          arg1_val);                            \
+    OH_TRACE_ASYNC_BEGIN(category, name, id);                                   \
+  } while (0)
 
-#define TRACE_EVENT_ASYNC_END1(category_group, name, id, arg1_name, arg1_val) \
-  ::fml::tracing::TraceEventAsyncEnd1(category_group, name, id, arg1_name,    \
-                                      arg1_val);                              \
-  OH_TRACE_ASYNC_BEGIN(category, name, id)
+#define TRACE_EVENT_ASYNC_END1(category_group, name, id, arg1_name, arg1_val)   \
+  do {                                                                          \
+    ::fml::tracing::TraceEventAsyncEnd1(category_group, name, id, arg1_name,    \
+                                        arg1_val);                              \
+    OH_TRACE_ASYNC_BEGIN(category, name, id);                                   \
+  } while (0)
 
-#define TRACE_EVENT_INSTANT0(category_group, name)                            \
-  ::fml::tracing::TraceEventInstant0(category_group, name);                   \
-  OH_TRACE_DURATION((category_group), (name))
+#define TRACE_EVENT_INSTANT0(category_group, name)                              \
+  do {                                                                          \
+    ::fml::tracing::TraceEventInstant0(category_group, name);                   \
+    OH_TRACE_DURATION((category_group), (name));                                \
+  } while (0)
 
-#define TRACE_EVENT_INSTANT1(category_group, name, arg1_name, arg1_val)           \
-  ::fml::tracing::TraceEventInstant1(category_group, name, arg1_name, arg1_val);  \
-  OH_TRACE_DURATION((category_group), (name))
+#define TRACE_EVENT_INSTANT1(category_group, name, arg1_name, arg1_val)             \
+  do {                                                                              \
+    ::fml::tracing::TraceEventInstant1(category_group, name, arg1_name, arg1_val);  \
+    OH_TRACE_DURATION((category_group), (name));                                    \
+  } while (0)
 
-#define TRACE_EVENT_INSTANT2(category_group, name, arg1_name, arg1_val,   \
-                             arg2_name, arg2_val)                         \
-  ::fml::tracing::TraceEventInstant2(category_group, name, arg1_name,     \
-                                     arg1_val, arg2_name, arg2_val);      \
-  OH_TRACE_DURATION((category_group), (name))
+
+#define TRACE_EVENT_INSTANT2(category_group, name, arg1_name, arg1_val,     \
+                             arg2_name, arg2_val)                           \
+  do {                                                                      \
+    ::fml::tracing::TraceEventInstant2(category_group, name, arg1_name,     \
+                                      arg1_val, arg2_name, arg2_val);       \
+    OH_TRACE_DURATION((category_group), (name));                            \
+  }
 
 #define TRACE_FLOW_BEGIN(category, name, id)                              \
-  ::fml::tracing::TraceEventFlowBegin0(category, name, id);               \
-  OH_TRACE_ASYNC_BEGIN(category, name, id)
+  do {                                                                    \
+    ::fml::tracing::TraceEventFlowBegin0(category, name, id);             \
+    OH_TRACE_ASYNC_BEGIN(category, name, id);                             \
+  } while (0)
 
 #define TRACE_FLOW_STEP(category, name, id)                               \
-  ::fml::tracing::TraceEventFlowStep0(category, name, id);
+    ::fml::tracing::TraceEventFlowStep0(category, name, id);
 
 #define TRACE_FLOW_END(category, name, id)                                \
-  ::fml::tracing::TraceEventFlowEnd0(category, name, id);                 \
-  OH_TRACE_ASYNC_BEGIN(category, name, id)
+  do {                                                                    \
+    ::fml::tracing::TraceEventFlowEnd0(category, name, id);               \
+    OH_TRACE_ASYNC_BEGIN(category, name, id);                             \
+  } while (0)
+
 
 #endif  // TRACE_EVENT_HIDE_MACROS
 #endif  // !defined(OS_FUCHSIA)
