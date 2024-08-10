@@ -140,8 +140,8 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     /// noShowKeyboard对是否已弹出软键盘进行判断
     /// keyboardView对同一个页面不同TextField切换进行判断，主要用于软键盘初始化
     /// 暂时规避方案，有其他方案可修改
-    this.listenKeyboardHeight();
-    if ( this.noShowKeyboard && !this.keyboardView ) {
+    if (this.noShowKeyboard && !this.keyboardView ) {
+      this.listenKeyboardHeight();
       await this.attach(true);
       if (this.imcFlag != true) {
         this.listenKeyBoardEvent();

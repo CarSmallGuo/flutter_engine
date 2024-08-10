@@ -102,11 +102,7 @@ export class FlutterView {
     this.mainWindow?.on('windowSizeChange', this.windowSizeChangeCallback);
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
     this.mainWindow?.on('keyboardHeightChange', this.keyboardHeightChangeCallback);
-    this.mainWindow?.on('windowStatusChange', (data: window.WindowStatusType) => {
-      Log.i(TAG, "windowStatusChangeCallback " + JSON.stringify(data));
-      FlutterManager.getInstance().getFullScreenListener().onScreenStateChanged(data);
-      this.onAreaChange(null);
-    });
+    this.mainWindow?.on('windowStatusChange', this.windowStatusChangeCallback);
   }
 
   private  windowSizeChangeCallback= (data: window.Size) => {
@@ -121,6 +117,12 @@ export class FlutterView {
     Log.i(TAG, "keyboardHeightChangeCallback");
     this.onAreaChange(null);
   }
+
+  private windowStatusChangeCallback = (data: window.WindowStatusType) => {
+    Log.i(TAG, "windowStatusChangeCallback " + JSON.stringify(data));
+    FlutterManager.getInstance().getFullScreenListener().onScreenStateChanged(data);
+    this.onAreaChange(null);
+  };
 
   getId(): string {
     return this.id
@@ -163,13 +165,6 @@ export class FlutterView {
   }
 
   onDestroy() {
-    try {
-      this.mainWindow?.off('windowSizeChange', this.windowSizeChangeCallback);
-      this.mainWindow?.off('avoidAreaChange', this.avoidAreaChangeCallback);
-      this.mainWindow?.off('keyboardHeightChange', this.keyboardHeightChangeCallback);
-      this.mainWindow?.off('windowStatusChange');
-    } catch (e) {
-    }
   }
 
   attachToFlutterEngine(flutterEngine: FlutterEngine): void {
@@ -206,6 +201,15 @@ export class FlutterView {
 
   detachFromFlutterEngine(): void {
     Log.i(TAG, "detachFromFlutterEngine");
+
+    try {
+      this.mainWindow?.off('windowSizeChange', this.windowSizeChangeCallback);
+      this.mainWindow?.off('avoidAreaChange', this.avoidAreaChangeCallback);
+      this.mainWindow?.off('keyboardHeightChange', this.keyboardHeightChangeCallback);
+      this.mainWindow?.off('windowStatusChange', this.windowStatusChangeCallback);
+    } catch (e) {
+    }
+
     if (!this.isAttachedToFlutterEngine()) {
       Log.d(TAG, "FlutterView not attached to an engine. Not detaching.");
       return;
