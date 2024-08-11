@@ -110,8 +110,8 @@ export default class FlutterNapi {
       return;
     }
     Log.d(TAG, "init: bundlePath=" + bundlePath + "  entrypointFunctionName=" + entrypointFunctionName + "  pathToEntrypointFunction=" + pathToEntrypointFunction + "  entrypointArgs=" + JSON.stringify(entrypointArgs))
-    if (!this.nativeShellHolderId) {
-      Log.e(TAG, "runBundleAndSnapshotFromLibrary this.nativeShellHolderId = " + this.nativeShellHolderId)
+    if (!this.isAttached()) {
+      Log.e(TAG, "runBundleAndSnapshotFromLibrary this.nativeShellHolderId:" + this.nativeShellHolderId)
       return;
     }
     flutter.nativeRunBundleAndSnapshotFromLibrary(this.nativeShellHolderId!, bundlePath, entrypointFunctionName, pathToEntrypointFunction, assetManager, entrypointArgs);
@@ -143,8 +143,8 @@ export default class FlutterNapi {
 
   notifyLowMemoryWarning(): void {
     this.ensureRunningOnMainThread();
-    if (!this.nativeShellHolderId) {
-      Log.e(TAG, "notifyLowMemoryWarning this.nativeShellHolderId = " + this.nativeShellHolderId)
+    if (!this.isAttached()) {
+      Log.e(TAG, "notifyLowMemoryWarning this.nativeShellHolderId:" + this.nativeShellHolderId)
       return;
     }
     this.nativeNotifyLowMemoryWarning(this.nativeShellHolderId!);
@@ -161,10 +161,6 @@ export default class FlutterNapi {
   dispatchEmptyPlatformMessage(channel: String, responseId: number): void {
     this.ensureRunningOnMainThread();
     if (this.isAttached()) {
-      if (!this.nativeShellHolderId) {
-        Log.e(TAG, "dispatchEmptyPlatformMessage this.nativeShellHolderId = " + this.nativeShellHolderId)
-        return;
-      }
       flutter.nativeDispatchEmptyPlatformMessage(this.nativeShellHolderId!, channel, responseId);
     } else {
       Log.w(
@@ -180,10 +176,6 @@ export default class FlutterNapi {
   dispatchPlatformMessage(channel: String, message: ArrayBuffer, position: number, responseId: number): void {
     this.ensureRunningOnMainThread();
     if (this.isAttached()) {
-      if (!this.nativeShellHolderId) {
-        Log.e(TAG, "dispatchPlatformMessage this.nativeShellHolderId = " + this.nativeShellHolderId)
-        return;
-      }
       flutter.nativeDispatchPlatformMessage(this.nativeShellHolderId!, channel, message, position, responseId);
     } else {
       Log.w(
@@ -197,10 +189,6 @@ export default class FlutterNapi {
 
   invokePlatformMessageEmptyResponseCallback(responseId: number): void {
     if (this.isAttached()) {
-      if (!this.nativeShellHolderId) {
-        Log.e(TAG, "invokePlatformMessageEmptyResponseCallback this.nativeShellHolderId = " + this.nativeShellHolderId)
-        return;
-      }
       flutter.nativeInvokePlatformMessageEmptyResponseCallback(this.nativeShellHolderId!, responseId);
     } else {
       Log.w(
@@ -212,10 +200,6 @@ export default class FlutterNapi {
 
   invokePlatformMessageResponseCallback(responseId: number, message: ArrayBuffer, position: number) {
     if (this.isAttached()) {
-      if (!this.nativeShellHolderId) {
-        Log.e(TAG, "this.nativeShellHolderId = " + this.nativeShellHolderId)
-        return;
-      }
       flutter.nativeInvokePlatformMessageResponseCallback(
         this.nativeShellHolderId!, responseId, message, position);
     } else {
@@ -234,10 +218,6 @@ export default class FlutterNapi {
                      , systemGestureInsetLeft: number, physicalTouchSlop: number, displayFeaturesBounds: Array<number>
                      , displayFeaturesType: Array<number>, displayFeaturesState: Array<number>): void {
     if (this.isAttached()) {
-      if (!this.nativeShellHolderId) {
-        Log.e(TAG, "setViewportMetrics this.nativeShellHolderId = " + this.nativeShellHolderId)
-        return;
-      }
       flutter.nativeSetViewportMetrics(this.nativeShellHolderId!, devicePixelRatio,
         physicalWidth,
         physicalHeight,
@@ -401,8 +381,8 @@ export default class FlutterNapi {
     for (index = 0; index < systemLanguages.length; index++) {
       Log.d(TAG, "systemlanguages "+ index + ":" + systemLanguages[index]);
     }
-    if (!this.nativeShellHolderId) {
-      Log.e(TAG, "getSystemLanguages this.nativeShellHolderId = " + this.nativeShellHolderId)
+    if (!this.isAttached()) {
+      Log.e(TAG, "getSystemLanguages this.nativeShellHolderId:" + this.nativeShellHolderId)
       return;
     }
     flutter.nativeGetSystemLanguages(this.nativeShellHolderId!, systemLanguages);
@@ -452,17 +432,18 @@ export default class FlutterNapi {
   }
 
   detachFromNativeAndReleaseResources() {
-    if (!this.nativeShellHolderId) {
-      Log.e(TAG, "detachFromNativeAndReleaseResources this.nativeShellHolderId = " + this.nativeShellHolderId)
+    if (!this.isAttached()) {
+      Log.e(TAG, "detachFromNativeAndReleaseResources this.nativeShellHolderId:" + this.nativeShellHolderId)
       return;
     }
     flutter.nativeDestroy(this.nativeShellHolderId!);
+    this.nativeShellHolderId = null;
   }
 
   initNativeImage(textureId: number, aImage: image.Image) {
     Log.d(TAG, "called initNativeImage ");
-    if (!this.nativeShellHolderId) {
-      Log.e(TAG, "initNativeImage this.nativeShellHolderId = " + this.nativeShellHolderId)
+    if (!this.isAttached()) {
+      Log.e(TAG, "initNativeImage this.nativeShellHolderId:" + this.nativeShellHolderId)
       return;
     }
     flutter.nativeInitNativeImage(this.nativeShellHolderId!, textureId, aImage);
@@ -470,8 +451,8 @@ export default class FlutterNapi {
 
   unregisterTexture(textureId: number): void {
     Log.d(TAG, "called unregisterTexture ");
-    if (!this.nativeShellHolderId) {
-      Log.e(TAG, "unregisterTexture this.nativeShellHolderId = " + this.nativeShellHolderId)
+    if (!this.isAttached()) {
+      Log.e(TAG, "unregisterTexture this.nativeShellHolderId:" + this.nativeShellHolderId)
       return;
     }
     flutter.nativeUnregisterTexture(this.nativeShellHolderId!, textureId);
@@ -479,8 +460,8 @@ export default class FlutterNapi {
 
   registerPixelMap(textureId: number, pixelMap: PixelMap): void {
     Log.d(TAG, "called registerPixelMap ");
-    if (!this.nativeShellHolderId) {
-      Log.e(TAG, "registerPixelMap this.nativeShellHolderId = " + this.nativeShellHolderId)
+    if (!this.isAttached()) {
+      Log.e(TAG, "registerPixelMap this.nativeShellHolderId:" + this.nativeShellHolderId)
       return;
     }
     flutter.nativeRegisterPixelMap(this.nativeShellHolderId!, textureId, pixelMap);
@@ -488,8 +469,8 @@ export default class FlutterNapi {
 
   registerTexture(textureId: number): number {
     Log.d(TAG, "called registerTexture ");
-    if (!this.nativeShellHolderId) {
-      Log.e(TAG, "registerTexture this.nativeShellHolderId = " + this.nativeShellHolderId)
+    if (!this.isAttached()) {
+      Log.e(TAG, "registerTexture this.nativeShellHolderId:" + this.nativeShellHolderId)
       return 0;
     }
     return flutter.nativeRegisterTexture(this.nativeShellHolderId!, textureId);
@@ -497,7 +478,9 @@ export default class FlutterNapi {
 
   /** Dispatch Touch Event */
   onTouchEvent(strings: Array<string>): void {
-    TouchEventProcessor.getInstance().postTouchEvent(strings);
+    if (this.isAttached()) {
+      TouchEventProcessor.getInstance().postTouchEvent(strings);
+    }
   }
 
 }
