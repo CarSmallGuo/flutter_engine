@@ -42,6 +42,7 @@ constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface)
   : Texture(id), ohos_surface_(std::move(ohos_surface)), transform(SkMatrix::I())
 {
+    state_ = AttachmentState::uninitialized;
     nativeImage_ = nullptr;
     backGroundNativeImage_ = nullptr;
     nativeWindow_ = nullptr;
@@ -51,6 +52,7 @@ OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, const std::shared_ptr<O
     buffer_ = nullptr;
     backGroundBuffer_ = nullptr;
     pixelMap_ = nullptr;
+    backGroundPixelMap_ = nullptr;
     lastImage_ = nullptr;
     isEmulator_ = OhosMain::IsEmulator();
 }
@@ -59,11 +61,24 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
 {
   if (state_ == AttachmentState::attached) {
     glDeleteTextures(1, &texture_name_);
+    texture_name_ = 0;
   }
   if (backGroundTextureName_ != 0) {
     glDeleteTextures(1, &backGroundTextureName_);
+    backGroundTextureName_ = 0;
   }
   state_ = AttachmentState::uninitialized;
+  nativeImage_ = nullptr;
+  backGroundNativeImage_ = nullptr;
+  nativeWindow_ = nullptr;
+  backGroundNativeWindow_ = nullptr;
+  eglContext_ =  EGL_NO_CONTEXT;
+  eglDisplay_ = EGL_NO_DISPLAY;
+  buffer_ = nullptr;
+  backGroundBuffer_ = nullptr;
+  pixelMap_ = nullptr;
+  backGroundPixelMap_ = nullptr;
+  lastImage_ = nullptr;
 }
 
 void OHOSExternalTextureGL::Attach()
@@ -344,6 +359,10 @@ void OHOSExternalTextureGL::ProduceColorToBackGroundImage(int32_t width, int32_t
 void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
 {
   FML_DLOG(INFO) << "OHOSExternalTextureGL::ProducePixelMapToBackGroundImage";
+  if (backGroundPixelMap_ == nullptr) {
+    FML_DLOG(INFO) << "backGroundPixelMap_ is nullptr";
+    return;
+  }
   int32_t ret = -1;
   ret = OH_PixelMap_GetImageInfo(backGroundPixelMap_, &pixelMapInfo);
   if (ret != 0) {
@@ -452,6 +471,10 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
 {
   if (state_ == AttachmentState::detached) {
     FML_DLOG(ERROR) << "OHOSExternalTextureGL AttachmentState err";
+    return;
+  }
+  if (pixelMap_ == nullptr) {
+    FML_DLOG(ERROR) << "pixelMap_ is nullptr";
     return;
   }
   int32_t ret = -1;
