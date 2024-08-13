@@ -31,6 +31,7 @@
 #include "flutter/shell/platform/ohos/types.h"
 #include "unicode/uchar.h"
 #include "flutter/shell/platform/ohos/ohos_xcomponent_adapter.h"
+#include "flutter/shell/platform/ohos/ohos_logging.h"
 
 #define OHOS_SHELL_HOLDER (reinterpret_cast<OHOSShellHolder*>(shell_holder))
 namespace flutter {
