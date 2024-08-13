@@ -54,7 +54,7 @@ export default class LocalizationPlugin {
       let localContext: common.Context = this.context;
       let stringToReturn: string | null = null;
       // 获取资源管理器
-      let resMgt = localContext.resourceManager;
+      let resMgr = localContext.resourceManager;
 
       try {
         // 如果localeString不为空，则更新为指定地区的资源管理器
@@ -64,7 +64,7 @@ export default class LocalizationPlugin {
           let overrideResMgr = resMgr.getOverrideResourceManager(overrideConfig);
           stringToReturn = overrideResMgr.getStringByNameSync(key);
         } else {
-          stringToReturn = resMgt.getStringByNameSync(key);
+          stringToReturn = resMgr.getStringByNameSync(key);
         }
       } catch (e) {
         Log.e(TAG, e);
