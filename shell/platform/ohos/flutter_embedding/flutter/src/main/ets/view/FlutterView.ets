@@ -271,7 +271,6 @@ export class FlutterView {
     let systemAvoidArea : Any;
     try{
       systemAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
-      // let navigationAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR);
     } catch (e) {
       Log.e(TAG, JSON.stringify(e));
       systemAvoidArea = null;
@@ -284,12 +283,13 @@ export class FlutterView {
 
     // 根据是否全屏显示，设置标题栏高度（若全屏，则及时规避）
     if (this.checkFullScreen && FlutterManager.getInstance().getFullScreenListener().useFullScreen()) { // 全屏显示
-      this.viewportMetrics.physicalViewPaddingTop = this.getAvoidAreaTopLength(); // systemAvoidArea!.topRect.height;
-      this.viewportMetrics.physicalViewPaddingBottom = this.getAvoidAreaBotLength(); // navigationAvoidArea!.bottomRect.height;
+      this.viewportMetrics.physicalViewPaddingTop = this.getAvoidAreaTopLength();
+      this.viewportMetrics.physicalViewPaddingBottom = this.getAvoidAreaBotLength();
       Log.i(TAG, "--- fullscreen mode is on ---");
     } else { // 非全屏显示（保持规避效果）
-      this.viewportMetrics.physicalViewPaddingTop = this.getAvoidAreaTopLength();  // 顶部状态栏规避为0，无平滑过渡效果
-      this.viewportMetrics.physicalViewPaddingBottom = this.getAvoidAreaBotLength(); // 底部导航栏规避为0，无平滑过渡效果
+      // 顶部状态栏和底部导航栏规避为0，无平滑过渡效果
+      this.viewportMetrics.physicalViewPaddingTop = this.getAvoidAreaTopLength();
+      this.viewportMetrics.physicalViewPaddingBottom = this.getAvoidAreaBotLength();
       Log.i(TAG, "--- minimize mode is on ---");
     }
 
@@ -398,7 +398,8 @@ export class FlutterView {
     this.checkGesture = check
   }
 
-  setAvoidAreaTopBottomLength(topLen: number, bottomLen: number) { // 设置规避面积（顶部系统栏、底部导航栏）
+  // 设置规避面积（顶部系统栏、底部导航栏）
+  setAvoidAreaTopBottomLength(topLen: number, bottomLen: number) {
     this.sysTopAvoidArea = topLen;
     this.navBotAvoidArea = bottomLen;
   }
