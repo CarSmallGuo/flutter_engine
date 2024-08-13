@@ -64,7 +64,7 @@ export default class LocalizationPlugin {
           let overrideResMgr = resMgr.getOverrideResourceManager(overrideConfig);
           stringToReturn = overrideResMgr.getStringByNameSync(key);
         } else {
-          stringToReturn = overrideResMgr.getStringByNameSync(key);
+          stringToReturn = resMgt.getStringByNameSync(key);
         }
       } catch (e) {
         Log.e(TAG, e);
