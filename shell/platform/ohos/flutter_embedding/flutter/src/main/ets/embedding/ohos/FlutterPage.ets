@@ -112,9 +112,10 @@ export struct FlutterPage {
         this.flutterView?.onAreaChange(newValue)
       }
     })
-    .onKeyEvent((event: KeyEvent) => {
+    .onKeyPreIme((event: KeyEvent) => {
       Log.d(TAG, "onKeyEvent " + event.type);
-      this.flutterView?.onKeyEvent(event)
+      this.flutterView?.onKeyEvent(event);
+      return false;
     })
     .gesture(
       PanGesture(this.panOption)
