@@ -49,6 +49,7 @@ export default class LocalizationPlugin {
 
   private localizationMessageHandler: LocalizationMessageHandler =
     new enterGetStringResource((key: string, localeString: string | null) => {
+
       Log.i(TAG, "getStringResource,key: " + key + ",localeString: " + localeString);
       let localContext: common.Context = this.context;
       let stringToReturn: string | null = null;
