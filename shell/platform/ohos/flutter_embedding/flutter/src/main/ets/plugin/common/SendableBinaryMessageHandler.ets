@@ -12,35 +12,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+import { lang } from '@kit.ArkTS';
+import { BinaryReply } from './BinaryMessenger';
 
-{
-  "apiType": "stageMode",
-  "buildOption": {
-    "sourceOption": {
-      "workers": [
-        "./src/main/ets/embedding/engine/workers/PlatformChannelWorker.ets"
-      ]
-    }
-  },
-  "buildOptionSet": [
-    {
-      "name": "release",
-      "arkOptions": {
-        "obfuscation": {
-          "ruleOptions": {
-            "enable": false,
-            "files": [
-              "./obfuscation-rules.txt"
-            ]
-          }
-        }
-      }
-    },
-  ],
-  "targets": [
-    {
-      "name": "default",
-      "runtimeOS": "HarmonyOS"
-    }
-  ]
+type ISendable = lang.ISendable;
+export default interface SendableBinaryMessageHandler extends ISendable {
+  onMessage(message: ArrayBuffer, reply: BinaryReply, ...args: Object[]): void;
 }

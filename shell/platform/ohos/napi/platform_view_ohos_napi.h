@@ -38,13 +38,13 @@ struct locale {
 };
 
 struct mouseWheelEvent {
-  std::string event_type;
-  int64_t shell_holder;
-  int64_t finger_id;
-  double global_x;
-  double global_y;
-  double offset_y;
-  int64_t timestamp;
+    std::string eventType;
+    int64_t shellHolder;
+    int64_t fingerId;
+    double globalX;
+    double globalY;
+    double offsetY;
+    int64_t timestamp;
 };
 
 class PlatformViewOHOSNapi {

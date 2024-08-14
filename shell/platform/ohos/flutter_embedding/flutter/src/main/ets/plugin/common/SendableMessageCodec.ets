@@ -12,35 +12,18 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+import { lang } from '@kit.ArkTS';
 
-{
-  "apiType": "stageMode",
-  "buildOption": {
-    "sourceOption": {
-      "workers": [
-        "./src/main/ets/embedding/engine/workers/PlatformChannelWorker.ets"
-      ]
-    }
-  },
-  "buildOptionSet": [
-    {
-      "name": "release",
-      "arkOptions": {
-        "obfuscation": {
-          "ruleOptions": {
-            "enable": false,
-            "files": [
-              "./obfuscation-rules.txt"
-            ]
-          }
-        }
-      }
-    },
-  ],
-  "targets": [
-    {
-      "name": "default",
-      "runtimeOS": "HarmonyOS"
-    }
-  ]
+type ISendable = lang.ISendable;
+export default interface SendableMessageCodec<T> extends ISendable {
+  /**
+   * Encodes the specified message into binary.
+   */
+  encodeMessage(message: T) : ArrayBuffer;
+
+  /**
+   * Decodes the specified message from binary.
+   *
+   */
+  decodeMessage(message: ArrayBuffer | null): T;
 }
