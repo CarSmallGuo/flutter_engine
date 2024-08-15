@@ -52,7 +52,6 @@ OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, const std::shared_ptr<O
     buffer_ = nullptr;
     backGroundBuffer_ = nullptr;
     pixelMap_ = nullptr;
-    backGroundPixelMap_ = nullptr;
     lastImage_ = nullptr;
     isEmulator_ = OhosMain::IsEmulator();
 }
@@ -73,7 +72,6 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
   buffer_ = nullptr;
   backGroundBuffer_ = nullptr;
   pixelMap_ = nullptr;
-  backGroundPixelMap_ = nullptr;
   lastImage_ = nullptr;
 }
 
@@ -333,6 +331,7 @@ void OHOSExternalTextureGL::setBackground(int32_t width, int32_t height)
 }
 
 void OHOSExternalTextureGL::HandlePixelMapBuffer()
+{
   BufferHandle *handle = OH_NativeWindow_GetBufferHandleFromNative(buffer_);
   // get virAddr of bufferHandl by mmap sys interface
   uint32_t stride = handle->stride;
