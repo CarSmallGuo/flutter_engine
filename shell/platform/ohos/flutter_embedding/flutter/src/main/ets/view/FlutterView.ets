@@ -270,37 +270,37 @@ export class FlutterView {
   }
 
   onAreaChange(newArea: Area | null) {
-    let systemAvoidArea : Any;
-    try{
-      systemAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
+    try {
+      let systemAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
+
+      if (newArea != null) {
+        this.viewportMetrics.physicalWidth = vp2px(newArea.width as number);
+        this.viewportMetrics.physicalHeight = vp2px(newArea.height as number);
+      }
+
+      // 根据是否全屏显示，设置标题栏高度（若全屏，则及时规避）
+      if (this.checkFullScreen && FlutterManager.getInstance().getFullScreenListener().useFullScreen()) { // 全屏显示
+        this.viewportMetrics.physicalViewPaddingTop = this.getAvoidAreaTopLength();
+        this.viewportMetrics.physicalViewPaddingBottom = this.getAvoidAreaBotLength();
+        Log.i(TAG, "--- fullscreen mode is on ---");
+      } else { // 非全屏显示（保持规避效果）
+        // 顶部状态栏和底部导航栏规避为0，无平滑过渡效果
+        this.viewportMetrics.physicalViewPaddingTop = this.getAvoidAreaTopLength();
+        this.viewportMetrics.physicalViewPaddingBottom = this.getAvoidAreaBotLength();
+        Log.i(TAG, "--- minimize mode is on ---");
+      }
+
+      this.viewportMetrics.physicalViewPaddingLeft = systemAvoidArea!.leftRect.width;
+      this.viewportMetrics.physicalViewPaddingRight = systemAvoidArea!.rightRect.width;
+
+      this.onKeyboardAreaChange()
+      this.onGestureAreaChange()
+      this.updateViewportMetrics()
+
     } catch (e) {
       Log.e(TAG, JSON.stringify(e));
-      systemAvoidArea = null;
     }
 
-    if (newArea != null) {
-      this.viewportMetrics.physicalWidth = vp2px(newArea.width as number);
-      this.viewportMetrics.physicalHeight = vp2px(newArea.height as number);
-    }
-
-    // 根据是否全屏显示，设置标题栏高度（若全屏，则及时规避）
-    if (this.checkFullScreen && FlutterManager.getInstance().getFullScreenListener().useFullScreen()) { // 全屏显示
-      this.viewportMetrics.physicalViewPaddingTop = this.getAvoidAreaTopLength();
-      this.viewportMetrics.physicalViewPaddingBottom = this.getAvoidAreaBotLength();
-      Log.i(TAG, "--- fullscreen mode is on ---");
-    } else { // 非全屏显示（保持规避效果）
-      // 顶部状态栏和底部导航栏规避为0，无平滑过渡效果
-      this.viewportMetrics.physicalViewPaddingTop = this.getAvoidAreaTopLength();
-      this.viewportMetrics.physicalViewPaddingBottom = this.getAvoidAreaBotLength();
-      Log.i(TAG, "--- minimize mode is on ---");
-    }
-
-    this.viewportMetrics.physicalViewPaddingLeft = systemAvoidArea!.leftRect.width
-    this.viewportMetrics.physicalViewPaddingRight = systemAvoidArea!.rightRect.width
-
-    this.onKeyboardAreaChange()
-    this.onGestureAreaChange()
-    this.updateViewportMetrics()
   }
 
   private onKeyboardAreaChange() {
