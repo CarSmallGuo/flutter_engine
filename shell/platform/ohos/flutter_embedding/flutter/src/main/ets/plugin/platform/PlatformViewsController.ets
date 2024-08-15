@@ -150,6 +150,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
 
     let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
     if (viewWrapper != null) {
+      this.viewIdWithNodeController.get(viewId)?.setDestroy(true)
       if (this.flutterView) {
         let index = this.flutterView.getDVModel().children.indexOf(viewWrapper.getDvModel()!);
         this.flutterView.getDVModel().children.splice(index, 1);
@@ -176,6 +177,18 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     this.setParams(params!, "height", physicalHeight);
 
     onComplete.run(new PlatformViewBufferSize(physicalWidth, physicalHeight));
+  }
+
+  resize2(surfaceId:number,width:number,height:number,left:number,top:number): void {
+    let physicalWidth: number = this.toPhysicalPixels(width);
+    let physicalHeight: number = this.toPhysicalPixels(height);
+    let viewId: number =surfaceId;
+
+    let viewWrapper = this.viewWrappers.get(surfaceId)
+    let params: DVModelParameters | undefined = viewWrapper?.getDvModel()!.params
+
+    this.setParams(params!, "width", physicalWidth);
+    this.setParams(params!, "height", physicalHeight);
   }
 
   offset(viewId: number, top: number, left: number): void {
@@ -340,6 +353,33 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     Log.i(TAG, "Create platform view success");
     return textureId;
   }
+
+  public renderPdf(surfaceId:number,platformView:PlatformView,width:number,height:number,left:number,top:number){
+    this.flutterView!.setSurfaceId(surfaceId.toString());
+    let wrappedBuilder: WrappedBuilder<[Params]> = platformView.getView();
+    this.flutterView?.setWrappedBuilder(wrappedBuilder);
+    this.flutterView?.setPlatformView(platformView);
+
+    let nodeController = new EmbeddingNodeController();
+    nodeController.setRenderOption(platformView, surfaceId.toString(), NodeRenderType.RENDER_TYPE_TEXTURE, undefined);
+    this.nodeControllers.push(nodeController);
+    let dvModel = createDVModelFromJson(new DVModelJson("NodeContainer",
+      [],
+      {
+        "width": width,
+        "height": height,
+        "nodeController": nodeController,
+        "left": left,
+        "top": top
+      },
+      {},
+      undefined));
+    let viewWrapper: PlatformViewWrapper = new PlatformViewWrapper();
+    viewWrapper.addDvModel(dvModel);
+    this.viewWrappers.set(surfaceId, viewWrapper);
+    this.flutterView?.getDVModel().children.push(viewWrapper.getDvModel())
+  }
+
 
   public attach(context: Context, textureRegistry: TextureRegistry | null, dartExecutor: DartExecutor): void {
     if (this.context != null) {

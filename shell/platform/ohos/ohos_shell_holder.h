@@ -65,7 +65,6 @@ class OHOSShellHolder {
 
   const std::shared_ptr<PlatformMessageHandler>& GetPlatformMessageHandler()
       const {
-    LOGI("GetPlatformMessageHandler LOGI");
     return shell_->GetPlatformMessageHandler();
   }
 
@@ -79,7 +78,6 @@ class OHOSShellHolder {
   fml::WeakPtr<PlatformViewOHOS> platform_view_;
   std::shared_ptr<ThreadHost> thread_host_;
   std::unique_ptr<Shell> shell_;
-  bool is_valid_ = false;
   uint64_t next_pointer_flow_id_ = 0;
 
   std::unique_ptr<OHOSAssetProvider> assetProvider_;
