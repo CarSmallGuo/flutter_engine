@@ -13,20 +13,23 @@
 * limitations under the License.
 */
 
-import LocalizationChannel, { LocalizationMessageHandler } from '../../embedding/engine/systemchannels/LocalizationChannel'
+import LocalizationChannel, {
+  LocalizationMessageHandler
+} from '../../embedding/engine/systemchannels/LocalizationChannel'
 import common from '@ohos.app.ability.common';
 import intl from '@ohos.intl';
 import Log from '../../util/Log';
 import i18n from '@ohos.i18n';
 
-const TAG =  "LocalizationPlugin";
+const TAG = "LocalizationPlugin";
+
 export default class LocalizationPlugin {
-  private localizationChannel:LocalizationChannel;
+  private localizationChannel: LocalizationChannel;
   private context: common.Context;
 
   localeFromString(localeString: string): intl.Locale {
-    localeString = localeString.replace('_','-');
-    let parts: string[] = localeString.split('-',-1);
+    localeString = localeString.replace('_', '-');
+    let parts: string[] = localeString.split('-', -1);
     let languageCode = parts[0];
     let scriptCode = "";
     let countryCode = "";
@@ -41,13 +44,36 @@ export default class LocalizationPlugin {
       countryCode = parts[index];
       index++;
     }
-    return new intl.Locale(languageCode+'-'+ countryCode +'-' + scriptCode);
+    return new intl.Locale(languageCode + '-' + countryCode + '-' + scriptCode);
   }
 
-  private localizationMessageHandler: LocalizationMessageHandler =new enterGetStringResource(()=>{
-    Log.i(TAG, "getResource enter");
-    return ""
-  })
+  private localizationMessageHandler: LocalizationMessageHandler =
+    new enterGetStringResource((key: string, localeString: string | null) => {
+
+      Log.i(TAG, "getStringResource,key: " + key + ",localeString: " + localeString);
+      let localContext: common.Context = this.context;
+      let stringToReturn: string | null = null;
+      // 获取资源管理器
+      let resMgr = localContext.resourceManager;
+
+      try {
+        // 如果localeString不为空，则更新为指定地区的资源管理器
+        if (localeString) {
+          let overrideConfig = resMgr.getOverrideConfiguration();
+          overrideConfig.locale = localeString;
+          let overrideResMgr = resMgr.getOverrideResourceManager(overrideConfig);
+          stringToReturn = overrideResMgr.getStringByNameSync(key);
+        } else {
+          stringToReturn = resMgr.getStringByNameSync(key);
+        }
+      } catch (e) {
+        Log.e(TAG, e);
+        return null;
+      }
+
+      return stringToReturn;
+    })
+
   constructor(context: common.Context, localizationChannel: LocalizationChannel) {
     this.context = context;
     this.localizationChannel = localizationChannel;
@@ -61,10 +87,11 @@ export default class LocalizationPlugin {
     this.localizationChannel.sendLocales(data);
   }
 }
-class enterGetStringResource{
-  getStringResource : (key: string, localeString: string)=>string
 
-  constructor(getStringResource: (key: string, localeString: string)=>string) {
+class enterGetStringResource {
+  getStringResource: (key: string, localeString: string | null) => string | null
+
+  constructor(getStringResource: (key: string, localeString: string | null) => string | null) {
     this.getStringResource = getStringResource
   }
 }

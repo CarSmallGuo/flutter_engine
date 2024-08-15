@@ -91,7 +91,6 @@ export struct FlutterPage {
           children: child.children,
           customBuilder: child.builder
         })
-          .position({x: (child.params as Record<string, ESObject>)['left'] as number, y: (child.params as Record<string, ESObject>)['top'] as number})
       }, (child: ESObject) => `${child.id_}`)
 
 
@@ -117,6 +116,7 @@ export struct FlutterPage {
         this.splashScreenView();
       }
     }
+    .defaultFocus(true)
     .onAreaChange((oldValue: Area, newValue: Area) => {
       if (!this.lastArea || oldValue.width != newValue.width
         || oldValue.height != newValue.height) {
@@ -126,9 +126,10 @@ export struct FlutterPage {
         this.flutterView?.onAreaChange(newValue)
       }
     })
-    .onKeyEvent((event: KeyEvent) => {
+    .onKeyPreIme((event: KeyEvent) => {
       Log.d(TAG, "onKeyEvent " + event.type);
-      this.flutterView?.onKeyEvent(event)
+      this.flutterView?.onKeyEvent(event);
+      return false;
     })
     .gesture(
       PanGesture(this.panOption)

@@ -14,7 +14,6 @@
  */
 
 #include "flutter/shell/platform/ohos/platform_view_ohos.h"
-#include "flutter/fml/logging.h"
 #include "flutter/fml/make_copyable.h"
 #include "flutter/lib/ui/window/viewport_metrics.h"
 #include "flutter/shell/common/shell_io_manager.h"
@@ -23,6 +22,7 @@
 #include "flutter/shell/platform/ohos/ohos_surface_software.h"
 #include "flutter/shell/platform/ohos/platform_message_response_ohos.h"
 #include "napi_common.h"
+#include "ohos_logging.h"
 #include "ohos_external_texture_gl.h"
 
 #include <GLES2/gl2ext.h>
@@ -439,6 +439,12 @@ void PlatformViewOHOS::RegisterExternalTextureByImage(
   }
 }
 
+PointerDataDispatcherMaker PlatformViewOHOS::GetDispatcherMaker() {
+  return [](DefaultPointerDataDispatcher::Delegate& delegate) {
+    return std::make_unique<SmoothPointerDataDispatcher>(delegate);
+  };
+}
+
 uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
 {
   uint64_t surface_id = 0;
@@ -467,6 +473,7 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
       FML_DLOG(ERROR) << "Error with OH_NativeImage_GetSurfaceId";
       return surface_id;
     }
+    external_texture_gl_[texture_id] = ohos_external_gl;
     RegisterTexture(ohos_external_gl);
   }
   return surface_id;
@@ -534,6 +541,16 @@ void PlatformViewOHOS::RegisterExternalTextureByPixelMap(int64_t texture_id, Nat
       ohos_external_gl->DispatchPixelMap(pixelMap);
     }
     MarkTextureFrameAvailable(texture_id);
+  }
+}
+
+void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(int64_t texture_id, NativePixelMap* pixelMap)
+{
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    auto iter = external_texture_gl_.find(texture_id);
+    if (iter != external_texture_gl_.end()) {
+      iter->second->DispatchBackGroundPixelMap(pixelMap);
+    }
   }
 }
 
