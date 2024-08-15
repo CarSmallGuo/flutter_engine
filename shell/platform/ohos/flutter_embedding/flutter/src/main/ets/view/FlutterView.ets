@@ -135,7 +135,7 @@ export class FlutterView {
   }
 
   private windowStatusChangeCallback = (data: window.WindowStatusType) => {
-    Log.i(TAG, "windowStatusChangeCallback " + JSON.stringify(data));
+    Log.i(TAG, "windowStatusChangeCallback " + data);
     FlutterManager.getInstance().getFullScreenListener().onScreenStateChanged(data);
     this.onAreaChange(null);
   };
