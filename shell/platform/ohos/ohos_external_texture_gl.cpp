@@ -42,7 +42,6 @@ constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface)
   : Texture(id), ohos_surface_(std::move(ohos_surface)), transform(SkMatrix::I())
 {
-    state_ = AttachmentState::uninitialized;
     nativeImage_ = nullptr;
     backGroundNativeImage_ = nullptr;
     nativeWindow_ = nullptr;
@@ -60,27 +59,11 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
 {
   if (state_ == AttachmentState::attached) {
     glDeleteTextures(1, &texture_name_);
-    texture_name_ = 0;
   }
-  state_ = AttachmentState::uninitialized;
-  nativeImage_ = nullptr;
-  backGroundNativeImage_ = nullptr;
-  nativeWindow_ = nullptr;
-  backGroundNativeWindow_ = nullptr;
-  eglContext_ =  EGL_NO_CONTEXT;
-  eglDisplay_ = EGL_NO_DISPLAY;
-  buffer_ = nullptr;
-  backGroundBuffer_ = nullptr;
-  pixelMap_ = nullptr;
-  lastImage_ = nullptr;
 }
 
 void OHOSExternalTextureGL::Attach()
 {
-  if (state_ != AttachmentState::uninitialized) {
-    FML_LOG(ERROR) << "OHOSExternalTextureGL::Attach ";
-    return;
-  }
   OHOSSurface* ohos_surface_ptr = ohos_surface_.get();
   OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
   auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
@@ -217,13 +200,8 @@ void OHOSExternalTextureGL::Update()
 
 void OHOSExternalTextureGL::Detach()
 {
-  if (state_ != AttachmentState::attached) {
-    FML_LOG(ERROR) << "OHOSExternalTextureGL::Detach ";
-    return;
-  }
   OH_NativeImage_DetachContext(nativeImage_);
   OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
-  nativeWindow_ = nullptr;
 }
 
 void OHOSExternalTextureGL::UpdateTransform()
@@ -383,10 +361,7 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
     FML_DLOG(ERROR) << "OHOSExternalTextureGL AttachmentState err";
     return;
   }
-  if (pixelMap_ == nullptr) {
-    FML_DLOG(ERROR) << "pixelMap_ is nullptr";
-    return;
-  }
+
   int32_t ret = -1;
   ret = OH_PixelMap_GetImageInfo(pixelMap_, &pixelMapInfo);
   if (ret != 0) {
