@@ -223,7 +223,6 @@ void OHOSExternalTextureGL::Detach()
   }
   OH_NativeImage_DetachContext(nativeImage_);
   OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
-  nativeImage_ = nullptr;
   nativeWindow_ = nullptr;
 }
 
