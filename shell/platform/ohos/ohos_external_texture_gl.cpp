@@ -212,6 +212,8 @@ void OHOSExternalTextureGL::OnTextureUnregistered()
   OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);
   OH_NativeImage_Destroy(&nativeImage_);
   OH_NativeImage_Destroy(&backGroundNativeImage_);
+  nativeImage_ = nullptr;
+  backGroundNativeImage_ = nullptr;
 }
 
 void OHOSExternalTextureGL::Update()
@@ -235,8 +237,8 @@ void OHOSExternalTextureGL::Detach()
   OH_NativeImage_DetachContext(backGroundNativeImage_);
   OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
   OH_NativeWindow_DestroyNativeWindow(backGroundNativeWindow_);
-  nativeImage_ = nullptr;
   nativeWindow_ = nullptr;
+  backGroundNativeWindow_ = nullptr;
 }
 
 void OHOSExternalTextureGL::UpdateTransform(OH_NativeImage *image)
