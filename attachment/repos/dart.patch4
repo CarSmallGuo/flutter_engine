@@ -50,6 +50,19 @@ index 9f04c8e21a4..3814ccb1e19 100644
  
   public:
    Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words);
+diff --git a/runtime/vm/flag_list.h b/runtime/vm/flag_list.h
+index 01eef6deb62..d7b8ddb8230 100644
+--- a/runtime/vm/flag_list.h
++++ b/runtime/vm/flag_list.h
+@@ -130,7 +130,7 @@ constexpr bool FLAG_support_il_printer = false;
+   P(huge_method_cutoff_in_ast_nodes, int, 10000,                               \
+     "Huge method cutoff in AST nodes: Disables optimizations for huge "        \
+     "methods.")                                                                \
+-  P(idle_timeout_micros, int, 1000 * kMicrosecondsPerMillisecond,              \
++  P(idle_timeout_micros, int, 61 * kMicrosecondsPerSecond,              \
+     "Consider thread pool isolates for idle tasks after this long.")           \
+   P(idle_duration_micros, int, 500 * kMicrosecondsPerMillisecond,              \
+     "Allow idle tasks to run for this long.")                                  \
 -- 
 2.39.3 (Apple Git-146)
 
