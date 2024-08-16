@@ -91,8 +91,6 @@ export class FlutterView {
   private checkFullScreen: boolean = true;
   private checkKeyboard: boolean = true;
   private checkGesture: boolean = true;
-  private sysTopAvoidArea: number = 0;  // 顶部状态栏规避区域高度
-  private navBotAvoidArea: number = 0;  // 底部导航栏规避区域高度
 
   constructor(viewId: string, context: Context) {
     this.id = viewId
@@ -118,14 +116,6 @@ export class FlutterView {
 
   private avoidAreaChangeCallback = (data: Any) => {
     Log.i(TAG, "avoidAreaChangeCallback");
-    // 防止热启动阶段，窗口视图先全屏再规避现象（即顶部状态栏出现先遮挡再规避现象，规避改变事件回调存在时延）
-    try {
-      let systemAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
-      let navigationAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR);
-      this.setAvoidAreaTopBottomLength(systemAvoidArea!.topRect.height, navigationAvoidArea!.bottomRect.height);
-    } catch (e) {
-      Log.e(TAG, "get AvoidArea error:" + JSON.stringify(e));
-    }
     this.onAreaChange(null);
   }
 
@@ -270,37 +260,32 @@ export class FlutterView {
   }
 
   onAreaChange(newArea: Area | null) {
-    try {
-      let systemAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
+    let systemAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
+    let navigationAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR);
 
-      if (newArea != null) {
-        this.viewportMetrics.physicalWidth = vp2px(newArea.width as number);
-        this.viewportMetrics.physicalHeight = vp2px(newArea.height as number);
-      }
-
-      // 根据是否全屏显示，设置标题栏高度（若全屏，则及时规避）
-      if (this.checkFullScreen && FlutterManager.getInstance().getFullScreenListener().useFullScreen()) { // 全屏显示
-        this.viewportMetrics.physicalViewPaddingTop = this.getAvoidAreaTopLength();
-        this.viewportMetrics.physicalViewPaddingBottom = 0;
-        Log.i(TAG, "--- fullscreen mode is on ---");
-      } else { // 非全屏显示（保持规避效果）
-        // 顶部状态栏和底部导航栏规避为0，无平滑过渡效果
-        this.viewportMetrics.physicalViewPaddingTop = this.getAvoidAreaTopLength();
-        this.viewportMetrics.physicalViewPaddingBottom = this.getAvoidAreaBotLength();
-        Log.i(TAG, "--- minimize mode is on ---");
-      }
-
-      this.viewportMetrics.physicalViewPaddingLeft = systemAvoidArea!.leftRect.width;
-      this.viewportMetrics.physicalViewPaddingRight = systemAvoidArea!.rightRect.width;
-
-      this.onKeyboardAreaChange()
-      this.onGestureAreaChange()
-      this.updateViewportMetrics()
-
-    } catch (e) {
-      Log.e(TAG, JSON.stringify(e));
+    if (newArea != null) {
+      this.viewportMetrics.physicalWidth = vp2px(newArea.width as number);
+      this.viewportMetrics.physicalHeight = vp2px(newArea.height as number);
     }
 
+    // 根据是否全屏显示，设置标题栏高度（若全屏，则及时规避）
+    if (this.checkFullScreen && FlutterManager.getInstance().getFullScreenListener().useFullScreen()) { // 全屏显示
+      this.viewportMetrics.physicalViewPaddingTop = systemAvoidArea!.topRect.height;
+      this.viewportMetrics.physicalViewPaddingBottom = navigationAvoidArea!.bottomRect.height;
+      Log.i(TAG, "--- fullscreen mode is on ---");
+    } else { // 非全屏显示（保持规避效果）
+      // 顶部状态栏和底部导航栏规避为0，无平滑过渡效果
+      this.viewportMetrics.physicalViewPaddingTop = 0;
+      this.viewportMetrics.physicalViewPaddingBottom = 0;
+      Log.i(TAG, "--- minimize mode is on ---");
+    }
+
+    this.viewportMetrics.physicalViewPaddingLeft = systemAvoidArea!.leftRect.width;
+    this.viewportMetrics.physicalViewPaddingRight = systemAvoidArea!.rightRect.width;
+
+    this.onKeyboardAreaChange()
+    this.onGestureAreaChange()
+    this.updateViewportMetrics()
   }
 
   private onKeyboardAreaChange() {
@@ -398,20 +383,6 @@ export class FlutterView {
 
   setCheckGesture(check: boolean) {
     this.checkGesture = check
-  }
-
-  // 设置规避面积（顶部系统栏、底部导航栏）
-  setAvoidAreaTopBottomLength(topLen: number, bottomLen: number) {
-    this.sysTopAvoidArea = topLen;
-    this.navBotAvoidArea = bottomLen;
-  }
-
-  getAvoidAreaTopLength() : number {
-    return this.sysTopAvoidArea;
-  }
-
-  getAvoidAreaBotLength() : number {
-    return this.navBotAvoidArea;
   }
 
 }
