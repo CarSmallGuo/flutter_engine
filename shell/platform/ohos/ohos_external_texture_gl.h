@@ -65,8 +65,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   void DispatchPixelMap(NativePixelMap* pixelMap);
 
-  void DispatchBackGroundPixelMap(NativePixelMap* pixelMap);
-
  private:
   void Attach();
 
@@ -74,19 +72,15 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   void Detach();
 
-  void UpdateTransform(OH_NativeImage *image);
+  void UpdateTransform();
 
   EGLDisplay GetPlatformEglDisplay(EGLenum platform, void *native_display, const EGLint *attrib_list);
 
   bool CheckEglExtension(const char *extensions, const char *extension);
 
-  void HandlePixelMapBuffer(NativePixelMap* pixelMap, OHNativeWindowBuffer* buffer);
+  void HandlePixelMapBuffer();
 
   void ProducePixelMapToNativeImage();
-
-  void ProduceColorToBackGroundImage(int32_t width, int32_t height);
-
-  void ProducePixelMapToBackGroundImage();
 
   enum class AttachmentState { uninitialized, attached, detached };
 
@@ -109,8 +103,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
   OHNativeWindowBuffer *buffer_;
 
   OHNativeWindowBuffer *backGroundBuffer_;
-
-  NativePixelMap* backGroundPixelMap_;
 
   NativePixelMap* pixelMap_;
 
