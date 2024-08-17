@@ -24,7 +24,7 @@ import Log from '../../util/Log';
 import { EditingStateWatcher, ListenableEditingState } from './ListenableEditingState';
 import Any from '../common/Any';
 import { window } from '@kit.ArkUI';
-import FlutterManager from '@ohos//flutter_ohos/src/main/ets/embedding/ohos/FlutterManager';
+import FlutterManager from '../../embedding/ohos/FlutterManager';
 import { IntentionCode } from '@ohos.multimodalInput.intentionCode';
 
 /// 临时规避缺少newline对应枚举问题
