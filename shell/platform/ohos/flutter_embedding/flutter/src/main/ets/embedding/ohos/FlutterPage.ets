@@ -15,11 +15,11 @@
 
 import Log from '../../util/Log';
 import { FlutterView } from '../../view/FlutterView';
-import { EmbeddingNodeController } from './EmbeddingNodeController';
 import FlutterManager from './FlutterManager';
 import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
 
 const TAG = "FlutterPage";
+export const OHOS_FLUTTER_PAGE_UPDATE = "ohos_flutter_page_update";
 
 /**
  * 基础page组件，承载XComponent组件
@@ -42,6 +42,7 @@ export struct FlutterPage {
 
   @State rootDvModel: DVModelChildren | undefined = undefined
 
+  @State isNeedUpdate: boolean = false;
 
   private flutterView?: FlutterView | null
   private lastArea?: Area;
@@ -56,11 +57,14 @@ export struct FlutterPage {
     this.flutterView?.setCheckGesture(this.checkGesture)
 
     this.rootDvModel = this.flutterView!!.getDVModel().children
-
+    getContext().eventHub.on(OHOS_FLUTTER_PAGE_UPDATE, () => {
+      this.isNeedUpdate = true;
+    })
   }
 
   aboutToDisappear() {
     this.flutterView?.removeFirstFrameListener(this);
+    getContext().eventHub.off(OHOS_FLUTTER_PAGE_UPDATE)
   }
 
   onFirstFrame() {
@@ -104,12 +108,13 @@ export struct FlutterPage {
     }
     .defaultFocus(true)
     .onAreaChange((oldValue: Area, newValue: Area) => {
-      if (!this.lastArea || oldValue.width != newValue.width
+      if (this.isNeedUpdate || !this.lastArea || oldValue.width != newValue.width
         || oldValue.height != newValue.height) {
         Log.d(TAG, "onAreaChange, old=" + JSON.stringify(oldValue));
         Log.d(TAG, "onAreaChange, new=" + JSON.stringify(newValue));
         this.lastArea = newValue;
         this.flutterView?.onAreaChange(newValue)
+        this.isNeedUpdate = false;
       }
     })
     .onKeyPreIme((event: KeyEvent) => {
