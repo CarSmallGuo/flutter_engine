@@ -28,7 +28,7 @@ export class TraceSection {
    *
    * @param sectionName The string to display as the section name in the trace.
    */
-  public static begin(sectionName: string): void {
+  public static begin(sectionName: string): number {
     TraceSection.taskId++;
     hiTraceMeter.startTrace(TraceSection.cropSectionName(sectionName), TraceSection.taskId);
     return TraceSection.taskId;
