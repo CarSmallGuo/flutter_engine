@@ -109,7 +109,7 @@ export default class DartExecutor implements  BinaryMessenger {
       return;
     }
 
-    TraceSection.begin("DartExecutor#executeDartEntrypoint");
+    let traceId: number = TraceSection.begin("DartExecutor#executeDartEntrypoint");
     try {
       Log.d(TAG, "Executing Dart entrypoint: " + dartEntrypoint);
       this.flutterNapi.runBundleAndSnapshotFromLibrary(
@@ -121,7 +121,7 @@ export default class DartExecutor implements  BinaryMessenger {
 
       this.isApplicationRunning = true;
     } finally {
-      TraceSection.end("DartExecutor#executeDartEntrypoint");
+      TraceSection.endWithId("DartExecutor#executeDartEntrypoint", traceId);
     }
   }
 
@@ -138,7 +138,7 @@ export default class DartExecutor implements  BinaryMessenger {
       return;
     }
 
-    TraceSection.begin("DartExecutor#executeDartCallback");
+    let traceId: number = TraceSection.begin("DartExecutor#executeDartCallback");
     try {
       Log.d(TAG, "Executing Dart callback: " + dartCallback);
       this.flutterNapi.runBundleAndSnapshotFromLibrary(
@@ -150,7 +150,7 @@ export default class DartExecutor implements  BinaryMessenger {
 
       this.isApplicationRunning = true;
     } finally {
-      TraceSection.end("DartExecutor#executeDartCallback");
+      TraceSection.endWithId("DartExecutor#executeDartCallback", traceId);
     }
   }
 
