@@ -131,7 +131,7 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     if (!freeze && new_frame_ready_ && pixelMap_ != nullptr) {
       ProducePixelMapToNativeImage();
       Update();
-	  }
+    }
     new_frame_ready_ = false;
   }
 
