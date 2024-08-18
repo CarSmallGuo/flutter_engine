@@ -209,15 +209,23 @@ void OHOSExternalTextureGL::OnTextureUnregistered()
 {
   FML_DLOG(INFO)<<" OHOSExternalTextureGL::OnTextureUnregistered";
   first_update_ = false;
-  OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);
-  OH_NativeImage_Destroy(&nativeImage_);
-  OH_NativeImage_Destroy(&backGroundNativeImage_);
-  nativeImage_ = nullptr;
-  backGroundNativeImage_ = nullptr;
+  if (nativeImage_ != nullptr) {
+    OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);
+    OH_NativeImage_Destroy(&nativeImage_);
+    nativeImage_ = nullptr;
+  }
+  if (backGroundNativeImage_ != nullptr) {
+    OH_NativeImage_Destroy(&backGroundNativeImage_);
+    backGroundNativeImage_ = nullptr;
+  }
 }
 
 void OHOSExternalTextureGL::Update()
 {
+  if (nativeImage_ == nullptr) {
+    FML_LOG(ERROR) << "Update, nativeImage_ is nullptr";
+    return;
+  }
   int32_t ret = OH_NativeImage_UpdateSurfaceImage(nativeImage_);
   if (ret != 0) {
     FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeImage_UpdateSurfaceImage err code:" << ret;
@@ -424,6 +432,10 @@ void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
 void OHOSExternalTextureGL::HandlePixelMapBuffer(NativePixelMap* pixelMap, OHNativeWindowBuffer* buffer)
 {
   BufferHandle *handle = OH_NativeWindow_GetBufferHandleFromNative(buffer);
+  if (handle == nullptr) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL::HandlePixelMapBuffer, handle is nullptr.";
+    return;
+  }
   // get virAddr of bufferHandl by mmap sys interface
   uint32_t stride = handle->stride;
   FML_DLOG(INFO) << "OHOSExternalTextureGL stride:" << stride;
