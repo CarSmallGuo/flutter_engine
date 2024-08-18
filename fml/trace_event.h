@@ -157,22 +157,22 @@ public:
 
 #define TRACE_EVENT_ASYNC_BEGIN0(category_group, name, id)                          \
     ::fml::tracing::TraceEventAsyncBegin0(category_group, name, id);                \
-    OH_TRACE_ASYNC_BEGIN(category_group, name, id)
+    OH_TRACE_ASYNC_BEGIN(category_group, name, (id))
 
 #define TRACE_EVENT_ASYNC_END0(category_group, name, id)                            \
     ::fml::tracing::TraceEventAsyncEnd0(category_group, name, id);                  \
-    OH_TRACE_ASYNC_END(category_group, name, id)
+    OH_TRACE_ASYNC_END(category_group, name, (id))
 
 #define TRACE_EVENT_ASYNC_BEGIN1(category_group, name, id, arg1_name,               \
                                  arg1_val)                                          \
     ::fml::tracing::TraceEventAsyncBegin1(category_group, name, id, arg1_name,      \
                                           arg1_val);                                \
-    OH_TRACE_ASYNC_BEGIN(category_group, name, id)
+    OH_TRACE_ASYNC_BEGIN(category_group, name, (id))
 
 #define TRACE_EVENT_ASYNC_END1(category_group, name, id, arg1_name, arg1_val)       \
     ::fml::tracing::TraceEventAsyncEnd1(category_group, name, id, arg1_name,        \
                                         arg1_val);                                  \
-    OH_TRACE_ASYNC_END(category_group, name, id)
+    OH_TRACE_ASYNC_END(category_group, name, (id))
 
 #define TRACE_EVENT_INSTANT0(category_group, name)                                  \
     ::fml::tracing::TraceEventInstant0(category_group, name);                       \
@@ -190,14 +190,14 @@ public:
 
 #define TRACE_FLOW_BEGIN(category, name, id)                                        \
     ::fml::tracing::TraceEventFlowBegin0(category, name, id);                       \
-    OH_TRACE_ASYNC_BEGIN(category, name, id)
+    OH_TRACE_ASYNC_BEGIN(category, name, (id))
 
 #define TRACE_FLOW_STEP(category, name, id)                                         \
     ::fml::tracing::TraceEventFlowStep0(category, name, id)
 
 #define TRACE_FLOW_END(category, name, id)                                          \
     ::fml::tracing::TraceEventFlowEnd0(category, name, id);                         \
-    OH_TRACE_ASYNC_END(category, name, id)
+    OH_TRACE_ASYNC_END(category, name, (id))
 
 #endif  // TRACE_EVENT_HIDE_MACROS
 #endif  // !defined(OS_FUCHSIA)
