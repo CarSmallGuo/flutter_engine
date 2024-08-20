@@ -31,25 +31,22 @@ export struct FlutterPage {
 
   @Builder doNothingBuilder() {}
   @BuilderParam splashScreenView: () => void = this.doNothingBuilder;
-  @Builder defaultPage() {
-    Stack() {
-      ForEach(this.rootDvModel!!, (child: ESObject) => {
-        DynamicView({
-          model: child as DVModel,
-          params: child.params,
-          events: child.events,
-          children: child.children,
-          customBuilder: child.builder
-        })
-      }, (child: ESObject) => `${child.id_}`)
+  @State showSplashScreen: boolean = true;
+
+  @State checkFullScreen: boolean = true;
+  @State checkKeyboard: boolean = true;
+  @State checkGesture: boolean = true;
+
+  @StorageLink('nodeWidth') storageLinkWidth: number = 0;
+  @StorageLink('nodeHeight') storageLinkHeight: number = 0;
+
+  @State rootDvModel: DVModelChildren | undefined = undefined
 
   @State isNeedUpdate: boolean = false;
 
-      Text('')
-        .id('emptyFocusText' + this.viewId)
-        .size({ width: 0, height: 0 })
-        .opacity(0)
-        .focusable(true)
+  private flutterView?: FlutterView | null
+  private lastArea?: Area;
+  private panOption: PanGestureOptions = new PanGestureOptions({ direction: PanDirection.Up | PanDirection.Down });
 
   aboutToAppear() {
     this.flutterView = FlutterManager.getInstance().getFlutterView(this.viewId);
@@ -138,49 +135,5 @@ export struct FlutterPage {
           this.flutterView?.onMouseWheel("actionEnd", event);
         })
     )
-  }
-  @State showSplashScreen: boolean = true;
-
-  @State checkFullScreen: boolean = true;
-  @State checkKeyboard: boolean = true;
-  @State checkGesture: boolean = true;
-  @State checkMouseWheel: boolean = true;
-
-  @StorageLink('nodeWidth') storageLinkWidth: number = 0;
-  @StorageLink('nodeHeight') storageLinkHeight: number = 0;
-
-  @State rootDvModel: DVModelChildren | undefined = undefined
-
-
-  private flutterView?: FlutterView | null
-  private lastArea?: Area;
-  private panOption: PanGestureOptions = new PanGestureOptions({ direction: PanDirection.Up | PanDirection.Down });
-
-  aboutToAppear() {
-    this.flutterView = FlutterManager.getInstance().getFlutterView(this.viewId);
-    this.flutterView?.addFirstFrameListener(this)
-
-    this.flutterView?.setCheckFullScreen(this.checkFullScreen)
-    this.flutterView?.setCheckKeyboard(this.checkKeyboard)
-    this.flutterView?.setCheckGesture(this.checkGesture)
-
-    this.rootDvModel = this.flutterView!!.getDVModel().children
-
-  }
-
-  aboutToDisappear() {
-    this.flutterView?.removeFirstFrameListener(this);
-  }
-
-  onFirstFrame() {
-    this.showSplashScreen = false;
-  }
-
-  build() {
-    if (this.checkMouseWheel) {
-      this.mouseWheelPage();
-    } else {
-      this.defaultPage();
-    }
   }
 }
