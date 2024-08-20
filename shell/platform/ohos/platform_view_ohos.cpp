@@ -509,6 +509,7 @@ void PlatformViewOHOS::OnNativeImageFrameAvailable(void *data)
 
 void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id)
 {
+  FML_DLOG(INFO) << "PlatformViewOHOS::UnRegisterExternalTexture, texture_id=" << texture_id;
   external_texture_gl_.erase(texture_id);
   UnregisterTexture(texture_id);
   std::map<int64_t, void*>::iterator it = contextDatas_.find(texture_id);

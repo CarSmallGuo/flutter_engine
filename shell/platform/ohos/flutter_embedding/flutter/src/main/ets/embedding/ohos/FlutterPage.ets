@@ -15,11 +15,11 @@
 
 import Log from '../../util/Log';
 import { FlutterView } from '../../view/FlutterView';
-import { EmbeddingNodeController } from './EmbeddingNodeController';
 import FlutterManager from './FlutterManager';
 import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
 
 const TAG = "FlutterPage";
+export const OHOS_FLUTTER_PAGE_UPDATE = "ohos_flutter_page_update";
 
 /**
  * 基础page组件，承载XComponent组件
@@ -43,6 +43,7 @@ export struct FlutterPage {
         })
       }, (child: ESObject) => `${child.id_}`)
 
+  @State isNeedUpdate: boolean = false;
 
       Text('')
         .id('emptyFocusText' + this.viewId)
@@ -50,39 +51,30 @@ export struct FlutterPage {
         .opacity(0)
         .focusable(true)
 
-      XComponent({ id: this.viewId, type: this.xComponentType, libraryname: 'flutter' })
-        .focusable(true)
-        .onLoad((context) => {
-          this.flutterView?.onSurfaceCreated()
-          Log.d(TAG, "XComponent onLoad ");
-        })
-        .onDestroy(() => {
-          Log.d(TAG, "XComponent onDestroy ");
-          this.flutterView?.onSurfaceDestroyed()
-        })
-        .backgroundColor(Color.Transparent)
+  aboutToAppear() {
+    this.flutterView = FlutterManager.getInstance().getFlutterView(this.viewId);
+    this.flutterView?.addFirstFrameListener(this)
 
-      if (this.showSplashScreen) {
-        this.splashScreenView();
-      }
-    }
-    .defaultFocus(true)
-    .onAreaChange((oldValue: Area, newValue: Area) => {
-      if (!this.lastArea || oldValue.width != newValue.width
-        || oldValue.height != newValue.height) {
-        Log.d(TAG, "onAreaChange, old=" + JSON.stringify(oldValue));
-        Log.d(TAG, "onAreaChange, new=" + JSON.stringify(newValue));
-        this.lastArea = newValue;
-        this.flutterView?.onAreaChange(newValue)
-      }
-    })
-    .onKeyPreIme((event: KeyEvent) => {
-      Log.d(TAG, "onKeyEvent " + event.type);
-      this.flutterView?.onKeyEvent(event);
-      return false;
+    this.flutterView?.setCheckFullScreen(this.checkFullScreen)
+    this.flutterView?.setCheckKeyboard(this.checkKeyboard)
+    this.flutterView?.setCheckGesture(this.checkGesture)
+
+    this.rootDvModel = this.flutterView!!.getDVModel().children
+    getContext().eventHub.on(OHOS_FLUTTER_PAGE_UPDATE, () => {
+      this.isNeedUpdate = true;
     })
   }
-  @Builder mouseWheelPage() {
+
+  aboutToDisappear() {
+    this.flutterView?.removeFirstFrameListener(this);
+    getContext().eventHub.off(OHOS_FLUTTER_PAGE_UPDATE)
+  }
+
+  onFirstFrame() {
+    this.showSplashScreen = false;
+  }
+
+  build() {
     Stack() {
       ForEach(this.rootDvModel!!, (child: ESObject) => {
         DynamicView({
@@ -102,6 +94,7 @@ export struct FlutterPage {
         .focusable(true)
 
       XComponent({ id: this.viewId, type: this.xComponentType, libraryname: 'flutter' })
+        .id(this.viewId)
         .focusable(true)
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
@@ -119,12 +112,13 @@ export struct FlutterPage {
     }
     .defaultFocus(true)
     .onAreaChange((oldValue: Area, newValue: Area) => {
-      if (!this.lastArea || oldValue.width != newValue.width
+      if (this.isNeedUpdate || !this.lastArea || oldValue.width != newValue.width
         || oldValue.height != newValue.height) {
         Log.d(TAG, "onAreaChange, old=" + JSON.stringify(oldValue));
         Log.d(TAG, "onAreaChange, new=" + JSON.stringify(newValue));
         this.lastArea = newValue;
         this.flutterView?.onAreaChange(newValue)
+        this.isNeedUpdate = false;
       }
     })
     .onKeyPreIme((event: KeyEvent) => {
