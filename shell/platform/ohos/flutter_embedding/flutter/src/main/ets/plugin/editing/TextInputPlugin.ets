@@ -285,7 +285,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
         /// 暂时规避方案
         /// OS机制与Android不一致，需要去监听软键盘事件才能发送KeyEvent事件
         /// keyCode是从dart侧获取的，因为是使用删除按钮，此处暂时这样写死；其他地方如果需要键盘发送事件，再去找对应的keyCode
-        if ( length == 1 ) {
+        if (length == 1) {
           let event: KeyEvent = {
             type: KeyType.Down,
             /// dart侧keyboard_maps.g.dart中LogicalKeyboardKey.backspace设置为这个参
