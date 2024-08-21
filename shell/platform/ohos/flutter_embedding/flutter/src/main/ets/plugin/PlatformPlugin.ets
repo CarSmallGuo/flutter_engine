@@ -49,6 +49,7 @@ export default class PlatformPlugin {
     this.callback.platform = this;
     this.callback.platformPluginDelegate = platformPluginDelegate ?? null;
     this.callback.platformChannel?.setPlatformMessageHandler(this.callback);
+    this.initWindow();
   }
 
   initWindow() {
