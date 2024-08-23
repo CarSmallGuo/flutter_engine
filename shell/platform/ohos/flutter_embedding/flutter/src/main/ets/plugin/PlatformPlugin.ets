@@ -199,12 +199,9 @@ export class PlatformPluginCallback implements PlatformMessageHandler {
 
   popSystemNavigator() {
     if (this.platformPluginDelegate != null && this.platformPluginDelegate?.popSystemNavigator()) {
-      router.back();
       return;
     }
-    if (this.uiAbilityContext != null) {
-      this.uiAbilityContext.terminateSelf();
-    }
+    router.back();
   }
 
   getClipboardData(result: MethodResult): void {

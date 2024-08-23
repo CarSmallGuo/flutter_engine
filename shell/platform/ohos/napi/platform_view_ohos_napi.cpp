@@ -31,6 +31,7 @@
 #include "flutter/shell/platform/ohos/types.h"
 #include "unicode/uchar.h"
 #include "flutter/shell/platform/ohos/ohos_xcomponent_adapter.h"
+#include "flutter/shell/platform/ohos/ohos_logging.h"
 
 #define OHOS_SHELL_HOLDER (reinterpret_cast<OHOSShellHolder*>(shell_holder))
 namespace flutter {
@@ -899,13 +900,13 @@ napi_value PlatformViewOHOSNapi::nativeSetViewportMetrics(
   LOGD("nativeSetViewportMetrics::systemGestureInsetLeft : %{public}ld",
        systemGestureInsetLeft);
 
-  int64_t physicalTouchSlop;
-  ret = napi_get_value_int64(env, args[16], &physicalTouchSlop);
+  double physicalTouchSlop;
+  ret = napi_get_value_double(env, args[16], &physicalTouchSlop);
   if (ret != napi_ok) {
-    LOGE("nativeSetViewportMetrics napi_get_value_int64 error");
+    LOGE("nativeSetViewportMetrics napi_get_value_double error");
     return nullptr;
   }
-  LOGD("nativeSetViewportMetrics::physicalTouchSlop : %{public}ld",
+  LOGD("nativeSetViewportMetrics::physicalTouchSlop : %{public}lf",
        physicalTouchSlop);
 
   std::vector<double> displayFeaturesBounds;
@@ -1525,6 +1526,23 @@ napi_value PlatformViewOHOSNapi::nativeRegisterPixelMap(
   NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
   NativePixelMap *nativePixelMap = OH_PixelMap_InitNativePixelMap(env, args[2]);
   OHOS_SHELL_HOLDER->GetPlatformView()->RegisterExternalTextureByPixelMap(textureId, nativePixelMap);
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeSetTextureBackGroundPixelMap(
+  napi_env env,
+  napi_callback_info info)
+{
+  FML_DLOG(INFO)<<"PlatformViewOHOSNapi::nativeSetTextureBackGroundPixelMap";
+  size_t argc = 3;
+  napi_value args[3] = {nullptr};
+  int64_t shell_holder;
+  int64_t textureId;
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
+  NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
+  NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
+  NativePixelMap *nativePixelMap = OH_PixelMap_InitNativePixelMap(env, args[2]);
+  OHOS_SHELL_HOLDER->GetPlatformView()->SetExternalTextureBackGroundPixelMap(textureId, nativePixelMap);
   return nullptr;
 }
 

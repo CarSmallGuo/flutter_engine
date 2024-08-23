@@ -21,6 +21,7 @@ export interface TextureRegistry {
   registerTexture(textureId: number): SurfaceTextureEntry;
   registerSurfaceTexture(receiver: image.ImageReceiver): SurfaceTextureEntry;
   registerPixelMap(pixelMap: PixelMap): number;
+  setTextureBackGroundPixelMap(textureId: number, pixelMap: PixelMap): void;
   unregisterTexture(textureId: number): void;
   onTrimMemory(level: number) : void;
 }
