@@ -16,7 +16,9 @@
 #include "ohos_xcomponent_adapter.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "types.h"
+#include "ohos_logging.h"
 #include <functional>
+
 namespace flutter {
 
 bool g_isMouseLeftActive = false;

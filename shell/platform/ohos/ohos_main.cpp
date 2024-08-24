@@ -17,7 +17,6 @@
 
 #include "flutter/fml/command_line.h"
 #include "flutter/fml/file.h"
-#include "flutter/fml/logging.h"
 #include "flutter/fml/macros.h"
 #include "flutter/fml/message_loop.h"
 #include "flutter/fml/native_library.h"
@@ -32,6 +31,7 @@
 #include "flutter/shell/common/switches.h"
 #include "third_party/dart/runtime/include/dart_tools_api.h"
 #include "third_party/skia/include/core/SkFontMgr.h"
+#include "ohos_logging.h"
 
 namespace flutter {
 
@@ -145,7 +145,8 @@ napi_value OhosMain::Init(napi_env env, napi_callback_info info) {
   };
   settings.log_message_callback = [](const std::string& tag,
                                      const std::string& message) {
-    LOGI("%{public}s %{public}s", tag.c_str(), message.c_str());
+    // The logs output here are very important for The Dart VM and cannot be deleted or blocked.
+    LOGW("%{public}s settings log message: %{public}s", tag.c_str(), message.c_str());
   };
 
   if (!EnableTracingIfNecessary(settings)) {
@@ -159,7 +160,7 @@ napi_value OhosMain::Init(napi_env env, napi_callback_info info) {
 
   g_flutter_main.reset(new OhosMain(settings));
   // TODO : g_flutter_main->SetupObservatoryUriCallback(env);
-  LOGI("OhosMain::Init finished.");
+  LOGD("OhosMain::Init finished.");
   napi_value result;
   napi_create_int64(env, 0, &result);
   return result;

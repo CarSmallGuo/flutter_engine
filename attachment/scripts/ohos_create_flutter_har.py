@@ -16,7 +16,6 @@
 """Create a HAR incorporating all the components required to build a Flutter application"""
 
 import argparse
-import datetime
 import logging
 import os
 import re
@@ -69,6 +68,12 @@ HVIGOR_CONFIG = """
 """
 
 
+def runGitCommand(command):
+    result = subprocess.run(command, capture_output=True, text=True, shell=True)
+    if result.returncode != 0:
+        raise Exception(f"Git command failed: {result.stderr}")
+    return result.stdout.strip()
+
 # 更新har的配置文件，指定编译使用的api版本
 def updateConfig(buildDir, apiInt):
     apiVersionMap = {
@@ -93,6 +98,8 @@ def updateConfig(buildDir, apiInt):
 # 自动更新flutter.har的版本号,把日期加到末尾。如: 1.0.0-20240731
 def updateVersion(buildDir):
     filePath = os.path.join(buildDir, "flutter", "oh-package.json5")
+    currentDir = os.path.dirname(__file__)
+    latestCommit = runGitCommand(f'git -C {currentDir} rev-parse --short HEAD')
 
     with open(filePath, "r") as sources:
         lines = sources.readlines()
@@ -106,9 +113,7 @@ def updateVersion(buildDir):
                 if matches and len(matches) > 0:
                     result = ''.join(matches[0])
                     versionArr = result.split("-")
-                    today = datetime.date.today()
-                    dateStr = today.strftime("%Y%m%d")
-                    list = [versionArr[0], dateStr]
+                    list = [versionArr[0], latestCommit]
                     versionStr = "-".join(list)
                     print(f'versionStr = {versionStr}')
                     sources.write(re.sub(pattern, versionStr, line))
