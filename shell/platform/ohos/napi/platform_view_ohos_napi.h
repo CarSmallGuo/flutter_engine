@@ -171,6 +171,10 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);
 
+  static napi_value nativeSetTextureBackGroundPixelMap(
+      napi_env env,
+      napi_callback_info info);
+
   static napi_value nativeRegisterTexture(
       napi_env env,
       napi_callback_info info);
@@ -192,6 +196,12 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);
   static napi_value nativeXComponentDispatchMouseWheel(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeEncodeUtf8(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeDecodeUtf8(
       napi_env env,
       napi_callback_info info);
 

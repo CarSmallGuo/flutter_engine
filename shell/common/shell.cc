@@ -77,12 +77,12 @@ std::unique_ptr<Engine> CreateEngine(
 // that cause shell initialization failures will still lead to some of their
 // settings being applied.
 void PerformInitializationTasks(Settings& settings) {
-/*   {
+  {
     fml::LogSettings log_settings;
     log_settings.min_log_level =
-        settings.verbose_logging ? fml::LOG_INFO : fml::LOG_ERROR;
+        settings.verbose_logging ? fml::LOG_INFO : fml::LOG_WARNING;
     fml::SetLogSettings(log_settings);
-  } */
+  }
   static std::once_flag gShellSettingsInitialization = {};
   std::call_once(gShellSettingsInitialization, [&settings] {
     tonic::SetLogHandler(
