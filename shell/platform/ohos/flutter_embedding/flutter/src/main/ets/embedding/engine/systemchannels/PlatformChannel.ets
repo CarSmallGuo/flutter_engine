@@ -59,10 +59,10 @@ export default class PlatformChannel {
           requestedOrientation |= 0x04;
           break;
         case DeviceOrientation.LANDSCAPE_LEFT:
-          requestedOrientation |= 0x02;
+          requestedOrientation |= 0x08;
           break;
         case DeviceOrientation.LANDSCAPE_RIGHT:
-          requestedOrientation |= 0x08;
+          requestedOrientation |= 0x02;
           break;
       }
       if (firstRequestedOrientation == 0x00) {
@@ -105,6 +105,7 @@ export default class PlatformChannel {
                 return bundleManager.DisplayOrientation.LANDSCAPE;
             }
       case 0x0f:
+        return window.Orientation.AUTO_ROTATION_RESTRICTED;
     }
     return bundleManager.DisplayOrientation.PORTRAIT;
   }

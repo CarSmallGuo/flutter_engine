@@ -18,6 +18,7 @@
 #include "napi/native_api.h"
 #include "napi_common.h"
 #include "ohos_xcomponent_adapter.h"
+#include "ohos_logging.h"
 
 // namespace flutter {
 
@@ -128,6 +129,12 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeSetTextureBackGroundPixelMap",
           flutter::PlatformViewOHOSNapi::nativeSetTextureBackGroundPixelMap),
+      DECLARE_NAPI_FUNCTION(
+          "encodeUtf8",
+          flutter::PlatformViewOHOSNapi::nativeEncodeUtf8),
+      DECLARE_NAPI_FUNCTION(
+          "decodeUtf8",
+          flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),
 
   };
 
@@ -135,7 +142,7 @@ static napi_value Init(napi_env env, napi_value exports) {
   napi_define_properties(env, exports, sizeof(desc) / sizeof(desc[0]), desc);
   bool ret = flutter::XComponentAdapter::GetInstance()->Export(env, exports);
   if (!ret) {
-    LOGE("Init NAPI Failed.");
+    FML_DLOG(ERROR) << "Init NAPI Failed.";
   } else {
     FML_DLOG(INFO) << "Init NAPI Succeed.";
   }

@@ -14,7 +14,6 @@
  */
 
 #include "flutter/shell/platform/ohos/platform_view_ohos.h"
-#include "flutter/fml/logging.h"
 #include "flutter/fml/make_copyable.h"
 #include "flutter/lib/ui/window/viewport_metrics.h"
 #include "flutter/shell/common/shell_io_manager.h"
@@ -23,6 +22,7 @@
 #include "flutter/shell/platform/ohos/ohos_surface_software.h"
 #include "flutter/shell/platform/ohos/platform_message_response_ohos.h"
 #include "napi_common.h"
+#include "ohos_logging.h"
 #include "ohos_external_texture_gl.h"
 
 #include <GLES2/gl2ext.h>
@@ -509,6 +509,7 @@ void PlatformViewOHOS::OnNativeImageFrameAvailable(void *data)
 
 void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id)
 {
+  FML_DLOG(INFO) << "PlatformViewOHOS::UnRegisterExternalTexture, texture_id=" << texture_id;
   external_texture_gl_.erase(texture_id);
   UnregisterTexture(texture_id);
   std::map<int64_t, void*>::iterator it = contextDatas_.find(texture_id);

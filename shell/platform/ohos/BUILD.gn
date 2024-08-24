@@ -83,6 +83,7 @@ source_set("flutter_ohos_sources") {
              "ohos_environment_gl.h",
              "ohos_surface_gl_skia.h",
              "types.h",
+             "ohos_logging.h",
            ]
 
   #configs += [ "//flutter/shell/platform/ohos/config:gtk" ]
@@ -123,10 +124,6 @@ source_set("flutter_ohos_sources") {
     "__MUSL__",
   ]
 
-  if (flutter_runtime_mode == "release" || flutter_runtime_mode == "profile") {
-    defines += [ "REQUIRE_ERROR_LOG_LEVEL" ]
-  }
-
   deps = [
     "//flutter/shell/platform/common:common_cpp_input",
     "//flutter/shell/platform/common:common_cpp_switches",
@@ -150,8 +147,6 @@ source_set("flutter_ohos_sources") {
     #"//flutter/vulkan",
     "//third_party/skia",
     "//flutter/shell/gpu:gpu_surface_gl",
-  
-  
   ]
 
 }
