@@ -405,7 +405,7 @@ void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
     return;
   }
   
-  int32_t usage = 0;
+  uint64_t usage = 0;
   OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, GET_USAGE, &usage);
   usage |= NATIVEBUFFER_USAGE_CPU_READ;
   OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, SET_USAGE, usage);
@@ -519,7 +519,7 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
     return;
   }
 
-  int32_t usage = 0;
+  uint64_t usage = 0;
   OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, GET_USAGE, &usage);
   usage |= NATIVEBUFFER_USAGE_CPU_READ;
   OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, SET_USAGE, usage);
