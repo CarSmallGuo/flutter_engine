@@ -404,7 +404,6 @@ void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
         << ret;
     return;
   }
-  
   uint64_t usage = 0;
   OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, GET_USAGE, &usage);
   usage |= NATIVEBUFFER_USAGE_CPU_READ;
