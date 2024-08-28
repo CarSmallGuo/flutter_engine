@@ -35,6 +35,7 @@
 #include "flutter/shell/platform/ohos/surface/ohos_snapshot_surface_producer.h"
 #include "flutter/shell/platform/ohos/surface/ohos_surface.h"
 #include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
+#include "flutter/shell/platform/ohos/platform_view_ohos_delegate.h"
 
 namespace flutter {
 
@@ -138,6 +139,8 @@ class PlatformViewOHOS final : public PlatformView {
   std::shared_ptr<OhosSurfaceFactoryImpl> surface_factory_;
   std::map<int64_t, std::shared_ptr<OHOSExternalTextureGL>> external_texture_gl_;
   std::map<int64_t, void*> contextDatas_;
+
+  std::shared_ptr<PlatformViewOHOSDelegate> platform_view_ohos_delegate_;  
 
   static bool isDestroyed_;
   static pthread_mutex_t mutex_;

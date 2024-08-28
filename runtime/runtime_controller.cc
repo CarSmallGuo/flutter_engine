@@ -317,6 +317,7 @@ void RuntimeController::Render(Scene* scene) {
 void RuntimeController::UpdateSemantics(SemanticsUpdate* update) {
   if (platform_data_.semantics_enabled) {
     client_.UpdateSemantics(update->takeNodes(), update->takeActions());
+    FML_DLOG(INFO) << "RuntimeController::UpdateSemantics";
   }
 }
 

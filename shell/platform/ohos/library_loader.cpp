@@ -17,8 +17,8 @@
 #include "flutter/shell/platform/ohos/ohos_main.h"
 #include "napi/native_api.h"
 #include "napi_common.h"
-#include "ohos_xcomponent_adapter.h"
 #include "ohos_logging.h"
+#include "ohos_xcomponent_adapter.h"
 
 // namespace flutter {
 
@@ -129,12 +129,16 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeSetTextureBackGroundPixelMap",
           flutter::PlatformViewOHOSNapi::nativeSetTextureBackGroundPixelMap),
+      DECLARE_NAPI_FUNCTION("nativeEncodeUtf8",
+                            flutter::PlatformViewOHOSNapi::nativeEncodeUtf8),
+      DECLARE_NAPI_FUNCTION("nativeDecodeUtf8",
+                            flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),
       DECLARE_NAPI_FUNCTION(
-          "nativeEncodeUtf8",
-          flutter::PlatformViewOHOSNapi::nativeEncodeUtf8),
+          "nativeUpdateSemantics",
+          flutter::PlatformViewOHOSNapi::nativeUpdateSemantics),
       DECLARE_NAPI_FUNCTION(
-          "nativeDecodeUtf8",
-          flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),
+          "nativeUpdateCustomAccessibilityActions",
+          flutter::PlatformViewOHOSNapi::nativeUpdateCustomAccessibilityActions),
 
   };
 

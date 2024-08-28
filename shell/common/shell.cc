@@ -1215,6 +1215,7 @@ void Shell::OnEngineUpdateSemantics(SemanticsNodeUpdates update,
        actions = std::move(actions)] {
         if (view) {
           view->UpdateSemantics(update, actions);
+          FML_DLOG(INFO) << "Shell::OnEngineUpdateSemantics is called";
         }
       });
 }

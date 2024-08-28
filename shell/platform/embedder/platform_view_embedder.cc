@@ -122,6 +122,7 @@ void PlatformViewEmbedder::UpdateSemantics(
   if (platform_dispatch_table_.update_semantics_callback != nullptr) {
     platform_dispatch_table_.update_semantics_callback(std::move(update),
                                                        std::move(actions));
+    FML_DLOG(INFO) << "PlatformViewEmbedder::UpdateSemantics is called";
   }
 }
 

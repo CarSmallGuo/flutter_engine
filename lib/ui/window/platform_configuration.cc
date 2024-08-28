@@ -421,6 +421,7 @@ void PlatformConfigurationNativeApi::UpdateSemantics(SemanticsUpdate* update) {
   UIDartState::ThrowIfUIOperationsProhibited();
   UIDartState::Current()->platform_configuration()->client()->UpdateSemantics(
       update);
+  FML_DLOG(INFO) << "PlatformConfigurationNativeApi::UpdateSemantics is called";
 }
 
 Dart_Handle PlatformConfigurationNativeApi::ComputePlatformResolvedLocale(

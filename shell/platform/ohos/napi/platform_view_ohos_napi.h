@@ -38,13 +38,13 @@ struct locale {
 };
 
 struct mouseWheelEvent {
-    std::string eventType;
-    int64_t shellHolder;
-    int64_t fingerId;
-    double globalX;
-    double globalY;
-    double offsetY;
-    int64_t timestamp;
+  std::string eventType;
+  int64_t shellHolder;
+  int64_t fingerId;
+  double globalX;
+  double globalY;
+  double offsetY;
+  int64_t timestamp;
 };
 
 class PlatformViewOHOSNapi {
@@ -82,7 +82,8 @@ class PlatformViewOHOSNapi {
                    void* inputData,
                    size_t dataSize);
 
-  void FlutterViewOnTouchEvent(std::shared_ptr<std::string[]> touchPacketString, int size);
+  void FlutterViewOnTouchEvent(std::shared_ptr<std::string[]> touchPacketString,
+                               int size);
 
   static napi_value nativeUpdateRefreshRate(
       napi_env env,
@@ -155,37 +156,30 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);  // 应用下发系统语言设置
 
-  static napi_value nativeInitNativeImage(
-      napi_env env,
-      napi_callback_info info);
+  static napi_value nativeInitNativeImage(napi_env env,
+                                          napi_callback_info info);
 
-  static napi_value nativeUnregisterTexture(
-      napi_env env,
-      napi_callback_info info);
+  static napi_value nativeUnregisterTexture(napi_env env,
+                                            napi_callback_info info);
 
-  static napi_value nativeMarkTextureFrameAvailable(
-      napi_env env,
-      napi_callback_info info);
+  static napi_value nativeMarkTextureFrameAvailable(napi_env env,
+                                                    napi_callback_info info);
 
-  static napi_value nativeRegisterPixelMap(
-      napi_env env,
-      napi_callback_info info);
+  static napi_value nativeRegisterPixelMap(napi_env env,
+                                           napi_callback_info info);
 
-  static napi_value nativeSetTextureBackGroundPixelMap(
-      napi_env env,
-      napi_callback_info info);
+  static napi_value nativeSetTextureBackGroundPixelMap(napi_env env,
+                                                       napi_callback_info info);
 
-  static napi_value nativeRegisterTexture(
-      napi_env env,
-      napi_callback_info info);
+  static napi_value nativeRegisterTexture(napi_env env,
+                                          napi_callback_info info);
 
   // Surface相关，XComponent调用
   static void SurfaceCreated(int64_t shell_holder, void* window);
 
-  static void SurfaceChanged(
-      int64_t shell_holder,
-      int32_t width,
-      int32_t height);
+  static void SurfaceChanged(int64_t shell_holder,
+                             int32_t width,
+                             int32_t height);
 
   static void SurfaceDestroyed(int64_t shell_holder);
   static int64_t GetShellHolder();
@@ -195,13 +189,17 @@ class PlatformViewOHOSNapi {
   static napi_value nativeXComponentDetachFlutterEngine(
       napi_env env,
       napi_callback_info info);
-  static napi_value nativeXComponentDispatchMouseWheel(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeEncodeUtf8(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeDecodeUtf8(
+  static napi_value nativeXComponentDispatchMouseWheel(napi_env env,
+                                                       napi_callback_info info);
+  static napi_value nativeEncodeUtf8(napi_env env, napi_callback_info info);
+  static napi_value nativeDecodeUtf8(napi_env env, napi_callback_info info);
+
+  /**
+   * debug --> ets call c++
+   */
+  static napi_value nativeUpdateSemantics(napi_env env,
+                                          napi_callback_info info);
+  static napi_value nativeUpdateCustomAccessibilityActions(
       napi_env env,
       napi_callback_info info);
 
