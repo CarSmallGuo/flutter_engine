@@ -115,11 +115,11 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
   }
 
   attachAccessibilityBridge(accessibilityBridge: AccessibilityBridge): void {
-    throw new Error('Method not implemented.');
+    this.accessibilityEventsDelegate.setAccessibilityBridge(accessibilityBridge);
   }
 
   detachAccessibilityBridge(): void {
-    throw new Error('Method not implemented.');
+    this.accessibilityEventsDelegate.setAccessibilityBridge(null);
   }
 
   createForPlatformViewLayer(request: PlatformViewCreationRequest): void {

@@ -12,11 +12,63 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+import AccessibilityChannel, {AccessibilityMessageHandler} from '../embedding/engine/systemchannels/AccessibilityChannel';
+import { ByteBuffer } from '../util/ByteBuffer';
+import Log from '../util/Log';
 
-export default class AccessibilityBridge {
+const TAG = "AccessibilityBridge";
+
+export default class AccessibilityBridge implements AccessibilityMessageHandler {
+
+  private accessibilityChannel: AccessibilityChannel | null = null;
+
   constructor(){
 
   }
+
+  announce(message: string): void {
+    throw new Error('Method not implemented.');
+    // android -> rootAccessibilityView.announceForAccessibility(message);
+  }
+
+  onTap(nodeId: number): void {
+    throw new Error('Method not implemented.');
+    // android -> sendAccessibilityEvent(nodeId, AccessibilityEvent.TYPE_VIEW_CLICKED);
+  }
+
+  onLongPress(nodeId: number): void {
+    throw new Error('Method not implemented.');
+    // android -> sendAccessibilityEvent(nodeId, AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
+  }
+
+  onTooltip(nodeId: string): void {
+    throw new Error('Method not implemented.');
+    // android -> AccessibilityEvent e =
+    // obtainAccessibilityEvent(ROOT_NODE_ID, AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
+    // e.getText().add(message);
+    // sendAccessibilityEvent(e);
+  }
+
+  /**
+   * updateSemantics、updateCustomAccessibilityActions的debug流程，该过程只在native c++层实现，后续会删除
+   * @param buffer
+   * @param strings
+   * @param stringAttributeArgs
+   */
+  updateSemantics(buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]): void {
+      Log.d(TAG, "AccessibilityBridge.ets updateSemantics is called");
+  }
+
+  updateCustomAccessibilityActions(buffer: ByteBuffer, strings: string[]): void {
+    Log.d(TAG, "AccessibilityBridge.ets updateCustomAccessibilityActions is called");
+
+  }
+
+  /**
+   * TODO lack of AccessibilityManager.AccessibilityStateChangeListener
+   * Listener that is notified when accessibility is turned on/off.
+   */
+
 }
 
 export enum Action {

@@ -366,6 +366,29 @@ export default class FlutterNapi {
     }
   }
 
+
+  // debug updateSemantics
+  updateSemantics(buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]): void {
+    this.ensureRunningOnMainThread();
+    if(this.accessibilityDelegate != null) {
+      this.accessibilityDelegate.updateSemantics(buffer, strings, stringAttributeArgs);
+    }
+    // TODO(mattcarroll): log dropped messages when in debug mode
+    // (https://github.com/flutter/flutter/issues/25391)
+    Log.d(TAG, "updateSemantics is called");
+    flutter.nativeUpdateSemantics(buffer, strings, stringAttributeArgs);
+  }
+
+  updateCustomAccessibilityActions(buffer: ByteBuffer, strings: string[]): void {
+    this.ensureRunningOnMainThread();
+    if(this.accessibilityDelegate != null) {
+      this.accessibilityDelegate.updateCustomAccessibilityActions(buffer, strings);
+    }
+    Log.d(TAG, "updateCustomAccessibilityActions is called");
+    flutter.nativeUpdateCustomAccessibilityActions(buffer, strings);
+  }
+
+
   setLocalizationPlugin(localizationPlugin: LocalizationPlugin | null): void {
     this.localizationPlugin = localizationPlugin;
   }

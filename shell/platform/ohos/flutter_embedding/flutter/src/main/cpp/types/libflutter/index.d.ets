@@ -17,6 +17,7 @@ import common from '@ohos.app.ability.common';
 import resourceManager from '@ohos.resourceManager';
 import image from '@ohos.multimedia.image';
 import FlutterNapi from '../../../ets/embedding/engine/FlutterNapi';
+import { ByteBuffer } from '../../../ets/util/ByteBuffer';
 
 export const getContext: (a: number) => napiContext;
 
@@ -108,6 +109,12 @@ export const nativeXComponentDispatchMouseWheel: (nativeShellHolderId: number,
                                                   offsetY: number,
                                                   timestamp: number
                                                   ) => void;
+
+
+// send updateSemantics and updateCustomAccessibilityActions from ets to c++
+export const nativeUpdateSemantics: (buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]) => void;
+export const nativeUpdateCustomAccessibilityActions: (buffer: ByteBuffer, strings: string[]) => void;
+
 
 /**
  * Detaches flutterNapi和engine之间的关联

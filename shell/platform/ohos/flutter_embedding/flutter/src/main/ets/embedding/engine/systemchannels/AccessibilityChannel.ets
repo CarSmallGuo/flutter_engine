@@ -112,7 +112,7 @@ export default class AccessibilityChannel implements MessageHandler<object>{
 
 }
 
-interface AccessibilityMessageHandler extends AccessibilityDelegate {
+export interface AccessibilityMessageHandler extends AccessibilityDelegate {
     announce(message: string): void;
     onTap(nodeId: number): void;
     onLongPress(nodeId: number): void;
