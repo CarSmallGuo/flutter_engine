@@ -479,6 +479,19 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
   return surface_id;
 }
 
+void PlatformViewOHOS::SetTextureBufferSize(
+    int64_t texture_id,
+    int32_t width,
+    int32_t height)
+{
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    auto iter = external_texture_gl_.find(texture_id);
+    if (iter != external_texture_gl_.end()) {
+      iter->second->setTextureBufferSize(width, height);
+    }
+  }
+}
+
 void PlatformViewOHOS::OnNativeImageFrameAvailable(void *data)
 {
   auto frameData = reinterpret_cast<OhosImageFrameData *>(data);
