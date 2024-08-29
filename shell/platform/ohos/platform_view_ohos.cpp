@@ -297,7 +297,9 @@ void PlatformViewOHOS::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
   FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics";
-  platform_view_ohos_delegate_->UpdateSemantics(update, actions);
+  // platform_view_ohos_delegate_->UpdateSemantics(update, actions);
+  ax_bridge_delegate_->updateSemantics(update, actions);
+
 }
 
 // |PlatformView|

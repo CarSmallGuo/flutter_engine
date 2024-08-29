@@ -137,3 +137,8 @@ export const nativeRegisterTexture: (nativeShellHolderId: number, textureId: num
 export const nativeEncodeUtf8: (str: string) => Uint8Array;
 
 export const nativeDecodeUtf8: (array: Uint8Array) => string;
+
+/**
+ * accessibiltyChannel中的
+ */
+export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number, responseId: number) => void;

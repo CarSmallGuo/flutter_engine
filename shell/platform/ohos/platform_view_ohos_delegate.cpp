@@ -46,7 +46,7 @@ void putStringAttributesIntoBuffer(
     }
   }
 }
-
+// interaction between java and native, encoding the semantics info to bytebuffer
 PlatformViewOHOSDelegate::PlatformViewOHOSDelegate(
     std::shared_ptr<PlatformViewOHOSNapi> napi_facade)
     : napi_facade_(std::move(napi_facade)) {};
@@ -214,8 +214,8 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
     if (!actions_buffer.empty()) {
       //   napi_facade_->FlutterViewUpdateCustomAccessibilityActions(actions_buffer,
       //                                                             action_strings);
-      ax_bridge_router_->updateCustomAccessibilityActions(actions_buffer,
-                                                          action_strings);
+    //   ax_bridge_router_->updateCustomAccessibilityActions(actions_buffer,
+    //                                                       action_strings);
       FML_DLOG(INFO) << "PlatformViewOHOSDelegate::"
                         "updateCustomAccessibilityActions is called";
     }
@@ -223,8 +223,8 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
     if (!buffer.empty()) {
       //   napi_facade_->FlutterViewUpdateSemantics(buffer, strings,
       //                                            string_attribute_args);
-      ax_bridge_router_->updateSemantics(buffer, strings,
-                                         string_attribute_args);
+    //   ax_bridge_router_->updateSemantics(buffer, strings,
+    //                                      string_attribute_args);
       FML_DLOG(INFO) << "PlatformViewOHOSDelegate::UpdateSemantics is called";
     }
   }

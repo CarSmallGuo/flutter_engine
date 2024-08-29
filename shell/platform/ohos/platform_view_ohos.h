@@ -36,6 +36,7 @@
 #include "flutter/shell/platform/ohos/surface/ohos_surface.h"
 #include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
 #include "flutter/shell/platform/ohos/platform_view_ohos_delegate.h"
+#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
 
 namespace flutter {
 
@@ -141,6 +142,7 @@ class PlatformViewOHOS final : public PlatformView {
   std::map<int64_t, void*> contextDatas_;
 
   std::shared_ptr<PlatformViewOHOSDelegate> platform_view_ohos_delegate_;  
+  std::shared_ptr<OhosAccessibilityBridge> ax_bridge_delegate_;
 
   static bool isDestroyed_;
   static pthread_mutex_t mutex_;

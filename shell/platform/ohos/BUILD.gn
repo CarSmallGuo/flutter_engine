@@ -85,7 +85,7 @@ source_set("flutter_ohos_sources") {
              "types.h",
              "ohos_logging.h",
              "platform_view_ohos_delegate.h",
-             "./accessibility/ohos_accessibility_bridge.h"
+             "./accessibility/ohos_accessibility_bridge.h",
            ]
 
   #configs += [ "//flutter/shell/platform/ohos/config:gtk" ]
@@ -117,7 +117,7 @@ source_set("flutter_ohos_sources") {
       "ohos_external_texture_gl.cpp",
       "./surface/ohos_snapshot_surface_producer.cpp",
       "platform_view_ohos_delegate.cpp",
-      "./accessibility/ohos_accessibility_bridge.cpp"
+      "./accessibility/ohos_accessibility_bridge.cpp",
   ]
 
   # Set flag to stop headers being directly included (library users should not do this)
