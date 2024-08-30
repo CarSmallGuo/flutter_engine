@@ -36,7 +36,7 @@ export default class AccessibilityChannel implements MessageHandler<object>{
 
     onMessage(message: object, reply: Reply<object>): void {
         if (this.handler == null) {
-            Log.i(AccessibilityChannel.TAG, "NULL");
+            Log.i(AccessibilityChannel.TAG, "handler = NULL");
             reply.reply(StringUtils.stringToArrayBuffer(""));
             return;
         }
@@ -92,16 +92,19 @@ export default class AccessibilityChannel implements MessageHandler<object>{
     onOhosAccessibilityEnabled(): void {
         let replyId: number = this.nextReplyId++;
         this.flutterNapi.setSemanticsEnabled(true, replyId);
+        Log.i(AccessibilityChannel.TAG, "onOhosAccessibilityEnabled = true");
     }
 
     onOhosAccessibilityFeatures(accessibilityFeatureFlags: number): void {
         let replyId: number = this.nextReplyId++;
         this.flutterNapi.setAccessibilityFeatures(accessibilityFeatureFlags, replyId);
+        Log.i(AccessibilityChannel.TAG, "onOhosAccessibilityFeatures");
     }
 
     dispatchSemanticsAction(virtualViewId: number, action: Action): void {
         let replyId: number = this.nextReplyId++;
         this.flutterNapi.dispatchSemanticsAction(virtualViewId, action, replyId);
+        Log.i(AccessibilityChannel.TAG, "dispatchSemanticsAction");
     }
 
     setAccessibilityMessageHandler(handler: AccessibilityMessageHandler): void {

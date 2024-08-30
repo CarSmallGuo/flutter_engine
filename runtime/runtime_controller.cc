@@ -175,6 +175,7 @@ bool RuntimeController::SetSemanticsEnabled(bool enabled) {
   if (auto* platform_configuration = GetPlatformConfigurationIfAvailable()) {
     platform_configuration->UpdateSemanticsEnabled(
         platform_data_.semantics_enabled);
+    FML_DLOG(INFO)<<"RuntimeController::SetSemanticsEnabled, enable="<<enabled;
     return true;
   }
 
@@ -186,6 +187,7 @@ bool RuntimeController::SetAccessibilityFeatures(int32_t flags) {
   if (auto* platform_configuration = GetPlatformConfigurationIfAvailable()) {
     platform_configuration->UpdateAccessibilityFeatures(
         platform_data_.accessibility_feature_flags_);
+    FML_DLOG(INFO)<<"RuntimeController::SetAccessibilityFeatures=";
     return true;
   }
 
@@ -286,6 +288,7 @@ bool RuntimeController::DispatchSemanticsAction(int32_t id,
   if (auto* platform_configuration = GetPlatformConfigurationIfAvailable()) {
     platform_configuration->DispatchSemanticsAction(id, action,
                                                     std::move(args));
+      FML_DLOG(INFO) << "RuntimeController::DispatchSemanticsAction, id="<<id;
     return true;
   }
 

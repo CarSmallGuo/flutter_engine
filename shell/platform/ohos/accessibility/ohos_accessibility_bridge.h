@@ -28,7 +28,10 @@
 // #include "flutter/shell/platform/ohos/accessibility/native_interface_accessibility.h"
 
 namespace flutter {
+
 typedef flutter::SemanticsFlags FLAGS_;
+typedef flutter::SemanticsAction ACTIONS_;
+
 /**
  * flutter和ohos的无障碍服务桥接
  */
@@ -52,6 +55,7 @@ class OhosAccessibilityBridge {
   // flutter::SemanticsFlags flags_;
 
   flutter::SemanticsNode getRootSemanticsNode();
+  int32_t convertToInt32(flutter::SemanticsAction inputAction);
 
   // native os interfaces
   int32_t FindFocusedAccessibilityNode(int64_t elementId,
@@ -62,6 +66,7 @@ class OhosAccessibilityBridge {
                                          int32_t direction,
                                          int32_t requestId,
                                          int32_t elementList);
+                                      
 };
 
 class ArkUI_AccessibilityElementInfo {
@@ -151,5 +156,31 @@ struct SemanticsNode {
 };
  */
 
+/**
+ enum class SemanticsAction : int32_t {
+  kTap = 1 << 0,
+  kLongPress = 1 << 1,
+  kScrollLeft = 1 << 2,
+  kScrollRight = 1 << 3,
+  kScrollUp = 1 << 4,
+  kScrollDown = 1 << 5,
+  kIncrease = 1 << 6,
+  kDecrease = 1 << 7,
+  kShowOnScreen = 1 << 8,
+  kMoveCursorForwardByCharacter = 1 << 9,
+  kMoveCursorBackwardByCharacter = 1 << 10,
+  kSetSelection = 1 << 11,
+  kCopy = 1 << 12,
+  kCut = 1 << 13,
+  kPaste = 1 << 14,
+  kDidGainAccessibilityFocus = 1 << 15,
+  kDidLoseAccessibilityFocus = 1 << 16,
+  kCustomAction = 1 << 17,
+  kDismiss = 1 << 18,
+  kMoveCursorForwardByWord = 1 << 19,
+  kMoveCursorBackwardByWord = 1 << 20,
+  kSetText = 1 << 21,
+};
+ */
 }  // namespace flutter
 #endif  // OHOS_ACCESSIBILITY_BRIDGE_H

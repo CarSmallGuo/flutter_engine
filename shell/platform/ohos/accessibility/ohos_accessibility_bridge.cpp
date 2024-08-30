@@ -37,7 +37,7 @@ flutter::SemanticsNode OhosAccessibilityBridge::getOrCreateSemanticsNode(
 void OhosAccessibilityBridge::updateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
-  FML_DLOG(INFO) << ("Native C++ OhosAccessibilityBridge::updateSemantics");
+  FML_DLOG(INFO) << ("Native C++ OhosAccessibilityBridge::updateSemantics is called");
 
   // 遍历更新的actions，并将所有的actions的id添加进actionMap
   for (const auto& item : actions) {
@@ -90,53 +90,55 @@ void OhosAccessibilityBridge::updateSemantics(
       // sendAccessibilityEvent(event)
     }
     // todo: 判断是否触发liveRegion活动区，是否活跃
-      if(node.HasFlag(FLAGS_::kIsLiveRegion)) {
+    if (node.HasFlag(FLAGS_::kIsLiveRegion)) {
       // sendWindowContentChangeEvent(object.id);
-      }
+    }
 
-      //todo：当前焦点语义节点
-      bool isHadFlag = false; //这里判断previousFlag和当前flag是否相同 
-      std::shared_ptr<flutter::SemanticsNode> accessibilityFocusedSemanticsNode;
-      if (accessibilityFocusedSemanticsNode != nullptr
-          && accessibilityFocusedSemanticsNode->id == node.id
-          && !isHadFlag
-          && node.HasFlag(FLAGS_::kIsSelected)) {
+    // todo：当前焦点语义节点
+    bool isHadFlag = false;  // 这里判断previousFlag和当前flag是否相同
+    std::shared_ptr<flutter::SemanticsNode> accessibilityFocusedSemanticsNode;
+    if (accessibilityFocusedSemanticsNode != nullptr &&
+        accessibilityFocusedSemanticsNode->id == node.id && !isHadFlag &&
+        node.HasFlag(FLAGS_::kIsSelected)) {
       // todo：创建并发送事件
       // AccessibilityEvent event = obtainAccessibilityEvent(
       //     node.id, AccessibilityEvent.TYPE_VIEW_SELECTED);
       // event.getText().add(object.label);
       // sendAccessibilityEvent(event);
-      }
+    }
 
-      //todo: 若该对象是输入焦点节点，且发生更新变化，则发送给os有关它的信息
-      std::shared_ptr<flutter::SemanticsNode> inputFocusedSemanticsNode; //当前输入焦点节点
-      std::shared_ptr<flutter::SemanticsNode> lastInputFocusedSemanticsNode; //上一个输入焦点节点
-      if (inputFocusedSemanticsNode != nullptr
-          && inputFocusedSemanticsNode->id == node.id
-          && (lastInputFocusedSemanticsNode == nullptr
-              || lastInputFocusedSemanticsNode->id != inputFocusedSemanticsNode->id)) {
+    // todo: 若该对象是输入焦点节点，且发生更新变化，则发送给os有关它的信息
+    std::shared_ptr<flutter::SemanticsNode>
+        inputFocusedSemanticsNode;  // 当前输入焦点节点
+    std::shared_ptr<flutter::SemanticsNode>
+        lastInputFocusedSemanticsNode;  // 上一个输入焦点节点
+    if (inputFocusedSemanticsNode != nullptr &&
+        inputFocusedSemanticsNode->id == node.id &&
+        (lastInputFocusedSemanticsNode == nullptr ||
+         lastInputFocusedSemanticsNode->id != inputFocusedSemanticsNode->id)) {
       // 上次输入焦点节点 -> 当前输入焦点节点
       lastInputFocusedSemanticsNode = inputFocusedSemanticsNode;
       // 发送相应的输入焦点改变事件
       // sendAccessibilityEvent(obtainAccessibilityEvent(object.id,
       // AccessibilityEvent.TYPE_VIEW_FOCUSED));
-      } else if (inputFocusedSemanticsNode == nullptr) {
+    } else if (inputFocusedSemanticsNode == nullptr) {
       // There's no TYPE_VIEW_CLEAR_FOCUSED event, so if the current input focus
       // becomes null, then we just set the last one to null too, so that it
       // sends the event again when something regains focus.
       lastInputFocusedSemanticsNode = nullptr;
-      }
+    }
 
-      if (inputFocusedSemanticsNode != nullptr
-          && inputFocusedSemanticsNode->id == node.id
-          && isHadFlag
-          && node.HasFlag(FLAGS_::kIsTextField)
-          // If we have a TextField that has InputFocus, we should avoid announcing it if something
-          // else we track has a11y focus. This needs to still work when, e.g., IME has a11y focus
-          // or the "PASTE" popup is used though.
-          // See more discussion at https://github.com/flutter/flutter/issues/23180
-          && (accessibilityFocusedSemanticsNode == nullptr
-              || (accessibilityFocusedSemanticsNode->id == inputFocusedSemanticsNode->id))) {
+    if (inputFocusedSemanticsNode != nullptr &&
+        inputFocusedSemanticsNode->id == node.id && isHadFlag &&
+        node.HasFlag(FLAGS_::kIsTextField)
+        // If we have a TextField that has InputFocus, we should avoid
+        // announcing it if something else we track has a11y focus. This needs
+        // to still work when, e.g., IME has a11y focus or the "PASTE" popup is
+        // used though. See more discussion at
+        // https://github.com/flutter/flutter/issues/23180
+        && (accessibilityFocusedSemanticsNode == nullptr ||
+            (accessibilityFocusedSemanticsNode->id ==
+             inputFocusedSemanticsNode->id))) {
       // 这里写输入框更新文字内容，将老旧的文本替换为新输入文字，并发送textchange事件
       // AccessibilityEvent event = createTextChangedEvent(object.id, oldValue,
       // newValue); sendAccessibilityEvent(event);
@@ -155,10 +157,35 @@ void OhosAccessibilityBridge::updateSemantics(
         //  selectionEvent.setItemCount(newValue.length());
         //  sendAccessibilityEvent(selectionEvent);
       }
-      }
+    }
   }
 }
+  // kTap = 1 << 0,
+  // kLongPress = 1 << 1,
+  // kScrollLeft = 1 << 2,
+  // kScrollRight = 1 << 3,
+  // kScrollUp = 1 << 4,
+  // kScrollDown = 1 << 5,
+  // kIncrease = 1 << 6,
+  // kDecrease = 1 << 7,
+  // kShowOnScreen = 1 << 8,
+  // kMoveCursorForwardByCharacter = 1 << 9,
+  // kMoveCursorBackwardByCharacter = 1 << 10,
+  // kSetSelection = 1 << 11,
+  // kCopy = 1 << 12,
+  // kCut = 1 << 13,
+  // kPaste = 1 << 14,
+  // kDidGainAccessibilityFocus = 1 << 15,
+  // kDidLoseAccessibilityFocus = 1 << 16,
+  // kCustomAction = 1 << 17,
+  // kDismiss = 1 << 18,
+  // kMoveCursorForwardByWord = 1 << 19,
+  // kMoveCursorBackwardByWord = 1 << 20,
+  // kSetText = 1 << 21,
 
+int32_t convertToInt32(flutter::SemanticsAction inputAction) {
+  return static_cast<int32_t>(inputAction);
+}
 void OhosAccessibilityBridge::performAction(int32_t virtualViewId,
                                             int32_t inputAction) {
   // TODO 根据输入的action进行相应的响应操作
