@@ -26,6 +26,7 @@ import ArrayList from '@ohos.util.ArrayList';
 import { EmbeddingNodeController } from '../embedding/ohos/EmbeddingNodeController';
 import PlatformView, { Params } from '../plugin/platform/PlatformView';
 import { JSON } from '@kit.ArkTS';
+import { accessibility } from '@kit.AccessibilityKit';
 
 const TAG = "FlutterViewTag";
 
@@ -106,6 +107,10 @@ export class FlutterView {
     this.mainWindow?.on('windowSizeChange', this.windowSizeChangeCallback);
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
     this.mainWindow?.on('windowStatusChange', this.windowStatusChangeCallback);
+    accessibility.on('accessibilityStateChange', (data: boolean) => {
+      Log.i(TAG, `subscribe accessibility state change, result: ${JSON.stringify(data)}`);
+      this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(data);
+    });
   }
 
   private  windowSizeChangeCallback = (data: window.Size) => {
@@ -174,6 +179,9 @@ export class FlutterView {
       this.mainWindow?.off('windowSizeChange', this.windowSizeChangeCallback);
       this.mainWindow?.off('avoidAreaChange', this.avoidAreaChangeCallback);
       this.mainWindow?.off('windowStatusChange', this.windowStatusChangeCallback);
+      accessibility.off('accessibilityStateChange', (data: boolean) => {
+        Log.i(TAG, `unsubscribe accessibility state change, result: ${JSON.stringify(data)}`);
+      });
     } catch (e) {
       Log.e(TAG, "mainWindow off error: " + JSON.stringify(e));
     }

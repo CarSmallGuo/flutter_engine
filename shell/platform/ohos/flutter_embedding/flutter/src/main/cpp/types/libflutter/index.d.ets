@@ -142,3 +142,5 @@ export const nativeDecodeUtf8: (array: Uint8Array) => string;
  * accessibiltyChannel中的
  */
 export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number, responseId: number) => void;
+
+export const nativeAccessibilityStateChange: (state: Boolean) => string;

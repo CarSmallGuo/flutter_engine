@@ -1819,4 +1819,17 @@ napi_value PlatformViewOHOSNapi::nativeUpdateCustomAccessibilityActions(
   return nullptr;
 }
 
+napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
+  napi_env env,
+  napi_callback_info info) {
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  LOGD("PlatformViewOHOSNapi::nativeAccessibilityStateChange");
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  bool state = false;
+  napi_get_value_bool(env, args[0], &state);
+  LOGD("PlatformViewOHOSNapi::nativeAccessibilityStateChange state is: %{public}s", (state ? "ture" : "false"));
+  return nullptr;
+}
+
 }  // namespace flutter
