@@ -33,7 +33,7 @@ index 13e31d6a68a..d981485efe3 100644
  // image pages, whose address is choosen by the system loader rather than the
  // Dart VM.
 -static constexpr intptr_t kPageSize = 512 * KB;
-+static constexpr intptr_t kPageSize = 1024 * KB;
++static constexpr intptr_t kPageSize = 4 * 1024 * KB;
  static constexpr intptr_t kPageSizeInWords = kPageSize / kWordSize;
  static constexpr intptr_t kPageMask = ~(kPageSize - 1);
  
@@ -46,7 +46,7 @@ index 9f04c8e21a4..3814ccb1e19 100644
  class Scavenger {
   private:
 -  static const intptr_t kTLABSize = 512 * KB;
-+  static const intptr_t kTLABSize = 1024 * KB;
++  static const intptr_t kTLABSize = 4 * 1024 * KB;
  
   public:
    Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words);
