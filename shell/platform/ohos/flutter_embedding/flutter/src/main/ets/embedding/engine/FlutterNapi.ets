@@ -390,6 +390,14 @@ export default class FlutterNapi {
     flutter.nativeUpdateCustomAccessibilityActions(buffer, strings);
   }
 
+  accessibilityStateChange(state: Boolean): void {
+    this.ensureRunningOnMainThread();
+    if(this.accessibilityDelegate != null) {
+      this.accessibilityDelegate.accessibilityStateChange(state);
+    }
+    Log.d(TAG, "accessibilityStateChange is called");
+    flutter.nativeAccessibilityStateChange(state);
+  }
 
   setLocalizationPlugin(localizationPlugin: LocalizationPlugin | null): void {
     this.localizationPlugin = localizationPlugin;
@@ -519,4 +527,6 @@ export interface AccessibilityDelegate {
   updateCustomAccessibilityActions(buffer: ByteBuffer, strings: string[]): void;
 
   updateSemantics(buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]): void;
+
+  accessibilityStateChange(state: Boolean): void;
 }

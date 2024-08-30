@@ -139,6 +139,9 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeUpdateCustomAccessibilityActions",
           flutter::PlatformViewOHOSNapi::nativeUpdateCustomAccessibilityActions),
+      DECLARE_NAPI_FUNCTION(
+          "nativeAccessibilityStateChange",
+          flutter::PlatformViewOHOSNapi::nativeAccessibilityStateChange),
 
   };
 
