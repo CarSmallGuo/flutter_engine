@@ -328,6 +328,17 @@ void OHOSExternalTextureGL::setBackground(int32_t width, int32_t height)
   }
 }
 
+void OHOSExternalTextureGL::setTextureBufferSize(int32_t width, int32_t height)
+{
+  FML_DLOG(INFO) << "OHOSExternalTextureGL::SetTextureBufferSize";
+  int code = SET_BUFFER_GEOMETRY;
+  int32_t ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, code, width, height);
+  if (ret != 0) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL::SetTextureBufferSize OH_NativeWindow_NativeWindowHandleOpt err:" << ret;
+    return;
+  }
+}
+
 void OHOSExternalTextureGL::ProduceColorToBackGroundImage(int32_t width, int32_t height)
 {
   FML_DLOG(INFO) << "OHOSExternalTextureGL::ProduceColorToBackGroundImage";
