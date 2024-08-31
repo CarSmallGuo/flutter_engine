@@ -38,7 +38,7 @@ struct PlatformData {
   std::vector<std::string> locale_data;
   std::string user_settings_data = "{}";
   std::string lifecycle_state;
-  bool semantics_enabled = false;
+  bool semantics_enabled = true; //debug
   bool assistive_technology_enabled = false;
   int32_t accessibility_feature_flags_ = 0;
 };
