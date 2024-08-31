@@ -144,3 +144,5 @@ export const nativeDecodeUtf8: (array: Uint8Array) => string;
 export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number, responseId: number) => void;
 
 export const nativeAccessibilityStateChange: (state: Boolean) => string;
+
+export const nativeAnounce: (message: string) => string;

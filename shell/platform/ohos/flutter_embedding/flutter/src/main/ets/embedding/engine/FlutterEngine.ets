@@ -34,11 +34,12 @@ import SystemChannel from './systemchannels/SystemChannel';
 import MouseCursorChannel from './systemchannels/MouseCursorChannel';
 import RestorationChannel from './systemchannels/RestorationChannel';
 import LocalizationChannel from './systemchannels/LocalizationChannel';
-import AccessibilityChannel from './systemchannels/AccessibilityChannel';
+import AccessibilityChannel, { AccessibilityMessageHandler } from './systemchannels/AccessibilityChannel';
 import LocalizationPlugin from '../../plugin/localization/LocalizationPlugin'
 import SettingsChannel from './systemchannels/SettingsChannel';
 import PlatformViewsController from '../../plugin/platform/PlatformViewsController';
 import { FlutterRenderer } from './renderer/FlutterRenderer';
+import { ByteBuffer } from '../../util/ByteBuffer';
 
 const TAG = "FlutterEngine";
 
@@ -123,6 +124,7 @@ export default class FlutterEngine implements EngineLifecycleListener{
 
     this.localeChannel = new LocalizationChannel(this.dartExecutor);
     this.accessibilityChannel = new AccessibilityChannel(this.dartExecutor, this.flutterNapi);
+    this.accessibilityChannel.setAccessibilityMessageHandler(new AccessibilityMessageHandlerImp());
     this.flutterNapi.addEngineLifecycleListener(this);
     this.localizationPlugin = new LocalizationPlugin(context, this.localeChannel);
 
@@ -288,4 +290,27 @@ export interface EngineLifecycleListener {
   onPreEngineRestart(): void;
 
   onEngineWillDestroy(): void;
+}
+export class AccessibilityMessageHandlerImp implements AccessibilityMessageHandler {
+  announce(message: string): void {
+    Log.d(TAG, "handler announce.");
+  }
+  onTap(nodeId: number): void {
+    Log.d(TAG, "handler onTap.");
+  }
+  onLongPress(nodeId: number): void {
+    Log.d(TAG, "handler onLongPress.");
+  }
+  onTooltip(nodeId: string): void {
+    Log.d(TAG, "handler onTooltip.");
+  }
+  updateSemantics(buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]): void {
+    Log.d(TAG, "handler updateSemantics");
+  }
+  updateCustomAccessibilityActions(buffer: ByteBuffer, strings: string[]): void {
+    Log.d(TAG, "handler updateCustomAccessibilityActions");
+  }
+  accessibilityStateChange(state: Boolean): void{
+    Log.d(TAG, "handler accessibilityStateChange");
+  }
 }

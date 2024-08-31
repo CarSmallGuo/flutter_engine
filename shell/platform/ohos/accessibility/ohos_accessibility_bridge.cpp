@@ -23,6 +23,17 @@ namespace flutter {
 OhosAccessibilityBridge::OhosAccessibilityBridge() = default;
 OhosAccessibilityBridge::~OhosAccessibilityBridge() = default;
 
+OhosAccessibilityBridge& OhosAccessibilityBridge::GetInstance()
+{
+    static OhosAccessibilityBridge ohosAccessibilityBridge;
+    return ohosAccessibilityBridge;
+}
+
+void OhosAccessibilityBridge::announce(std::unique_ptr<char[]>& message) {
+  FML_DLOG(INFO) << ("Native C++ OhosAccessibilityBridge::announce message: ") << (message.get());
+  return;
+}
+
 flutter::SemanticsNode OhosAccessibilityBridge::getOrCreateSemanticsNode(
     int32_t id) {
   flutter::SemanticsNode node;

@@ -22,6 +22,8 @@ import { Action } from '../../../view/AccessibilityBridge'
 import StandardMessageCodec from '../../../plugin/common/StandardMessageCodec';
 import StringUtils from '../../../util/StringUtils';
 import Any from '../../../plugin/common/Any';
+import flutter from 'libflutter.so';
+import { ByteBuffer } from '../../../util/ByteBuffer';
 
 /**
 * 辅助功能channel
@@ -31,7 +33,7 @@ export default class AccessibilityChannel implements MessageHandler<object>{
     private static CHANNEL_NAME = "flutter/accessibility";
     private channel: BasicMessageChannel<object>;
     private flutterNapi: FlutterNapi;
-    private handler: AccessibilityMessageHandler | null = null;
+    private handler: AccessibilityMessageHandler = new DefaultHandler();
     private nextReplyId: number = 1;
 
     onMessage(message: object, reply: Reply<object>): void {
@@ -50,6 +52,7 @@ export default class AccessibilityChannel implements MessageHandler<object>{
                 Log.i(AccessibilityChannel.TAG, "Announce");
                 let announceMessage: string = data.get("message");
                 if (announceMessage != null) {
+                    Log.i(AccessibilityChannel.TAG, "message is " + announceMessage);
                     this.handler.announce(announceMessage);
                 }
                 break;
@@ -117,4 +120,30 @@ export interface AccessibilityMessageHandler extends AccessibilityDelegate {
     onTap(nodeId: number): void;
     onLongPress(nodeId: number): void;
     onTooltip(nodeId: string): void;
+}
+
+export class DefaultHandler implements AccessibilityMessageHandler {
+    private static TAG = "AccessibilityMessageHandler";
+  announce(message: string): void {
+    Log.i(DefaultHandler.TAG,  "handler announce.");
+    flutter.nativeAnnounce(message);
+  }
+  onTap(nodeId: number): void {
+    Log.i(DefaultHandler.TAG,  "handler onTap.");
+  }
+  onLongPress(nodeId: number): void {
+    Log.i(DefaultHandler.TAG,  "handler onLongPress.");
+  }
+  onTooltip(nodeId: string): void {
+    Log.i(DefaultHandler.TAG,  "handler onTooltip.");
+  }
+  updateSemantics(buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]): void {
+    Log.i(DefaultHandler.TAG,  "handler updateSemantics");
+  }
+  updateCustomAccessibilityActions(buffer: ByteBuffer, strings: string[]): void {
+    Log.i(DefaultHandler.TAG,  "handler updateCustomAccessibilityActions");
+  }
+  accessibilityStateChange(state: Boolean): void{
+    Log.i(DefaultHandler.TAG,  "handler accessibilityStateChange");
+  }
 }
