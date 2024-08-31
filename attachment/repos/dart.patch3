@@ -1,58 +1,244 @@
 diff --git a/runtime/bin/file_ohos.cc b/runtime/bin/file_ohos.cc
-index 225b1d62c67..8ac60ad5e64 100644
+index 225b1d62c67..812c4a22853 100644
 --- a/runtime/bin/file_ohos.cc
 +++ b/runtime/bin/file_ohos.cc
-@@ -92,6 +92,7 @@ MappedMemory* File::Map(MapType type,
+@@ -16,6 +16,7 @@
+ #include <sys/types.h>     // NOLINT
+ #include <unistd.h>        // NOLINT
+ #include <utime.h>         // NOLINT
++#include <sys/prctl.h>
+ 
+ #include "bin/builtin.h"
+ #include "bin/fdutils.h"
+@@ -92,6 +93,7 @@ MappedMemory* File::Map(MapType type,
        // Try to allocate near the VM's binary.
        hint = reinterpret_cast<void*>(&Dart_Initialize);
        prot = PROT_READ | PROT_EXEC;
-+      flags |= (MAP_JIT_OHOS | MAP_ANONYMOUS);
++      flags |= MAP_ANONYMOUS;
        break;
      case kReadWrite:
        prot = PROT_READ | PROT_WRITE;
+@@ -101,7 +103,13 @@ MappedMemory* File::Map(MapType type,
+     hint = start;
+     flags |= MAP_FIXED;
+   }
++
++  prctl(0x6a6974, 0, 0);
++
+   void* addr = mmap(hint, length, prot, flags, handle_->fd(), position);
++
++  prctl(0x6a6974, 0, 1);
++
+   if (addr == MAP_FAILED) {
+     return NULL;
+   }
 diff --git a/runtime/bin/virtual_memory_posix.cc b/runtime/bin/virtual_memory_posix.cc
-index e061ab47ec9..6d6fd1064a8 100644
+index e061ab47ec9..7821d7488c2 100644
 --- a/runtime/bin/virtual_memory_posix.cc
 +++ b/runtime/bin/virtual_memory_posix.cc
-@@ -46,6 +46,12 @@ VirtualMemory* VirtualMemory::Allocate(intptr_t size,
-   }
- #endif  // defined(DART_HOST_OS_MACOS)
+@@ -12,6 +12,10 @@
+ #include <sys/mman.h>
+ #include <unistd.h>
  
 +#if defined(DART_HOST_OS_OHOS)
-+  if (is_executable) {
-+    map_flags |= MAP_JIT_OHOS;
-+  }
++#include <sys/prctl.h>
++#endif
++
+ #include "platform/assert.h"
+ #include "platform/utils.h"
+ 
+@@ -52,7 +56,15 @@ VirtualMemory* VirtualMemory::Allocate(intptr_t size,
+   // for indirect calls crossing a 4GB boundary. We ask mmap to place our
+   // generated code near the VM binary to avoid this.
+   void* hint = is_executable ? reinterpret_cast<void*>(&Allocate) : nullptr;
++
++#if defined(DART_HOST_OS_OHOS)
++    prctl(0x6a6974, 0, 0);
++#endif // defined(DART_HOST_OS_OHOS)
+   void* address = mmap(hint, size, prot, map_flags, -1, 0);
++#if defined(DART_HOST_OS_OHOS)
++    prctl(0x6a6974, 0, 1);
 +#endif // defined(DART_HOST_OS_OHOS)
 +
-   // Some 64-bit microarchitectures store only the low 32-bits of targets as
-   // part of indirect branch prediction, predicting that the target's upper bits
-   // will be same as the call instruction's address. This leads to misprediction
-diff --git a/runtime/platform/globals.h b/runtime/platform/globals.h
-index ca859e2b421..7910c90618b 100644
---- a/runtime/platform/globals.h
-+++ b/runtime/platform/globals.h
-@@ -111,6 +111,7 @@
- #elif defined(DART_TARGET_OS_OHOS) && defined(DART_RUNTIME_OS_OHOS)
+   if (address == MAP_FAILED) {
+     return nullptr;
+   }
+@@ -93,6 +105,10 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
+       prot = PROT_READ | PROT_WRITE | PROT_EXEC;
+       break;
+   }
++
++#if defined(DART_HOST_OS_OHOS)
++    prctl(0x6a6974, 0, 0);
++#endif // defined(DART_HOST_OS_OHOS)
+   if (mprotect(reinterpret_cast<void*>(page_address),
+                end_address - page_address, prot) != 0) {
+     int error = errno;
+@@ -101,6 +117,9 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
+     FATAL("mprotect error: %d (%s)", error,
+           Utils::StrError(error, error_buf, kBufferSize));
+   }
++#if defined(DART_HOST_OS_OHOS)
++    prctl(0x6a6974, 0, 1);
++#endif // defined(DART_HOST_OS_OHOS)
+ }
  
- #define DART_HOST_OS_OHOS 1
-+#define MAP_JIT_OHOS 0x1000
+ }  // namespace bin
+diff --git a/runtime/vm/os_ohos.cc b/runtime/vm/os_ohos.cc
+index 2f6b4990a9f..3a53ac6db79 100644
+--- a/runtime/vm/os_ohos.cc
++++ b/runtime/vm/os_ohos.cc
+@@ -19,6 +19,7 @@
+ #include <sys/types.h>     // NOLINT
+ #include <time.h>          // NOLINT
+ #include <unistd.h>        // NOLINT
++#include <sys/prctl.h>
  
- #elif defined(__linux__) || defined(__FreeBSD__)
+ #include "platform/memory_sanitizer.h"
+ #include "platform/utils.h"
+@@ -145,8 +146,11 @@ class JitDumpCodeObserver : public CodeObserver {
+       return;
+     }
  
++    prctl(0x6a6974, 0, 0);
+     mapped_ =
+         mmap(nullptr, page_size, PROT_READ | PROT_EXEC, MAP_PRIVATE, fd, 0);
++    prctl(0x6a6974, 0, 1);
++
+     if (mapped_ == nullptr) {
+       close(fd);
+       return;
 diff --git a/runtime/vm/virtual_memory_posix.cc b/runtime/vm/virtual_memory_posix.cc
-index 93c83c17852..a86d3b91db6 100644
+index 93c83c17852..2cc9dedb89a 100644
 --- a/runtime/vm/virtual_memory_posix.cc
 +++ b/runtime/vm/virtual_memory_posix.cc
-@@ -422,6 +422,12 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
-   }
- #endif  // defined(DART_HOST_OS_MACOS)
+@@ -7,6 +7,7 @@
+     defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_OHOS)
+ 
+ #include "vm/virtual_memory.h"
++#include "vm/os_thread.h"
+ 
+ #include <errno.h>
+ #include <fcntl.h>
+@@ -15,7 +16,7 @@
+ #include <sys/syscall.h>
+ #include <unistd.h>
+ 
+-#if defined(DART_HOST_OS_ANDROID)
++#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_OHOS)
+ #include <sys/prctl.h>
+ #endif
+ 
+@@ -51,6 +52,10 @@ DECLARE_FLAG(bool, generate_perf_events_symbols);
+ DECLARE_FLAG(bool, generate_perf_jitdump);
+ #endif
  
 +#if defined(DART_HOST_OS_OHOS)
-+  if (is_executable) {
-+    map_flags |= MAP_JIT_OHOS;
-+  }
++  static Mutex prctl_lock_;
++#endif
++
+ uword VirtualMemory::page_size_ = 0;
+ VirtualMemory* VirtualMemory::compressed_heap_ = nullptr;
+ 
+@@ -189,12 +194,21 @@ void VirtualMemory::Init() {
+     }
+     void* region = reinterpret_cast<void*>(vm->region_.start());
+     void* alias = reinterpret_cast<void*>(vm->alias_.start());
++
++#if defined(DART_HOST_OS_OHOS)
++    MutexLocker ml(&prctl_lock_);
++    prctl(0x6a6974, 0, 0);
++#endif // defined(DART_HOST_OS_OHOS)
+     if (region == alias ||
+         mprotect(region, size, PROT_READ) != 0 ||  // Remove PROT_WRITE.
+         mprotect(alias, size, PROT_READ | PROT_EXEC) != 0) {  // Add PROT_EXEC.
+       LOG_INFO("mprotect fails; disabling dual mapping of code.\n");
+       FLAG_dual_map_code = false;
+     }
++#if defined(DART_HOST_OS_OHOS)
++    prctl(0x6a6974, 0, 1);
 +#endif // defined(DART_HOST_OS_OHOS)
 +
-   void* hint = nullptr;
-   // Some 64-bit microarchitectures store only the low 32-bits of targets as
-   // part of indirect branch prediction, predicting that the target's upper bits
+     delete vm;
+   }
+ #endif  // defined(DUAL_MAPPING_SUPPORTED)
+@@ -373,8 +387,17 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
+     // for MAP_JIT is not required here.
+     const int alias_prot = PROT_READ | PROT_EXEC;
+     void* hint = reinterpret_cast<void*>(&Dart_Initialize);
++
++#if defined(DART_HOST_OS_OHOS)
++    MutexLocker ml(&prctl_lock_);
++    prctl(0x6a6974, 0, 0);
++#endif // defined(DART_HOST_OS_OHOS)
+     void* alias_ptr =
+         MapAligned(hint, fd, alias_prot, size, alignment, allocated_size);
++#if defined(DART_HOST_OS_OHOS)
++    prctl(0x6a6974, 0, 1);
++#endif // defined(DART_HOST_OS_OHOS)
++
+     close(fd);
+     if (alias_ptr == nullptr) {
+       const uword region_base = reinterpret_cast<uword>(region_ptr);
+@@ -404,8 +427,19 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
+       close(fd);
+       return nullptr;
+     }
++
++#if defined(DART_HOST_OS_OHOS)
++    MutexLocker ml(&prctl_lock_);
++    prctl(0x6a6974, 0, 0);
++#endif // defined(DART_HOST_OS_OHOS)
++
+     void* region_ptr =
+         MapAligned(nullptr, fd, prot, size, alignment, allocated_size);
++
++#if defined(DART_HOST_OS_OHOS)
++    prctl(0x6a6974, 0, 1);
++#endif // defined(DART_HOST_OS_OHOS)
++
+     close(fd);
+     if (region_ptr == nullptr) {
+       return nullptr;
+@@ -431,8 +465,16 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
+   if (is_executable) {
+     hint = reinterpret_cast<void*>(&Dart_Initialize);
+   }
++
++#if defined(DART_HOST_OS_OHOS)
++    MutexLocker ml(&prctl_lock_);
++    prctl(0x6a6974, 0, 0);
++#endif // defined(DART_HOST_OS_OHOS)
+   void* address =
+       GenericMapAligned(hint, prot, size, alignment, allocated_size, map_flags);
++#if defined(DART_HOST_OS_OHOS)
++    prctl(0x6a6974, 0, 1);
++#endif // defined(DART_HOST_OS_OHOS)
+   if (address == nullptr) {
+     return nullptr;
+   }
+@@ -546,6 +588,12 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
+       prot = PROT_READ | PROT_WRITE | PROT_EXEC;
+       break;
+   }
++
++#if defined(DART_HOST_OS_OHOS)
++    MutexLocker ml(&prctl_lock_);
++    prctl(0x6a6974, 0, 0);
++#endif // defined(DART_HOST_OS_OHOS)
++
+   if (mprotect(reinterpret_cast<void*>(page_address),
+                end_address - page_address, prot) != 0) {
+     int error = errno;
+@@ -556,6 +604,11 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
+     FATAL2("mprotect error: %d (%s)", error,
+            Utils::StrError(error, error_buf, kBufferSize));
+   }
++
++#if defined(DART_HOST_OS_OHOS)
++    prctl(0x6a6974, 0, 1);
++#endif // defined(DART_HOST_OS_OHOS)
++
+   LOG_INFO("mprotect(0x%" Px ", 0x%" Px ", %u) ok\n", page_address,
+            end_address - page_address, prot);
+ }
