@@ -107,6 +107,7 @@ export class FlutterView {
     this.mainWindow?.on('windowSizeChange', this.windowSizeChangeCallback);
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
     this.mainWindow?.on('windowStatusChange', this.windowStatusChangeCallback);
+
     accessibility.on('accessibilityStateChange', (data: boolean) => {
       Log.i(TAG, `subscribe accessibility state change, result: ${JSON.stringify(data)}`);
       this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(data);
@@ -278,8 +279,7 @@ export class FlutterView {
     if (this.checkFullScreen && FlutterManager.getInstance().getFullScreenListener().useFullScreen()) { // 全屏显示
       this.viewportMetrics.physicalViewPaddingTop = systemAvoidArea?.topRect.height ?? 0;
       this.viewportMetrics.physicalViewPaddingBottom = navigationAvoidArea?.bottomRect.height ?? 0;
-    } else { // 非全屏显示（保持规避效果）
-      // 顶部状态栏和底部导航栏规避为0，无平滑过渡效果
+    } else {
       this.viewportMetrics.physicalViewPaddingTop = 0;
       this.viewportMetrics.physicalViewPaddingBottom = 0;
     }

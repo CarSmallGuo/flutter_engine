@@ -419,14 +419,17 @@ void Engine::DispatchPointerDataPacket(
 void Engine::DispatchSemanticsAction(int id,
                                      SemanticsAction action,
                                      fml::MallocMapping args) {
+  FML_DLOG(INFO)<<"Engine::DispatchSemanticsAction, id="<<id;
   runtime_controller_->DispatchSemanticsAction(id, action, std::move(args));
 }
 
 void Engine::SetSemanticsEnabled(bool enabled) {
+  FML_DLOG(INFO)<<"Engine::SetSemanticsEnabled, enabled="<<enabled;
   runtime_controller_->SetSemanticsEnabled(enabled);
 }
 
 void Engine::SetAccessibilityFeatures(int32_t flags) {
+  FML_DLOG(INFO)<<"Engine::SetAccessibilityFeatures, flags="<<flags;
   runtime_controller_->SetAccessibilityFeatures(flags);
 }
 
@@ -466,6 +469,7 @@ void Engine::Render(std::shared_ptr<flutter::LayerTree> layer_tree) {
 
 void Engine::UpdateSemantics(SemanticsNodeUpdates update,
                              CustomAccessibilityActionUpdates actions) {
+  FML_DLOG(INFO)<<"Engine::UpdateSemantics is called";
   delegate_.OnEngineUpdateSemantics(std::move(update), std::move(actions));
 }
 

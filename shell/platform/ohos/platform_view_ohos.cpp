@@ -292,14 +292,13 @@ void PlatformViewOHOS::UpdateAssetResolverByType(
   delegate_.UpdateAssetResolverByType(std::move(updated_asset_resolver), type);
 }
 
-// todo
+// todo accessbility_bridges
 void PlatformViewOHOS::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
   FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics";
   // platform_view_ohos_delegate_->UpdateSemantics(update, actions);
   ax_bridge_delegate_->updateSemantics(update, actions);
-
 }
 
 // |PlatformView|

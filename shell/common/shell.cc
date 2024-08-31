@@ -1005,6 +1005,7 @@ void Shell::OnPlatformViewDispatchSemanticsAction(int32_t id,
       fml::MakeCopyable([engine = engine_->GetWeakPtr(), id, action,
                          args = std::move(args)]() mutable {
         if (engine) {
+          FML_DLOG(INFO) << "Shell::OnPlatformViewDispatchSemanticsAction, id="<<id;
           engine->DispatchSemanticsAction(id, action, std::move(args));
         }
       }));
@@ -1018,6 +1019,7 @@ void Shell::OnPlatformViewSetSemanticsEnabled(bool enabled) {
   task_runners_.GetUITaskRunner()->PostTask(
       [engine = engine_->GetWeakPtr(), enabled] {
         if (engine) {
+          FML_DLOG(INFO) << "Shell::OnPlatformViewSetSemanticsEnabled, enabled="<<enabled;
           engine->SetSemanticsEnabled(enabled);
         }
       });
@@ -1031,6 +1033,7 @@ void Shell::OnPlatformViewSetAccessibilityFeatures(int32_t flags) {
   task_runners_.GetUITaskRunner()->PostTask(
       [engine = engine_->GetWeakPtr(), flags] {
         if (engine) {
+          FML_DLOG(INFO) << "Shell::OnPlatformViewSetAccessibilityFeatures, flags="<<flags;
           engine->SetAccessibilityFeatures(flags);
         }
       });
@@ -1214,8 +1217,8 @@ void Shell::OnEngineUpdateSemantics(SemanticsNodeUpdates update,
       [view = platform_view_->GetWeakPtr(), update = std::move(update),
        actions = std::move(actions)] {
         if (view) {
-          view->UpdateSemantics(update, actions);
           FML_DLOG(INFO) << "Shell::OnEngineUpdateSemantics is called";
+          view->UpdateSemantics(update, actions);
         }
       });
 }

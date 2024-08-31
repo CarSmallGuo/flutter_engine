@@ -1808,7 +1808,7 @@ napi_value PlatformViewOHOSNapi::nativeUpdateSemantics(
     napi_env env,
     napi_callback_info info) {
   // TODO ets calls c++
-  
+
   return nullptr;
 }
 
@@ -1819,17 +1819,37 @@ napi_value PlatformViewOHOSNapi::nativeUpdateCustomAccessibilityActions(
 
   return nullptr;
 }
-
+/**
+ * 监听获取系统的无障碍服务是否开启
+ */
 napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
-  napi_env env,
-  napi_callback_info info) {
+    napi_env env,
+    napi_callback_info info) {
+  napi_status ret;
   size_t argc = 1;
   napi_value args[1] = {nullptr};
-  LOGD("PlatformViewOHOSNapi::nativeAccessibilityStateChange");
-  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeAccessibilityStateChange "
+                       "napi_get_cb_info error:"
+                    << ret;
+    return nullptr;
+  }
   bool state = false;
-  napi_get_value_bool(env, args[0], &state);
-  LOGD("PlatformViewOHOSNapi::nativeAccessibilityStateChange state is: %{public}s", (state ? "ture" : "false"));
+  ret = napi_get_value_bool(env, args[0], &state);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeAccessibilityStateChange "
+                       "napi_get_value_bool error:"
+                    << ret;
+    return nullptr;
+  }
+  LOGD(
+      "PlatformViewOHOSNapi::nativeAccessibilityStateChange state is: "
+      "%{public}s",
+      (state ? "true" : "false"));
+  // 传递到无障碍管理类
+  auto ohosAccessibilityManager_ = std::make_shared<OhosAccessibilityManager>();
+  ohosAccessibilityManager_->setOhosAccessibilityEnabled(state);
   return nullptr;
 }
 

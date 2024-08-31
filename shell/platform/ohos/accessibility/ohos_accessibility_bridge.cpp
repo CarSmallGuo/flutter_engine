@@ -15,13 +15,18 @@
 
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
 #include "flutter/fml/logging.h"
-// #include
-// "flutter/shell/platform/darwin/ios/framework/Source/accessibility_bridge.h"
 
 namespace flutter {
 
-OhosAccessibilityBridge::OhosAccessibilityBridge() = default;
-OhosAccessibilityBridge::~OhosAccessibilityBridge() = default;
+OhosAccessibilityBridge::OhosAccessibilityBridge() {
+  // 判断是否开启无障碍服务
+  bool isAccessibilityEnabled = this->ax_manager_->getOhosAccessibilityEnabled();
+  if (isAccessibilityEnabled) {
+    FML_DLOG(INFO) << "OhosAccessibilityBridge::OhosAccessibilityBridge "
+                      "isOhosAccessibilityEnabled = true";
+  }
+}
+OhosAccessibilityBridge::~OhosAccessibilityBridge() {};
 
 OhosAccessibilityBridge& OhosAccessibilityBridge::GetInstance()
 {
@@ -48,7 +53,8 @@ flutter::SemanticsNode OhosAccessibilityBridge::getOrCreateSemanticsNode(
 void OhosAccessibilityBridge::updateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
-  FML_DLOG(INFO) << ("Native C++ OhosAccessibilityBridge::updateSemantics is called");
+  FML_DLOG(INFO)
+      << ("Native C++ OhosAccessibilityBridge::updateSemantics is called");
 
   // 遍历更新的actions，并将所有的actions的id添加进actionMap
   for (const auto& item : actions) {
@@ -171,28 +177,28 @@ void OhosAccessibilityBridge::updateSemantics(
     }
   }
 }
-  // kTap = 1 << 0,
-  // kLongPress = 1 << 1,
-  // kScrollLeft = 1 << 2,
-  // kScrollRight = 1 << 3,
-  // kScrollUp = 1 << 4,
-  // kScrollDown = 1 << 5,
-  // kIncrease = 1 << 6,
-  // kDecrease = 1 << 7,
-  // kShowOnScreen = 1 << 8,
-  // kMoveCursorForwardByCharacter = 1 << 9,
-  // kMoveCursorBackwardByCharacter = 1 << 10,
-  // kSetSelection = 1 << 11,
-  // kCopy = 1 << 12,
-  // kCut = 1 << 13,
-  // kPaste = 1 << 14,
-  // kDidGainAccessibilityFocus = 1 << 15,
-  // kDidLoseAccessibilityFocus = 1 << 16,
-  // kCustomAction = 1 << 17,
-  // kDismiss = 1 << 18,
-  // kMoveCursorForwardByWord = 1 << 19,
-  // kMoveCursorBackwardByWord = 1 << 20,
-  // kSetText = 1 << 21,
+// kTap = 1 << 0,
+// kLongPress = 1 << 1,
+// kScrollLeft = 1 << 2,
+// kScrollRight = 1 << 3,
+// kScrollUp = 1 << 4,
+// kScrollDown = 1 << 5,
+// kIncrease = 1 << 6,
+// kDecrease = 1 << 7,
+// kShowOnScreen = 1 << 8,
+// kMoveCursorForwardByCharacter = 1 << 9,
+// kMoveCursorBackwardByCharacter = 1 << 10,
+// kSetSelection = 1 << 11,
+// kCopy = 1 << 12,
+// kCut = 1 << 13,
+// kPaste = 1 << 14,
+// kDidGainAccessibilityFocus = 1 << 15,
+// kDidLoseAccessibilityFocus = 1 << 16,
+// kCustomAction = 1 << 17,
+// kDismiss = 1 << 18,
+// kMoveCursorForwardByWord = 1 << 19,
+// kMoveCursorBackwardByWord = 1 << 20,
+// kSetText = 1 << 21,
 
 int32_t convertToInt32(flutter::SemanticsAction inputAction) {
   return static_cast<int32_t>(inputAction);

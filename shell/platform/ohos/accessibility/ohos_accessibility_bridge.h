@@ -21,11 +21,10 @@
 #include <vector>
 
 #include "flutter/fml/log_level.h"
-// #include "flutter/fml/macros.h"
-#include "flutter/lib/ui/semantics/semantics_node.h"
-// #include "flutter/shell/platform/common/accessibility_bridge.h"
 #include "flutter/lib/ui/semantics/custom_accessibility_action.h"
-// #include "flutter/shell/platform/ohos/accessibility/native_interface_accessibility.h"
+#include "flutter/lib/ui/semantics/semantics_node.h"
+#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_manager.h"
+#include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 
 namespace flutter {
 
@@ -47,20 +46,23 @@ class OhosAccessibilityBridge {
 
   void updateSemantics(flutter::SemanticsNodeUpdates update,
                        flutter::CustomAccessibilityActionUpdates actions);
+                       
   // obtain the flutter semnatics node
   flutter::SemanticsNode getOrCreateSemanticsNode(int32_t id);
 
   void performAction(int32_t virtualViewId, int32_t inputAction);
 
  private:
+  std::shared_ptr<OhosAccessibilityManager> ax_manager_;
   std::unordered_map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
   std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
-
   flutter::SemanticsNode semanticsNode_;
-  // flutter::SemanticsFlags flags_;
+
+
 
   flutter::SemanticsNode getRootSemanticsNode();
   int32_t convertToInt32(flutter::SemanticsAction inputAction);
+
 
   // native os interfaces
   int32_t FindFocusedAccessibilityNode(int64_t elementId,
@@ -71,7 +73,6 @@ class OhosAccessibilityBridge {
                                          int32_t direction,
                                          int32_t requestId,
                                          int32_t elementList);
-                                      
 };
 
 class ArkUI_AccessibilityElementInfo {

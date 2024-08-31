@@ -28,6 +28,8 @@
 #include "flutter/shell/common/run_configuration.h"
 #include "flutter/shell/platform/ohos/napi_common.h"
 #include "napi/native_api.h"
+#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_manager.h"
+
 // class for all c++ to call js function
 namespace flutter {
 
@@ -214,6 +216,7 @@ class PlatformViewOHOSNapi {
   napi_ref ref_napi_obj_;
   static std::vector<std::string> system_languages;
   fml::RefPtr<fml::TaskRunner> platform_task_runner_;
+  std::shared_ptr<OhosAccessibilityManager> ohosAccessibilityManager_;
 };
 
 }  // namespace flutter
