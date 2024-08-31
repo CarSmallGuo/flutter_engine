@@ -36,9 +36,14 @@ typedef flutter::SemanticsAction ACTIONS_;
  * flutter和ohos的无障碍服务桥接
  */
 class OhosAccessibilityBridge {
- public:
+ private:
   OhosAccessibilityBridge();
-  ~OhosAccessibilityBridge();
+
+ public:
+   ~OhosAccessibilityBridge();
+  static OhosAccessibilityBridge& GetInstance();
+
+  void announce(std::unique_ptr<char[]>& message);
 
   void updateSemantics(flutter::SemanticsNodeUpdates update,
                        flutter::CustomAccessibilityActionUpdates actions);
