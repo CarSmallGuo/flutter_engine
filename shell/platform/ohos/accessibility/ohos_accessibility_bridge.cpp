@@ -20,7 +20,8 @@ namespace flutter {
 
 OhosAccessibilityBridge::OhosAccessibilityBridge() {
   // 判断是否开启无障碍服务
-  bool isAccessibilityEnabled = this->ax_manager_->getOhosAccessibilityEnabled();
+  bool isAccessibilityEnabled =
+      this->ax_manager_->getOhosAccessibilityEnabled();
   if (isAccessibilityEnabled) {
     FML_DLOG(INFO) << "OhosAccessibilityBridge::OhosAccessibilityBridge "
                       "isOhosAccessibilityEnabled = true";
@@ -28,14 +29,14 @@ OhosAccessibilityBridge::OhosAccessibilityBridge() {
 }
 OhosAccessibilityBridge::~OhosAccessibilityBridge() {};
 
-OhosAccessibilityBridge& OhosAccessibilityBridge::GetInstance()
-{
-    static OhosAccessibilityBridge ohosAccessibilityBridge;
-    return ohosAccessibilityBridge;
+OhosAccessibilityBridge& OhosAccessibilityBridge::GetInstance() {
+  static OhosAccessibilityBridge ohosAccessibilityBridge;
+  return ohosAccessibilityBridge;
 }
 
 void OhosAccessibilityBridge::announce(std::unique_ptr<char[]>& message) {
-  FML_DLOG(INFO) << ("Native C++ OhosAccessibilityBridge::announce message: ") << (message.get());
+  FML_DLOG(INFO) << ("Native C++ OhosAccessibilityBridge::announce message: ")
+                 << (message.get());
   return;
 }
 
