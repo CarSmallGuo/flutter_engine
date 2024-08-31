@@ -145,4 +145,4 @@ export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number,
 
 export const nativeAccessibilityStateChange: (state: Boolean) => string;
 
-export const nativeAnounce: (message: string) => string;
+export const nativeAnnounce: (message: string) => string;
