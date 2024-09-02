@@ -181,21 +181,14 @@ void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
   }
 }
 
-pthread_mutex_t PlatformViewOHOS::mutex_;
-bool PlatformViewOHOS::isDestroyed_ = false;
-
 bool PlatformViewOHOS::GetDestroyed() {
   bool ret;
-  pthread_mutex_lock(&mutex_);
   ret = isDestroyed_;
-  pthread_mutex_unlock(&mutex_);
   return ret;
 }
 
 void PlatformViewOHOS::SetDestroyed(bool isDestroyed) {
-  pthread_mutex_lock(&mutex_);
   isDestroyed_ = isDestroyed;
-  pthread_mutex_unlock(&mutex_);
 }
 
 // |PlatformView|
