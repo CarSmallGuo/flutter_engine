@@ -139,7 +139,7 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     new_frame_ready_ = false;
   }
 
-  if (!freeze && texture_update && pixelMap_ == nullptr) {
+  if (!freeze && texture_update_ && pixelMap_ == nullptr) {
       Update();
   }
 
@@ -210,7 +210,7 @@ void OHOSExternalTextureGL::MarkNewFrameAvailable()
 {
   FML_DLOG(INFO)<<" OHOSExternalTextureGL::MarkNewFrameAvailable";
   new_frame_ready_ = true;
-  texture_update = true;
+  texture_update_ = true;
   if (pixelMap_ == nullptr) {
     Update();
   } else {
@@ -248,7 +248,7 @@ void OHOSExternalTextureGL::Update()
     FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeImage_UpdateSurfaceImage err code:" << ret;
     return;
   }
-  texture_update = false;
+  texture_update_ = false;
   first_update_ = true;
   UpdateTransform(nativeImage_);
 }

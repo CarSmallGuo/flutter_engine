@@ -182,9 +182,7 @@ void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
 }
 
 bool PlatformViewOHOS::GetDestroyed() {
-  bool ret;
-  ret = isDestroyed_;
-  return ret;
+  return isDestroyed_;
 }
 
 void PlatformViewOHOS::SetDestroyed(bool isDestroyed) {
