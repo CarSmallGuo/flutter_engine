@@ -96,6 +96,8 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   bool new_frame_ready_ = false;
 
+  bool texture_update_ = false;
+
   GLuint texture_name_ = 0;
 
   GLuint backGroundTextureName_ = 0;
