@@ -139,7 +139,7 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     new_frame_ready_ = false;
   }
 
-  if (!freeze && texture_update && pixelMap_ != nullptr) {
+  if (!freeze && texture_update && pixelMap_ == nullptr) {
       Update();
   }
 
