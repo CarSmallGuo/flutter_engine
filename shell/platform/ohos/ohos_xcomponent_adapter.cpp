@@ -266,6 +266,88 @@ void XComponentBase::BindXComponentCallback() {
   mouseCallback_.DispatchHoverEvent = DispatchHoverEventCB;
 }
 
+
+/** Called when need to get element infos based on a specified node. */
+int32_t FindAccessibilityNodeInfosById(
+  int64_t elementId,
+  ArkUI_AccessibilitySearchMode mode,
+  int32_t requestId,
+  ArkUI_AccessibilityElementInfoList* elementList)
+{
+  LOGD("accessibilityProviderCallback_.FindAccessibilityNodeInfosById");
+  return 0;
+}
+
+/** Called when need to get element infos based on a specified node and text content. */
+int32_t FindAccessibilityNodeInfosByText(
+  int64_t elementId,
+  const char* text,
+  int32_t requestId,
+  ArkUI_AccessibilityElementInfoList* elementList)
+{
+  LOGD("accessibilityProviderCallback_.FindAccessibilityNodeInfosByText");
+  return 0;
+}
+
+/** Called when need to get the focused element info based on a specified node. */
+int32_t FindFocusedAccessibilityNode(
+  int64_t elementId,
+  ArkUI_AccessibilityFocusType focusType,
+  int32_t requestId, ArkUI_AccessibilityElementInfo* elementinfo)
+{
+  LOGD("accessibilityProviderCallback_.FindFocusedAccessibilityNode");
+  return 0;
+}
+
+/** Query the node that can be focused based on the reference node. Query the next node that can be focused based on the mode and direction. */
+int32_t FindNextFocusAccessibilityNode(
+  int64_t elementId,
+  ArkUI_AccessibilityFocusMoveDirection direction,
+  int32_t requestId,
+  ArkUI_AccessibilityElementInfo* elementList)
+{
+  LOGD("accessibilityProviderCallback_.FindNextFocusAccessibilityNode");
+  return 0;
+}
+
+/** Performing the Action operation on a specified node. */
+int32_t ExecuteAccessibilityAction(
+  int64_t elementId,
+  ArkUI_Accessibility_ActionType action,
+  ArkUI_AccessibilityActionArguments *actionArguments,
+  int32_t requestId)
+{
+  LOGD("accessibilityProviderCallback_.ExecuteAccessibilityAction");
+  return 0;
+}
+
+/** Clears the focus status of the currently focused node */
+int32_t ClearFocusedFocusAccessibilityNode()
+{
+  LOGD("accessibilityProviderCallback_.ClearFocusedFocusAccessibilityNode");
+  return 0;
+}
+
+/** Queries the current cursor position of a specified node. */
+int32_t GetAccessibilityNodeCursorPosition(
+  int64_t elementId,
+  int32_t requestId,
+  int32_t* index)
+{
+  LOGD("accessibilityProviderCallback_.GetAccessibilityNodeCursorPosition");
+  return 0;
+}
+
+void XComponentBase::BindAccessibilityProviderCallback() {
+  accessibilityProviderCallback_.FindAccessibilityNodeInfosById = FindAccessibilityNodeInfosById;
+  accessibilityProviderCallback_.FindAccessibilityNodeInfosByText = FindAccessibilityNodeInfosByText;
+  accessibilityProviderCallback_.FindFocusedAccessibilityNode = FindFocusedAccessibilityNode;
+  accessibilityProviderCallback_.FindNextFocusAccessibilityNode = FindNextFocusAccessibilityNode;
+  accessibilityProviderCallback_.ExecuteAccessibilityAction = ExecuteAccessibilityAction;
+  accessibilityProviderCallback_.ClearFocusedFocusAccessibilityNode = ClearFocusedFocusAccessibilityNode;
+  accessibilityProviderCallback_.GetAccessibilityNodeCursorPosition = GetAccessibilityNodeCursorPosition;
+}
+
 XComponentBase::XComponentBase(std::string id){
   id_ = id;
   isEngineAttached_ = false;
@@ -307,6 +389,10 @@ void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
     BindXComponentCallback();
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
+    BindAccessibilityProviderCallback();
+    ArkUI_AccessibilityProvider *accessibilityProvider = nullptr;
+    OH_NativeXComponent_GetNativeAccessibilityProvider(nativeXComponent, &accessibilityProvider);
+    OH_ArkUI_AccessibilityProviderRegisterCallback(accessibilityProvider, &accessibilityProviderCallback_);
   }
 }
 
