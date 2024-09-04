@@ -30,6 +30,7 @@ namespace flutter {
 
 typedef flutter::SemanticsFlags FLAGS_;
 typedef flutter::SemanticsAction ACTIONS_;
+typedef flutter::SemanticsNode SEMANTICS_NODE_;
 
 /**
  * flutter和ohos的无障碍服务桥接
@@ -39,14 +40,14 @@ class OhosAccessibilityBridge {
   OhosAccessibilityBridge();
 
  public:
-   ~OhosAccessibilityBridge();
+  ~OhosAccessibilityBridge();
   static OhosAccessibilityBridge& GetInstance();
 
   void announce(std::unique_ptr<char[]>& message);
 
   void updateSemantics(flutter::SemanticsNodeUpdates update,
                        flutter::CustomAccessibilityActionUpdates actions);
-                       
+
   // obtain the flutter semnatics node
   flutter::SemanticsNode getOrCreateSemanticsNode(int32_t id);
 
@@ -56,13 +57,16 @@ class OhosAccessibilityBridge {
   std::shared_ptr<OhosAccessibilityManager> ax_manager_;
   std::unordered_map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
   std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
-  flutter::SemanticsNode semanticsNode_;
+  static const int32_t ROOT_NODE_ID = 0;
+  int32_t previousRouteId = ROOT_NODE_ID;
 
-
+  // A Java/Android cached representation of the Flutter app's navigation stack.
+  // The Flutter navigation stack is tracked so that accessibility announcements
+  // can be made during Flutter's navigation changes.
+  std::vector<int32_t> flutterNavigationStack;
 
   flutter::SemanticsNode getRootSemanticsNode();
   int32_t convertToInt32(flutter::SemanticsAction inputAction);
-
 
   // native os interfaces
   int32_t FindFocusedAccessibilityNode(int64_t elementId,
@@ -73,6 +77,24 @@ class OhosAccessibilityBridge {
                                          int32_t direction,
                                          int32_t requestId,
                                          int32_t elementList);
+
+  /**
+   * Informs the TalkBack user about window name changes.
+   * it creates a {@link AccessibilityEvent#TYPE_WINDOW_STATE_CHANGED} and sends
+   * the event to Android's accessibility system. In both cases, TalkBack
+   * announces the label of the route and re-addjusts the accessibility focus.
+   *
+   * <p>The given {@code route} should be a {@link SemanticsNode} that
+   * represents a navigation route in the Flutter app.
+   */
+  void onWindowNameChange(flutter::SemanticsNode route);
+  /**
+   * Hook called just before a {@link SemanticsNode} is removed from the Android cache of Flutter's
+   * semantics tree.
+   */
+  void removeSemanticsNode(flutter::SemanticsNode nodeToBeRemoved);
+   
+  void printTest(flutter::SemanticsNode node);
 };
 
 class ArkUI_AccessibilityElementInfo {

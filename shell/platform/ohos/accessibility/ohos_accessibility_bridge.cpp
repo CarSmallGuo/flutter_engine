@@ -15,6 +15,7 @@
 
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
 #include "flutter/fml/logging.h"
+#include "ohos_accessibility_bridge.h"
 
 namespace flutter {
 
@@ -51,11 +52,18 @@ flutter::SemanticsNode OhosAccessibilityBridge::getOrCreateSemanticsNode(
   return node;
 }
 
+/**
+ * 从dart侧传递到c++侧的flutter语义树节点更新过程
+ */
 void OhosAccessibilityBridge::updateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
   FML_DLOG(INFO)
       << ("Native C++ OhosAccessibilityBridge::updateSemantics is called");
+
+  std::set<SEMANTICS_NODE_> visitedObjs;
+  // SEMANTICS_NODE_ rootObj = getRootSemanticsNode();
+  std::vector<SEMANTICS_NODE_> newRoutes;
 
   // 遍历更新的actions，并将所有的actions的id添加进actionMap
   for (const auto& item : actions) {
@@ -63,8 +71,52 @@ void OhosAccessibilityBridge::updateSemantics(
     actions_mp_[action.id] = action;
   }
 
+  // Dispatch a TYPE_WINDOW_STATE_CHANGED event if the most recent route id
+  // changed from the
+  // previously cached route id.
+  // Finds the last route that is not in the previous routes.
+  // SEMANTICS_NODE_ lastAdded;
+  // lastAdded.id = -2;
+  // for (const auto& _node : newRoutes) {
+  //   if (!flutterNavigationStack[_node.id]) {
+  //     lastAdded = _node;
+  //   }
+  // }
+  // // If all the routes are in the previous route, get the last route.
+  // if (lastAdded.id == -2 && newRoutes.size() > 0) {
+  //   lastAdded = newRoutes[newRoutes.size() - 1];
+  // }
+
+  // There are two cases if lastAdded != nil
+  // 1. lastAdded is not in previous routes. In this case,
+  //    lastAdded.id != previousRouteId
+  // 2. All new routes are in previous routes and
+  //    lastAdded = newRoutes.last.
+  // In the first case, we need to announce new route. In the second case,
+  // we need to announce if one list is shorter than the other.
+  // if (lastAdded.id != -2 && (lastAdded.id != previousRouteId ||
+  //                         newRoutes.size() !=
+  // flutterNavigationStack.size())) {
+  //   previousRouteId = lastAdded.id;
+  //   onWindowNameChange(lastAdded);  // todo
+  // }
+  // flutterNavigationStack.clear();
+  // for (const auto& _node : newRoutes) {
+  //   flutterNavigationStack.emplace_back(_node.id);
+  // }
+
+  // for (const auto& item : flutterSemanticsTree_) {
+  //   SEMANTICS_NODE_ obj = item.second;
+  //   if (visitedObjs.find(obj) == visitedObjs.end()) {
+  //     removeSemanticsNode(obj);
+  //     flutterSemanticsTree_.erase(item.first);
+  //   }
+  // }
+
   for (auto& item : update) {
     const flutter::SemanticsNode& node = item.second;
+    printTest(node);  // print node struct for debugging
+
     // todo：根据nodeId获取当前os对应的真实节点
     //  currentNode =
     //  ArkUI_AccessibilityElementInfo::createAccessibilityElementInfo(node.id);
@@ -220,9 +272,15 @@ void OhosAccessibilityBridge::performAction(int32_t virtualViewId,
   }
 }
 
+// 获取根节点
 flutter::SemanticsNode OhosAccessibilityBridge::getRootSemanticsNode() {
+  if (flutterSemanticsTree_.size() == 0) {
+    FML_DLOG(ERROR) << "flutterSemanticsTree_.size() = 0";
+    return flutter::SemanticsNode{};
+  }
   return flutterSemanticsTree_.at(0);
 }
+
 // 找到当前焦点触发节点
 int32_t OhosAccessibilityBridge::FindFocusedAccessibilityNode(
     int64_t elementId,
@@ -240,6 +298,71 @@ int32_t OhosAccessibilityBridge::FindNextFocusAccessibilityNode(
   return 0;
 }
 
+void OhosAccessibilityBridge::onWindowNameChange(flutter::SemanticsNode route) {
+
+}
+
+void OhosAccessibilityBridge::removeSemanticsNode(
+    flutter::SemanticsNode nodeToBeRemoved) {
+  if (flutterSemanticsTree_.find(nodeToBeRemoved.id) ==
+      flutterSemanticsTree_.end()) {
+    FML_DLOG(INFO) << "Attempted to remove a node that is not in the tree.";
+  }
+  // if (flutterSemanticsTree_.at(nodeToBeRemoved.id) != nodeToBeRemoved) {
+  //   FML_DLOG(ERROR) << "Flutter semantics tree failed to get expected node "
+  //                      "when searching by id.";
+  // }
+  // nodeToBeRemoved.parent = nullptr;
+  if (nodeToBeRemoved.platformViewId != -1) {
+  }
+}
+
+void OhosAccessibilityBridge::printTest(flutter::SemanticsNode node) {
+  FML_DLOG(INFO) << "==============================================";
+  FML_DLOG(INFO) << "node.id=" << node.id;
+  FML_DLOG(INFO) << "node.flags=" << node.flags;
+  FML_DLOG(INFO) << "node.actions=" << node.actions;
+  FML_DLOG(INFO) << "node.maxValueLength=" << node.maxValueLength;
+  FML_DLOG(INFO) << "node.currentValueLength=" << node.currentValueLength;
+  FML_DLOG(INFO) << "node.textSelectionBase=" << node.textSelectionBase;
+  FML_DLOG(INFO) << "node.textSelectionExtent=" << node.textSelectionExtent;
+  FML_DLOG(INFO) << "node.textSelectionBase=" << node.textSelectionBase;
+  FML_DLOG(INFO) << "node.platformViewId=" << node.platformViewId;
+  FML_DLOG(INFO) << "node.scrollChildren=" << node.scrollChildren;
+  FML_DLOG(INFO) << "node.scrollIndex=" << node.scrollIndex;
+  FML_DLOG(INFO) << "node.scrollPosition=" << node.scrollPosition;
+  FML_DLOG(INFO) << "node.scrollIndex=" << node.scrollIndex;
+  FML_DLOG(INFO) << "node.scrollPosition=" << node.scrollPosition;
+  FML_DLOG(INFO) << "node.scrollExtentMax=" << node.scrollExtentMax;
+  FML_DLOG(INFO) << "node.scrollExtentMin=" << node.scrollExtentMin;
+  FML_DLOG(INFO) << "node.elevation=" << node.elevation;
+  FML_DLOG(INFO) << "node.thickness=" << node.thickness;
+  FML_DLOG(INFO) << "node.label=" << node.label;
+  FML_DLOG(INFO) << "node.tooltip=" << node.tooltip;
+  FML_DLOG(INFO) << "node.hint=" << node.hint;
+  FML_DLOG(INFO) << "node.textDirection=" << node.textDirection;
+  FML_DLOG(INFO) << "node.childrenInTraversalOrder.size()="
+                 << node.childrenInTraversalOrder.size();
+  for (uint32_t i = 0; i < node.childrenInTraversalOrder.size(); i++) {
+    FML_DLOG(INFO) << "node.childrenInTraversalOrder[" << i
+                   << "]=" << node.childrenInTraversalOrder[i];
+  }
+
+  FML_DLOG(INFO) << "node.childrenInHitTestOrder.size()="
+                 << node.childrenInHitTestOrder.size();
+  for (uint32_t i = 0; i < node.childrenInHitTestOrder.size(); i++) {
+    FML_DLOG(INFO) << "node.childrenInHitTestOrder[" << i
+                   << "]=" << node.childrenInHitTestOrder[i];
+  }
+
+  FML_DLOG(INFO) << "node.customAccessibilityActions.size()="
+                 << node.customAccessibilityActions.size();
+  for (uint32_t i = 0; i < node.customAccessibilityActions.size(); i++) {
+    FML_DLOG(INFO) << "node.customAccessibilityActions[" << i
+                   << "]=" << node.customAccessibilityActions[i];
+  }
+  FML_DLOG(INFO) << "==============================================";
+}
 void ArkUI_AccessibilityElementInfo::createAccessibilityElementInfo(int vid) {
   // TODO ohos和flutter虚拟节点交互，根据虚拟节点id创建真实elementinfo
   // ArkUI_AccessibilityElementInfo相当于安卓的view
