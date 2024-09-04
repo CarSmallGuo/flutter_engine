@@ -345,8 +345,7 @@ export default class FlutterNapi {
 
   dispatchSemanticsAction(virtualViewId: number, action: Action, responseId: number): void {
     if (this.isAttached()) {
-      // this.nativeDispatchSemanticsAction(virtualViewId, action, responseId);
-      // flutter.
+      this.nativeDispatchSemanticsAction(virtualViewId, action, responseId);
     } else {
       Log.w(
         TAG,

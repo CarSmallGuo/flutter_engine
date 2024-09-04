@@ -52,6 +52,21 @@ flutter::SemanticsNode OhosAccessibilityBridge::getOrCreateSemanticsNode(
   return node;
 }
 
+// int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(int64_t elementId, ArkUI_AccessibilitySearchMode mode, int32_t requestId, ArkUI_AccessibilityElementInfoList* elementList) {
+//   if(elementList == nullptr) {
+//     FML_DLOG(INFO) <<"OhosAccessibilityBridge::FindAccessibilityNodeInfosById elementList is null";
+//     return AcessbilityErrorCode.OH_ARKUI_ACCESSIBILITY_RESULT_FAILED;
+//   }
+//   ArkUI_AccessibilityElementInfo* _elementInfo = OH_ArkUI_AddAndGetAccessibilityElementInfo(elementList);
+//   if(elementInfo1 == nullptr) {
+//     FML_DLOG(INFO) <<"OhosAccessibilityBridge::FindAccessibilityNodeInfosById _elementInfo is null";
+//     return AcessbilityErrorCode.OH_ARKUI_ACCESSIBILITY_RESULT_FAILED;
+//   }
+
+// }
+
+
+
 /**
  * 从dart侧传递到c++侧的flutter语义树节点更新过程
  */
@@ -68,6 +83,7 @@ void OhosAccessibilityBridge::updateSemantics(
   // 遍历更新的actions，并将所有的actions的id添加进actionMap
   for (const auto& item : actions) {
     const flutter::CustomAccessibilityAction action = item.second;
+    printTestActions(action);
     actions_mp_[action.id] = action;
   }
 
@@ -114,8 +130,18 @@ void OhosAccessibilityBridge::updateSemantics(
   // }
 
   for (auto& item : update) {
+    // 获取当前更新的节点node
     const flutter::SemanticsNode& node = item.second;
     printTest(node);  // print node struct for debugging
+
+    if(node.HasFlag(FLAGS_::kIsHidden)) { // 判断当前更新节点是隐藏的
+      continue;
+    } 
+    if(node.HasFlag(FLAGS_::kIsFocused)) { // 判断当前更新节点是否获焦
+      
+    } 
+
+
 
     // todo：根据nodeId获取当前os对应的真实节点
     //  currentNode =
@@ -253,25 +279,6 @@ void OhosAccessibilityBridge::updateSemantics(
 // kMoveCursorBackwardByWord = 1 << 20,
 // kSetText = 1 << 21,
 
-int32_t convertToInt32(flutter::SemanticsAction inputAction) {
-  return static_cast<int32_t>(inputAction);
-}
-void OhosAccessibilityBridge::performAction(int32_t virtualViewId,
-                                            int32_t inputAction) {
-  // TODO 根据输入的action进行相应的响应操作
-  switch (inputAction) {
-    case 0:
-      break;
-    case 1:
-      break;
-    case 2:
-      break;
-    // ...
-    default:
-      break;
-  }
-}
-
 // 获取根节点
 flutter::SemanticsNode OhosAccessibilityBridge::getRootSemanticsNode() {
   if (flutterSemanticsTree_.size() == 0) {
@@ -281,22 +288,6 @@ flutter::SemanticsNode OhosAccessibilityBridge::getRootSemanticsNode() {
   return flutterSemanticsTree_.at(0);
 }
 
-// 找到当前焦点触发节点
-int32_t OhosAccessibilityBridge::FindFocusedAccessibilityNode(
-    int64_t elementId,
-    int32_t focusType,
-    int32_t requestId,
-    int32_t elementinfo) {
-  return 0;
-}
-// 找到下一个焦点触发节点
-int32_t OhosAccessibilityBridge::FindNextFocusAccessibilityNode(
-    int64_t elementId,
-    int32_t direction,
-    int32_t requestId,
-    int32_t elementList) {
-  return 0;
-}
 
 void OhosAccessibilityBridge::onWindowNameChange(flutter::SemanticsNode route) {
 
@@ -318,7 +309,7 @@ void OhosAccessibilityBridge::removeSemanticsNode(
 }
 
 void OhosAccessibilityBridge::printTest(flutter::SemanticsNode node) {
-  FML_DLOG(INFO) << "==============================================";
+  FML_DLOG(INFO) << "==================SemanticsNode=====================";
   FML_DLOG(INFO) << "node.id=" << node.id;
   FML_DLOG(INFO) << "node.flags=" << node.flags;
   FML_DLOG(INFO) << "node.actions=" << node.actions;
@@ -361,8 +352,18 @@ void OhosAccessibilityBridge::printTest(flutter::SemanticsNode node) {
     FML_DLOG(INFO) << "node.customAccessibilityActions[" << i
                    << "]=" << node.customAccessibilityActions[i];
   }
-  FML_DLOG(INFO) << "==============================================";
+  FML_DLOG(INFO) << "=================SemanticsNode======================";
 }
+
+void OhosAccessibilityBridge::printTestActions(flutter::CustomAccessibilityAction customAccessibilityAction) {
+  FML_DLOG(INFO) << "----------------SemanticsAction-------------------------";
+  FML_DLOG(INFO) << "customAccessibilityAction.id=" << customAccessibilityAction.id;
+  FML_DLOG(INFO) << "customAccessibilityAction.overrideId=" << customAccessibilityAction.overrideId;
+  FML_DLOG(INFO) << "customAccessibilityAction.label=" << customAccessibilityAction.label;
+  FML_DLOG(INFO) << "customAccessibilityAction.hint=" << customAccessibilityAction.hint;
+  FML_DLOG(INFO) << "----------------SemanticsAction--------------------";
+}
+
 void ArkUI_AccessibilityElementInfo::createAccessibilityElementInfo(int vid) {
   // TODO ohos和flutter虚拟节点交互，根据虚拟节点id创建真实elementinfo
   // ArkUI_AccessibilityElementInfo相当于安卓的view

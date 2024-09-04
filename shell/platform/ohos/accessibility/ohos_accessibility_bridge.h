@@ -19,6 +19,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <arkui/native_interface_accessibility.h>
 
 #include "flutter/fml/log_level.h"
 #include "flutter/lib/ui/semantics/custom_accessibility_action.h"
@@ -51,7 +52,9 @@ class OhosAccessibilityBridge {
   // obtain the flutter semnatics node
   flutter::SemanticsNode getOrCreateSemanticsNode(int32_t id);
 
-  void performAction(int32_t virtualViewId, int32_t inputAction);
+  int32_t ExecuteAccessibilityAction(int64_t elementId, int64_t action, int64_t  actionArguments, int32_t requestId);
+
+  
 
  private:
   std::shared_ptr<OhosAccessibilityManager> ax_manager_;
@@ -66,17 +69,9 @@ class OhosAccessibilityBridge {
   std::vector<int32_t> flutterNavigationStack;
 
   flutter::SemanticsNode getRootSemanticsNode();
-  int32_t convertToInt32(flutter::SemanticsAction inputAction);
+
 
   // native os interfaces
-  int32_t FindFocusedAccessibilityNode(int64_t elementId,
-                                       int32_t focusType,
-                                       int32_t requestId,
-                                       int32_t elementinfo);
-  int32_t FindNextFocusAccessibilityNode(int64_t elementId,
-                                         int32_t direction,
-                                         int32_t requestId,
-                                         int32_t elementList);
 
   /**
    * Informs the TalkBack user about window name changes.
@@ -95,6 +90,7 @@ class OhosAccessibilityBridge {
   void removeSemanticsNode(flutter::SemanticsNode nodeToBeRemoved);
    
   void printTest(flutter::SemanticsNode node);
+  void printTestActions(flutter::CustomAccessibilityAction customAccessibilityAction);
 };
 
 class ArkUI_AccessibilityElementInfo {
@@ -103,6 +99,7 @@ class ArkUI_AccessibilityElementInfo {
   ~ArkUI_AccessibilityElementInfo() = default;
   void createAccessibilityElementInfo(int vid);
 };
+
 /**
 struct SemanticsNode {
   SemanticsNode();
