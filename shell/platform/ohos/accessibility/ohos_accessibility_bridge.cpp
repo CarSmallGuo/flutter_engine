@@ -19,14 +19,7 @@
 
 namespace flutter {
 
-OhosAccessibilityBridge::OhosAccessibilityBridge() {
-  
-  // 判断是否开启无障碍服务
-  if (isOhosAccessibilityEnabled_) {
-    FML_DLOG(INFO) << "OhosAccessibilityBridge::OhosAccessibilityBridge "
-                      "isOhosAccessibilityEnabled = true";
-  }
-}
+OhosAccessibilityBridge::OhosAccessibilityBridge() {};
 OhosAccessibilityBridge::~OhosAccessibilityBridge() {};
 
 OhosAccessibilityBridge& OhosAccessibilityBridge::GetInstance() {
