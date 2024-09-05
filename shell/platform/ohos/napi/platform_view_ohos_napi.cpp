@@ -1848,8 +1848,8 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
       "%{public}s",
       (state ? "true" : "false"));
   // 传递到无障碍管理类
-  auto ohosAccessibilityManager_ = std::make_shared<OhosAccessibilityManager>();
-  ohosAccessibilityManager_->setOhosAccessibilityEnabled(state);
+  OhosAccessibilityBridge ohosAccessibilityBridge = flutter::OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge.isOhosAccessibilityEnabled_ = state;
   return nullptr;
 }
 

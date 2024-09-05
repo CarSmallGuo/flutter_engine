@@ -23,6 +23,7 @@
 #include "napi/native_api.h"
 #include "napi_common.h"
 #include <map>
+#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
 namespace flutter {
 
 class XComponentBase
