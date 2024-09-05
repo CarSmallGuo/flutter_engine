@@ -40,7 +40,7 @@ class OhosAccessibilityBridge {
  public:
    OhosAccessibilityBridge();
   ~OhosAccessibilityBridge();
-    bool isOhosAccessibilityEnabled_;
+  bool isOhosAccessibilityEnabled_;
   static OhosAccessibilityBridge& GetInstance();
 
   void announce(std::unique_ptr<char[]>& message);
@@ -60,11 +60,10 @@ class OhosAccessibilityBridge {
   int32_t GetAccessibilityNodeCursorPosition(int64_t elementId, int32_t requestId, int32_t* index);
   void ArkUI_SendAccessibilityAsyncEvent(ArkUI_AccessibilityProvider* provider);
 
-
-
  private:
   std::shared_ptr<OhosAccessibilityManager> ax_manager_;
   std::unordered_map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
+  std::vector<flutter::SemanticsNode> flutterSemanticsTreeVec;
   std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
   static const int32_t ROOT_NODE_ID = 0;
   // int32_t previousRouteId = ROOT_NODE_ID;
@@ -73,6 +72,8 @@ class OhosAccessibilityBridge {
   // The Flutter navigation stack is tracked so that accessibility announcements
   // can be made during Flutter's navigation changes.
   std::vector<int32_t> flutterNavigationStack;
+
+  void flutterInitElementInfo(ArkUI_AccessibilityElementInfo* elementInfo);
 
   flutter::SemanticsNode getRootSemanticsNode();
 

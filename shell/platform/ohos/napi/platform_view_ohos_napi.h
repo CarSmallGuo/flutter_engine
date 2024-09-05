@@ -197,7 +197,7 @@ class PlatformViewOHOSNapi {
   static napi_value nativeDecodeUtf8(napi_env env, napi_callback_info info);
 
   /**
-   * debug --> ets call c++
+   * ets call c++
    */
   static napi_value nativeUpdateSemantics(napi_env env,
                                           napi_callback_info info);
@@ -216,7 +216,6 @@ class PlatformViewOHOSNapi {
   napi_ref ref_napi_obj_;
   static std::vector<std::string> system_languages;
   fml::RefPtr<fml::TaskRunner> platform_task_runner_;
-  std::shared_ptr<OhosAccessibilityManager> ohosAccessibilityManager_;
 };
 
 }  // namespace flutter

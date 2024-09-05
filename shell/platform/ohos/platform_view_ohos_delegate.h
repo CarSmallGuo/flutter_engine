@@ -40,7 +40,7 @@ class PlatformViewOHOSDelegate {
 
  private:
   const std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;
-  const std::shared_ptr<OhosAccessibilityBridge> ax_bridge_router_;
+
 };
 }  // namespace flutter
 #endif 

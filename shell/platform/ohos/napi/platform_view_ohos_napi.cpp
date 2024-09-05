@@ -1856,7 +1856,6 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
 napi_value PlatformViewOHOSNapi::nativeAnnounce(
   napi_env env,
   napi_callback_info info) {
-
   size_t argc = 1;
   napi_value args[1] = {nullptr};
   napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
@@ -1868,7 +1867,7 @@ napi_value PlatformViewOHOSNapi::nativeAnnounce(
   auto char_array = std::make_unique<char[]>(null_terminated_length);
   napi_get_value_string_utf8(env, args[0], char_array.get(),
                              null_terminated_length, nullptr);
-  LOGD("1535 PlatformViewOHOSNapi::nativeAnnounce message: %{public}s", char_array.get());
+  LOGD("PlatformViewOHOSNapi::nativeAnnounce message: %{public}s", char_array.get());
   OhosAccessibilityBridge ohosAccessibilityBridge = flutter::OhosAccessibilityBridge::GetInstance();
   ohosAccessibilityBridge.announce(char_array);
   return nullptr;
