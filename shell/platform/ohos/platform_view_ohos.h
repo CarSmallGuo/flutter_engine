@@ -142,7 +142,7 @@ class PlatformViewOHOS final : public PlatformView {
   std::map<int64_t, void*> contextDatas_;
 
   std::shared_ptr<PlatformViewOHOSDelegate> platform_view_ohos_delegate_;  
-  std::shared_ptr<OhosAccessibilityBridge> ax_bridge_delegate_;
+  OhosAccessibilityBridge ax_bridge_delegate_;
 
   static bool isDestroyed_;
   static pthread_mutex_t mutex_;
