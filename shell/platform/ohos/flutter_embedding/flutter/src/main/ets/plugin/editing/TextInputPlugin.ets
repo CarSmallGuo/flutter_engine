@@ -285,9 +285,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       this.inputMethodController.on('deleteLeft', (length) => {
         /// 暂时规避方案
         /// OS机制与Android不一致，需要去监听软键盘事件才能发送KeyEvent事件
-        /// keyCode是从dart侧获取的，因为是使用删除按钮，此处暂时这样写死；其他地方如果需要键盘发送事件，再去找对应的keyCode
         if (this.mEditable.getStringCache() == "") {
-          /// dart侧keyboard_maps.g.dart中LogicalKeyboardKey.backspace设置为这个参
           this.sendKeyboardEvent(KeyType.Down, KeyCode.KEYCODE_DEL)
           this.sendKeyboardEvent(KeyType.Up, KeyCode.KEYCODE_DEL)
         }
@@ -358,7 +356,6 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   sendKeyboardEvent(type: KeyType, keyCode: number): void {
     let event: KeyEvent = {
       type: type,
-      /// dart侧keyboard_maps.g.dart中LogicalKeyboardKey.backspace设置为这个参
       keyCode: keyCode,
       keyText: '',
       keySource: KeySource.Keyboard,
