@@ -49,7 +49,7 @@ class OhosAccessibilityBridge {
                        flutter::CustomAccessibilityActionUpdates actions);
 
   // obtain the flutter semnatics node
-  flutter::SemanticsNode getOrCreateSemanticsNode(int32_t id);
+  flutter::SemanticsNode getOrCreateFlutterSemanticsNode(int32_t id);
 
   int32_t FindAccessibilityNodeInfosById(int64_t elementId, ArkUI_AccessibilitySearchMode mode, int32_t requestId, ArkUI_AccessibilityElementInfoList* elementList);
   int32_t FindAccessibilityNodeInfosByText(int64_t elementId, const char* text, int32_t requestId, ArkUI_AccessibilityElementInfoList* elementList);
@@ -58,10 +58,14 @@ class OhosAccessibilityBridge {
   int32_t ExecuteAccessibilityAction(int64_t elementId, ArkUI_Accessibility_ActionType action, ArkUI_AccessibilityActionArguments *actionArguments, int32_t requestId);
   int32_t ClearFocusedFocusAccessibilityNode();
   int32_t GetAccessibilityNodeCursorPosition(int64_t elementId, int32_t requestId, int32_t* index);
-  void ArkUI_SendAccessibilityAsyncEvent(ArkUI_AccessibilityProvider* provider);
+
+  void SendAccessibilityAsyncEvent(int64_t elementId, ArkUI_AccessibilityEventType eventType);
+  void Flutter_InitSpercificElementInfoById(ArkUI_AccessibilityElementInfo* elementInfoFromList, int64_t elementId);
+  int32_t GetParentId(int64_t elementId);
 
  private:
   std::shared_ptr<OhosAccessibilityManager> ax_manager_;
+  std::unordered_map<int32_t, int32_t> parentChildIdMap;
   std::unordered_map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
   std::vector<flutter::SemanticsNode> flutterSemanticsTreeVec;
   std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
@@ -73,7 +77,7 @@ class OhosAccessibilityBridge {
   // can be made during Flutter's navigation changes.
   std::vector<int32_t> flutterNavigationStack;
 
-  void flutterInitElementInfo(ArkUI_AccessibilityElementInfo* elementInfo);
+  void flutterSemanticsNodesToElementInfos();
 
   flutter::SemanticsNode getRootSemanticsNode();
 
