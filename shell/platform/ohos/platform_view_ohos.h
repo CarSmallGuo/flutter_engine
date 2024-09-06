@@ -94,6 +94,8 @@ class PlatformViewOHOS final : public PlatformView {
 
   uint64_t RegisterExternalTexture(int64_t texture_id);
 
+  void SetTextureBufferSize(int64_t texture_id, int32_t width, int32_t height);
+
   void RegisterExternalTextureByPixelMap(int64_t texture_id, NativePixelMap* pixelMap);
   
   void SetExternalTextureBackGroundPixelMap(int64_t texture_id, NativePixelMap* pixelMap);
@@ -139,12 +141,11 @@ class PlatformViewOHOS final : public PlatformView {
   std::map<int64_t, std::shared_ptr<OHOSExternalTextureGL>> external_texture_gl_;
   std::map<int64_t, void*> contextDatas_;
 
-  static bool isDestroyed_;
-  static pthread_mutex_t mutex_;
+  bool isDestroyed_;
 
-  static bool GetDestroyed();
+  bool GetDestroyed();
 
-  static void SetDestroyed(bool isDestroyed_);
+  void SetDestroyed(bool isDestroyed_);
 
   // |PlatformView|
   void UpdateSemantics(
