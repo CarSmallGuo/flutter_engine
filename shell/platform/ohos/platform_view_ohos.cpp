@@ -181,21 +181,12 @@ void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
   }
 }
 
-pthread_mutex_t PlatformViewOHOS::mutex_;
-bool PlatformViewOHOS::isDestroyed_ = false;
-
 bool PlatformViewOHOS::GetDestroyed() {
-  bool ret;
-  pthread_mutex_lock(&mutex_);
-  ret = isDestroyed_;
-  pthread_mutex_unlock(&mutex_);
-  return ret;
+  return isDestroyed_;
 }
 
 void PlatformViewOHOS::SetDestroyed(bool isDestroyed) {
-  pthread_mutex_lock(&mutex_);
   isDestroyed_ = isDestroyed;
-  pthread_mutex_unlock(&mutex_);
 }
 
 // |PlatformView|
@@ -477,6 +468,19 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
     RegisterTexture(ohos_external_gl);
   }
   return surface_id;
+}
+
+void PlatformViewOHOS::SetTextureBufferSize(
+    int64_t texture_id,
+    int32_t width,
+    int32_t height)
+{
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    auto iter = external_texture_gl_.find(texture_id);
+    if (iter != external_texture_gl_.end()) {
+      iter->second->setTextureBufferSize(width, height);
+    }
+  }
 }
 
 void PlatformViewOHOS::OnNativeImageFrameAvailable(void *data)
