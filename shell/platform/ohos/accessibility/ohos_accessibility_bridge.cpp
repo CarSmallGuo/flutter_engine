@@ -19,8 +19,8 @@
 
 namespace flutter {
 
-OhosAccessibilityBridge::OhosAccessibilityBridge() {};
-OhosAccessibilityBridge::~OhosAccessibilityBridge() {};
+OhosAccessibilityBridge::OhosAccessibilityBridge() = default;
+OhosAccessibilityBridge::~OhosAccessibilityBridge() = default;
 
 OhosAccessibilityBridge& OhosAccessibilityBridge::GetInstance() {
   static OhosAccessibilityBridge ohosAccessibilityBridge;
