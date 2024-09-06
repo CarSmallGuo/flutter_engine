@@ -32,6 +32,8 @@ class VsyncWaiter : public std::enable_shared_from_this<VsyncWaiter> {
   /// |Animator::ScheduleMaybeClearTraceFlowIds|.
   void ScheduleSecondaryCallback(uintptr_t id, const fml::closure& callback);
 
+  // disable dvsync
+  virtual void DisableDVsync() {}
  protected:
   // On some backends, the |FireCallback| needs to be made from a static C
   // method.
