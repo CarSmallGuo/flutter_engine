@@ -276,8 +276,8 @@ int32_t FindAccessibilityNodeInfosById(
   int32_t requestId,
   ArkUI_AccessibilityElementInfoList* elementList)
 {
-  OhosAccessibilityBridge ohosAccessibilityBridge = flutter::OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge.FindAccessibilityNodeInfosById(elementId, mode, requestId, elementList);
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->FindAccessibilityNodeInfosById(elementId, mode, requestId, elementList);
   LOGD("accessibilityProviderCallback_.FindAccessibilityNodeInfosById");
   return 0;
 }
@@ -289,8 +289,8 @@ int32_t FindAccessibilityNodeInfosByText(
   int32_t requestId,
   ArkUI_AccessibilityElementInfoList* elementList)
 {
-  OhosAccessibilityBridge ohosAccessibilityBridge = flutter::OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge.FindAccessibilityNodeInfosByText(elementId, text, requestId, elementList);
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->FindAccessibilityNodeInfosByText(elementId, text, requestId, elementList);
   LOGD("accessibilityProviderCallback_.FindAccessibilityNodeInfosByText");
   return 0;
 }
@@ -300,8 +300,8 @@ int32_t FindFocusedAccessibilityNode(
 int64_t elementId, ArkUI_AccessibilityFocusType focusType,
 int32_t requestId, ArkUI_AccessibilityElementInfo* elementinfo)
 {
-  OhosAccessibilityBridge ohosAccessibilityBridge = flutter::OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge.FindFocusedAccessibilityNode(elementId, focusType, requestId, elementinfo);
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->FindFocusedAccessibilityNode(elementId, focusType, requestId, elementinfo);
   LOGD("accessibilityProviderCallback_.FindFocusedAccessibilityNode");
   return 0;
 }
@@ -313,8 +313,8 @@ int32_t FindNextFocusAccessibilityNode(
   int32_t requestId,
   ArkUI_AccessibilityElementInfo *elementList)
 {
-  OhosAccessibilityBridge ohosAccessibilityBridge = flutter::OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge.FindNextFocusAccessibilityNode(elementId, direction, requestId, elementList);
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->FindNextFocusAccessibilityNode(elementId, direction, requestId, elementList);
   LOGD("accessibilityProviderCallback_.FindNextFocusAccessibilityNode");
   return 0;
 }
@@ -326,8 +326,8 @@ int32_t ExecuteAccessibilityAction(
   ArkUI_AccessibilityActionArguments* actionArguments,
   int32_t requestId)
 {
-  OhosAccessibilityBridge ohosAccessibilityBridge = flutter::OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge.ExecuteAccessibilityAction(elementId, action, actionArguments, requestId);
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->ExecuteAccessibilityAction(elementId, action, actionArguments, requestId);
   LOGD("accessibilityProviderCallback_.ExecuteAccessibilityAction");
   return 0;
 }
@@ -345,8 +345,8 @@ int32_t GetAccessibilityNodeCursorPosition(
   int32_t requestId,
   int32_t* index)
 {
-  OhosAccessibilityBridge ohosAccessibilityBridge = flutter::OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge.GetAccessibilityNodeCursorPosition(elementId, requestId, index);
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->GetAccessibilityNodeCursorPosition(elementId, requestId, index);
   LOGD("accessibilityProviderCallback_.GetAccessibilityNodeCursorPosition");
   return 0;
 }
@@ -416,9 +416,12 @@ void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
       return;
     }
     LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is %{public}d", ret2);
-    // ohosAccessibilityBridge.ArkUI_SendAccessibilityAsyncEvent(accessibilityProvider);
+
+    //将ArkUI_AccessibilityProvider传到无障碍bridge类
+    auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+    ohosAccessibilityBridge->provider_ = accessibilityProvider;
+
     LOGI("XComponentBase::SetNativeXComponent OH_ArkUI_AccessibilityProviderRegisterCallback is succeed");
-   
   }
 }
 

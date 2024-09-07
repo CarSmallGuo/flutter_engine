@@ -32,7 +32,6 @@
 #include "flutter/shell/platform/ohos/surface/ohos_native_window.h"
 #include "flutter/shell/platform/ohos/types.h"
 #include "unicode/uchar.h"
-#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
 
 #define OHOS_SHELL_HOLDER (reinterpret_cast<OHOSShellHolder*>(shell_holder))
 namespace flutter {
@@ -1848,8 +1847,8 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
       "%{public}s",
       (state ? "true" : "false"));
   // 传递到无障碍管理类
-  OhosAccessibilityBridge ohosAccessibilityBridge = flutter::OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge.isOhosAccessibilityEnabled_ = state;
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->isOhosAccessibilityEnabled_ = state;
   return nullptr;
 }
 
@@ -1868,8 +1867,8 @@ napi_value PlatformViewOHOSNapi::nativeAnnounce(
   napi_get_value_string_utf8(env, args[0], char_array.get(),
                              null_terminated_length, nullptr);
   LOGD("PlatformViewOHOSNapi::nativeAnnounce message: %{public}s", char_array.get());
-  OhosAccessibilityBridge ohosAccessibilityBridge = flutter::OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge.announce(char_array);
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->announce(char_array);
   return nullptr;
 }
 

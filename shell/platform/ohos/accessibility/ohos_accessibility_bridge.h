@@ -38,10 +38,12 @@ typedef flutter::SemanticsNode SEMANTICS_NODE_;
  */
 class OhosAccessibilityBridge {
  public:
-   OhosAccessibilityBridge();
+  OhosAccessibilityBridge();
   ~OhosAccessibilityBridge();
+
+  static OhosAccessibilityBridge* GetInstance();
+
   bool isOhosAccessibilityEnabled_;
-  static OhosAccessibilityBridge& GetInstance();
 
   void announce(std::unique_ptr<char[]>& message);
 
@@ -58,31 +60,27 @@ class OhosAccessibilityBridge {
   int32_t ExecuteAccessibilityAction(int64_t elementId, ArkUI_Accessibility_ActionType action, ArkUI_AccessibilityActionArguments *actionArguments, int32_t requestId);
   int32_t ClearFocusedFocusAccessibilityNode();
   int32_t GetAccessibilityNodeCursorPosition(int64_t elementId, int32_t requestId, int32_t* index);
+  ArkUI_AccessibilityProvider* provider_;
 
-  void SendAccessibilityAsyncEvent(int64_t elementId, ArkUI_AccessibilityEventType eventType);
+  void Flutter_SendAccessibilityAsyncEvent(int64_t elementId, ArkUI_AccessibilityEventType eventType);
   void Flutter_InitSpercificElementInfoById(ArkUI_AccessibilityElementInfo* elementInfoFromList, int64_t elementId);
   int32_t GetParentId(int64_t elementId);
 
  private:
+  static OhosAccessibilityBridge bridgeInstance; 
   std::shared_ptr<OhosAccessibilityManager> ax_manager_;
   std::unordered_map<int32_t, int32_t> parentChildIdMap;
   std::unordered_map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
-  std::vector<flutter::SemanticsNode> flutterSemanticsTreeVec;
   std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
   static const int32_t ROOT_NODE_ID = 0;
-  // int32_t previousRouteId = ROOT_NODE_ID;
+
+  void flutterSemanticsNodesToElementInfos(ArkUI_AccessibilityElementInfoList* elementInfoList);
+  flutter::SemanticsNode getFlutterRootSemanticsNode();
 
   // A Java/Android cached representation of the Flutter app's navigation stack.
   // The Flutter navigation stack is tracked so that accessibility announcements
   // can be made during Flutter's navigation changes.
   std::vector<int32_t> flutterNavigationStack;
-
-  void flutterSemanticsNodesToElementInfos();
-
-  flutter::SemanticsNode getRootSemanticsNode();
-
-
-  // native os interfaces
 
   /**
    * Informs the TalkBack user about window name changes.

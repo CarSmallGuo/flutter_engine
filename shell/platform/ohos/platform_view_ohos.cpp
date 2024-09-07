@@ -109,9 +109,6 @@ PlatformViewOHOS::PlatformViewOHOS(
     LOGI("ohos_surface_ end 2");
     ohos_surface_ = surface_factory_->CreateSurface();
     LOGI("ohos_surface_ end 3");
-
-    ax_bridge_delegate_ = OhosAccessibilityBridge::GetInstance();
-
     FML_CHECK(ohos_surface_ && ohos_surface_->IsValid())
         << "Could not create an OpenGL, Vulkan or Software surface to set "
            "up "
@@ -300,7 +297,8 @@ void PlatformViewOHOS::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
   FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics is called";
-  ax_bridge_delegate_.updateSemantics(update, actions);
+  auto ax_bridge_delegate_ = OhosAccessibilityBridge::GetInstance();
+  ax_bridge_delegate_->updateSemantics(update, actions);
 }
 
 // |PlatformView|
