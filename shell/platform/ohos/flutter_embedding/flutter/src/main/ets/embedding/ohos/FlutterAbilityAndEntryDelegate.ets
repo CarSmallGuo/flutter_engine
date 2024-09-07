@@ -75,13 +75,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
     if (this.flutterEngine == null) {
       await this.setupFlutterEngine();
     }
-    //shouldAttachEngineToAbility
-    if (this.host?.shouldAttachEngineToAbility()) {
-      // Notify any plugins that are currently attached to our FlutterEngine that they
-      // are now attached to an Ability.
-      Log.d(TAG, "Attaching FlutterEngine to the Ability that owns this delegate.");
-      this.flutterEngine?.getAbilityControlSurface()?.attachToAbility(this);
-    }
     //providePlatformPlugin
     this.platformPlugin = this.host?.providePlatformPlugin(this.flutterEngine!)
     //configureFlutterEngine
@@ -178,9 +171,9 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
       this.isFlutterEngineFromHostOrCache = true;
       if (this.flutterEngine == null) {
         throw new Error(
-            "The requested cached FlutterEngine did not exist in the FlutterEngineCache: '"
-                + cachedEngineId
-                + "'");
+          "The requested cached FlutterEngine did not exist in the FlutterEngineCache: '"
+            + cachedEngineId
+            + "'");
       }
       return;
     }
@@ -202,9 +195,9 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
       const flutterEngineGroup = FlutterEngineGroupCache.instance.get(cachedEngineGroupId);
       if (flutterEngineGroup == null) {
         throw new Error(
-            "The requested cached FlutterEngineGroup did not exist in the FlutterEngineGroupCache: '"
-                + cachedEngineGroupId
-                + "'");
+          "The requested cached FlutterEngineGroup did not exist in the FlutterEngineGroupCache: '"
+            + cachedEngineGroupId
+            + "'");
       }
 
       if (this.context != null) {
@@ -218,8 +211,8 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
     // Our host did not provide a custom FlutterEngine. Create a FlutterEngine to back our
     // FlutterView.
     Log.d(
-        TAG,
-        "No preferred FlutterEngine was provided. Creating a new FlutterEngine for this FlutterAbility.");
+      TAG,
+      "No preferred FlutterEngine was provided. Creating a new FlutterEngine for this FlutterAbility.");
 
     let group = this.engineGroup;
     if (group == null && this.context != null) {
