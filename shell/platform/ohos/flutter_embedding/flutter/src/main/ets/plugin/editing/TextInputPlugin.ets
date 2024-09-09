@@ -194,7 +194,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to attach:" + JSON.stringify(err));
     }
-	}
+  }
 
   async attach(showKeyboard: boolean): Promise<void> {
     try {
