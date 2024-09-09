@@ -94,7 +94,7 @@ export default class AccessibilityChannel implements MessageHandler<object>{
 
     onOhosAccessibilityEnabled(): void {
         let replyId: number = this.nextReplyId++;
-        this.flutterNapi.setSemanticsEnabled(true, replyId);
+        this.flutterNapi.setSemanticsEnabled2(true, replyId);
         Log.i(AccessibilityChannel.TAG, "onOhosAccessibilityEnabled = true");
     }
 

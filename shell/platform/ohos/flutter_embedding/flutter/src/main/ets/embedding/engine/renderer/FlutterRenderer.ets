@@ -101,6 +101,7 @@ export class FlutterRenderer implements TextureRegistry {
       })
     })
   }
+
 }
 
 export class SurfaceTextureRegistryEntry implements SurfaceTextureEntry {

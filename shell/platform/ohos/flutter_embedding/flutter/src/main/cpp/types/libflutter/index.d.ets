@@ -143,6 +143,8 @@ export const nativeDecodeUtf8: (array: Uint8Array) => string;
  */
 export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number, responseId: number) => void;
 
-export const nativeAccessibilityStateChange: (state: Boolean) => string;
+export const nativeAccessibilityStateChange: (state: Boolean) => void;
 
-export const nativeAnnounce: (message: string) => string;
+export const nativeAnnounce: (message: string) => void;
+
+export const nativeSetSemanticsEnabled: (nativeShellHolderId: number, enabled: boolean) => void;

@@ -108,9 +108,10 @@ export class FlutterView {
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
     this.mainWindow?.on('windowStatusChange', this.windowStatusChangeCallback);
 
+    //监听系统是否开启无障碍服务
     accessibility.on('accessibilityStateChange', (data: boolean) => {
       Log.i(TAG, `subscribe accessibility state change, result: ${JSON.stringify(data)}`);
-      this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(data);
+      this.flutterEngine?.getFlutterNapi()?.setSemanticsEnabled(data);
     });
   }
 

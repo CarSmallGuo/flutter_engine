@@ -36,6 +36,7 @@ import appRecovery from '@ohos.app.ability.appRecovery';
 import FlutterManager from './FlutterManager';
 import { FlutterView } from '../../view/FlutterView';
 import ApplicationInfoLoader from '../engine/loader/ApplicationInfoLoader';
+import { accessibility } from '@kit.AccessibilityKit';
 
 const TAG = "FlutterAbility";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';

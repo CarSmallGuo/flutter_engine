@@ -315,9 +315,10 @@ export default class FlutterNapi {
     }
   }
 
-  setSemanticsEnabled(enabled: boolean, responseId: number): void {
+  setSemanticsEnabled2(enabled: boolean, responseId: number): void {
+    this.ensureRunningOnMainThread();
     if (this.isAttached()) {
-      this.nativeSetSemanticsEnabled(enabled);
+      flutter.nativeSetSemanticsEnabled(this.nativeShellHolderId!, enabled);
     } else {
       Log.w(
         TAG,
@@ -326,8 +327,16 @@ export default class FlutterNapi {
     }
   }
 
-  // Send an empty response to a platform message received from Dart.
-  nativeSetSemanticsEnabled(enabled: boolean):void {}
+  setSemanticsEnabled(enabled: boolean): void {
+    this.ensureRunningOnMainThread();
+    if (this.isAttached()) {
+      flutter.nativeSetSemanticsEnabled(this.nativeShellHolderId!, enabled);
+    } else {
+      Log.e(
+        TAG,
+        "Tried to send a platform message response, but FlutterNapi was detached from native C++. Could not send.");
+    }
+  }
 
   setAccessibilityFeatures(accessibilityFeatureFlags: number, responseId: number): void {
     if (this.isAttached()) {
@@ -365,28 +374,6 @@ export default class FlutterNapi {
         "Tried to send a platform message response, but FlutterNapi was detached from native C++. Could not send. Response ID: "
           + responseId);
     }
-  }
-
-
-  // debug updateSemantics
-  updateSemantics(buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]): void {
-    this.ensureRunningOnMainThread();
-    if(this.accessibilityDelegate != null) {
-      this.accessibilityDelegate.updateSemantics(buffer, strings, stringAttributeArgs);
-    }
-    // TODO(mattcarroll): log dropped messages when in debug mode
-    // (https://github.com/flutter/flutter/issues/25391)
-    Log.d(TAG, "updateSemantics is called");
-    flutter.nativeUpdateSemantics(buffer, strings, stringAttributeArgs);
-  }
-
-  updateCustomAccessibilityActions(buffer: ByteBuffer, strings: string[]): void {
-    this.ensureRunningOnMainThread();
-    if(this.accessibilityDelegate != null) {
-      this.accessibilityDelegate.updateCustomAccessibilityActions(buffer, strings);
-    }
-    Log.d(TAG, "updateCustomAccessibilityActions is called");
-    flutter.nativeUpdateCustomAccessibilityActions(buffer, strings);
   }
 
   accessibilityStateChange(state: Boolean): void {

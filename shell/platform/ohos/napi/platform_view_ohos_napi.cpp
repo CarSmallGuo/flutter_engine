@@ -1849,6 +1849,7 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
   // 传递到无障碍管理类
   auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
   ohosAccessibilityBridge->isOhosAccessibilityEnabled_ = state;
+
   return nullptr;
 }
 
@@ -1869,6 +1870,40 @@ napi_value PlatformViewOHOSNapi::nativeAnnounce(
   LOGD("PlatformViewOHOSNapi::nativeAnnounce message: %{public}s", char_array.get());
   auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
   ohosAccessibilityBridge->announce(char_array);
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeSetSemanticsEnabled(napi_env env, napi_callback_info info) {
+  napi_status ret;
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
+  ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
+                       "napi_get_cb_info error:"
+                    << ret;
+    return nullptr;
+  }
+
+  int64_t shell_holder;
+  ret = napi_get_value_int64(env, args[0], &shell_holder);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
+                       "napi_get_value_bool error:"
+                    << ret;
+    return nullptr;
+  }
+  bool enabled = false;
+  ret = napi_get_value_bool(env, args[1], &enabled);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
+                       "napi_get_value_bool error:"
+                    << ret;
+    return nullptr;
+  }
+  OHOS_SHELL_HOLDER->GetPlatformView()->SetSemanticsEnabled(enabled);
+  FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
+                       "OHOS_SHELL_HOLDER->GetPlatformView()->SetSemanticsEnabled= "<<enabled;
   return nullptr;
 }
 

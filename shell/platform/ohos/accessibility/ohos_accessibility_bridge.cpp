@@ -314,13 +314,14 @@ void OhosAccessibilityBridge::Flutter_InitSpercificElementInfoById(ArkUI_Accessi
 /**
  * Called to obtain element information based on a specified node.
  * NOTE: 该arkui接口需要在系统无障碍服务开启时，才能触发调用
- * TODO: 当前实现版本为实现简易功能，仅对flutter语义focused节点进行交互，后续完善并优化
+ * TODO: 当前实现版本为实现简易功能，正在完善实现实际使用场景逻辑并逐步优化；另外：ohos侧当前只发送elementinfo=-1、0两种情况，故目前只能获取root节点
  */
 int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
     int64_t elementId,
     ArkUI_AccessibilitySearchMode mode,
     int32_t requestId,
     ArkUI_AccessibilityElementInfoList* elementList) {
+  FML_DLOG(INFO) << "FindAccessibilityNodeInfosById params: elementId = "<<elementId<<" mode="<<mode<<" requestId="<<requestId<<" elementList= "<<elementList;
 
   if(flutterSemanticsTree_.size() == 0) {
     FML_DLOG(INFO) << "FindAccessibilityNodeInfosById flutterSemanticsTree_.size() = 0";
@@ -334,7 +335,6 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
 
   //从elementinfolist中获取elementinfo
   ArkUI_AccessibilityElementInfo* elementInfoFromList = OH_ArkUI_AddAndGetAccessibilityElementInfo(elementList);
-  FML_DLOG(INFO) << "FindAccessibilityNodeInfosById elementId = "<<elementId<<" mode="<<mode<<" requestId="<<requestId<<" elementInfoFromList= "<<elementInfoFromList;
   if (elementInfoFromList == nullptr) {
     FML_DLOG(INFO) << "FindAccessibilityNodeInfosById elementInfoFromList is null";
     return OH_ARKUI_ACCESSIBILITY_RESULT_FAILED;
@@ -344,7 +344,28 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
       Flutter_InitSpercificElementInfoById(elementInfoFromList, elementId); 
       FlutterTreeToArkuiTree(elementList);  
 
+  } else if(mode == ArkUI_AccessibilitySearchMode::NATIVE_SEARCH_MODE_PREFETCH_CURRENT) {
+      /** Search for current nodes. (mode = 0) */
+      Flutter_InitSpercificElementInfoById(elementInfoFromList, elementId); 
+      FlutterTreeToArkuiTree(elementList);  
+
+  } else if(mode == ArkUI_AccessibilitySearchMode::NATIVE_SEARCH_MODE_PREFETCH_PREDECESSORS) {
+      /** Search for parent nodes. (mode = 1) */
+      Flutter_InitSpercificElementInfoById(elementInfoFromList, elementId); 
+      FlutterTreeToArkuiTree(elementList);  
+
+  } else if(mode == ArkUI_AccessibilitySearchMode::NATIVE_SEARCH_MODE_PREFETCH_SIBLINGS) {
+      /** Search for sibling nodes. (mode = 2) */
+      Flutter_InitSpercificElementInfoById(elementInfoFromList, elementId); 
+      FlutterTreeToArkuiTree(elementList);  
+
+  } else if(mode == ArkUI_AccessibilitySearchMode::NATIVE_SEARCH_MODE_PREFETCH_CHILDREN) {
+      /** Search for child nodes at the next level. (mode = 4) */
+      Flutter_InitSpercificElementInfoById(elementInfoFromList, elementId); 
+      FlutterTreeToArkuiTree(elementList);  
+
   } else if(mode == ArkUI_AccessibilitySearchMode::NATIVE_SEARCH_MODE_PREFETCH_RECURSIVE_CHILDREN) {
+      /** Search for all child nodes. (mode = 8) */
       Flutter_InitSpercificElementInfoById(elementInfoFromList, elementId); 
       FlutterTreeToArkuiTree(elementList);  
 
@@ -352,6 +373,7 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
       Flutter_InitSpercificElementInfoById(elementInfoFromList, elementId); 
       FlutterTreeToArkuiTree(elementList);  
   }
+
 
   FML_DLOG(INFO) << "OhosAccessibilityBridge::FindAccessibilityNodeInfosById is end";
   return OH_ARKUI_ACCESSIBILITY_RESULT_SUCCESS;
@@ -437,7 +459,7 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(int64_t elemen
   //1.创建eventInfo对象
   ArkUI_AccessibilityEventInfo *eventInfo = OH_ArkUI_CreateAccessibilityEventInfo();
   if(eventInfo == nullptr) {
-    FML_DLOG(ERROR)<<"hosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent OH_ArkUI_CreateAccessibilityEventInfo eventInfo = null";
+    FML_DLOG(ERROR)<<"Flutter_SendAccessibilityAsyncEvent OH_ArkUI_CreateAccessibilityEventInfo eventInfo = null";
     return;
   }
 
@@ -453,17 +475,18 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(int64_t elemen
 
   //5.调用接口发送到ohos侧
   auto callback = [](int32_t errorCode) {
-    FML_DLOG(INFO)<<"OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent callback-> errorCode ="<<errorCode;
+    FML_DLOG(INFO)<<"Flutter_SendAccessibilityAsyncEvent callback-> errorCode ="<<errorCode;
   };
 
   //6.发送event到OH侧
   if(provider_ == nullptr) {
-    FML_DLOG(ERROR)<<"OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent AccessibilityProvider = nullptr";
+    FML_DLOG(ERROR)<<"Flutter_SendAccessibilityAsyncEvent AccessibilityProvider = nullptr";
     return;
   }
   OH_ArkUI_SendAccessibilityAsyncEvent(provider_, eventInfo, callback);
 
-  // OH_ArkUI_DestoryAccessibilityElementInfo();
+  //7.销毁新创建的elementinfo
+  OH_ArkUI_DestoryAccessibilityElementInfo(_elementInfo);
 
   FML_DLOG(INFO)<<"OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent is succeed";
   return;
