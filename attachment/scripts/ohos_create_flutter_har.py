@@ -68,6 +68,12 @@ HVIGOR_CONFIG = """
 """
 
 
+def runGitCommand(command):
+    result = subprocess.run(command, capture_output=True, text=True, shell=True)
+    if result.returncode != 0:
+        raise Exception(f"Git command failed: {result.stderr}")
+    return result.stdout.strip()
+
 # 更新har的配置文件，指定编译使用的api版本
 def updateConfig(buildDir, apiInt):
     apiVersionMap = {
@@ -89,6 +95,34 @@ def updateConfig(buildDir, apiInt):
             file.write(HVIGOR_CONFIG)
 
 
+# 自动更新flutter.har的版本号,把日期加到末尾。如: 1.0.0-20240731
+def updateVersion(buildDir):
+    filePath = os.path.join(buildDir, "flutter", "oh-package.json5")
+    currentDir = os.path.dirname(__file__)
+    latestCommit = runGitCommand(f'git -C {currentDir} rev-parse --short HEAD')
+
+    with open(filePath, "r") as sources:
+        lines = sources.readlines()
+
+    pattern = r"\d+\.(?:\d+\.)*\d+"
+    with open(filePath, "w") as sources:
+        for line in lines:
+            if "version" in line:
+                matches = re.findall(pattern, line)
+                print(f'matches = {matches}')
+                if matches and len(matches) > 0:
+                    result = ''.join(matches[0])
+                    versionArr = result.split("-")
+                    list = [versionArr[0], latestCommit]
+                    versionStr = "-".join(list)
+                    print(f'versionStr = {versionStr}')
+                    sources.write(re.sub(pattern, versionStr, line))
+                else:
+                    sources.write(line)
+            else:
+                sources.write(line)
+
+
 # 执行命令
 def runCommand(command, checkCode=True, timeout=None):
     logging.info("runCommand start, command = %s" % (command))
@@ -104,6 +138,7 @@ def runCommand(command, checkCode=True, timeout=None):
 # 编译har文件，通过hvigorw的命令行参数指定编译类型(debug/release/profile)
 def buildHar(buildDir, apiInt, buildType):
     updateConfig(buildDir, apiInt)
+    updateVersion(buildDir)
     hvigorwCommand = "hvigorw" if apiInt != 11 else (".%shvigorw" % os.sep)
     runCommand(
         "cd %s && %s clean --mode module " % (buildDir, hvigorwCommand)

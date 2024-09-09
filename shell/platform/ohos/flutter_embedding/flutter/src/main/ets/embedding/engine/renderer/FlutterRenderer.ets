@@ -62,6 +62,14 @@ export class FlutterRenderer implements TextureRegistry {
     return this.nextTextureId;
   }
 
+  setTextureBackGroundPixelMap(textureId: number, pixelMap: PixelMap): void {
+    this.flutterNapi.setTextureBackGroundPixelMap(textureId, pixelMap);
+  }
+
+  setTextureBufferSize(textureId: number, width: number, height: number): void {
+    this.flutterNapi.setTextureBufferSize(textureId, width, height);
+  }
+
   unregisterTexture(textureId: number): void {
     this.flutterNapi.unregisterTexture(textureId);
   }
@@ -72,9 +80,9 @@ export class FlutterRenderer implements TextureRegistry {
   private getImageReceiver(): image.ImageReceiver {
     let receiver: image.ImageReceiver = image.createImageReceiver(640, 480, 4, 8);
     if (receiver !== undefined) {
-      console.info('[camera test] ImageReceiver is ok');
+      Log.i(TAG, '[camera test] ImageReceiver is ok');
     } else {
-      console.info('[camera test] ImageReceiver is not ok');
+      Log.i(TAG, '[camera test] ImageReceiver is not ok');
     }
     return receiver;
   }
@@ -86,12 +94,12 @@ export class FlutterRenderer implements TextureRegistry {
           return;
         }
         this.flutterNapi.initNativeImage(textureId, nextImage);
-        console.log("[camera test] format: " + nextImage.format);
+        Log.i(TAG, "[camera test] format: " + nextImage.format);
         nextImage.release((err : BusinessError) =>{
           if (err != undefined) {
-            console.log('Failed to release the image source instance.');
+            Log.i(TAG, 'Failed to release the image source instance.');
           } else {
-            console.log('Succeeded in releasing the image source instance.');
+            Log.i(TAG, 'Succeeded in releasing the image source instance.');
           }
         });
       })

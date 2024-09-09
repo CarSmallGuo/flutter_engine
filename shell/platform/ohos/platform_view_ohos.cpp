@@ -14,7 +14,6 @@
  */
 
 #include "flutter/shell/platform/ohos/platform_view_ohos.h"
-#include "flutter/fml/logging.h"
 #include "flutter/fml/make_copyable.h"
 #include "flutter/lib/ui/window/viewport_metrics.h"
 #include "flutter/shell/common/shell_io_manager.h"
@@ -23,6 +22,7 @@
 #include "flutter/shell/platform/ohos/ohos_surface_software.h"
 #include "flutter/shell/platform/ohos/platform_message_response_ohos.h"
 #include "napi_common.h"
+#include "ohos_logging.h"
 #include "ohos_external_texture_gl.h"
 
 #include <GLES2/gl2ext.h>
@@ -181,21 +181,12 @@ void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
   }
 }
 
-pthread_mutex_t PlatformViewOHOS::mutex_;
-bool PlatformViewOHOS::isDestroyed_ = false;
-
 bool PlatformViewOHOS::GetDestroyed() {
-  bool ret;
-  pthread_mutex_lock(&mutex_);
-  ret = isDestroyed_;
-  pthread_mutex_unlock(&mutex_);
-  return ret;
+  return isDestroyed_;
 }
 
 void PlatformViewOHOS::SetDestroyed(bool isDestroyed) {
-  pthread_mutex_lock(&mutex_);
   isDestroyed_ = isDestroyed;
-  pthread_mutex_unlock(&mutex_);
 }
 
 // |PlatformView|
@@ -439,6 +430,12 @@ void PlatformViewOHOS::RegisterExternalTextureByImage(
   }
 }
 
+PointerDataDispatcherMaker PlatformViewOHOS::GetDispatcherMaker() {
+  return [](DefaultPointerDataDispatcher::Delegate& delegate) {
+    return std::make_unique<SmoothPointerDataDispatcher>(delegate);
+  };
+}
+
 uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
 {
   uint64_t surface_id = 0;
@@ -467,9 +464,23 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
       FML_DLOG(ERROR) << "Error with OH_NativeImage_GetSurfaceId";
       return surface_id;
     }
+    external_texture_gl_[texture_id] = ohos_external_gl;
     RegisterTexture(ohos_external_gl);
   }
   return surface_id;
+}
+
+void PlatformViewOHOS::SetTextureBufferSize(
+    int64_t texture_id,
+    int32_t width,
+    int32_t height)
+{
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    auto iter = external_texture_gl_.find(texture_id);
+    if (iter != external_texture_gl_.end()) {
+      iter->second->setTextureBufferSize(width, height);
+    }
+  }
 }
 
 void PlatformViewOHOS::OnNativeImageFrameAvailable(void *data)
@@ -502,6 +513,7 @@ void PlatformViewOHOS::OnNativeImageFrameAvailable(void *data)
 
 void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id)
 {
+  FML_DLOG(INFO) << "PlatformViewOHOS::UnRegisterExternalTexture, texture_id=" << texture_id;
   external_texture_gl_.erase(texture_id);
   UnregisterTexture(texture_id);
   std::map<int64_t, void*>::iterator it = contextDatas_.find(texture_id);
@@ -534,6 +546,16 @@ void PlatformViewOHOS::RegisterExternalTextureByPixelMap(int64_t texture_id, Nat
       ohos_external_gl->DispatchPixelMap(pixelMap);
     }
     MarkTextureFrameAvailable(texture_id);
+  }
+}
+
+void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(int64_t texture_id, NativePixelMap* pixelMap)
+{
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    auto iter = external_texture_gl_.find(texture_id);
+    if (iter != external_texture_gl_.end()) {
+      iter->second->DispatchBackGroundPixelMap(pixelMap);
+    }
   }
 }
 

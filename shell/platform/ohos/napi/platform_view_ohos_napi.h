@@ -37,6 +37,16 @@ struct locale {
   std::string region;
 };
 
+struct mouseWheelEvent {
+    std::string eventType;
+    int64_t shellHolder;
+    int64_t fingerId;
+    double globalX;
+    double globalY;
+    double offsetY;
+    int64_t timestamp;
+};
+
 class PlatformViewOHOSNapi {
  public:
   static napi_value nativeDispatchEmptyPlatformMessage(
@@ -161,9 +171,17 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);
 
+  static napi_value nativeSetTextureBackGroundPixelMap(
+      napi_env env,
+      napi_callback_info info);
+
   static napi_value nativeRegisterTexture(
       napi_env env,
       napi_callback_info info);
+
+  static napi_value nativeSetTextureBufferSize(
+    napi_env env,
+    napi_callback_info info);
 
   // Surface相关，XComponent调用
   static void SurfaceCreated(int64_t shell_holder, void* window);
@@ -179,6 +197,15 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);
   static napi_value nativeXComponentDetachFlutterEngine(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeXComponentDispatchMouseWheel(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeEncodeUtf8(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeDecodeUtf8(
       napi_env env,
       napi_callback_info info);
 

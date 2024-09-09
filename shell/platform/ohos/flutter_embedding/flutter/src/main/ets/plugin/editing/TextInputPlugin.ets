@@ -23,6 +23,13 @@ import inputMethod from '@ohos.inputMethod';
 import Log from '../../util/Log';
 import { EditingStateWatcher, ListenableEditingState } from './ListenableEditingState';
 import Any from '../common/Any';
+import { window } from '@kit.ArkUI';
+import FlutterManager from '../../embedding/ohos/FlutterManager';
+import { IntentionCode } from '@ohos.multimodalInput.intentionCode';
+import {KeyCode} from '@kit.InputKit';
+
+/// 临时规避缺少newline对应枚举问题
+const NEWLINE_KEY_TYPE: number = 8;
 
 export default class TextInputPlugin implements EditingStateWatcher {
   private static TAG = "TextInputPlugin";
@@ -47,8 +54,8 @@ export default class TextInputPlugin implements EditingStateWatcher {
     let editable = this.mTextInputHandler.mEditable;
     let inputTarget = this.mTextInputHandler.inputTarget;
     let configuration = this.mTextInputHandler.configuration;
-    if (configuration!= null && configuration.enableDeltaModel) {
-      this.textInputChannel.updateEditingStateWithDeltas(inputTarget.id,editable.extractBatchTextEditingDeltas());
+    if (configuration != null && configuration.enableDeltaModel) {
+      this.textInputChannel.updateEditingStateWithDeltas(inputTarget.id, editable.extractBatchTextEditingDeltas());
       editable.clearBatchDeltas();
     } else {
       this.textInputChannel.updateEditingState(inputTarget.id, editable.getStringCache(),
@@ -77,17 +84,20 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private mRestartInputPending: boolean = false;
   private plugin: EditingStateWatcher | Any;
   private imcFlag: boolean = false;
+  private showType: keyboardType = keyboardType.ENTRY
 
   constructor(plugin: TextInputPlugin | Any) {
     this.textConfig = {
       inputAttribute: {
         textInputType: 0,
         enterKeyType: 1
-      } };
+      }
+    };
     this.plugin = plugin;
     this.mEditable = new ListenableEditingState(null, 0);
     this.inputMethodController = inputMethod.getController();
     this.inputTarget = new InputTarget(Type.NO_TARGET, 0);
+    this.listenShowKeyboardHeight();
   }
 
   show(): void {
@@ -120,8 +130,10 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   setEditingState(editingState: TextEditState): void {
-    Log.d(TextInputMethodHandlerImpl.TAG, "text:" + editingState.text + " selectionStart:" + editingState.selectionStart + " selectionEnd:"
-      + editingState.selectionEnd + " composingStart:" + editingState.composingStart + " composingEnd" + editingState.composingEnd);
+    Log.d(TextInputMethodHandlerImpl.TAG,
+      "text:" + editingState.text + " selectionStart:" + editingState.selectionStart + " selectionEnd:"
+        + editingState.selectionEnd + " composingStart:" + editingState.composingStart + " composingEnd" +
+      editingState.composingEnd);
     this.mEditable.updateTextInputState(editingState);
   }
 
@@ -130,6 +142,31 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   private async showTextInput(): Promise<void> {
+    /// 暂时规避方案
+    /// NONE是打开软键盘，正常输入模式
+    /// ENTRY是未弹出软键盘时的输入模式
+    /// TRANSFER负责切换同一个页面内的TextField时重置键盘
+    /// DONE是解决点击Entry时submitted回调使用弹窗而无法正常收起软键盘
+    switch (this.showType) {
+      case keyboardType.NONE:
+        break;
+      case keyboardType.ENTRY:
+        this.showKeyboard();
+        break;
+      case keyboardType.TRANSFER:
+        this.showKeyboard();
+        break;
+      case keyboardType.DONE:
+        this.hideTextInput();
+        break;
+      default:
+        break;
+    }
+  }
+
+  async showKeyboard() {
+    /// 添加软键盘弹出收起监听方法
+    this.listenShowKeyboardHeight();
     await this.attach(true);
     if (this.imcFlag != true) {
       this.listenKeyBoardEvent();
@@ -139,6 +176,35 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     }).catch((err: Any) => {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to show softKeyboard:" + JSON.stringify(err));
     });
+    this.showType = keyboardType.NONE;
+  }
+
+  listenShowKeyboardHeight() {
+    window.getLastWindow(getContext(this)).then(currentWindow => {
+      try {
+        currentWindow.on('keyboardHeightChange', (data) => {
+          console.info('Succeeded in enabling the listener for keyboard height changes. Data: ' + JSON.stringify(data));
+          if (data == 0) {
+            this.showType = keyboardType.ENTRY
+          } else {
+            this.showType = keyboardType.NONE
+          }
+        });
+      } catch (exception) {
+        console.error(`Failed to enable the listener for keyboard height changes. Cause code: ${exception.code}, message: ${exception.message}`);
+      }
+    })
+  }
+
+  /// 软键盘收起时关闭监听方法
+  listenHideKeyboardHeight() {
+    window.getLastWindow(getContext(this)).then(currentWindow => {
+      try {
+        currentWindow.off('keyboardHeightChange');
+      } catch (exception) {
+        console.error(`Failed to enable the listener for keyboard height changes. Cause code: ${exception.code}, message: ${exception.message}`);
+      }
+    })
   }
 
   private async hideTextInput(): Promise<void> {
@@ -147,6 +213,8 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     }).catch((err: Any) => {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to hide softKeyboard:" + JSON.stringify(err));
     })
+    this.showType = keyboardType.ENTRY
+    this.listenHideKeyboardHeight()
   }
 
   async attach(showKeyboard: boolean): Promise<void> {
@@ -163,7 +231,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
         inputAttribute: {
           textInputType: 0,
           enterKeyType: 1
-        } 
+        }
       };
       await this.inputMethodController.attach(false, textConfig);
     } catch (err) {
@@ -172,7 +240,8 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   setTextInputClient(client: number, configuration: Configuration | null): void {
-    const INPUT_TYPE_NAME = ['NONE', 'TEXT', 'MULTILINE', 'NUMBER', 'PHONE', 'DATETIME', 'EMAIL_ADDRESS', 'URL', 'VISIBLE_PASSWORD']
+    const INPUT_TYPE_NAME =
+      ['NONE', 'TEXT', 'MULTILINE', 'NUMBER', 'PHONE', 'DATETIME', 'EMAIL_ADDRESS', 'URL', 'VISIBLE_PASSWORD']
     if (configuration) {
       this.configuration = configuration;
       if (configuration.inputType) {
@@ -214,6 +283,12 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
     try {
       this.inputMethodController.on('deleteLeft', (length) => {
+        /// 暂时规避方案
+        /// OS机制与Android不一致，需要去监听软键盘事件才能发送KeyEvent事件
+        if (this.mEditable.getStringCache() == "") {
+          this.sendKeyboardEvent(KeyType.Down, KeyCode.KEYCODE_DEL)
+          this.sendKeyboardEvent(KeyType.Up, KeyCode.KEYCODE_DEL)
+        }
         this.mEditable.handleDeleteEvent(false, length);
       })
     } catch (err) {
@@ -234,8 +309,11 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
     try {
       this.inputMethodController.on('sendFunctionKey', (functionKey) => {
-        if(functionKey.enterKeyType == inputMethod.EnterKeyType.NONE) {
+        /// 临时规避缺少newline对应枚举类型问题
+        if (functionKey.enterKeyType == NEWLINE_KEY_TYPE) {
           this.mEditable.handleNewlineEvent();
+        } else {
+          this.showType = keyboardType.DONE
         }
         this.mEditable.handleFunctionKey(functionKey);
       })
@@ -249,7 +327,11 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       this.inputMethodController.on('sendKeyboardStatus', (state) => {
         if (state == inputMethod.KeyboardStatus.HIDE) {
           this.plugin.textInputChannel.onConnectionClosed(this.inputTarget.id);
-          this.resetAttach();
+          if (this.showType != keyboardType.DONE) {
+            this.showType = keyboardType.TRANSFER
+          }
+          this.hideTextInput()
+          this.cancelListenKeyBoardEvent()
         }
       })
     } catch (err) {
@@ -271,6 +353,25 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.imcFlag = true;
   }
 
+  sendKeyboardEvent(type: KeyType, keyCode: number): void {
+    let event: KeyEvent = {
+      type: type,
+      keyCode: keyCode,
+      keyText: '',
+      keySource: KeySource.Keyboard,
+      deviceId: 0,
+      metaKey: 0,
+      timestamp: 0,
+      stopPropagation: (): void => {
+        throw new Error('Function not implemented.');
+      },
+      intentionCode: IntentionCode.INTENTION_BACK
+    }
+    FlutterManager.getInstance().getFlutterViewList().forEach((value) => {
+      value.onKeyEvent(event)
+    })
+  }
+
   cancelListenKeyBoardEvent(): void {
     this.inputMethodController.off('insertText');
     this.inputMethodController.off('deleteLeft');
@@ -288,6 +389,9 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.mEditable.removeEditingStateListener(this.plugin);
     this.configuration = null;
     this.inputTarget = new InputTarget(Type.NO_TARGET, 0);
+    if (this.showType != keyboardType.DONE) {
+      this.showType = keyboardType.TRANSFER
+    }
     this.resetAttach();
   }
 }
@@ -300,6 +404,13 @@ enum Type {
   // InputConnection is managed by a platform view that is presented on a virtual display.
   VIRTUAL_DISPLAY_PLATFORM_VIEW,
   PHYSICAL_DISPLAY_PLATFORM_VIEW,
+}
+
+enum keyboardType {
+  NONE,
+  ENTRY,
+  TRANSFER,
+  DONE
 }
 
 export class InputTarget {

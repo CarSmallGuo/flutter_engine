@@ -43,13 +43,13 @@ export default class BackgroundBasicMessageChannel<T> {
   private messenger: BinaryMessenger;
   private name: string;
   private codec: SendableMessageCodec<T>;
-  private taskQueue?: TaskQueue;
+  private taskQueue: TaskQueue;
 
   constructor(messenger: BinaryMessenger, name: string, codec: SendableMessageCodec<T>, taskQueue?: TaskQueue) {
     this.messenger = messenger
     this.name = name
     this.codec = codec
-    this.taskQueue = taskQueue
+    this.taskQueue = taskQueue ?? messenger.makeBackgroundTaskQueue()
   }
 
   /**
@@ -61,7 +61,8 @@ export default class BackgroundBasicMessageChannel<T> {
    * @param callback a {@link Reply} callback, possibly null.
    */
   send(message: T, callback?: (reply: T)=>void): void {
-    this.messenger.send(this.name, this.codec.encodeMessage(message), callback == null ? null : new IncomingReplyHandler(callback, this.codec));
+    this.messenger.send(this.name, this.codec.encodeMessage(message),
+                        callback == null ? null : new IncomingReplyHandler(callback, this.codec));
   }
 
   /**
@@ -76,14 +77,8 @@ export default class BackgroundBasicMessageChannel<T> {
    * @param handler a {@link MessageHandler}, or null to deregister.
    */
   setMessageHandler(handler: SendableMessageHandler<T> | null): void {
-    // We call the 2 parameter variant specifically to avoid breaking changes in
-    // mock verify calls.
-    // See https://github.com/flutter/flutter/issues/92582.
-    if (this.taskQueue != null) {
-      this.messenger.setMessageHandler(this.name, new IncomingSendableMessageHandler(handler, this.codec), this.taskQueue);
-    } else {
-      this.messenger.setMessageHandler(this.name, new IncomingSendableMessageHandler(handler, this.codec));
-    }
+    this.messenger.setMessageHandler(this.name,
+          handler == null ? null : new IncomingSendableMessageHandler(handler, this.codec), this.taskQueue);
   }
 
   /**
@@ -117,17 +112,17 @@ class IncomingReplyHandler <T> implements BinaryReply {
 
 @Sendable
 class IncomingSendableMessageHandler<T> implements SendableBinaryMessageHandler {
-  private handler: SendableMessageHandler<T> | null
+  private handler: SendableMessageHandler<T>
   private codec: SendableMessageCodec<T>
 
-  constructor(handler: SendableMessageHandler<T> | null, codec: SendableMessageCodec<T>) {
+  constructor(handler: SendableMessageHandler<T>, codec: SendableMessageCodec<T>) {
     this.handler = handler;
     this.codec = codec
   }
 
   onMessage(message: ArrayBuffer, callback: BinaryReply) {
     try {
-      this.handler?.onMessage(
+      this.handler.onMessage(
         this.codec.decodeMessage(message),
         {
           reply: (reply: T): void => {

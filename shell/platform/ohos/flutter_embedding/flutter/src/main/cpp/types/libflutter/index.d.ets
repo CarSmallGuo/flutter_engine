@@ -33,6 +33,11 @@ export const nativeUpdateRefreshRate: (
   ate: number
 ) => void;
 
+/*
+ * 初始化SkFontMgr::RefDefault()
+ */
+export const nativePrefetchDefaultFontManager: () => void;
+
 /**
  * 初始化dart vm和flutter engine
  */
@@ -44,7 +49,7 @@ export const nativeInit: (
   engineCachesPath: string,
   initTimeMillis: number,
   productModel: string
-) => void;
+) => number | null;
 
 export const nativeAttach: (napi: FlutterNapi) => number;
 
@@ -94,6 +99,16 @@ export const nativeXComponentAttachFlutterEngine: (xcomponentId: string, nativeS
 
 export const nativeXComponentDetachFlutterEngine: (xcomponentId: string, nativeShellHolderId: number) => void;
 
+export const nativeXComponentDispatchMouseWheel: (nativeShellHolderId: number,
+                                                  xcomponentId: string,
+                                                  eventType: string,
+                                                  fingerId: number,
+                                                  globalX: number,
+                                                  globalY: number,
+                                                  offsetY: number,
+                                                  timestamp: number
+                                                  ) => void;
+
 /**
  * Detaches flutterNapi和engine之间的关联
  * 这个方法执行前提是flutterNapi已经和engine关联
@@ -108,4 +123,12 @@ export const nativeUnregisterTexture: (nativeShellHolderId: number, textureId: n
 
 export const nativeRegisterPixelMap: (nativeShellHolderId: number, textureId: number, pixelMap: PixelMap) => void;
 
+export const nativeSetTextureBackGroundPixelMap: (nativeShellHolderId: number, textureId: number, pixelMap: PixelMap) => void;
+
 export const nativeRegisterTexture: (nativeShellHolderId: number, textureId: number) => number;
+
+export const nativeEncodeUtf8: (str: string) => Uint8Array;
+
+export const nativeDecodeUtf8: (array: Uint8Array) => string;
+
+export const nativeSetTextureBufferSize: (nativeShellHolderId: number, textureId: number, width: number, height: number) => void;

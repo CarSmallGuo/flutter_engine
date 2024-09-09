@@ -83,6 +83,7 @@ source_set("flutter_ohos_sources") {
              "ohos_environment_gl.h",
              "ohos_surface_gl_skia.h",
              "types.h",
+             "ohos_logging.h",
            ]
 
   #configs += [ "//flutter/shell/platform/ohos/config:gtk" ]
@@ -146,8 +147,6 @@ source_set("flutter_ohos_sources") {
     #"//flutter/vulkan",
     "//third_party/skia",
     "//flutter/shell/gpu:gpu_surface_gl",
-  
-  
   ]
 
 }
@@ -204,7 +203,7 @@ shared_library("flutter_shell_native") {
 
   ldflags = ["--rtlib=compiler-rt",
   "-fuse-ld=lld",
-  "-static-libstdc++",
+#  "-static-libstdc++",
 #  "-Wl", "--build-id=sha1",
 #  "-Wl,","--warn-shared-textrel",
 #  "-Wl,","--fatal-warnings -lunwind",

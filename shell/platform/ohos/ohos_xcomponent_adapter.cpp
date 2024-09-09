@@ -16,8 +16,14 @@
 #include "ohos_xcomponent_adapter.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "types.h"
+#include "ohos_logging.h"
 #include <functional>
+
 namespace flutter {
+
+bool g_isMouseLeftActive = false;
+double g_scrollDistance = 0.0;
+double g_resizeRate = 0.8;
 
 XComponentAdapter XComponentAdapter::mXComponentAdapter;
 
@@ -100,6 +106,14 @@ void XComponentAdapter::DetachFlutterEngine(std::string& id) {
   if (iter != xcomponetMap_.end()) {
     iter->second->DetachFlutterEngine();
   }
+}
+
+void XComponentAdapter::OnMouseWheel(std::string& id, mouseWheelEvent event)
+{
+    auto iter = xcomponetMap_.find(id);
+    if (iter != xcomponetMap_.end()) {
+        iter->second->OnDispatchMouseWheelEvent(event);
+    }
 }
 
 #include <native_window/external_window.h>
@@ -229,11 +243,27 @@ void DispatchTouchEventCB(OH_NativeXComponent* component, void* window) {
   }
 }
 
+void DispatchMouseEventCB(OH_NativeXComponent* component, void* window)
+{
+    for (auto it: XComponentAdapter::GetInstance()->xcomponetMap_) {
+        if (it.second->nativeXComponent_ == component) {
+            it.second->OnDispatchMouseEvent(component, window);
+        }
+    }
+}
+
+void DispatchHoverEventCB(OH_NativeXComponent* component, bool isHover)
+{
+    LOGD("XComponentManger::DispatchHoverEventCB");
+}
+
 void XComponentBase::BindXComponentCallback() {
   callback_.OnSurfaceCreated = OnSurfaceCreatedCB;
   callback_.OnSurfaceChanged = OnSurfaceChangedCB;
   callback_.OnSurfaceDestroyed = OnSurfaceDestroyedCB;
   callback_.DispatchTouchEvent = DispatchTouchEventCB;
+  mouseCallback_.DispatchMouseEvent = DispatchMouseEventCB;
+  mouseCallback_.DispatchHoverEvent = DispatchHoverEventCB;
 }
 
 XComponentBase::XComponentBase(std::string id){
@@ -276,6 +306,7 @@ void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
   if (nativeXComponent_ != nullptr) {
     BindXComponentCallback();
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
+    OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
   }
 }
 
@@ -342,6 +373,13 @@ void XComponentBase::OnDispatchTouchEvent(OH_NativeXComponent* component,
       OH_NativeXComponent_GetTouchEvent(component, window, &touchEvent_);
   if (ret == OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
     if (isEngineAttached_) {
+      // if this touchEvent triggered by mouse, return
+      OH_NativeXComponent_EventSourceType sourceType;
+      int32_t ret2 = OH_NativeXComponent_GetTouchEventSourceType(component, touchEvent_.id, &sourceType);
+      if (ret2 == OH_NATIVEXCOMPONENT_RESULT_SUCCESS &&
+          sourceType == OH_NATIVEXCOMPONENT_SOURCE_TYPE_MOUSE) {
+          return;
+      }
       ohosTouchProcessor_.HandleTouchEvent(std::stoll(shellholderId_),
                                            component, &touchEvent_);
     } else {
@@ -352,4 +390,51 @@ void XComponentBase::OnDispatchTouchEvent(OH_NativeXComponent* component,
   }
 }
 
+void XComponentBase::OnDispatchMouseEvent(OH_NativeXComponent* component, void* window)
+{
+    OH_NativeXComponent_MouseEvent mouseEvent;
+    int32_t ret = OH_NativeXComponent_GetMouseEvent(component, window, &mouseEvent);
+    if (ret == OH_NATIVEXCOMPONENT_RESULT_SUCCESS && isEngineAttached_) {
+        if (mouseEvent.button == OH_NATIVEXCOMPONENT_LEFT_BUTTON) {
+            if (mouseEvent.action == OH_NATIVEXCOMPONENT_MOUSE_PRESS) {
+                g_isMouseLeftActive = true;
+            } else if (mouseEvent.action == OH_NATIVEXCOMPONENT_MOUSE_RELEASE) {
+                g_isMouseLeftActive = false;
+            }
+        }
+        ohosTouchProcessor_.HandleMouseEvent(std::stoll(shellholderId_), component, mouseEvent, 0.0);
+        return;
+    }
+    LOGE("XComponentManger::DispatchMouseEvent XComponentBase is not attached");
+}
+
+void XComponentBase::OnDispatchMouseWheelEvent(mouseWheelEvent event)
+{
+    std::string shell_holder_str = std::to_string(event.shellHolder);
+    if (shell_holder_str != shellholderId_) {
+        return;
+    }
+    if (isEngineAttached_) {
+        if (g_isMouseLeftActive) {
+            return;
+        }
+        if (event.eventType == "actionUpdate") {
+            OH_NativeXComponent_MouseEvent mouseEvent;
+            double scrollY = event.offsetY - g_scrollDistance;
+            g_scrollDistance = event.offsetY;
+            // fix resize ratio
+            mouseEvent.x = event.globalX / g_resizeRate;
+            mouseEvent.y = event.globalY / g_resizeRate;
+            scrollY = scrollY / g_resizeRate;
+            mouseEvent.button = OH_NATIVEXCOMPONENT_NONE_BUTTON;
+            mouseEvent.action = OH_NATIVEXCOMPONENT_MOUSE_NONE;
+            mouseEvent.timestamp = event.timestamp;
+            ohosTouchProcessor_.HandleMouseEvent(std::stoll(shellholderId_), nullptr, mouseEvent, scrollY);
+        } else {
+            g_scrollDistance = 0.0;
+        }
+    } else {
+        LOGE("XComponentManger::DispatchMouseWheelEvent XComponentBase is not attached");
+    }
+}
 }  // namespace flutter
