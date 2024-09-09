@@ -86,7 +86,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private plugin: EditingStateWatcher | Any;
   private imcFlag: boolean = false;
   private inputTypeNone: string = 'NONE'
-  private screenHeight: number = 0
+  private firstShow: boolean = true;
 
   constructor(plugin: TextInputPlugin | Any) {
     this.textConfig = {
@@ -99,9 +99,9 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.mEditable = new ListenableEditingState(null, 0);
     this.inputMethodController = inputMethod.getController();
     this.inputTarget = new InputTarget(Type.NO_TARGET, 0);
-    this.getKeyboardView()
   }
 
+  /// 通过判断是否是TextInputType.none来决定是否弹出键盘
   show(): void {
     if (this.canShowTextInput()) {
       this.showTextInput();
@@ -148,9 +148,10 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   private async showTextInput(): Promise<void> {
-    if (this.screenHeight != 0) {
+    if (!this.firstShow) {
       return
     }
+    this.listenShowKeyboard()
     await this.attach(true);
     if (!this.imcFlag) {
       this.listenKeyBoardEvent();
@@ -164,36 +165,30 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   private async hideTextInput(): Promise<void> {
     this.inputMethodController.hideTextInput().then(() => {
+      this.firstShow = true
       Log.d(TextInputMethodHandlerImpl.TAG, "Succeeded in hide softKeyboard");
     }).catch((err: Any) => {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to hide softKeyboard:" + JSON.stringify(err));
     })
+    this.listenNoShowKeyboard()
   }
 
-  getKeyboardView(): void {
-    try {
-      let windowStage = FlutterManager.getInstance()
-        .getWindowStage(FlutterManager.getInstance().getUIAbility(getContext(this)));
-      windowStage.getMainWindow((err: BusinessError, currentWindow ) => {
-        let property = currentWindow .getWindowProperties();
-        let avoidArea = currentWindow .getWindowAvoidArea(window.AvoidAreaType.TYPE_KEYBOARD);
-        // 初始化显示区域高度
-        this.screenHeight = px2vp(property.windowRect.height - avoidArea.bottomRect.height);
-        // 监视软键盘的弹出和收起
-        currentWindow.on('avoidAreaChange', async data => {
-          if (data.type !== window.AvoidAreaType.TYPE_KEYBOARD) {
-            return;
-          }
-          if (data.area.bottomRect.height == 0) {
-            this.screenHeight = 0;
-          } else {
-            this.screenHeight = px2vp(property.windowRect.height - data.area.bottomRect.height);
-          }
-        })
-      });
-    } catch (err) {
-      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to attach:" + JSON.stringify(err));
-    }
+  /// 通过监听规避区域内，是否有软键盘区域来进行监听。该方法在回到桌面和锁屏依然可以正常监听
+  listenShowKeyboard() {
+    let windowStage = FlutterManager.getInstance()
+      .getWindowStage(FlutterManager.getInstance().getUIAbility(getContext(this)));
+    windowStage.getMainWindow((err: BusinessError, currentWindow ) => {
+      currentWindow.on('avoidAreaChange', this.avoidAreaChangeCallback)
+    });
+  }
+
+  /// 取消监听规避区域的软键盘范围
+  listenNoShowKeyboard() {
+    let windowStage = FlutterManager.getInstance()
+      .getWindowStage(FlutterManager.getInstance().getUIAbility(getContext(this)));
+    windowStage.getMainWindow((err: BusinessError, currentWindow ) => {
+      currentWindow.off('avoidAreaChange', this.avoidAreaChangeCallback)
+    });
   }
 
   async attach(showKeyboard: boolean): Promise<void> {
@@ -239,7 +234,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
     this.mRestartInputPending = true;
     this.mEditable.addEditingStateListener(this.plugin);
-    this.screenHeight = 0;
+    this.firstShow = true
   }
 
   canShowTextInput(): boolean {
@@ -251,10 +246,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   listenKeyBoardEvent(): void {
     try {
-      this.inputMethodController.on('insertText', (text) => {
-        Log.d(TextInputMethodHandlerImpl.TAG, "insertText: " + text);
-        this.mEditable.handleInsertTextEvent(text);
-      });
+      this.inputMethodController.on('insertText', this.insertTextCallback);
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe insertText:" + JSON.stringify(err));
       this.cancelListenKeyBoardEvent();
@@ -262,15 +254,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     }
 
     try {
-      this.inputMethodController.on('deleteLeft', (length) => {
-        /// 暂时规避方案
-        /// OS机制与Android不一致，需要去监听软键盘事件才能发送KeyEvent事件
-        if (this.mEditable.getStringCache() == "") {
-          this.sendKeyboardEvent(KeyType.Down, KeyCode.KEYCODE_DEL)
-          this.sendKeyboardEvent(KeyType.Up, KeyCode.KEYCODE_DEL)
-        }
-        this.mEditable.handleDeleteEvent(false, length);
-      })
+      this.inputMethodController.on('deleteLeft', this.deleteLeftCallback)
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe deleteLeft:" + JSON.stringify(err));
       this.cancelListenKeyBoardEvent();
@@ -278,9 +262,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     }
 
     try {
-      this.inputMethodController.on('deleteRight', (length) => {
-        this.mEditable.handleDeleteEvent(true, length);
-      })
+      this.inputMethodController.on('deleteRight', this.deleteRightCallback)
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe deleteRight:" + JSON.stringify(err));
       this.cancelListenKeyBoardEvent();
@@ -288,13 +270,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     }
 
     try {
-      this.inputMethodController.on('sendFunctionKey', (functionKey) => {
-        /// 临时规避缺少newline对应枚举类型问题
-        if (functionKey.enterKeyType == NEWLINE_KEY_TYPE) {
-          this.mEditable.handleNewlineEvent();
-        }
-        this.mEditable.handleFunctionKey(functionKey);
-      })
+      this.inputMethodController.on('sendFunctionKey', this.sendFunctionKeyCallback)
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe sendFunctionKey:" + JSON.stringify(err));
       this.cancelListenKeyBoardEvent();
@@ -302,13 +278,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     }
 
     try {
-      this.inputMethodController.on('sendKeyboardStatus', (state) => {
-        if (state == inputMethod.KeyboardStatus.HIDE) {
-          this.plugin.textInputChannel.onConnectionClosed(this.inputTarget.id);
-          this.hideTextInput()
-          this.cancelListenKeyBoardEvent()
-        }
-      })
+      this.inputMethodController.on('sendKeyboardStatus', this.sendKeyboardStatusCallback)
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe sendKeyboardStatus:" + JSON.stringify(err));
       this.cancelListenKeyBoardEvent();
@@ -316,9 +286,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     }
 
     try {
-      this.inputMethodController.on('selectByRange', (range: inputMethod.Range) => {
-        this.mEditable.handleSelectByRange(range);
-      })
+      this.inputMethodController.on('selectByRange', this.selectByRangeCallback)
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe selectByRange:" + JSON.stringify(err));
       this.cancelListenKeyBoardEvent();
@@ -347,13 +315,64 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     })
   }
 
+  private avoidAreaChangeCallback = (data: window.AvoidAreaOptions) => {
+    console.info('Succeeded in enabling the listener for keyboard height changes. Data: ' + JSON.stringify(data));
+    if (data.type !== window.AvoidAreaType.TYPE_KEYBOARD) {
+      return;
+    }
+    if (data.area.bottomRect.height == 0) {
+      this.firstShow = true
+    } else {
+      this.firstShow = false
+    }
+  }
+
+  private insertTextCallback = (text: string) => {
+    Log.d(TextInputMethodHandlerImpl.TAG, "insertText: " + text);
+    this.mEditable.handleInsertTextEvent(text);
+  }
+
+  private deleteLeftCallback = (length: number) => {
+    /// 暂时规避方案
+    /// OS机制与Android不一致，需要去监听软键盘事件才能发送KeyEvent事件
+    if (this.mEditable.getStringCache() == "") {
+      this.sendKeyboardEvent(KeyType.Down, KeyCode.KEYCODE_DEL)
+      this.sendKeyboardEvent(KeyType.Up, KeyCode.KEYCODE_DEL)
+    }
+    this.mEditable.handleDeleteEvent(false, length);
+  }
+
+  private deleteRightCallback = (length: number) => {
+    this.mEditable.handleDeleteEvent(true, length);
+  }
+
+  private sendFunctionKeyCallback = (functionKey: inputMethod.FunctionKey) => {
+    /// 临时规避缺少newline对应枚举类型问题
+    if (functionKey.enterKeyType == NEWLINE_KEY_TYPE) {
+      this.mEditable.handleNewlineEvent();
+    }
+    this.mEditable.handleFunctionKey(functionKey);
+  }
+
+  private sendKeyboardStatusCallback = (state: inputMethod.KeyboardStatus) => {
+    if (state == inputMethod.KeyboardStatus.HIDE) {
+      this.plugin.textInputChannel.onConnectionClosed(this.inputTarget.id);
+      this.hideTextInput()
+      this.cancelListenKeyBoardEvent()
+    }
+  }
+
+  private selectByRangeCallback = (range: inputMethod.Range) => {
+    this.mEditable.handleSelectByRange(range);
+  }
+
   cancelListenKeyBoardEvent(): void {
-    this.inputMethodController.off('insertText');
-    this.inputMethodController.off('deleteLeft');
-    this.inputMethodController.off('deleteRight');
-    this.inputMethodController.off('sendFunctionKey');
-    this.inputMethodController.off('sendKeyboardStatus');
-    this.inputMethodController.off('selectByRange');
+    this.inputMethodController.off('insertText', this.insertTextCallback);
+    this.inputMethodController.off('deleteLeft', this.deleteLeftCallback);
+    this.inputMethodController.off('deleteRight', this.deleteRightCallback);
+    this.inputMethodController.off('sendFunctionKey', this.sendFunctionKeyCallback);
+    this.inputMethodController.off('sendKeyboardStatus', this.sendKeyboardStatusCallback);
+    this.inputMethodController.off('selectByRange', this.selectByRangeCallback);
     this.imcFlag = false;
   }
 
