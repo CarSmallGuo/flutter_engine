@@ -353,6 +353,7 @@ std::vector<std::string> splitString(const std::string& input, char delimiter) {
 
   return result;
 }
+
 flutter::locale PlatformViewOHOSNapi::resolveNativeLocale(
     std::vector<flutter::locale> supportedLocales) {
   if (supportedLocales.empty()) {
@@ -1889,7 +1890,7 @@ napi_value PlatformViewOHOSNapi::nativeSetSemanticsEnabled(napi_env env, napi_ca
   ret = napi_get_value_int64(env, args[0], &shell_holder);
   if (ret != napi_ok) {
     FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
-                       "napi_get_value_bool error:"
+                       "napi_get_value_int64 error:"
                     << ret;
     return nullptr;
   }

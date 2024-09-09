@@ -45,6 +45,8 @@ class OhosAccessibilityBridge {
 
   bool isOhosAccessibilityEnabled_;
 
+  void DispatchSemanticsAction(int32_t id, flutter::SemanticsAction action);
+
   void announce(std::unique_ptr<char[]>& message);
 
   void updateSemantics(flutter::SemanticsNodeUpdates update,
@@ -68,34 +70,23 @@ class OhosAccessibilityBridge {
 
  private:
   static OhosAccessibilityBridge bridgeInstance; 
+
   std::shared_ptr<OhosAccessibilityManager> ax_manager_;
   std::unordered_map<int32_t, int32_t> parentChildIdMap;
   std::unordered_map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
   std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
+  std::vector<int32_t> flutterNavigationStack;
+
   static const int32_t ROOT_NODE_ID = 0;
 
   void FlutterTreeToArkuiTree(ArkUI_AccessibilityElementInfoList* elementInfoList);
+
   flutter::SemanticsNode getFlutterRootSemanticsNode();
+  bool IsNodeFocusable(const flutter::SemanticsNode& node);
+  std::string GetNodeComponentType(const flutter::SemanticsNode& node);
 
-  // A Java/Android cached representation of the Flutter app's navigation stack.
-  // The Flutter navigation stack is tracked so that accessibility announcements
-  // can be made during Flutter's navigation changes.
-  std::vector<int32_t> flutterNavigationStack;
 
-  /**
-   * Informs the TalkBack user about window name changes.
-   * it creates a {@link AccessibilityEvent#TYPE_WINDOW_STATE_CHANGED} and sends
-   * the event to Android's accessibility system. In both cases, TalkBack
-   * announces the label of the route and re-addjusts the accessibility focus.
-   *
-   * <p>The given {@code route} should be a {@link SemanticsNode} that
-   * represents a navigation route in the Flutter app.
-   */
   void onWindowNameChange(flutter::SemanticsNode route);
-  /**
-   * Hook called just before a {@link SemanticsNode} is removed from the Android cache of Flutter's
-   * semantics tree.
-   */
   void removeSemanticsNode(flutter::SemanticsNode nodeToBeRemoved);
    
   void printTest(flutter::SemanticsNode node);
