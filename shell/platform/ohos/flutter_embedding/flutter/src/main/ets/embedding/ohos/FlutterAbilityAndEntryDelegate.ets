@@ -75,6 +75,13 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
     if (this.flutterEngine == null) {
       await this.setupFlutterEngine();
     }
+    //shouldAttachEngineToAbility
+    if (this.host?.shouldAttachEngineToAbility()) {
+      // Notify any plugins that are currently attached to our FlutterEngine that they
+      // are now attached to an Ability.
+      Log.d(TAG, "Attaching FlutterEngine to the Ability that owns this delegate.");
+      this.flutterEngine?.getAbilityControlSurface()?.attachToAbility(this);
+    }
     //providePlatformPlugin
     this.platformPlugin = this.host?.providePlatformPlugin(this.flutterEngine!)
     //configureFlutterEngine

@@ -133,12 +133,6 @@ export class FlutterAbility extends UIAbility implements Host {
   onWindowStageCreate(windowStage: window.WindowStage) {
     FlutterManager.getInstance().pushWindowStage(this, windowStage);
     this.delegate?.initWindow();
-    if (this.shouldAttachEngineToAbility()) {
-      // Notify any plugins that are currently attached to our FlutterEngine that they
-      // are now attached to an Ability.
-      Log.d(TAG, "Attaching FlutterEngine to the Ability that owns this delegate.");
-      this.delegate?.flutterEngine?.getAbilityControlSurface()?.attachToAbility(this.delegate);
-    }
     this.mainWindow = windowStage.getMainWindowSync();
     try {
       windowStage.on('windowStageEvent', (data) => {
