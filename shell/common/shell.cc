@@ -1005,7 +1005,7 @@ void Shell::OnPlatformViewDispatchSemanticsAction(int32_t id,
       fml::MakeCopyable([engine = engine_->GetWeakPtr(), id, action,
                          args = std::move(args)]() mutable {
         if (engine) {
-          FML_DLOG(INFO) << "Shell::OnPlatformViewDispatchSemanticsAction, id="<<id;
+          FML_DLOG(INFO) << "Shell::OnPlatformViewDispatchSemanticsAction, id="<<id<<" action="<<static_cast<int32_t>(action);
           engine->DispatchSemanticsAction(id, action, std::move(args));
         }
       }));

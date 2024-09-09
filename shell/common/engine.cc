@@ -419,7 +419,7 @@ void Engine::DispatchPointerDataPacket(
 void Engine::DispatchSemanticsAction(int id,
                                      SemanticsAction action,
                                      fml::MallocMapping args) {
-  FML_DLOG(INFO)<<"Engine::DispatchSemanticsAction, id="<<id;
+  FML_DLOG(INFO)<<"Engine::DispatchSemanticsAction, id="<<id<<" action="<<static_cast<int32_t>(action);
   runtime_controller_->DispatchSemanticsAction(id, action, std::move(args));
 }
 

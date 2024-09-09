@@ -224,7 +224,7 @@ void PlatformViewOHOS::DispatchPlatformMessage(std::string name,
                                                void* message,
                                                int messageLenth,
                                                int reponseId) {
-  FML_DLOG(INFO) << "DispatchSemanticsAction（" << name << ",," << messageLenth
+  FML_DLOG(INFO) << "DispatchPlatformMessage（" << name << "," << messageLenth
                  << "," << reponseId;
   fml::MallocMapping mapMessage =
       fml::MallocMapping::Copy(message, messageLenth);
@@ -255,7 +255,7 @@ void PlatformViewOHOS::DispatchSemanticsAction(int id,
                                                int action,
                                                void* actionData,
                                                int actionDataLenth) {
-  FML_DLOG(INFO) << "DispatchSemanticsAction（" << id << "," << action << ","
+  FML_DLOG(INFO) << "DispatchSemanticsAction（id=" << id << ", action=" << action << ", actionDataLenth"
                  << actionDataLenth;
   auto args_vector = fml::MallocMapping::Copy(actionData, actionDataLenth);
 

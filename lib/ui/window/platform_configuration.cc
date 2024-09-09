@@ -185,7 +185,7 @@ void PlatformConfiguration::DispatchSemanticsAction(int32_t id,
                                                     fml::MallocMapping args) {
   std::shared_ptr<tonic::DartState> dart_state =
       dispatch_semantics_action_.dart_state().lock();
-  FML_DLOG(INFO) << "PlatformConfiguration::DispatchSemanticsAction : " << id;
+
   if (!dart_state) {
     return;
   }
@@ -197,7 +197,7 @@ void PlatformConfiguration::DispatchSemanticsAction(int32_t id,
   if (Dart_IsError(args_handle)) {
     return;
   }
-
+  FML_DLOG(INFO) << "PlatformConfiguration::DispatchSemanticsAction: id=" << id<<" action="<<static_cast<int32_t>(action);
   tonic::CheckAndHandleError(tonic::DartInvoke(
       dispatch_semantics_action_.Get(),
       {tonic::ToDart(id), tonic::ToDart(static_cast<int32_t>(action)),

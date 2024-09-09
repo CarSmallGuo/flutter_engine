@@ -66,9 +66,9 @@ flutter::SemanticsNode OhosAccessibilityBridge::getOrCreateFlutterSemanticsNode(
 /**
  * flutter的语义节点初始化配置给arkui创建的elementInfos
  */
-void OhosAccessibilityBridge::flutterSemanticsNodesToElementInfos(ArkUI_AccessibilityElementInfoList* elementInfoList) {
+void OhosAccessibilityBridge::FlutterTreeToArkuiTree(ArkUI_AccessibilityElementInfoList* elementInfoList) {
   if(flutterSemanticsTree_.size() == 0) {
-    FML_DLOG(ERROR)<<"OhosAccessibilityBridge::flutterSemanticsNodesToElementInfos flutterSemanticsTree_.size() = 0";
+    FML_DLOG(ERROR)<<"OhosAccessibilityBridge::FlutterTreeToArkuiTree flutterSemanticsTree_.size() = 0";
     return;
   }
   //将flutter语义节点树传递给arkui的无障碍elementinfo
@@ -78,7 +78,7 @@ void OhosAccessibilityBridge::flutterSemanticsNodesToElementInfos(ArkUI_Accessib
     //创建elementinfo，系统自动加入到elementinfolist
     ArkUI_AccessibilityElementInfo* elementInfo =  OH_ArkUI_AddAndGetAccessibilityElementInfo(elementInfoList);
     if (elementInfo == nullptr) {
-      FML_DLOG(INFO) << "OhosAccessibilityBridge::flutterSemanticsNodesToElementInfos "
+      FML_DLOG(INFO) << "OhosAccessibilityBridge::FlutterTreeToArkuiTree "
                       "elementInfo is null";
       return;
     }
@@ -93,7 +93,7 @@ void OhosAccessibilityBridge::flutterSemanticsNodesToElementInfos(ArkUI_Accessib
     int64_t childNodeIds[childCount];
     for(int32_t i=0; i<childCount; i++) {
       childNodeIds[i] = static_cast<int64_t>(flutterNode.childrenInTraversalOrder[i]);
-      FML_DLOG(INFO) << "flutterSemanticsNodesToElementInfos flutterNode.id= "<<flutterNode.id<<" childCount= "<<childCount<<" childNodeId="<<childNodeIds[i];
+      FML_DLOG(INFO) << "FlutterTreeToArkuiTree flutterNode.id= "<<flutterNode.id<<" childCount= "<<childCount<<" childNodeId="<<childNodeIds[i];
       //加入父子节点id映射 <父节点id，子节点id>
       parentChildIdMap.insert({flutterNode.id, childNodeIds[i]});
     }
@@ -101,12 +101,12 @@ void OhosAccessibilityBridge::flutterSemanticsNodesToElementInfos(ArkUI_Accessib
 
     //设置父节点id
     if(!parentChildIdMap.size()) {
-      FML_DLOG(INFO) << "flutterSemanticsNodesToElementInfos parentChildIdMap = null";
+      FML_DLOG(INFO) << "FlutterTreeToArkuiTree parentChildIdMap = null";
       return; 
     }
     int32_t parentId = GetParentId(flutterNode.id);
     OH_ArkUI_SetAccessibilityElementInfoParentId(elementInfo, parentId);
-    FML_DLOG(INFO) << "flutterSemanticsNodesToElementInfos parent.id= "<<parentId;
+    FML_DLOG(INFO) << "FlutterTreeToArkuiTree parent.id= "<<parentId;
 
     // 配置常用属性，force to true for debugging
     OH_ArkUI_SetAccessibilityElementInfoCheckable(elementInfo, true);
@@ -148,7 +148,7 @@ void OhosAccessibilityBridge::flutterSemanticsNodesToElementInfos(ArkUI_Accessib
     OH_ArkUI_SetAccessibilityElementInfoAccessibilityLevel(elementInfo, "yes");
     OH_ArkUI_SetAccessibilityElementInfoAccessibilityGroup(elementInfo, false);
   }
-  FML_DLOG(ERROR)<<"flutterSemanticsNodesToElementInfos is end";
+  FML_DLOG(ERROR)<<"FlutterTreeToArkuiTree is end";
 }
 
 /**
@@ -186,7 +186,7 @@ void OhosAccessibilityBridge::Flutter_InitSpercificElementInfoById(ArkUI_Accessi
     //设置父节点id
     OH_ArkUI_SetAccessibilityElementInfoParentId(elementInfoFromList, -999);
     //设置无障碍播报文本
-    OH_ArkUI_SetAccessibilityElementInfoAccessibilityText(elementInfoFromList, "-1");
+    OH_ArkUI_SetAccessibilityElementInfoAccessibilityText(elementInfoFromList, "这是睿智flutter无障碍语义树的root节点");
     OH_ArkUI_SetAccessibilityElementInfoAccessibilityLevel(elementInfoFromList, "yes");
     OH_ArkUI_SetAccessibilityElementInfoAccessibilityGroup(elementInfoFromList, false);
 
@@ -340,26 +340,18 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
     return OH_ARKUI_ACCESSIBILITY_RESULT_FAILED;
   }
 
+  if(elementId == 0 || elementId == -1) {
+      Flutter_InitSpercificElementInfoById(elementInfoFromList, elementId); 
+      FlutterTreeToArkuiTree(elementList);  
 
-  if(mode == ArkUI_AccessibilitySearchMode::NATIVE_SEARCH_MODE_PREFETCH_RECURSIVE_CHILDREN) {
-      /** NOTE: 按照elementid对elementinfo进行属性配置 */
+  } else if(mode == ArkUI_AccessibilitySearchMode::NATIVE_SEARCH_MODE_PREFETCH_RECURSIVE_CHILDREN) {
       Flutter_InitSpercificElementInfoById(elementInfoFromList, elementId); 
-      /** NOTE: flutterNodes converts to elementInfos */
-      flutterSemanticsNodesToElementInfos(elementList);  
-      FML_DLOG(INFO) << "FindAccessibilityNodeInfosById searchmode = "<<ArkUI_AccessibilitySearchMode::NATIVE_SEARCH_MODE_PREFETCH_RECURSIVE_CHILDREN;
-  } else if(elementId == 0 || elementId == -1) {
-      Flutter_InitSpercificElementInfoById(elementInfoFromList, elementId); 
+      FlutterTreeToArkuiTree(elementList);  
 
   } else {
       Flutter_InitSpercificElementInfoById(elementInfoFromList, elementId); 
+      FlutterTreeToArkuiTree(elementList);  
   }
-
-  //调用announce测试 debug
-  // auto char_arr = std::make_unique<char[]>(6);
-  // for (int i = 0; i < 6; ++i) {
-  //       char_arr[i] = '6';
-  // }
-  // announce(char_arr);
 
   FML_DLOG(INFO) << "OhosAccessibilityBridge::FindAccessibilityNodeInfosById is end";
   return OH_ARKUI_ACCESSIBILITY_RESULT_SUCCESS;
@@ -395,31 +387,34 @@ int32_t OhosAccessibilityBridge::FindNextFocusAccessibilityNode(
 }
 
 /**
- * 执行语义动作解析
+ * TODO: 执行语义动作解析，当FindAccessibilityNodeInfosById找到相应的elementinfo时才会触发该回调函数
  */
 int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
     int64_t elementId,
     ArkUI_Accessibility_ActionType action,
     ArkUI_AccessibilityActionArguments *actionArguments,
     int32_t requestId) {
+
+  FML_DLOG(ERROR)<<"ExecuteAccessibilityAction params: elementId="<<elementId<<" action="<<action<<" requestId="<<requestId<<" *actionArguments="<<actionArguments;
+
   if(actionArguments == nullptr) {
     FML_DLOG(ERROR)<<"OhosAccessibilityBridge::ExecuteAccessibilityAction actionArguments = null";
     return OH_ARKUI_ACCESSIBILITY_RESULT_FAILED;
   }
 
-  std::string key = "key1";
-  char* value;
-  OH_ArkUI_FindAccessibilityActionArgumentByKey(actionArguments, key.c_str(), &value);
-  if(value == nullptr) {
-    FML_DLOG(ERROR)<<"OhosAccessibilityBridge::ExecuteAccessibilityAction OH_ArkUI_FindAccessibilityActionArgumentByKey value = null";
-    return OH_ARKUI_ACCESSIBILITY_RESULT_FAILED;
-  } 
+  // std::string key = "key1";
+  // char* value;
+  // OH_ArkUI_FindAccessibilityActionArgumentByKey(actionArguments, key.c_str(), &value);
+  // if(value == nullptr) {
+  //   FML_DLOG(ERROR)<<"OhosAccessibilityBridge::ExecuteAccessibilityAction OH_ArkUI_FindAccessibilityActionArgumentByKey value = null";
+  //   return OH_ARKUI_ACCESSIBILITY_RESULT_FAILED;
+  // } 
 
   //根据当前elementid和无障碍动作类型，发送无障碍事件
   ArkUI_AccessibilityEventType eventType = ArkUI_AccessibilityEventType::ARKUI_NATIVE_ACCESSIBILITY_TYPE_VIEW_ACCESSIBILITY_FOCUSED_EVENT;
   Flutter_SendAccessibilityAsyncEvent(elementId, eventType);
 
-  FML_DLOG(ERROR)<<"OhosAccessibilityBridge::ExecuteAccessibilityAction is end";
+  FML_DLOG(INFO)<<"OhosAccessibilityBridge::ExecuteAccessibilityAction is end";
   return OH_ARKUI_ACCESSIBILITY_RESULT_SUCCESS;
 }
 
@@ -458,7 +453,7 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(int64_t elemen
 
   //5.调用接口发送到ohos侧
   auto callback = [](int32_t errorCode) {
-    FML_DLOG(ERROR)<<"OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent callback-> errorCode ="<<errorCode;
+    FML_DLOG(INFO)<<"OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent callback-> errorCode ="<<errorCode;
   };
 
   //6.发送event到OH侧
@@ -470,7 +465,7 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(int64_t elemen
 
   // OH_ArkUI_DestoryAccessibilityElementInfo();
 
-  FML_DLOG(ERROR)<<"OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent is succeed";
+  FML_DLOG(INFO)<<"OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent is succeed";
   return;
 }
 
@@ -668,18 +663,19 @@ void OhosAccessibilityBridge::updateSemantics(
 // 获取根节点
 flutter::SemanticsNode OhosAccessibilityBridge::getFlutterRootSemanticsNode() {
   if(!flutterSemanticsTree_.size()) {
-     FML_DLOG(ERROR)<<"OhosAccessibilityBridge::flutterSemanticsNodesToElementInfos -> flutterSemanticsTree_.size()=0";
+     FML_DLOG(ERROR)<<"OhosAccessibilityBridge::FlutterTreeToArkuiTree -> flutterSemanticsTree_.size()=0";
     return flutter::SemanticsNode{};
   }
   return flutterSemanticsTree_.at(0);
 }
 
 void OhosAccessibilityBridge::onWindowNameChange(flutter::SemanticsNode route) {
-
+    //todo ...
 }
 
 void OhosAccessibilityBridge::removeSemanticsNode(
     flutter::SemanticsNode nodeToBeRemoved) {
+  //todo ...
   if(!flutterSemanticsTree_.size()) {
      FML_DLOG(ERROR)<<"OhosAccessibilityBridge::removeSemanticsNode -> flutterSemanticsTree_.szie()=0";
     return;

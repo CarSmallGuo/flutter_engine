@@ -74,7 +74,7 @@ class OhosAccessibilityBridge {
   std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
   static const int32_t ROOT_NODE_ID = 0;
 
-  void flutterSemanticsNodesToElementInfos(ArkUI_AccessibilityElementInfoList* elementInfoList);
+  void FlutterTreeToArkuiTree(ArkUI_AccessibilityElementInfoList* elementInfoList);
   flutter::SemanticsNode getFlutterRootSemanticsNode();
 
   // A Java/Android cached representation of the Flutter app's navigation stack.

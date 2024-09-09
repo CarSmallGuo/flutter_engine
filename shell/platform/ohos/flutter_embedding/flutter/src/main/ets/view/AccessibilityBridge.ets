@@ -43,18 +43,8 @@ export default class AccessibilityBridge implements AccessibilityMessageHandler 
 
   onTooltip(nodeId: string): void {
     throw new Error('Method not implemented.');
-    // android -> AccessibilityEvent e =
-    // obtainAccessibilityEvent(ROOT_NODE_ID, AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
-    // e.getText().add(message);
-    // sendAccessibilityEvent(e);
   }
 
-  /**
-   * updateSemantics、updateCustomAccessibilityActions的debug流程，该过程只在native c++层实现，后续会删除
-   * @param buffer
-   * @param strings
-   * @param stringAttributeArgs
-   */
   updateSemantics(buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]): void {
       Log.d(TAG, "AccessibilityBridge.ets updateSemantics is called");
   }
