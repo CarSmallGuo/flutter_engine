@@ -239,7 +239,7 @@ void TraceTimelineEvent(TraceArg category_group,
 void OHOSTraceTimelineEvent(TraceArg category_group,
                             TraceArg name,
                             TraceIDArg id,
-                            Dart_Timeline_Event type,
+                            Dart_Timeline_Event_Type type,
                             intptr_t argument_count,
                             const char** argument_names,
                             const char** argument_values);

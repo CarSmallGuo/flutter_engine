@@ -30,7 +30,7 @@ static constexpr char OHOS_FILTER_NAME_POINTER[] = "PointerEvent";
 void OHOSTraceTimelineEvent(TraceArg category_group,
                             TraceArg name,
                             TraceIDArg id,
-                            Dart_Timeline_Event type,
+                            Dart_Timeline_Event_Type type,
                             intptr_t argument_count,
                             const char** argument_names,
                             const char** argument_values) {
@@ -64,15 +64,15 @@ void OHOSTraceTimelineEvent(TraceArg category_group,
 
     switch(type) {
         case Dart_Timeline_Event_Begin:
-            OH_Hitrace_StartTrace(TraceName.c_str());
+            OH_HiTrace_StartTrace(TraceName.c_str());
             break;
         case Dart_Timeline_Event_Async_Begin:
         case Dart_Timeline_Event_Flow_Begin:
-            OH_Hitrace_StartAsyncTrace(TraceName.c_str(), id);
+            OH_HiTrace_StartAsyncTrace(TraceName.c_str(), id);
             break;
         case Dart_Timeline_Event_Async_End:
         case Dart_Timeline_Event_Flow_End:
-            OH_Hitrace_FinishAsyncTrace(TraceName.c_str(), id);
+            OH_HiTrace_FinishAsyncTrace(TraceName.c_str(), id);
             break;
         default:
             break;
@@ -81,7 +81,7 @@ void OHOSTraceTimelineEvent(TraceArg category_group,
 }
 
 void OHOSTraceEventEnd(void) {
-    OH_Hitrace_FinishTrace();
+    OH_HiTrace_FinishTrace();
 }
 
 } // namespace tracing
