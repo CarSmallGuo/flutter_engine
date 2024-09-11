@@ -44,6 +44,7 @@ class OhosAccessibilityBridge {
   static OhosAccessibilityBridge* GetInstance();
 
   bool isOhosAccessibilityEnabled_;
+  int64_t nativeShellHolder;
 
   void DispatchSemanticsAction(int32_t id, flutter::SemanticsAction action);
 
@@ -84,6 +85,7 @@ class OhosAccessibilityBridge {
   flutter::SemanticsNode getFlutterRootSemanticsNode();
   bool IsNodeFocusable(const flutter::SemanticsNode& node);
   std::string GetNodeComponentType(const flutter::SemanticsNode& node);
+  int32_t ActionTypeConversion(ArkUI_Accessibility_ActionType arkui_action);
 
 
   void onWindowNameChange(flutter::SemanticsNode route);

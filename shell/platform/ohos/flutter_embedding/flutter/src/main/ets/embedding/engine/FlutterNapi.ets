@@ -507,6 +507,13 @@ export default class FlutterNapi {
     }
   }
 
+  getShellHolderId(): void {
+    this.ensureRunningOnMainThread();
+    if (this.isAttached()) {
+      flutter.nativeGetShellHolderId(this.nativeShellHolderId!);
+    }
+  }
+
 }
 
 export interface AccessibilityDelegate {

@@ -184,7 +184,7 @@ class PlatformViewOHOSNapi {
                              int32_t height);
 
   static void SurfaceDestroyed(int64_t shell_holder);
-  static int64_t GetShellHolder();
+
   static napi_value nativeXComponentAttachFlutterEngine(
       napi_env env,
       napi_callback_info info);
@@ -211,6 +211,9 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);
   static napi_value nativeSetSemanticsEnabled(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeGetShellHolderId(
       napi_env env,
       napi_callback_info info);
 

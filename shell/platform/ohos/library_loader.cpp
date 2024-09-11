@@ -148,6 +148,9 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeSetSemanticsEnabled",
           flutter::PlatformViewOHOSNapi::nativeSetSemanticsEnabled),
+      DECLARE_NAPI_FUNCTION(
+          "nativeGetShellHolderId",
+          flutter::PlatformViewOHOSNapi::nativeGetShellHolderId),
   };
 
   FML_DLOG(INFO) << "Init NAPI size=" << sizeof(desc) / sizeof(desc[0]);

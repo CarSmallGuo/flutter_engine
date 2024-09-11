@@ -1903,8 +1903,26 @@ napi_value PlatformViewOHOSNapi::nativeSetSemanticsEnabled(napi_env env, napi_ca
     return nullptr;
   }
   OHOS_SHELL_HOLDER->GetPlatformView()->SetSemanticsEnabled(enabled);
-  FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
                        "OHOS_SHELL_HOLDER->GetPlatformView()->SetSemanticsEnabled= "<<enabled;
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeGetShellHolderId(napi_env env, napi_callback_info info) {
+  napi_status ret;
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  int64_t shell_holder;
+  ret = napi_get_value_int64(env, args[0], &shell_holder);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
+                       "napi_get_value_int64 error:"
+                    << ret;
+    return nullptr;
+  }
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->nativeShellHolder = shell_holder;
   return nullptr;
 }
 

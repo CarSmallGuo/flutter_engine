@@ -352,13 +352,13 @@ int32_t GetAccessibilityNodeCursorPosition(
 }
 
 void XComponentBase::BindAccessibilityProviderCallback() {
-  accessibilityProviderCallback_.FindAccessibilityNodeInfosById = FindAccessibilityNodeInfosById;
-  accessibilityProviderCallback_.FindAccessibilityNodeInfosByText = FindAccessibilityNodeInfosByText;
-  accessibilityProviderCallback_.FindFocusedAccessibilityNode = FindFocusedAccessibilityNode;
-  accessibilityProviderCallback_.FindNextFocusAccessibilityNode = FindNextFocusAccessibilityNode;
-  accessibilityProviderCallback_.ExecuteAccessibilityAction = ExecuteAccessibilityAction;
-  accessibilityProviderCallback_.ClearFocusedFocusAccessibilityNode = ClearFocusedFocusAccessibilityNode;
-  accessibilityProviderCallback_.GetAccessibilityNodeCursorPosition = GetAccessibilityNodeCursorPosition;
+  accessibilityProviderCallback_.findAccessibilityNodeInfosById = FindAccessibilityNodeInfosById;
+  accessibilityProviderCallback_.findAccessibilityNodeInfosByText = FindAccessibilityNodeInfosByText;
+  accessibilityProviderCallback_.findFocusedAccessibilityNode = FindFocusedAccessibilityNode;
+  accessibilityProviderCallback_.findNextFocusAccessibilityNode = FindNextFocusAccessibilityNode;
+  accessibilityProviderCallback_.executeAccessibilityAction = ExecuteAccessibilityAction;
+  accessibilityProviderCallback_.clearFocusedFocusAccessibilityNode = ClearFocusedFocusAccessibilityNode;
+  accessibilityProviderCallback_.getAccessibilityNodeCursorPosition = GetAccessibilityNodeCursorPosition;
 }
 
 XComponentBase::XComponentBase(std::string id){
