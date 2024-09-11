@@ -63,6 +63,7 @@ export default class FlutterEntry implements Host {
       this.delegate?.onWindowStageCreate()
       this.windowStage?.on('windowStageEvent', this.windowStageEventCallback);
       this.hasInit = true;
+      this.delegate?.initWindow();
     }
   }
 
@@ -128,6 +129,7 @@ export default class FlutterEntry implements Host {
   onBackPress() {
     Log.d(TAG, "FlutterEntry onBackPress===");
     this?.delegate?.flutterEngine?.getNavigationChannel()?.popRoute();
+    this?.delegate?.flutterEngine?.getTextInputChannel()?.textInputMethodHandler?.hide();
   }
 
   shouldDispatchAppLifecycleState(): boolean {

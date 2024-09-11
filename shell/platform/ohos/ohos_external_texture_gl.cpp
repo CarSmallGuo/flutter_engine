@@ -139,6 +139,10 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     new_frame_ready_ = false;
   }
 
+  if (!freeze && texture_update_ && pixelMap_ == nullptr) {
+      Update();
+  }
+
   GrGLTextureInfo textureInfo;
 
   if (!freeze && !first_update_ && !isEmulator_ && !new_frame_ready_ && pixelMap_ == nullptr) {
@@ -206,6 +210,7 @@ void OHOSExternalTextureGL::MarkNewFrameAvailable()
 {
   FML_DLOG(INFO)<<" OHOSExternalTextureGL::MarkNewFrameAvailable";
   new_frame_ready_ = true;
+  texture_update_ = true;
   if (pixelMap_ == nullptr) {
     Update();
   } else {
@@ -243,6 +248,7 @@ void OHOSExternalTextureGL::Update()
     FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeImage_UpdateSurfaceImage err code:" << ret;
     return;
   }
+  texture_update_ = false;
   first_update_ = true;
   UpdateTransform(nativeImage_);
 }
@@ -325,6 +331,17 @@ void OHOSExternalTextureGL::setBackground(int32_t width, int32_t height)
     ProducePixelMapToBackGroundImage();
   } else {
     ProduceColorToBackGroundImage(width, height);
+  }
+}
+
+void OHOSExternalTextureGL::setTextureBufferSize(int32_t width, int32_t height)
+{
+  FML_DLOG(INFO) << "OHOSExternalTextureGL::SetTextureBufferSize";
+  int code = SET_BUFFER_GEOMETRY;
+  int32_t ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, code, width, height);
+  if (ret != 0) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL::SetTextureBufferSize OH_NativeWindow_NativeWindowHandleOpt err:" << ret;
+    return;
   }
 }
 

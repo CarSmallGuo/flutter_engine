@@ -26,6 +26,7 @@ import Any from '../common/Any';
 import { window } from '@kit.ArkUI';
 import FlutterManager from '../../embedding/ohos/FlutterManager';
 import { IntentionCode } from '@ohos.multimodalInput.intentionCode';
+import {KeyCode} from '@kit.InputKit';
 
 /// 临时规避缺少newline对应枚举问题
 const NEWLINE_KEY_TYPE: number = 8;
@@ -284,23 +285,9 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       this.inputMethodController.on('deleteLeft', (length) => {
         /// 暂时规避方案
         /// OS机制与Android不一致，需要去监听软键盘事件才能发送KeyEvent事件
-        /// keyCode是从dart侧获取的，因为是使用删除按钮，此处暂时这样写死；其他地方如果需要键盘发送事件，再去找对应的keyCode
-        if (length == 1) {
-          let event: KeyEvent = {
-            type: KeyType.Down,
-            /// dart侧keyboard_maps.g.dart中LogicalKeyboardKey.backspace设置为这个参
-            keyCode: 2055,
-            keyText: '',
-            keySource: KeySource.Keyboard,
-            deviceId: 0,
-            metaKey: 0,
-            timestamp: 0,
-            stopPropagation: (): void => {
-              throw new Error('Function not implemented.');
-            },
-            intentionCode: IntentionCode.INTENTION_BACK
-          }
-          this.sendKeyboardEvent(event)
+        if (this.mEditable.getStringCache() == "") {
+          this.sendKeyboardEvent(KeyType.Down, KeyCode.KEYCODE_DEL)
+          this.sendKeyboardEvent(KeyType.Up, KeyCode.KEYCODE_DEL)
         }
         this.mEditable.handleDeleteEvent(false, length);
       })
@@ -366,7 +353,20 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.imcFlag = true;
   }
 
-  sendKeyboardEvent(event: KeyEvent): void {
+  sendKeyboardEvent(type: KeyType, keyCode: number): void {
+    let event: KeyEvent = {
+      type: type,
+      keyCode: keyCode,
+      keyText: '',
+      keySource: KeySource.Keyboard,
+      deviceId: 0,
+      metaKey: 0,
+      timestamp: 0,
+      stopPropagation: (): void => {
+        throw new Error('Function not implemented.');
+      },
+      intentionCode: IntentionCode.INTENTION_BACK
+    }
     FlutterManager.getInstance().getFlutterViewList().forEach((value) => {
       value.onKeyEvent(event)
     })
