@@ -373,6 +373,14 @@ void XComponentBase::OnDispatchTouchEvent(OH_NativeXComponent* component,
       OH_NativeXComponent_GetTouchEvent(component, window, &touchEvent_);
   if (ret == OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
     if (isEngineAttached_) {
+      // if this touchEvent triggered by mouse, return
+      OH_NativeXComponent_EventSourceType sourceType;
+      int32_t ret2 = OH_NativeXComponent_GetTouchEventSourceType(component, touchEvent_.id, &sourceType);
+      if (ret2 == OH_NATIVEXCOMPONENT_RESULT_SUCCESS &&
+          sourceType == OH_NATIVEXCOMPONENT_SOURCE_TYPE_MOUSE) {
+          ohosTouchProcessor_.HandleVirtualTouchEvent(std::stoll(shellholderId_), component, &touchEvent_);
+          return;
+      }
       ohosTouchProcessor_.HandleTouchEvent(std::stoll(shellholderId_),
                                            component, &touchEvent_);
     } else {
