@@ -46,6 +46,46 @@ export class ViewportMetrics {
   systemGestureInsetBottom: number = 0;
   systemGestureInsetLeft: number = 0;
   physicalTouchSlop: number = -1;
+
+  clone(): ViewportMetrics {
+    const copy = new ViewportMetrics();
+    copy.devicePixelRatio = this.devicePixelRatio;
+    copy.physicalWidth = this.physicalWidth;
+    copy.physicalHeight = this.physicalHeight;
+    copy.physicalViewPaddingTop = this.physicalViewPaddingTop;
+    copy.physicalViewPaddingRight = this.physicalViewPaddingRight;
+    copy.physicalViewPaddingBottom = this.physicalViewPaddingBottom;
+    copy.physicalViewPaddingLeft = this.physicalViewPaddingLeft;
+    copy.physicalViewInsetTop = this.physicalViewInsetTop;
+    copy.physicalViewInsetRight = this.physicalViewInsetRight;
+    copy.physicalViewInsetBottom = this.physicalViewInsetBottom;
+    copy.physicalViewInsetLeft = this.physicalViewInsetLeft;
+    copy.systemGestureInsetTop = this.systemGestureInsetTop;
+    copy.systemGestureInsetRight = this.systemGestureInsetRight;
+    copy.systemGestureInsetBottom = this.systemGestureInsetBottom;
+    copy.systemGestureInsetLeft = this.systemGestureInsetLeft;
+    copy.physicalTouchSlop = this.physicalTouchSlop;
+    return copy;
+  }
+
+  isEqual(other: ViewportMetrics): boolean {
+    return this.devicePixelRatio === other.devicePixelRatio &&
+      this.physicalWidth === other.physicalWidth &&
+      this.physicalHeight === other.physicalHeight &&
+      this.physicalViewPaddingTop === other.physicalViewPaddingTop &&
+      this.physicalViewPaddingRight === other.physicalViewPaddingRight &&
+      this.physicalViewPaddingBottom === other.physicalViewPaddingBottom &&
+      this.physicalViewPaddingLeft === other.physicalViewPaddingLeft &&
+      this.physicalViewInsetTop === other.physicalViewInsetTop &&
+      this.physicalViewInsetRight === other.physicalViewInsetRight &&
+      this.physicalViewInsetBottom === other.physicalViewInsetBottom &&
+      this.physicalViewInsetLeft === other.physicalViewInsetLeft &&
+      this.systemGestureInsetTop === other.systemGestureInsetTop &&
+      this.systemGestureInsetRight === other.systemGestureInsetRight &&
+      this.systemGestureInsetBottom === other.systemGestureInsetBottom &&
+      this.systemGestureInsetLeft === other.systemGestureInsetLeft &&
+      this.physicalTouchSlop === other.physicalTouchSlop;
+  }
 }
 
 export class PlatformViewParas {
@@ -91,6 +131,11 @@ export class FlutterView {
   private checkFullScreen: boolean = true;
   private checkKeyboard: boolean = true;
   private checkGesture: boolean = true;
+  private systemAvoidArea: window.AvoidArea;
+  private navigationAvoidArea: window.AvoidArea;
+  private gestureAvoidArea: window.AvoidArea;
+  private keyboardAvoidArea: window.AvoidArea;
+
 
   constructor(viewId: string, context: Context) {
     this.id = viewId
@@ -106,6 +151,10 @@ export class FlutterView {
     this.mainWindow?.on('windowSizeChange', this.windowSizeChangeCallback);
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
     this.mainWindow?.on('windowStatusChange', this.windowStatusChangeCallback);
+    this.systemAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
+    this.navigationAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR);
+    this.gestureAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM_GESTURE);
+    this.keyboardAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_KEYBOARD);
   }
 
   private  windowSizeChangeCallback = (data: window.Size) => {
@@ -118,6 +167,15 @@ export class FlutterView {
   private avoidAreaChangeCallback = (data: window.AvoidAreaOptions) => {
     Log.i(TAG, "avoidAreaChangeCallback, type=" + data.type);
     if (this.isAttachedToFlutterEngine()) {
+      if (data.type == window.AvoidAreaType.TYPE_SYSTEM) { //0
+        this.systemAvoidArea = data.area;
+      } else if (data.type == window.AvoidAreaType.TYPE_SYSTEM_GESTURE) { //2
+        this.gestureAvoidArea = data.area;
+      } else if (data.type == window.AvoidAreaType.TYPE_KEYBOARD) { //3
+        this.keyboardAvoidArea = data.area;
+      } else if (data.type == window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR) { //4
+        this.navigationAvoidArea = data.area;
+      }
       this.onAreaChange(null);
     }
   }
@@ -202,6 +260,18 @@ export class FlutterView {
     this.flutterEngine?.getFlutterNapi()?.updateRefreshRate(this.displayInfo!.refreshRate)
     flutterEngine.getPlatformViewsController()?.attachToView(this);
     this.updateViewportMetrics()
+
+    let newArea: Area | null = {
+      width: px2vp(this.displayInfo!.width),
+      height: px2vp(this.displayInfo!.height),
+      position: { x: 0, y: 0 },
+      globalPosition: { x: 0, y: 0 }
+    };
+    if (this.viewportMetrics.physicalWidth != 0 || this.viewportMetrics.physicalHeight != 0) {
+      newArea = null;
+    }
+    this.onAreaChange(newArea, true);
+
     let windowId = this.mainWindow?.getWindowProperties()?.id ?? 0
     this.mouseCursorPlugin = new MouseCursorPlugin(windowId, this.flutterEngine?.getMouseCursorChannel()!);
     this.settings = new Settings(this.flutterEngine.getSettingsChannel()!);
@@ -257,9 +327,8 @@ export class FlutterView {
     }
   }
 
-  onAreaChange(newArea: Area | null) {
-    let systemAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
-    let navigationAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR);
+  onAreaChange(newArea: Area | null, setFullScreen: boolean = false) {
+    const originalMetrics = this.viewportMetrics.clone();
 
     if (newArea != null) {
       this.viewportMetrics.physicalWidth = vp2px(newArea.width as number);
@@ -267,20 +336,21 @@ export class FlutterView {
     }
 
     // 根据是否全屏显示，设置标题栏高度（若全屏，则及时规避）
-    if (this.checkFullScreen && FlutterManager.getInstance().getFullScreenListener().useFullScreen()) { // 全屏显示
-      this.viewportMetrics.physicalViewPaddingTop = systemAvoidArea?.topRect.height ?? 0;
-      this.viewportMetrics.physicalViewPaddingBottom = navigationAvoidArea?.bottomRect.height ?? 0;
+    if (this.checkFullScreen && (setFullScreen || FlutterManager.getInstance().getFullScreenListener().useFullScreen())) { // 全屏显示
+      this.viewportMetrics.physicalViewPaddingTop = this.systemAvoidArea?.topRect.height ?? 0;
+      this.viewportMetrics.physicalViewPaddingBottom = this.navigationAvoidArea?.bottomRect.height ?? 0;
     } else { // 非全屏显示（保持规避效果）
       // 顶部状态栏和底部导航栏规避为0，无平滑过渡效果
       this.viewportMetrics.physicalViewPaddingTop = 0;
       this.viewportMetrics.physicalViewPaddingBottom = 0;
     }
 
-    this.viewportMetrics.physicalViewPaddingLeft = systemAvoidArea?.leftRect.width ?? 0;
-    this.viewportMetrics.physicalViewPaddingRight = systemAvoidArea?.rightRect.width ?? 0;
+    this.viewportMetrics.physicalViewPaddingLeft = this.systemAvoidArea?.leftRect.width ?? 0;
+    this.viewportMetrics.physicalViewPaddingRight = this.systemAvoidArea?.rightRect.width ?? 0;
 
     this.onKeyboardAreaChange()
     this.onGestureAreaChange()
+    if (this.viewportMetrics.isEqual(originalMetrics))
     this.updateViewportMetrics()
   }
 
