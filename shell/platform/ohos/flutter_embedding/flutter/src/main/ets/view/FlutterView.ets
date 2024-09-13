@@ -350,8 +350,9 @@ export class FlutterView {
 
     this.onKeyboardAreaChange()
     this.onGestureAreaChange()
-    if (this.viewportMetrics.isEqual(originalMetrics))
-    this.updateViewportMetrics()
+    if (this.viewportMetrics.isEqual(originalMetrics)) {
+      this.updateViewportMetrics();
+    }
   }
 
   private onKeyboardAreaChange() {
