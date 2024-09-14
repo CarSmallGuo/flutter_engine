@@ -68,6 +68,10 @@ class OHOSShellHolder {
     return shell_->GetPlatformMessageHandler();
   }
 
+  const std::weak_ptr<VsyncWaiter> GetVsyncWaiter() const {
+    return shell_->GetVsyncWaiter();
+  } 
+
  private:
   std::optional<RunConfiguration> BuildRunConfiguration(
       const std::string& entrypoint,

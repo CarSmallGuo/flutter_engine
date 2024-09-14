@@ -12,13 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #include "flutter/shell/platform/ohos/ohos_touch_processor.h"
 #include "flutter/lib/ui/window/pointer_data_packet.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
 
-namespace flutter {
+#include "flutter/fml/logging.h"
 
+
+namespace flutter {
 constexpr int MSEC_PER_SECOND = 1000;
 constexpr int PER_POINTER_MEMBER = 10;
 constexpr int CHANGES_POINTER_MEMBER = 10;
@@ -143,6 +144,17 @@ void OhosTouchProcessor::HandleTouchEvent(
     int64_t shell_holderID,
     OH_NativeXComponent* component,
     OH_NativeXComponent_TouchEvent* touchEvent) {
+    auto ohos_shell_holder = reinterpret_cast<OHOSShellHolder*>(shell_holderID);
+
+    auto vsync_waiter = std::shared_ptr<flutter::VsyncWaiter>(ohos_shell_holder->GetVsyncWaiter().lock());
+    auto vsync_waiter_ohos = std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsync_waiter);
+    if (vsync_waiter_ohos->dvsyncCounter > 0) {
+       --(vsync_waiter_ohos->dvsyncCounter);
+    }
+    int aa = vsync_waiter_ohos->dvsyncCounter;
+    TRACE_EVENT0("flutterVsyncCounter", std::to_string(aa).c_str());
+    TRACE_EVENT0("flutter", "OhosTouchProcessor::HandleTouchEvent");
+
     if (touchEvent == nullptr) {
         return;
     }
@@ -188,7 +200,6 @@ void OhosTouchProcessor::HandleTouchEvent(
     pointerData.scale = 1.0;
     pointerData.rotation = 0.0;
     packet->SetPointerData(0, pointerData);
-    auto ohos_shell_holder = reinterpret_cast<OHOSShellHolder*>(shell_holderID);
     ohos_shell_holder->GetPlatformView()->DispatchPointerDataPacket(
         std::move(packet));
 

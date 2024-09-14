@@ -19,7 +19,6 @@
 #include <qos/qos.h>
 
 namespace flutter {
-
 static std::atomic_uint g_refresh_rate_ = 60;
 
 const char* flutterSyncName = "flutter_connect";
@@ -45,7 +44,19 @@ void VsyncWaiterOHOS::AwaitVSync() {
   }
   auto* weak_this = new std::weak_ptr<VsyncWaiter>(shared_from_this());
   OH_NativeVSync* handle = vsyncHandle;
-
+  if (dvsyncCounter < 1) {
+    ++dvsyncCounter;
+    if (dvsyncStatus == true) {
+      dvsyncStatus = false;
+      OH_NativeVSync_DVSyncSwitch(vsyncHandle, false, 0);
+    }
+  } else if (dvsyncStatus == false) {
+    dvsyncStatus = true;
+    OH_NativeVSync_DVSyncSwitch(vsyncHandle, true, 0);
+  }
+  int aa = dvsyncCounter;
+  TRACE_EVENT0("flutterVsyncCounter", std::to_string(aa).c_str());
+  TRACE_EVENT0("flutterDvsyncStatus", std::to_string(dvsyncStatus).c_str());
   fml::TaskRunner::RunNowOrPostTask(
       task_runners_.GetUITaskRunner(), [weak_this, handle]() {
         int32_t ret = 0;
@@ -96,4 +107,15 @@ void VsyncWaiterOHOS::OnUpdateRefreshRate(long long refresh_rate) {
   g_refresh_rate_ = static_cast<int>(refresh_rate);
 }
 
+void VsyncWaiterOHOS::DisableDVsync() {
+  dvsyncCounter = 0;
+  if (dvsyncStatus == true) {
+    dvsyncStatus = false;
+    OH_NativeVSync_DVSyncSwitch(vsyncHandle, false, 0);
+  }
+
+  int aa = dvsyncCounter;
+  TRACE_EVENT0("flutterVsyncCounter", std::to_string(aa).c_str());
+  TRACE_EVENT0("flutterDvsyncStatus", std::to_string(dvsyncStatus).c_str());
+}
 }  // namespace flutter
