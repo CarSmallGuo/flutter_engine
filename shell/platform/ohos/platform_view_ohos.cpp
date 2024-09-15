@@ -139,9 +139,13 @@ void PlatformViewOHOS::NotifyCreate(
     fml::TaskRunner::RunNowOrPostTask(
         task_runners_.GetRasterTaskRunner(),
         [&latch, surface = ohos_surface_.get(),
-         native_window = std::move(native_window)]() {
-          LOGI("NotifyCreate start4");
-          surface->SetNativeWindow(native_window);
+         native_window = std::move(native_window), this]() {
+          if (GetDestroyed()) {
+            LOGW("NotifyCreate, GetDestroyed is true, ignore this call.");
+          } else {
+            LOGI("NotifyCreate start4");
+            surface->SetNativeWindow(native_window);
+          }
           latch.Signal();
         });
     latch.Wait();
@@ -158,9 +162,13 @@ void PlatformViewOHOS::NotifySurfaceWindowChanged(
     fml::TaskRunner::RunNowOrPostTask(
         task_runners_.GetRasterTaskRunner(),
         [&latch, surface = ohos_surface_.get(),
-         native_window = std::move(native_window)]() {
-          surface->TeardownOnScreenContext();
-          surface->SetNativeWindow(native_window);
+         native_window = std::move(native_window), this]() {
+          if (GetDestroyed()) {
+            LOGW("NotifySurfaceWindowChanged, GetDestroyed is true, ignore this call.");
+          } else {
+            surface->TeardownOnScreenContext();
+            surface->SetNativeWindow(native_window);
+          }
           latch.Signal();
         });
     latch.Wait();
@@ -173,8 +181,12 @@ void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
     fml::AutoResetWaitableEvent latch;
     fml::TaskRunner::RunNowOrPostTask(
         task_runners_.GetRasterTaskRunner(),  //
-        [&latch, surface = ohos_surface_.get(), size]() {
-          surface->OnScreenSurfaceResize(size);
+        [&latch, surface = ohos_surface_.get(), size, this]() {
+          if (GetDestroyed()) {
+            LOGW("NotifyChanged, GetDestroyed is true, ignore this call.");
+          } else {
+            surface->OnScreenSurfaceResize(size);
+          }
           latch.Signal();
         });
     latch.Wait();

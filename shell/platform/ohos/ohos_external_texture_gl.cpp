@@ -224,6 +224,10 @@ void OHOSExternalTextureGL::OnTextureUnregistered()
     << ", Id()=" << Id()
     << ", nativeImage_=" << nativeImage_
     << ", backGroundNativeImage_=" << backGroundNativeImage_;
+  if (state_ != AttachmentState::attached) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL::OnTextureUnregistered, the current status is not attached";
+    return;
+  }
   first_update_ = false;
   if (nativeImage_ != nullptr) {
     OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);

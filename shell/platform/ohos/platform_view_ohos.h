@@ -141,7 +141,7 @@ class PlatformViewOHOS final : public PlatformView {
   std::map<int64_t, std::shared_ptr<OHOSExternalTextureGL>> external_texture_gl_;
   std::map<int64_t, void*> contextDatas_;
 
-  bool isDestroyed_;
+  std::atomic<bool> isDestroyed_;
 
   bool GetDestroyed();
 
