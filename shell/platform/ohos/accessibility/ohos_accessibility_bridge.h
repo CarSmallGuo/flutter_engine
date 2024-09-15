@@ -19,6 +19,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <utility>
 #include <arkui/native_interface_accessibility.h>
 
 #include "flutter/fml/log_level.h"
@@ -26,6 +27,7 @@
 #include "flutter/lib/ui/semantics/semantics_node.h"
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_manager.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
+
 
 namespace flutter {
 
@@ -66,15 +68,20 @@ class OhosAccessibilityBridge {
   ArkUI_AccessibilityProvider* provider_;
 
   void Flutter_SendAccessibilityAsyncEvent(int64_t elementId, ArkUI_AccessibilityEventType eventType);
-  void Flutter_InitSpercificElementInfoById(ArkUI_AccessibilityElementInfo* elementInfoFromList, int64_t elementId);
+  void FlutterNodeToElementInfoById(ArkUI_AccessibilityElementInfo* elementInfoFromList, int64_t elementId);
   int32_t GetParentId(int64_t elementId);
+
+  void ConvertChildRelativeRectToSceenRect(flutter::SemanticsNode node);
+  std::pair<std::pair<float, float>, std::pair<float, float>> GetAbsoluteScreenRect(int32_t flutterNodeId);
+  void SetAbsoluteScreenRect(int32_t flutterNodeId, float left, float top, float right, float bottom);
 
  private:
   static OhosAccessibilityBridge bridgeInstance; 
 
   std::shared_ptr<OhosAccessibilityManager> ax_manager_;
-  std::unordered_map<int32_t, int32_t> parentChildIdMap;
+  std::vector<std::pair<int32_t, int32_t>> parentChildIdVec;
   std::unordered_map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
+  std::unordered_map<int32_t, std::pair<std::pair<float, float>, std::pair<float, float>>> screenRectMap_;
   std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
   std::vector<int32_t> flutterNavigationStack;
 

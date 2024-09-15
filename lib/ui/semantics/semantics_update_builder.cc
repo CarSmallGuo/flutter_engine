@@ -103,7 +103,9 @@ void SemanticsUpdateBuilder::updateNode(
   SkScalar scalarTransform[16];
   for (int i = 0; i < 16; ++i) {
     scalarTransform[i] = transform.data()[i];
+    FML_DLOG(INFO) << "999 node.id="<<node.id<<" transform.data()["<<i<<"]= "<<transform.data()[i];
   }
+   FML_DLOG(INFO) << "999 node.id="<<node.id<<" left="<<left<<" top="<<top<<" right="<<right<<" bottom="<<bottom;
   node.transform = SkM44::ColMajor(scalarTransform);
   node.childrenInTraversalOrder =
       std::vector<int32_t>(childrenInTraversalOrder.data(),
