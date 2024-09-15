@@ -172,7 +172,7 @@ int32_t OhosAccessibilityBridge::GetParentId(int64_t elementId) {
 }
 
 /**
- * 设置并获取xcomponet上渲染的组件的画框的绝对坐标rect
+ * 设置并获取xcomponet上渲染的组件的屏幕绝对坐标rect
  */
 void OhosAccessibilityBridge::SetAbsoluteScreenRect(int32_t flutterNodeId, float left, float top, float right, float bottom) {
    if(screenRectMap_.find(flutterNodeId) == screenRectMap_.end()) {
@@ -193,7 +193,8 @@ std::pair<std::pair<float, float>, std::pair<float, float>> OhosAccessibilityBri
 }
 
 /**
- * flutter语义节点的子节点相对父节点坐标的矩阵变换，并返回转换后绝对屏幕坐标的rect
+ * flutter无障碍语义树的子节点相对坐标系转化为屏幕绝对坐标的映射算法
+ * TODO: 当前算法流程为初期版本，需要完善优化（目前暂未考虑旋转、透视场景）
  */
 void OhosAccessibilityBridge::ConvertChildRelativeRectToSceenRect(flutter::SemanticsNode currNode) {
   //获取当前flutter节点的相对rect
@@ -232,8 +233,6 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToSceenRect(flutter::Seman
 
   //真实缩放系数
   float realScaleFactor = realParentRight / parentRight * 1.0;
-  // float xOffset = realParentLeft;
-  // float yOffset = realParentTop;
   float newLeft, newTop, newRight, newBottom;
 
   if(_kMScaleX > 1 && _kMScaleY > 1 ) {
@@ -244,7 +243,6 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToSceenRect(flutter::Seman
     newBottom = currBottom * _kMScaleY;
     //更新当前flutter节点currNode的相对坐标 -> 屏幕绝对坐标
     SetAbsoluteScreenRect(currNode.id, newLeft, newTop, newRight, newBottom);
-    FML_DLOG(INFO) << "ConvertChildRelativeRectToSceenRect -> { nodeId: "<<currNode.id<<", ("<<newLeft<<", "<<newTop<<", "<<newRight<<", "<<newBottom<<")}";
 
   } else {
     //若当前节点的相对坐标与父亲节点的相对坐标值相同，则直接继承坐标值
@@ -261,8 +259,8 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToSceenRect(flutter::Seman
       newBottom = (currTop + _kMTransY + currBottom) * realScaleFactor;
     }
     SetAbsoluteScreenRect(currNode.id, newLeft, newTop, newRight, newBottom);
-    FML_DLOG(INFO) << "ConvertChildRelativeRectToSceenRect -> { nodeId: "<<currNode.id<<", ("<<newLeft<<", "<<newTop<<", "<<newRight<<", "<<newBottom<<")}";
   }
+  FML_DLOG(INFO) << "ConvertChildRelativeRectToSceenRect -> { nodeId: "<<currNode.id<<", ("<<newLeft<<", "<<newTop<<", "<<newRight<<", "<<newBottom<<")}";
 }
 
 /**
@@ -361,7 +359,6 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(ArkUI_AccessibilityEl
   actions[4].description = "向下滑动动作事件";
   OH_ArkUI_AccessibilityElementInfoSetOperationActions(elementInfoFromList, actionTypeNum, actions);
   
-
   //根据flutternode信息配置对应的elementinfo
   OH_ArkUI_AccessibilityElementInfoSetElementId(elementInfoFromList, flutterNode.id);
 
@@ -582,6 +579,7 @@ int32_t ActionTypeConversion(ArkUI_Accessibility_ActionType arkui_action) {
 
 void DispatchSemanticsAction(int32_t id, flutter::SemanticsAction action ) {
     FML_DLOG(INFO)<<"DispatchSemanticsAction is called";
+    //TODO: ... 发送语义动作解析
     // SHELL_HOLDER->GetPlatformView()->DispatchSemanticsAction(id, action, {});
 }
 
