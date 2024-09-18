@@ -129,6 +129,7 @@ export default class FlutterEntry implements Host {
   onBackPress() {
     Log.d(TAG, "FlutterEntry onBackPress===");
     this?.delegate?.flutterEngine?.getNavigationChannel()?.popRoute();
+    this?.delegate?.flutterEngine?.getTextInputChannel()?.textInputMethodHandler?.hide();
   }
 
   shouldDispatchAppLifecycleState(): boolean {

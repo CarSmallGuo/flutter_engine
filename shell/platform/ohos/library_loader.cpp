@@ -138,7 +138,9 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeDecodeUtf8",
           flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),
-
+       DECLARE_NAPI_FUNCTION(
+          "nativeLookupCallbackInformation",
+          flutter::PlatformViewOHOSNapi::nativeLookupCallbackInformation),
   };
 
   FML_DLOG(INFO) << "Init NAPI size=" << sizeof(desc) / sizeof(desc[0]);
