@@ -200,6 +200,7 @@ source_set("fml") {
       #"platform/ohos/message_loop_ohos_test.h",
       "platform/ohos/napi_util.h",
       "platform/ohos/napi_util.cc",
+      "platform/ohos/ohos_trace_event.cc",
     ]
     libs += [ "hilog_ndk.z" ]
     libs += [ "ace_napi.z" ]
