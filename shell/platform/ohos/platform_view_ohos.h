@@ -142,6 +142,7 @@ class PlatformViewOHOS final : public PlatformView {
   std::map<int64_t, void*> contextDatas_;
 
   bool isDestroyed_;
+  static pthread_mutex_t mutex_;
 
   bool GetDestroyed();
 
