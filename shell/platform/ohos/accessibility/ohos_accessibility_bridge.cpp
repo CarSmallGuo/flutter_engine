@@ -12,16 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "ohos_accessibility_bridge.h"
 #include <string>
+#include "ohos_accessibility_bridge.h"
 #include "flutter/fml/logging.h"
 #include "flutter/shell/platform/embedder/embedder.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
 #include "third_party/skia/include/core/SkMatrix.h"
 #include "third_party/skia/include/core/SkScalar.h"
+#include "flutter/shell/common/platform_view.h"
 
-#define SHELL_HOLDER (reinterpret_cast<OHOSShellHolder*>(shell_holder))
+#define SHELL_HOLDER (reinterpret_cast<OHOSShellHolder*>(nativeShellHolder_))
 namespace flutter {
 
 OhosAccessibilityBridge OhosAccessibilityBridge::bridgeInstance;
@@ -658,63 +658,61 @@ int32_t OhosAccessibilityBridge::FindNextFocusAccessibilityNode(
 }
 
 /** 将arkui的action类型转化为flutter的action类型 */
-int32_t ActionTypeConversion(ArkUI_Accessibility_ActionType arkui_action) {
+flutter::SemanticsAction OhosAccessibilityBridge::ArkuiActionsToFlutterActions(ArkUI_Accessibility_ActionType arkui_action) {
   // 部分arkui操作和flutter操作的映射，其余action暂时无法适配, 这里先return 0
   switch (arkui_action) {
     case ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK:
-      return static_cast<int32_t>(ACTIONS_::kTap);
+      return ACTIONS_::kTap;
 
     case ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_LONG_CLICK:
-      return static_cast<int32_t>(ACTIONS_::kLongPress);
+      return ACTIONS_::kLongPress;
 
     case ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_FORWARD:
-      return static_cast<int32_t>(ACTIONS_::kScrollUp);
+      return ACTIONS_::kScrollUp;
 
     case ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD:
-      return static_cast<int32_t>(ACTIONS_::kScrollDown);
+      return ACTIONS_::kScrollDown;
 
     case ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_COPY:
-      return static_cast<int32_t>(ACTIONS_::kCopy);
+      return ACTIONS_::kCopy;
 
     case ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CUT:
-      return static_cast<int32_t>(ACTIONS_::kCut);
+      return ACTIONS_::kCut;
 
     case ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS:
-      return static_cast<int32_t>(ACTIONS_::kDidGainAccessibilityFocus);
+      return ACTIONS_::kDidGainAccessibilityFocus;
 
     case ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS:
-      return static_cast<int32_t>(ACTIONS_::kDidLoseAccessibilityFocus);
+      return ACTIONS_::kDidLoseAccessibilityFocus;
 
     // Text selection action, requiring the setting of <b>selectTextBegin</b>,
     // <b>TextEnd</b>, and <b>TextInForward</b> parameters to select a text
     // segment in the text box. */
     case ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SELECT_TEXT:
-      return static_cast<int32_t>(ACTIONS_::kSetSelection);
+      return ACTIONS_::kSetSelection;
 
     case ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_TEXT:
-      return static_cast<int32_t>(ACTIONS_::kSetText);
+      return ACTIONS_::kSetText;
 
     default:
-      return static_cast<int32_t>(
-          ArkUI_Accessibility_ActionType::
-              ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_INVALID);
+      return ACTIONS_::kDismiss;
   }
 }
 
-void DispatchSemanticsAction(int32_t id, flutter::SemanticsAction action) {
+void OhosAccessibilityBridge::DispatchSemanticsAction(int32_t id, flutter::SemanticsAction action, fml::MallocMapping args) {
   FML_DLOG(INFO) << "DispatchSemanticsAction is called";
   // TODO: ... 发送语义动作解析
-  //  SHELL_HOLDER->GetPlatformView()->DispatchSemanticsAction(id, action, {});
+  SHELL_HOLDER->GetPlatformView()->PlatformView::DispatchSemanticsAction(id, action, {});
 }
 
 /**
@@ -747,6 +745,10 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
       ArkUI_AccessibilityEventType clickEventType = ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_CLICKED;
       Flutter_SendAccessibilityAsyncEvent(elementId, clickEventType);
       FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: click("<<action<<")"<<" event: click("<<clickEventType<<")";
+
+      //解析arkui的屏幕点击 -> flutter对应节点的屏幕点击
+      ACTIONS_ flutterTapAction = ArkuiActionsToFlutterActions(action); 
+      DispatchSemanticsAction(static_cast<int32_t>(elementId), flutterTapAction, {});
       break;
     }
     /** Response to a long click. 32 */
@@ -755,6 +757,10 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
       ArkUI_AccessibilityEventType longClickEventType = ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_LONG_CLICKED;
       Flutter_SendAccessibilityAsyncEvent(elementId, longClickEventType);
       FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: longclick("<<action<<")"<<" event: longclick("<<longClickEventType<<")";
+
+      //解析arkui的屏幕动作 -> flutter对应节点的屏幕动作
+      ACTIONS_ flutterLongPressAction = ArkuiActionsToFlutterActions(action); 
+      DispatchSemanticsAction(static_cast<int32_t>(elementId), flutterLongPressAction, {});
       break;
     }
     /** Accessibility focus acquisition. 64 */
@@ -763,6 +769,10 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
       ArkUI_AccessibilityEventType focusEventType = ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ACCESSIBILITY_FOCUSED;
       Flutter_SendAccessibilityAsyncEvent(elementId, focusEventType);
       FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: focus("<<action<<")"<<" event: focus("<<focusEventType<<")";
+
+      //解析arkui的获焦 -> flutter对应节点的获焦
+      ACTIONS_ flutterGainFocusAction = ArkuiActionsToFlutterActions(action); 
+      DispatchSemanticsAction(static_cast<int32_t>(elementId), flutterGainFocusAction, {});
       break;
     }
     /** Accessibility focus clearance. 128 */
@@ -771,6 +781,10 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
       ArkUI_AccessibilityEventType clearFocusEventType = ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ACCESSIBILITY_FOCUS_CLEARED;
       Flutter_SendAccessibilityAsyncEvent(elementId, clearFocusEventType);
       FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: clearfocus("<<action<<")"<<" event: clearfocus("<<clearFocusEventType<<")";
+
+      //解析arkui的失焦 -> flutter对应节点的失焦
+      ACTIONS_ flutterLoseFocusAction = ArkuiActionsToFlutterActions(action); 
+      DispatchSemanticsAction(static_cast<int32_t>(elementId), flutterLoseFocusAction, {});
       break;
     }
     /** Forward scroll action. 256 */
@@ -894,7 +908,7 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
   OH_ArkUI_SendAccessibilityAsyncEvent(provider_, eventInfo, callback);
 
   // 7.销毁新创建的elementinfo
-  // OH_ArkUI_DestoryAccessibilityElementInfo(_elementInfo);
+  OH_ArkUI_DestoryAccessibilityElementInfo(_elementInfo);
 
   FML_DLOG(INFO)
       << "OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent is end";
@@ -933,8 +947,8 @@ void OhosAccessibilityBridge::updateSemantics(
   FML_DLOG(INFO) << ("OhosAccessibilityBridge::updateSemantics is called");
 
   // 每次flutter语义节点更新，需要清空语义树容器节点信息
-  flutterSemanticsTree_.clear();
-  parentChildIdVec.clear();
+  // flutterSemanticsTree_.clear();
+  // parentChildIdVec.clear();
 
   std::set<SEMANTICS_NODE_> visitedObjs;
   std::vector<SEMANTICS_NODE_> newRoutes;
@@ -995,12 +1009,13 @@ void OhosAccessibilityBridge::updateSemantics(
     printTest(node);  // print node info for debugging
 
     // 构建flutter无障碍语义节点树
-    if (flutterSemanticsTree_.count(node.id) == 0) {
-      flutterSemanticsTree_.insert({node.id, node});
-    } else {
-      FML_DLOG(ERROR) << "UpdateSemantics -> flutterSemanticsTree_: node.id="
-                      << node.id << " has already exists !";
-    }
+    flutterSemanticsTree_.insert({node.id, node});
+    // if (flutterSemanticsTree_.count(node.id) == 0) {
+    //   flutterSemanticsTree_.insert({node.id, node});
+    // } else {
+    //   FML_DLOG(ERROR) << "UpdateSemantics -> flutterSemanticsTree_: node.id="
+    //                   << node.id << " has already exists !";
+    // }
 
     // 若当前更新节点是隐藏的，则跳过
     if (node.HasFlag(FLAGS_::kIsHidden)) {
@@ -1133,7 +1148,7 @@ std::string OhosAccessibilityBridge::GetNodeComponentType(
 
   if (node.HasFlag(FLAGS_::kIsTextField)) {
     // arkui没有textfield，这里直接透传
-    return "TextInput";
+    return "TextField";
   }
 
   if (node.HasFlag(FLAGS_::kIsMultiline)) {

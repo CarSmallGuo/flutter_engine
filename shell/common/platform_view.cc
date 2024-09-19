@@ -41,6 +41,7 @@ void PlatformView::DispatchPointerDataPacket(
 void PlatformView::DispatchSemanticsAction(int32_t id,
                                            SemanticsAction action,
                                            fml::MallocMapping args) {
+  FML_DLOG(INFO)<< "PlatformView::DispatchSemanticsAction -> id:"<<id<<" action:"<<static_cast<int32_t>(action);
   delegate_.OnPlatformViewDispatchSemanticsAction(id, action, std::move(args));
 }
 

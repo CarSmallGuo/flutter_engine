@@ -58,11 +58,6 @@ export default class AccessibilityBridge implements AccessibilityMessageHandler 
     Log.d(TAG, "AccessibilityBridge.ets accessibilityStateChange is called");
   }
 
-  /**
-   * TODO lack of AccessibilityManager.AccessibilityStateChangeListener
-   * Listener that is notified when accessibility is turned on/off.
-   */
-
 }
 
 export enum Action {

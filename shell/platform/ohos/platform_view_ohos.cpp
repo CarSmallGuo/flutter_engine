@@ -246,7 +246,7 @@ void PlatformViewOHOS::DispatchSemanticsAction(int id,
                                                int action,
                                                void* actionData,
                                                int actionDataLenth) {
-  FML_DLOG(INFO) << "DispatchSemanticsAction（id=" << id << ", action=" << action << ", actionDataLenth"
+  FML_DLOG(INFO) << "DispatchSemanticsAction -> id=" << id << ", action=" << action << ", actionDataLenth"
                  << actionDataLenth;
   auto args_vector = fml::MallocMapping::Copy(actionData, actionDataLenth);
 

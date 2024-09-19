@@ -286,9 +286,9 @@ bool RuntimeController::DispatchSemanticsAction(int32_t id,
   TRACE_EVENT1("flutter", "RuntimeController::DispatchSemanticsAction", "mode",
                "basic");
   if (auto* platform_configuration = GetPlatformConfigurationIfAvailable()) {
+    FML_DLOG(INFO) << "RuntimeController::DispatchSemanticsAction, id="<<id<<" action="<<static_cast<int32_t>(action);
     platform_configuration->DispatchSemanticsAction(id, action,
                                                     std::move(args));
-      FML_DLOG(INFO) << "RuntimeController::DispatchSemanticsAction, id="<<id<<" action="<<static_cast<int32_t>(action);
     return true;
   }
 
