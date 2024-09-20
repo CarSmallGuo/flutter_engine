@@ -33,6 +33,207 @@ OhosAccessibilityBridge* OhosAccessibilityBridge::GetInstance() {
   return &OhosAccessibilityBridge::bridgeInstance;
 }
 
+/**
+ * NOTE: 从dart侧传递到c++侧的flutter语义树节点更新过程
+ */
+void OhosAccessibilityBridge::updateSemantics(
+    flutter::SemanticsNodeUpdates update,
+    flutter::CustomAccessibilityActionUpdates actions) {
+  FML_DLOG(INFO) << ("OhosAccessibilityBridge::updateSemantics is called");
+
+  // 每次flutter语义节点更新，需要清空语义树容器节点信息
+  // flutterSemanticsTree_.clear();
+  // parentChildIdVec.clear();
+
+  std::set<SEMANTICS_NODE_> visitedObjs;
+  std::vector<SEMANTICS_NODE_> newRoutes;
+
+  // Dispatch a TYPE_WINDOW_STATE_CHANGED event if the most recent route id
+  // changed from the
+  // previously cached route id.
+  // Finds the last route that is not in the previous routes.
+  // SEMANTICS_NODE_ lastAdded;
+  // lastAdded.id = -2;
+  // for (const auto& _node : newRoutes) {
+  //   if (!flutterNavigationStack[_node.id]) {
+  //     lastAdded = _node;
+  //   }
+  // }
+  // // If all the routes are in the previous route, get the last route.
+  // if (lastAdded.id == -2 && newRoutes.size() > 0) {
+  //   lastAdded = newRoutes[newRoutes.size() - 1];
+  // }
+
+  // There are two cases if lastAdded != nil
+  // 1. lastAdded is not in previous routes. In this case,
+  //    lastAdded.id != previousRouteId
+  // 2. All new routes are in previous routes and
+  //    lastAdded = newRoutes.last.
+  // In the first case, we need to announce new route. In the second case,
+  // we need to announce if one list is shorter than the other.
+  // if (lastAdded.id != -2 && (lastAdded.id != previousRouteId ||
+  //                         newRoutes.size() !=
+  // flutterNavigationStack.size())) {
+  //   previousRouteId = lastAdded.id;
+  //   onWindowNameChange(lastAdded);  // todo
+  // }
+  // flutterNavigationStack.clear();
+  // for (const auto& _node : newRoutes) {
+  //   flutterNavigationStack.emplace_back(_node.id);
+  // }
+
+  // for (const auto& item : flutterSemanticsTree_) {
+  //   SEMANTICS_NODE_ obj = item.second;
+  //   if (visitedObjs.find(obj) == visitedObjs.end()) {
+  //     removeSemanticsNode(obj);
+  //     flutterSemanticsTree_.erase(item.first);
+  //   }
+  // }
+
+  /** 获取并分析每个语义节点的更新属性 */
+  for (auto& item : update) {
+    // 获取当前更新的节点node
+    const flutter::SemanticsNode& node = item.second;
+    printTest(node);  // print node info for debugging
+
+    /**
+     * 构建flutter无障碍语义节点树
+     * NOTE: 若使用flutterSemanticsTree_.insert({node.id, node})方式
+     * 来添加新增的语义节点会导致已有key值自动忽略，不会更新原有key对应的value
+     */
+    flutterSemanticsTree_[node.id] = node;
+
+    // 若当前更新节点是隐藏的，则跳过
+    if (node.HasFlag(FLAGS_::kIsHidden)) {
+      continue;
+    }
+    // 判断flutter节点是否获焦
+    if (IsNodeFocusable(node)) {
+      FML_DLOG(INFO) << "UpdateSemantics -> flutterNode is focusable, node.id="
+                     << node.id;
+    }
+
+    // 获取当前flutter节点的全部子节点数量，并构建父子节点id映射关系
+    int32_t childNodeCount = node.childrenInTraversalOrder.size();
+    for (int32_t i = 0; i < childNodeCount; i++) {
+      parentChildIdVec.emplace_back(
+          std::make_pair(node.id, node.childrenInTraversalOrder[i]));
+      FML_DLOG(INFO) << "UpdateSemantics parentChildIdMap -> (" << node.id
+                     << ", " << node.childrenInTraversalOrder[i] << ")";
+    }
+
+    // TODO: 若该对象是输入焦点节点，且发生更新变化，则发送给os有关它的信息
+    //  std::shared_ptr<flutter::SemanticsNode>
+    //      inputFocusedSemanticsNode;  // 当前输入焦点节点
+    //  std::shared_ptr<flutter::SemanticsNode>
+    //      lastInputFocusedSemanticsNode;  // 上一个输入焦点节点
+    //  bool isHadFlag = true;
+    //  if (inputFocusedSemanticsNode != nullptr &&
+    //      inputFocusedSemanticsNode->id == node.id &&
+    //      (lastInputFocusedSemanticsNode == nullptr ||
+    //       lastInputFocusedSemanticsNode->id !=
+    //       inputFocusedSemanticsNode->id)) {
+    //    // 上次输入焦点节点 -> 当前输入焦点节点
+    //    lastInputFocusedSemanticsNode = inputFocusedSemanticsNode;
+    //    // 发送相应的输入焦点改变事件
+    //    // sendAccessibilityEvent(obtainAccessibilityEvent(object.id,
+    //    // AccessibilityEvent.TYPE_VIEW_FOCUSED));
+    //  } else if (inputFocusedSemanticsNode == nullptr) {
+    //    // There's no TYPE_VIEW_CLEAR_FOCUSED event, so if the current input
+    //    focus
+    //    // becomes null, then we just set the last one to null too, so that it
+    //    // sends the event again when something regains focus.
+    //    lastInputFocusedSemanticsNode = nullptr;
+    //  }
+
+    // if (inputFocusedSemanticsNode != nullptr &&
+    //     inputFocusedSemanticsNode->id == node.id && isHadFlag &&
+    //     node.HasFlag(FLAGS_::kIsTextField)
+    //     // If we have a TextField that has InputFocus, we should avoid
+    //     // announcing it if something else we track has a11y focus. This
+    //     needs
+    //     // to still work when, e.g., IME has a11y focus or the "PASTE" popup
+    //     is
+    //     // used though. See more discussion at
+    //     // https://github.com/flutter/flutter/issues/23180
+    //     && (accessibilityFocusedSemanticsNode == nullptr ||
+    //         (accessibilityFocusedSemanticsNode->id ==
+    //          inputFocusedSemanticsNode->id))) {
+    //   //
+    //   这里写输入框更新文字内容，将老旧的文本替换为新输入文字，并发送textchange事件
+    //   // AccessibilityEvent event = createTextChangedEvent(object.id,
+    //   oldValue,
+    //   // newValue); sendAccessibilityEvent(event);
+
+    //   // todo：若当前textselection部分和之前的textselection部分不同，则触发
+    //   int32_t previousTextSelectionBase = 0;
+    //   int32_t previousTextSelectionExtent = 1;
+    //   if (previousTextSelectionBase != node.textSelectionBase ||
+    //       previousTextSelectionExtent != node.textSelectionExtent) {
+    //     // 创建并发送textselection改变事件
+    //     //  AccessibilityEvent selectionEvent = obtainAccessibilityEvent(
+    //     //      object.id,
+    //     AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED);
+    //     //  selectionEvent.getText().add(newValue);
+    //     //  selectionEvent.setFromIndex(object.textSelectionBase);
+    //     //  selectionEvent.setToIndex(object.textSelectionExtent);
+    //     //  selectionEvent.setItemCount(newValue.length());
+    //     //  sendAccessibilityEvent(selectionEvent);
+    //   }
+    // }
+
+    // todo: 是否触发滑动操作
+    bool didScroll = true;
+    if (didScroll) {
+      // 1. 声明并创建accessibilityEvent类型，比如滑动事件
+      // 2.
+      // 获取semanticsNode里scrollPosition、scrollExtensionMax、scrollExtensionMin字段
+      // 3. 发送事件中包含上述scroll位置变动信息(如下所示)
+      // int32_t scrollChildren = 0;
+      // int32_t scrollIndex = 0;
+      // double scrollPosition = std::nan("");
+      // double scrollExtentMax = std::nan("");
+      // double scrollExtentMin = std::nan("");
+      int32_t scrollChildren = 0;
+      if (scrollChildren > 0) {
+        // todo 发送事件，包含scrollChildren数量、scrollIndex
+        // int visibleChildren = 0;
+        // // handle hidden children at the beginning and end of the list.
+        // for (flutter::SemanticsNode child : node.childrenInHitTestOrder) {
+        //   if (!child.hasFlag(Flag.IS_HIDDEN)) {
+        //     visibleChildren += 1;
+        //   }
+        // }
+      }
+      // sendAccessibilityEvent(event)
+    }
+
+    // 判断是否触发liveRegion活动区，当前节点是否活跃（优先级低）
+    if (node.HasFlag(FLAGS_::kIsLiveRegion)) {
+      // TODO: ...
+    }
+  }
+
+  // TODO: 遍历更新的actions，并将所有的actions的id添加进actionMap
+  for (const auto& item : actions) {
+    const flutter::CustomAccessibilityAction action = item.second;
+    printTestActions(action);
+    actions_mp_[action.id] = action;
+  }
+
+  // 打印flutter语义树的不同节点的属性信息
+  for (const auto& item : flutterSemanticsTree_) {
+    FML_DLOG(INFO) << "flutterSemanticsTree_ -> {" << item.first << ", "
+                  << item.second.id << "}";
+  }
+  for (const auto& item : parentChildIdVec) {
+    FML_DLOG(INFO) << "parentChildIdVec -> (" << item.first << ", "
+                  << item.second << ")";
+  }
+
+  FML_DLOG(INFO) << "=== UpdateSemantics is end ===";
+}
+
 void OhosAccessibilityBridge::announce(std::unique_ptr<char[]>& message) {
   // 创建并设置屏幕朗读事件
   ArkUI_AccessibilityEventInfo* announceEventInfo =
@@ -69,7 +270,7 @@ flutter::SemanticsNode OhosAccessibilityBridge::getOrCreateFlutterSemanticsNode(
     return flutterSemanticsTree_.at(id);
     FML_DLOG(INFO) << "getOrCreateFlutterSemanticsNode get node.id=" << id;
   } else {
-    FML_DLOG(INFO)
+    FML_DLOG(ERROR)
         << "getOrCreateFlutterSemanticsNode flutterSemanticsTree_ = null" << id;
     return flutter::SemanticsNode{};
   }
@@ -198,17 +399,23 @@ void OhosAccessibilityBridge::SetAbsoluteScreenRect(int32_t flutterNodeId,
                                                     float top,
                                                     float right,
                                                     float bottom) {
-  if (screenRectMap_.find(flutterNodeId) == screenRectMap_.end()) {
-    screenRectMap_.insert(
+  screenRectMap_.insert(
         {flutterNodeId, std::make_pair(std::make_pair(left, top),
                                        std::make_pair(right, bottom))});
     FML_DLOG(INFO) << "SetAbsoluteScreenRect -> insert { " << flutterNodeId
                    << ", <" << left << ", " << top << ", " << right << ", "
                    << bottom << "> } is succeed";
-  } else {
-    FML_DLOG(ERROR) << "SetAbsoluteScreenRect -> flutterNodeId="
-                    << flutterNodeId << " already exists !";
-  }
+  // if (screenRectMap_.find(flutterNodeId) == screenRectMap_.end()) {
+  //   screenRectMap_.insert(
+  //       {flutterNodeId, std::make_pair(std::make_pair(left, top),
+  //                                      std::make_pair(right, bottom))});
+  //   FML_DLOG(INFO) << "SetAbsoluteScreenRect -> insert { " << flutterNodeId
+  //                  << ", <" << left << ", " << top << ", " << right << ", "
+  //                  << bottom << "> } is succeed";
+  // } else {
+  //   FML_DLOG(ERROR) << "SetAbsoluteScreenRect -> flutterNodeId="
+  //                   << flutterNodeId << " already exists !";
+  // }
 }
 
 std::pair<std::pair<float, float>, std::pair<float, float>>
@@ -315,7 +522,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
     int32_t top = static_cast<int32_t>(flutterNode.rect.fTop);
     int32_t right = static_cast<int32_t>(flutterNode.rect.fRight);
     int32_t bottom = static_cast<int32_t>(flutterNode.rect.fBottom);
-    ArkUI_AccessibleRect rect = {left, top, right, bottom};  // debug
+    ArkUI_AccessibleRect rect = {left, top, right, bottom};  
     OH_ArkUI_AccessibilityElementInfoSetScreenRect(elementInfoFromList, &rect);
 
     // 设置elementinfo的action类型
@@ -800,11 +1007,6 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
 
     /** Forward scroll action. 256 */
     case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_FORWARD: {
-       /** Scrolled event, sent when a scrollable component experiences a scroll event. 4096 */
-      ArkUI_AccessibilityEventType scrollEventType1 = ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_SCROLLED;
-      Flutter_SendAccessibilityAsyncEvent(elementId, scrollEventType1);
-      FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: scroll forward("<<action<<")"<<" event: scroll forward("<<scrollEventType1<<")";
-
       // flutter scroll forward with different situations
       if (flutterNode.HasAction(ACTIONS_::kScrollUp)) {
         auto flutterScrollUpAction = ArkuiActionsToFlutterActions(action); 
@@ -821,16 +1023,16 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
         DispatchSemanticsAction(static_cast<int32_t>(elementId), ACTIONS_::kIncrease, {});
 
       } else {}
+
+      /** Scrolled event, sent when a scrollable component experiences a scroll event. 4096 */
+      // ArkUI_AccessibilityEventType scrollEventType1 = ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_SCROLLED;
+      // Flutter_SendAccessibilityAsyncEvent(elementId, scrollEventType1);
+      // FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: scroll forward("<<action<<")"<<" event: scroll forward("<<scrollEventType1<<")";
       break;
     }
 
     /** Backward scroll action. 512 */
     case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD: {
-      /** Scrolled event, sent when a scrollable component experiences a scroll event. 4096 */
-      ArkUI_AccessibilityEventType scrollEventType2 = ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_SCROLLED;
-      Flutter_SendAccessibilityAsyncEvent(elementId, scrollEventType2);
-      FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: scroll backward("<<action<<")"<<" event: scroll backward("<<scrollEventType2<<")";
-
       // flutter scroll down with different situations
       if (flutterNode.HasAction(ACTIONS_::kScrollDown)) {
         auto flutterScrollDownAction = ArkuiActionsToFlutterActions(action); 
@@ -847,6 +1049,11 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
         DispatchSemanticsAction(static_cast<int32_t>(elementId), ACTIONS_::kDecrease, {});
 
       } else {}
+
+      /** Scrolled event, sent when a scrollable component experiences a scroll event. 4096 */
+      // ArkUI_AccessibilityEventType scrollEventType2 = ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_SCROLLED;
+      // Flutter_SendAccessibilityAsyncEvent(elementId, scrollEventType2);
+      // FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: scroll backward("<<action<<")"<<" event: scroll backward("<<scrollEventType2<<")";
       break;
     }
 
@@ -1016,207 +1223,6 @@ void OhosAccessibilityBridge::PerformSelectText(flutter::SemanticsNode flutterNo
   //TODO...
 }
 
-/**
- * NOTE: 从dart侧传递到c++侧的flutter语义树节点更新过程
- */
-void OhosAccessibilityBridge::updateSemantics(
-    flutter::SemanticsNodeUpdates update,
-    flutter::CustomAccessibilityActionUpdates actions) {
-  FML_DLOG(INFO) << ("OhosAccessibilityBridge::updateSemantics is called");
-
-  // 每次flutter语义节点更新，需要清空语义树容器节点信息
-  // flutterSemanticsTree_.clear();
-  // parentChildIdVec.clear();
-
-  std::set<SEMANTICS_NODE_> visitedObjs;
-  std::vector<SEMANTICS_NODE_> newRoutes;
-
-  // 遍历更新的actions，并将所有的actions的id添加进actionMap
-  for (const auto& item : actions) {
-    const flutter::CustomAccessibilityAction action = item.second;
-    printTestActions(action);
-    actions_mp_[action.id] = action;
-  }
-
-  // Dispatch a TYPE_WINDOW_STATE_CHANGED event if the most recent route id
-  // changed from the
-  // previously cached route id.
-  // Finds the last route that is not in the previous routes.
-  // SEMANTICS_NODE_ lastAdded;
-  // lastAdded.id = -2;
-  // for (const auto& _node : newRoutes) {
-  //   if (!flutterNavigationStack[_node.id]) {
-  //     lastAdded = _node;
-  //   }
-  // }
-  // // If all the routes are in the previous route, get the last route.
-  // if (lastAdded.id == -2 && newRoutes.size() > 0) {
-  //   lastAdded = newRoutes[newRoutes.size() - 1];
-  // }
-
-  // There are two cases if lastAdded != nil
-  // 1. lastAdded is not in previous routes. In this case,
-  //    lastAdded.id != previousRouteId
-  // 2. All new routes are in previous routes and
-  //    lastAdded = newRoutes.last.
-  // In the first case, we need to announce new route. In the second case,
-  // we need to announce if one list is shorter than the other.
-  // if (lastAdded.id != -2 && (lastAdded.id != previousRouteId ||
-  //                         newRoutes.size() !=
-  // flutterNavigationStack.size())) {
-  //   previousRouteId = lastAdded.id;
-  //   onWindowNameChange(lastAdded);  // todo
-  // }
-  // flutterNavigationStack.clear();
-  // for (const auto& _node : newRoutes) {
-  //   flutterNavigationStack.emplace_back(_node.id);
-  // }
-
-  // for (const auto& item : flutterSemanticsTree_) {
-  //   SEMANTICS_NODE_ obj = item.second;
-  //   if (visitedObjs.find(obj) == visitedObjs.end()) {
-  //     removeSemanticsNode(obj);
-  //     flutterSemanticsTree_.erase(item.first);
-  //   }
-  // }
-
-  /** 获取并分析每个语义节点的更新属性 */
-  for (auto& item : update) {
-    // 获取当前更新的节点node
-    const flutter::SemanticsNode& node = item.second;
-    printTest(node);  // print node info for debugging
-
-    // 构建flutter无障碍语义节点树
-    flutterSemanticsTree_.insert({node.id, node});
-    // if (flutterSemanticsTree_.count(node.id) == 0) {
-    //   flutterSemanticsTree_.insert({node.id, node});
-    // } else {
-    //   FML_DLOG(ERROR) << "UpdateSemantics -> flutterSemanticsTree_: node.id="
-    //                   << node.id << " has already exists !";
-    // }
-
-    // 若当前更新节点是隐藏的，则跳过
-    if (node.HasFlag(FLAGS_::kIsHidden)) {
-      continue;
-    }
-    // 判断flutter节点是否获焦
-    if (IsNodeFocusable(node)) {
-      FML_DLOG(INFO) << "UpdateSemantics -> flutterNode is focusable, node.id="
-                     << node.id;
-    }
-
-    // 获取当前flutter节点的全部子节点数量，并构建父子节点id映射关系
-    int32_t childNodeCount = node.childrenInTraversalOrder.size();
-    for (int32_t i = 0; i < childNodeCount; i++) {
-      parentChildIdVec.emplace_back(
-          std::make_pair(node.id, node.childrenInTraversalOrder[i]));
-      FML_DLOG(INFO) << "UpdateSemantics parentChildIdMap -> (" << node.id
-                     << ", " << node.childrenInTraversalOrder[i] << ")";
-    }
-
-    // TODO: 若该对象是输入焦点节点，且发生更新变化，则发送给os有关它的信息
-    //  std::shared_ptr<flutter::SemanticsNode>
-    //      inputFocusedSemanticsNode;  // 当前输入焦点节点
-    //  std::shared_ptr<flutter::SemanticsNode>
-    //      lastInputFocusedSemanticsNode;  // 上一个输入焦点节点
-    //  bool isHadFlag = true;
-    //  if (inputFocusedSemanticsNode != nullptr &&
-    //      inputFocusedSemanticsNode->id == node.id &&
-    //      (lastInputFocusedSemanticsNode == nullptr ||
-    //       lastInputFocusedSemanticsNode->id !=
-    //       inputFocusedSemanticsNode->id)) {
-    //    // 上次输入焦点节点 -> 当前输入焦点节点
-    //    lastInputFocusedSemanticsNode = inputFocusedSemanticsNode;
-    //    // 发送相应的输入焦点改变事件
-    //    // sendAccessibilityEvent(obtainAccessibilityEvent(object.id,
-    //    // AccessibilityEvent.TYPE_VIEW_FOCUSED));
-    //  } else if (inputFocusedSemanticsNode == nullptr) {
-    //    // There's no TYPE_VIEW_CLEAR_FOCUSED event, so if the current input
-    //    focus
-    //    // becomes null, then we just set the last one to null too, so that it
-    //    // sends the event again when something regains focus.
-    //    lastInputFocusedSemanticsNode = nullptr;
-    //  }
-
-    // if (inputFocusedSemanticsNode != nullptr &&
-    //     inputFocusedSemanticsNode->id == node.id && isHadFlag &&
-    //     node.HasFlag(FLAGS_::kIsTextField)
-    //     // If we have a TextField that has InputFocus, we should avoid
-    //     // announcing it if something else we track has a11y focus. This
-    //     needs
-    //     // to still work when, e.g., IME has a11y focus or the "PASTE" popup
-    //     is
-    //     // used though. See more discussion at
-    //     // https://github.com/flutter/flutter/issues/23180
-    //     && (accessibilityFocusedSemanticsNode == nullptr ||
-    //         (accessibilityFocusedSemanticsNode->id ==
-    //          inputFocusedSemanticsNode->id))) {
-    //   //
-    //   这里写输入框更新文字内容，将老旧的文本替换为新输入文字，并发送textchange事件
-    //   // AccessibilityEvent event = createTextChangedEvent(object.id,
-    //   oldValue,
-    //   // newValue); sendAccessibilityEvent(event);
-
-    //   // todo：若当前textselection部分和之前的textselection部分不同，则触发
-    //   int32_t previousTextSelectionBase = 0;
-    //   int32_t previousTextSelectionExtent = 1;
-    //   if (previousTextSelectionBase != node.textSelectionBase ||
-    //       previousTextSelectionExtent != node.textSelectionExtent) {
-    //     // 创建并发送textselection改变事件
-    //     //  AccessibilityEvent selectionEvent = obtainAccessibilityEvent(
-    //     //      object.id,
-    //     AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED);
-    //     //  selectionEvent.getText().add(newValue);
-    //     //  selectionEvent.setFromIndex(object.textSelectionBase);
-    //     //  selectionEvent.setToIndex(object.textSelectionExtent);
-    //     //  selectionEvent.setItemCount(newValue.length());
-    //     //  sendAccessibilityEvent(selectionEvent);
-    //   }
-    // }
-
-    // todo: 是否触发滑动操作
-    bool didScroll = true;
-    if (didScroll) {
-      // 1. 声明并创建accessibilityEvent类型，比如滑动事件
-      // 2.
-      // 获取semanticsNode里scrollPosition、scrollExtensionMax、scrollExtensionMin字段
-      // 3. 发送事件中包含上述scroll位置变动信息(如下所示)
-      // int32_t scrollChildren = 0;
-      // int32_t scrollIndex = 0;
-      // double scrollPosition = std::nan("");
-      // double scrollExtentMax = std::nan("");
-      // double scrollExtentMin = std::nan("");
-      int32_t scrollChildren = 0;
-      if (scrollChildren > 0) {
-        // todo 发送事件，包含scrollChildren数量、scrollIndex
-        // int visibleChildren = 0;
-        // // handle hidden children at the beginning and end of the list.
-        // for (flutter::SemanticsNode child : node.childrenInHitTestOrder) {
-        //   if (!child.hasFlag(Flag.IS_HIDDEN)) {
-        //     visibleChildren += 1;
-        //   }
-        // }
-      }
-      // sendAccessibilityEvent(event)
-    }
-
-    // 判断是否触发liveRegion活动区，当前节点是否活跃（优先级低）
-    if (node.HasFlag(FLAGS_::kIsLiveRegion)) {
-      // TODO: ...
-    }
-
-    // 打印flutter语义树的不同节点的属性信息
-    for (const auto& item : flutterSemanticsTree_) {
-      FML_DLOG(INFO) << "flutterSemanticsTree_ -> {" << item.first << ", "
-                     << item.second.id << "}";
-    }
-    for (const auto& item : parentChildIdVec) {
-      FML_DLOG(INFO) << "parentChildIdVec -> (" << item.first << ", "
-                     << item.second << ")";
-    }
-  }
-}
-
 /** 获取当前flutter节点的组件类型，并映射为arkui组件 */
 std::string OhosAccessibilityBridge::GetNodeComponentType(
     const flutter::SemanticsNode& node) {
@@ -1225,7 +1231,7 @@ std::string OhosAccessibilityBridge::GetNodeComponentType(
   }
 
   if (node.HasFlag(FLAGS_::kIsTextField)) {
-    // arkui没有textfield，这里直接透传
+    // arkui没有textfield，这里直接透传或者传递textinput
     return "TextField";
   }
 
@@ -1319,6 +1325,9 @@ void OhosAccessibilityBridge::printTest(flutter::SemanticsNode node) {
   FML_DLOG(INFO) << "==================SemanticsNode=====================";
   SkMatrix _transform = node.transform.asM33();
   FML_DLOG(INFO) << "node.id=" << node.id;
+  FML_DLOG(INFO) << "node.label=" << node.label;
+  FML_DLOG(INFO) << "node.tooltip=" << node.tooltip;
+  FML_DLOG(INFO) << "node.hint=" << node.hint;
   FML_DLOG(INFO) << "node.flags=" << node.flags;
   FML_DLOG(INFO) << "node.actions=" << node.actions;
   FML_DLOG(INFO) << "node.rect= {" << node.rect.fLeft << ", " << node.rect.fTop
@@ -1357,9 +1366,6 @@ void OhosAccessibilityBridge::printTest(flutter::SemanticsNode node) {
   FML_DLOG(INFO) << "node.scrollExtentMin=" << node.scrollExtentMin;
   FML_DLOG(INFO) << "node.elevation=" << node.elevation;
   FML_DLOG(INFO) << "node.thickness=" << node.thickness;
-  FML_DLOG(INFO) << "node.label=" << node.label;
-  FML_DLOG(INFO) << "node.tooltip=" << node.tooltip;
-  FML_DLOG(INFO) << "node.hint=" << node.hint;
   FML_DLOG(INFO) << "node.textDirection=" << node.textDirection;
   FML_DLOG(INFO) << "node.childrenInTraversalOrder.size()="
                  << node.childrenInTraversalOrder.size();
