@@ -108,7 +108,7 @@ export class FlutterView {
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
     this.mainWindow?.on('windowStatusChange', this.windowStatusChangeCallback);
 
-    //监听系统是否开启无障碍服务
+    //监听系统无障碍服务状态改变
     accessibility.on('accessibilityStateChange', (data: boolean) => {
       Log.i(TAG, `subscribe accessibility state change, result: ${JSON.stringify(data)}`);
       this.flutterEngine?.getFlutterNapi()?.setSemanticsEnabled(data);
