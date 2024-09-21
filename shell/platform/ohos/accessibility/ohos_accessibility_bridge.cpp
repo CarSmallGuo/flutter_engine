@@ -399,23 +399,17 @@ void OhosAccessibilityBridge::SetAbsoluteScreenRect(int32_t flutterNodeId,
                                                     float top,
                                                     float right,
                                                     float bottom) {
-  screenRectMap_.insert(
-      {flutterNodeId, std::make_pair(std::make_pair(left, top),
-                                     std::make_pair(right, bottom))});
-  FML_DLOG(INFO) << "SetAbsoluteScreenRect -> insert { " << flutterNodeId
-                 << ", <" << left << ", " << top << ", " << right << ", "
-                 << bottom << "> } is succeed";
-  // if (screenRectMap_.find(flutterNodeId) == screenRectMap_.end()) {
-  //   screenRectMap_.insert(
-  //       {flutterNodeId, std::make_pair(std::make_pair(left, top),
-  //                                      std::make_pair(right, bottom))});
-  //   FML_DLOG(INFO) << "SetAbsoluteScreenRect -> insert { " << flutterNodeId
-  //                  << ", <" << left << ", " << top << ", " << right << ", "
-  //                  << bottom << "> } is succeed";
-  // } else {
-  //   FML_DLOG(ERROR) << "SetAbsoluteScreenRect -> flutterNodeId="
-  //                   << flutterNodeId << " already exists !";
-  // }
+
+  if (screenRectMap_.find(flutterNodeId) == screenRectMap_.end()) {
+    screenRectMap_[flutterNodeId] = std::make_pair(std::make_pair(left, top),
+                                     std::make_pair(right, bottom));
+    FML_DLOG(INFO) << "SetAbsoluteScreenRect -> insert { " << flutterNodeId
+                   << ", <" << left << ", " << top << ", " << right << ", "
+                   << bottom << "> } is succeed";
+  } else {
+    FML_DLOG(ERROR) << "SetAbsoluteScreenRect -> flutterNodeId="
+                    << flutterNodeId << " already exists !";
+  }
 }
 
 std::pair<std::pair<float, float>, std::pair<float, float>>
