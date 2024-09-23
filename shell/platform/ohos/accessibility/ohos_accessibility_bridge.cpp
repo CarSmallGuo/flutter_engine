@@ -14,6 +14,7 @@
  */
 #include "ohos_accessibility_bridge.h"
 #include <string>
+#include <limits>
 #include "flutter/fml/logging.h"
 #include "flutter/shell/common/platform_view.h"
 #include "flutter/shell/platform/embedder/embedder.h"
@@ -70,6 +71,57 @@ void OhosAccessibilityBridge::updateSemantics(
           std::make_pair(node.id, node.childrenInTraversalOrder[i]));
       FML_DLOG(INFO) << "UpdateSemantics parentChildIdMap -> (" << node.id
                      << ", " << node.childrenInTraversalOrder[i] << ")";
+    }
+
+    // 判断是否触发滑动操作
+    if (IsNodeScrollable(node)) {
+      double nodePosition = node.scrollPosition;
+      double nodeScrollExtentMax = node.scrollExtentMax;
+      double nodeScrollExtentMin = node.scrollExtentMin;
+      double infinity = std::numeric_limits<double>::infinity();
+      //设置flutter可滑动的最大范围值
+      if(nodeScrollExtentMax == infinity) {
+        nodeScrollExtentMax = SCROLL_EXTENT_FOR_INFINITY;
+        if(nodePosition > SCROLL_POSITION_CAP_FOR_INFINITY) {
+          nodePosition = SCROLL_POSITION_CAP_FOR_INFINITY;
+        }
+      }
+      if (nodeScrollExtentMin == infinity) {
+        nodeScrollExtentMax += SCROLL_EXTENT_FOR_INFINITY;
+        if (nodePosition < -SCROLL_POSITION_CAP_FOR_INFINITY) {
+          nodePosition = -SCROLL_POSITION_CAP_FOR_INFINITY;
+        }
+        nodePosition += SCROLL_EXTENT_FOR_INFINITY;
+      } else {
+        nodeScrollExtentMax -= node.scrollExtentMin;
+        nodePosition -= node.scrollExtentMin;
+      }
+
+      if (node.HasAction(ACTIONS_::kScrollUp) || node.HasAction(ACTIONS_::kScrollDown)) { 
+        //TODO: ohos/arkui未提供相应的滑动属性配置event
+        // event.setScrollY((int) nodePosition);
+        // event.setMaxScrollY((int) nodeScrollExtentMax);
+      } else if (node.HasAction(ACTIONS_::kScrollLeft) || node.HasAction(ACTIONS_::kScrollRight)) {
+        //TODO: ohos/arkui未提供相应的滑动属性配置event
+        // event.setScrollX((int) nodePosition);
+        // event.setMaxScrollX((int) nodeScrollExtentMax);
+      }
+      if (node.scrollChildren > 0) {
+        // We don't need to add 1 to the scroll index because TalkBack does this automagically.
+        // event.setItemCount(object.scrollChildren);
+        // event.setFromIndex(object.scrollIndex);
+        int visibleChildren = 0;
+        // handle hidden children at the beginning and end of the list.
+        for (const auto& childId : node.childrenInHitTestOrder) {
+          auto childNode = getOrCreateFlutterSemanticsNode(childId);
+          if (!childNode.HasFlag(FLAGS_::kIsHidden)) {
+            visibleChildren += 1;
+          }
+        }
+      //TODO: 缺少ohos/arkui的滑动事件配置事件接口
+      //event.setToIndex(object.scrollIndex + visibleChildren - 1);
+      }
+      // sendAccessibilityEvent(event)
     }
 
     // TODO: 若该对象是输入焦点节点，且发生更新变化，则发送给os有关它的信息
@@ -132,31 +184,6 @@ void OhosAccessibilityBridge::updateSemantics(
     //   }
     // }
 
-    // todo: 是否触发滑动操作
-    bool didScroll = true;
-    if (didScroll) {
-      // 1. 声明并创建accessibilityEvent类型，比如滑动事件
-      // 2.
-      // 获取semanticsNode里scrollPosition、scrollExtensionMax、scrollExtensionMin字段
-      // 3. 发送事件中包含上述scroll位置变动信息(如下所示)
-      // int32_t scrollChildren = 0;
-      // int32_t scrollIndex = 0;
-      // double scrollPosition = std::nan("");
-      // double scrollExtentMax = std::nan("");
-      // double scrollExtentMin = std::nan("");
-      int32_t scrollChildren = 0;
-      if (scrollChildren > 0) {
-        // todo 发送事件，包含scrollChildren数量、scrollIndex
-        // int visibleChildren = 0;
-        // // handle hidden children at the beginning and end of the list.
-        // for (flutter::SemanticsNode child : node.childrenInHitTestOrder) {
-        //   if (!child.hasFlag(Flag.IS_HIDDEN)) {
-        //     visibleChildren += 1;
-        //   }
-        // }
-      }
-      // sendAccessibilityEvent(event)
-    }
 
     // 判断是否触发liveRegion活动区，当前节点是否活跃（优先级低）
     if (node.HasFlag(FLAGS_::kIsLiveRegion)) {
@@ -182,6 +209,15 @@ void OhosAccessibilityBridge::updateSemantics(
   }
 
   FML_DLOG(INFO) << "=== UpdateSemantics is end ===";
+}
+
+bool OhosAccessibilityBridge::IsNodeScrollable(flutter::SemanticsNode flutterNode) {
+  // int32_t scrollChildren = 0;
+  // int32_t scrollIndex = 0;
+  // double scrollPosition = std::nan("");
+  // double scrollExtentMax = std::nan("");
+  // double scrollExtentMin = std::nan("");
+  return flutterNode.scrollPosition != std::nan("");
 }
 
 void OhosAccessibilityBridge::announce(std::unique_ptr<char[]>& message) {
@@ -1031,9 +1067,7 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
         ArkUI_AccessibilityEventType scrollEventType1 =
         ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_SCROLLED;
         Flutter_SendAccessibilityAsyncEvent(elementId, scrollEventType1);
-        FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: scroll
-        forward("<<action<<")"<<" event: scroll
-        forward("<<scrollEventType1<<")";
+        FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: scroll forward("<<action<<")"<<" event: scroll forward("<<scrollEventType1<<")";
       }
       break;
     }
@@ -1070,9 +1104,7 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
         ArkUI_AccessibilityEventType scrollEventType2 =
         ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_SCROLLED;
         Flutter_SendAccessibilityAsyncEvent(elementId, scrollEventType2);
-        FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: scroll
-        backward("<<action<<")"<<" event: scroll
-        backward("<<scrollEventType2<<")";
+        FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: scroll backward("<<action<<")"<<" event: scroll backward("<<scrollEventType2<<")";
       }
       break;
     }

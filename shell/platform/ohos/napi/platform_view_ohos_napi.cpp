@@ -1926,6 +1926,14 @@ napi_value PlatformViewOHOSNapi::nativeSetSemanticsEnabled(napi_env env, napi_ca
   FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
                        "OHOS_SHELL_HOLDER->GetPlatformView()->SetSemanticsEnabled= "<<enabled;
 
+  // when the system accessibility service is off
+  if(!enabled) {
+    //给无障碍bridge传递nativeShellHolderId
+    auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+    ohosAccessibilityBridge->ClearFlutterSemanticsCaches();
+    FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled -> ClearFlutterSemanticsCaches()";
+  }
+  
   //给无障碍bridge传递nativeShellHolderId
   auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
   ohosAccessibilityBridge->nativeShellHolder_ = shell_holder;
