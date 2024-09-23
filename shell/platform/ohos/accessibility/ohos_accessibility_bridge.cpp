@@ -40,55 +40,6 @@ void OhosAccessibilityBridge::updateSemantics(
     flutter::CustomAccessibilityActionUpdates actions) {
   FML_DLOG(INFO) << ("OhosAccessibilityBridge::updateSemantics is called");
 
-  // 每次flutter语义节点更新，需要清空语义树容器节点信息
-  // flutterSemanticsTree_.clear();
-  // parentChildIdVec.clear();
-
-  std::set<SEMANTICS_NODE_> visitedObjs;
-  std::vector<SEMANTICS_NODE_> newRoutes;
-
-  // Dispatch a TYPE_WINDOW_STATE_CHANGED event if the most recent route id
-  // changed from the
-  // previously cached route id.
-  // Finds the last route that is not in the previous routes.
-  // SEMANTICS_NODE_ lastAdded;
-  // lastAdded.id = -2;
-  // for (const auto& _node : newRoutes) {
-  //   if (!flutterNavigationStack[_node.id]) {
-  //     lastAdded = _node;
-  //   }
-  // }
-  // // If all the routes are in the previous route, get the last route.
-  // if (lastAdded.id == -2 && newRoutes.size() > 0) {
-  //   lastAdded = newRoutes[newRoutes.size() - 1];
-  // }
-
-  // There are two cases if lastAdded != nil
-  // 1. lastAdded is not in previous routes. In this case,
-  //    lastAdded.id != previousRouteId
-  // 2. All new routes are in previous routes and
-  //    lastAdded = newRoutes.last.
-  // In the first case, we need to announce new route. In the second case,
-  // we need to announce if one list is shorter than the other.
-  // if (lastAdded.id != -2 && (lastAdded.id != previousRouteId ||
-  //                         newRoutes.size() !=
-  // flutterNavigationStack.size())) {
-  //   previousRouteId = lastAdded.id;
-  //   onWindowNameChange(lastAdded);  // todo
-  // }
-  // flutterNavigationStack.clear();
-  // for (const auto& _node : newRoutes) {
-  //   flutterNavigationStack.emplace_back(_node.id);
-  // }
-
-  // for (const auto& item : flutterSemanticsTree_) {
-  //   SEMANTICS_NODE_ obj = item.second;
-  //   if (visitedObjs.find(obj) == visitedObjs.end()) {
-  //     removeSemanticsNode(obj);
-  //     flutterSemanticsTree_.erase(item.first);
-  //   }
-  // }
-
   /** 获取并分析每个语义节点的更新属性 */
   for (auto& item : update) {
     // 获取当前更新的节点node
@@ -1387,8 +1338,36 @@ flutter::SemanticsNode OhosAccessibilityBridge::getFlutterRootSemanticsNode() {
   return flutterSemanticsTree_.at(0);
 }
 
+void OhosAccessibilityBridge::AddRouteNodes(std::vector<flutter::SemanticsNode> edges, flutter::SemanticsNode node) {
+  if(node.HasFlag(FLAGS_::kScopesRoute)) {
+    edges.emplace_back(node);
+  }
+  for(auto& childNodeId: node.childrenInTraversalOrder) {
+    auto childNode = getOrCreateFlutterSemanticsNode(childNodeId);
+    AddRouteNodes(edges, childNode);
+  }
+}
+
+std::string OhosAccessibilityBridge::GetRouteName(flutter::SemanticsNode node) {
+  if(node.HasFlag(FLAGS_::kNamesRoute) && !node.label.empty()) {
+    return node.label;
+  }
+  for(auto& childNodeId: node.childrenInTraversalOrder) {
+    auto childNode = getOrCreateFlutterSemanticsNode(childNodeId);
+    std::string newName = GetRouteName(childNode);
+    if(!newName.empty()) {
+      return newName;
+    }
+  }
+  return "";
+}
+
 void OhosAccessibilityBridge::onWindowNameChange(flutter::SemanticsNode route) {
-  // todo ...
+  std::string routeName = GetRouteName(route);
+  if(routeName.empty()) {
+    routeName = " ";
+  }
+  Flutter_SendAccessibilityAsyncEvent(static_cast<int64_t>(route.id), ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_PAGE_CONTENT_UPDATE);
 }
 
 void OhosAccessibilityBridge::removeSemanticsNode(
@@ -1423,7 +1402,7 @@ void OhosAccessibilityBridge::ClearFlutterSemanticsCaches() {
   parentChildIdVec.clear();
   screenRectMap_.clear();
   actions_mp_.clear();
-  flutterNavigationStack.clear();
+  flutterNavigationVec_.clear();
 }
 
 void OhosAccessibilityBridge::printTest(flutter::SemanticsNode node) {

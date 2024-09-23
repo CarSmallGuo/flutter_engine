@@ -33,7 +33,7 @@ namespace flutter {
 
 typedef flutter::SemanticsFlags FLAGS_;
 typedef flutter::SemanticsAction ACTIONS_;
-typedef flutter::SemanticsNode SEMANTICS_NODE_;
+typedef flutter::SemanticsNode FLUTTER_NODE_;
 
 /**
  * flutter和ohos的无障碍服务桥接
@@ -86,7 +86,7 @@ class OhosAccessibilityBridge {
   std::unordered_map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
   std::unordered_map<int32_t, std::pair<std::pair<float, float>, std::pair<float, float>>> screenRectMap_;
   std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
-  std::vector<int32_t> flutterNavigationStack;
+  std::vector<int32_t> flutterNavigationVec_;
 
   static const int32_t ROOT_NODE_ID = 0;
 
@@ -100,7 +100,8 @@ class OhosAccessibilityBridge {
   void PerformSetText(flutter::SemanticsNode flutterNode, ArkUI_Accessibility_ActionType action, ArkUI_AccessibilityActionArguments* actionArguments);
   void PerformSelectText(flutter::SemanticsNode flutterNode, ArkUI_Accessibility_ActionType action, ArkUI_AccessibilityActionArguments* actionArguments);
 
-
+  void AddRouteNodes(std::vector<flutter::SemanticsNode> edges, flutter::SemanticsNode node);
+  std::string GetRouteName(flutter::SemanticsNode node);
   void onWindowNameChange(flutter::SemanticsNode route);
   void removeSemanticsNode(flutter::SemanticsNode nodeToBeRemoved);
    
