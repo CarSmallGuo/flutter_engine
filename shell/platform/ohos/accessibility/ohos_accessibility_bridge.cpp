@@ -491,6 +491,12 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToSceenRect(
   FML_DLOG(INFO) << "ConvertChildRelativeRectToSceenRect -> { nodeId: "
                  << currNode.id << ", (" << newLeft << ", " << newTop << ", "
                  << newRight << ", " << newBottom << ")}";
+
+  if(newLeft < realParentLeft || newTop < realParentTop || newRight > realParentRight || newBottom > realParentBottom) {
+    FML_DLOG(ERROR) << "ConvertChildRelativeRectToSceenRect childRect is bigger than parentRect -> { nodeId: "
+                 << currNode.id << ", (" << newLeft << ", " << newTop << ", "
+                 << newRight << ", " << newBottom << ")}";
+  }
 }
 
 /**
@@ -518,6 +524,8 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
     int32_t bottom = static_cast<int32_t>(flutterNode.rect.fBottom);
     ArkUI_AccessibleRect rect = {left, top, right, bottom};
     OH_ArkUI_AccessibilityElementInfoSetScreenRect(elementInfoFromList, &rect);
+    //设置root节点的屏幕绝对坐标rect
+    SetAbsoluteScreenRect(0, left, top, right, bottom);
 
     // 设置elementinfo的action类型
     int32_t actionTypeNum = 2;
@@ -680,9 +688,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
   }
 
   // 设置无障碍播报文本
-  std::string text = flutterNode.label.empty()
-                         ? "当前节点id为" + std::to_string(flutterNode.id)
-                         : flutterNode.label;
+  std::string text = flutterNode.label;
   OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(elementInfoFromList,
                                                         text.c_str());
   FML_DLOG(INFO) << "FlutterNodeToElementInfoById SetAccessibilityText = "
