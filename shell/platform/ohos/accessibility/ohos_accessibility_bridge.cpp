@@ -451,7 +451,8 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToSceenRect(
                  << currNode.id << ", (" << newLeft << ", " << newTop << ", "
                  << newRight << ", " << newBottom << ")}";
 
-  if(newLeft < realParentLeft || newTop < realParentTop || newRight > realParentRight || newBottom > realParentBottom) {
+  if(newLeft < realParentLeft || newTop < realParentTop || newRight > realParentRight || newBottom > realParentBottom
+    || newLeft >= newRight || newTop >= newBottom) {
     FML_DLOG(ERROR) << "ConvertChildRelativeRectToSceenRect childRect is bigger than parentRect -> { nodeId: "
                  << currNode.id << ", (" << newLeft << ", " << newTop << ", "
                  << newRight << ", " << newBottom << ")}";
@@ -1023,15 +1024,17 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
 
       } else {
       }
-
-      /** Scrolled event, sent when a scrollable component experiences a scroll
-       * event. 4096 */
-      // ArkUI_AccessibilityEventType scrollEventType1 =
-      // ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_SCROLLED;
-      // Flutter_SendAccessibilityAsyncEvent(elementId, scrollEventType1);
-      // FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: scroll
-      // forward("<<action<<")"<<" event: scroll
-      // forward("<<scrollEventType1<<")";
+      std::string currComponetType =  GetNodeComponentType(flutterNode);
+      if(currComponetType == "ListView") {
+        /** Scrolled event, sent when a scrollable component experiences a scroll
+        * event. 4096 */
+        ArkUI_AccessibilityEventType scrollEventType1 =
+        ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_SCROLLED;
+        Flutter_SendAccessibilityAsyncEvent(elementId, scrollEventType1);
+        FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: scroll
+        forward("<<action<<")"<<" event: scroll
+        forward("<<scrollEventType1<<")";
+      }
       break;
     }
 
@@ -1060,15 +1063,17 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
 
       } else {
       }
-
-      /** Scrolled event, sent when a scrollable component experiences a scroll
-       * event. 4096 */
-      // ArkUI_AccessibilityEventType scrollEventType2 =
-      // ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_SCROLLED;
-      // Flutter_SendAccessibilityAsyncEvent(elementId, scrollEventType2);
-      // FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: scroll
-      // backward("<<action<<")"<<" event: scroll
-      // backward("<<scrollEventType2<<")";
+      std::string currComponetType =  GetNodeComponentType(flutterNode);
+      if(currComponetType == "ListView") {
+        /** Scrolled event, sent when a scrollable component experiences a scroll
+         * event. 4096 */
+        ArkUI_AccessibilityEventType scrollEventType2 =
+        ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_SCROLLED;
+        Flutter_SendAccessibilityAsyncEvent(elementId, scrollEventType2);
+        FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: scroll
+        backward("<<action<<")"<<" event: scroll
+        backward("<<scrollEventType2<<")";
+      }
       break;
     }
 
