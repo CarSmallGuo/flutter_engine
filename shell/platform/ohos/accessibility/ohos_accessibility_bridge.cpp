@@ -21,7 +21,6 @@
 #include "third_party/skia/include/core/SkMatrix.h"
 #include "third_party/skia/include/core/SkScalar.h"
 
-#define SHELL_HOLDER (reinterpret_cast<OHOSShellHolder*>(nativeShellHolder_))
 namespace flutter {
 
 OhosAccessibilityBridge OhosAccessibilityBridge::bridgeInstance;
@@ -399,17 +398,21 @@ void OhosAccessibilityBridge::SetAbsoluteScreenRect(int32_t flutterNodeId,
                                                     float top,
                                                     float right,
                                                     float bottom) {
-
-  if (screenRectMap_.find(flutterNodeId) == screenRectMap_.end()) {
-    screenRectMap_[flutterNodeId] = std::make_pair(std::make_pair(left, top),
-                                     std::make_pair(right, bottom));
-    FML_DLOG(INFO) << "SetAbsoluteScreenRect -> insert { " << flutterNodeId
+  screenRectMap_[flutterNodeId] = std::make_pair(std::make_pair(left, top),
+                                  std::make_pair(right, bottom));
+  FML_DLOG(INFO) << "SetAbsoluteScreenRect -> insert { " << flutterNodeId
                    << ", <" << left << ", " << top << ", " << right << ", "
                    << bottom << "> } is succeed";
-  } else {
-    FML_DLOG(ERROR) << "SetAbsoluteScreenRect -> flutterNodeId="
-                    << flutterNodeId << " already exists !";
-  }
+  // if (screenRectMap_.find(flutterNodeId) == screenRectMap_.end()) {
+  //   screenRectMap_[flutterNodeId] = std::make_pair(std::make_pair(left, top),
+  //                                    std::make_pair(right, bottom));
+  //   FML_DLOG(INFO) << "SetAbsoluteScreenRect -> insert { " << flutterNodeId
+  //                  << ", <" << left << ", " << top << ", " << right << ", "
+  //                  << bottom << "> } is succeed";
+  // } else {
+  //   FML_DLOG(ERROR) << "SetAbsoluteScreenRect -> flutterNodeId="
+  //                   << flutterNodeId << " already exists !";
+  // }
 }
 
 std::pair<std::pair<float, float>, std::pair<float, float>>
@@ -481,10 +484,15 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToSceenRect(
       newBottom = realParentBottom;
     } else {
       // 子节点的屏幕绝对坐标转换，包括offset偏移值计算、缩放系数变换
-      newLeft = (currLeft + _kMTransX) * realScaleFactor;
-      newTop = (currTop + _kMTransY) * realScaleFactor;
-      newRight = (currLeft + _kMTransX + currRight) * realScaleFactor;
-      newBottom = (currTop + _kMTransY + currBottom) * realScaleFactor;
+      // newLeft = (currLeft + _kMTransX) * realScaleFactor;
+      // newTop = (currTop + _kMTransY) * realScaleFactor;
+      // newRight = (currLeft + _kMTransX + currRight) * realScaleFactor;
+      // newBottom = (currTop + _kMTransY + currBottom) * realScaleFactor;
+      newLeft = (currLeft + _kMTransX) * realScaleFactor + realParentLeft;
+      newTop = (currTop + _kMTransY) * realScaleFactor + realParentTop;
+      newRight = (currLeft + _kMTransX + currRight) * realScaleFactor + realParentLeft;
+      newBottom = (currTop + _kMTransY + currBottom) * realScaleFactor + realParentTop;
+
     }
     SetAbsoluteScreenRect(currNode.id, newLeft, newTop, newRight, newBottom);
   }
@@ -747,7 +755,6 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
 /**
  * Called to obtain element information based on a specified node.
  * NOTE:该arkui接口需要在系统无障碍服务开启时，才能触发调用
- * TODO:当前实现版本为实现简易功能，正在完善实现实际使用场景逻辑并逐步优化
  */
 int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
     int64_t elementId,
@@ -833,8 +840,10 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
   return ARKUI_ACCESSIBILITY_NATIVE_RESULT_SUCCESSFUL;
 }
 
-/** Called to obtain element information based on a specified node and text
- * content. */
+/** 
+ * Called to obtain element information based on a specified node and text
+ * content. 
+ */
 int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosByText(
     int64_t elementId,
     const char* text,
@@ -918,14 +927,19 @@ flutter::SemanticsAction OhosAccessibilityBridge::ArkuiActionsToFlutterActions(
   }
 }
 
+/**
+ * covert arkui-specific touch action to flutter-specific action
+ * and dispatch it from C++ to Dart 
+ */
 void OhosAccessibilityBridge::DispatchSemanticsAction(
     int32_t id,
     flutter::SemanticsAction action,
     fml::MallocMapping args) {
-  FML_DLOG(INFO) << "DispatchSemanticsAction is called";
-  // TODO: ... 发送语义动作解析
-  SHELL_HOLDER->GetPlatformView()->PlatformView::DispatchSemanticsAction(
+  auto ohos_shell_holder = reinterpret_cast<OHOSShellHolder*>(nativeShellHolder_);
+  ohos_shell_holder->GetPlatformView()->PlatformView::DispatchSemanticsAction(
       id, action, {});
+  FML_DLOG(INFO) << "DispatchSemanticsAction -> shell_holder_id: "<<nativeShellHolder_
+                 <<" id: "<<id<<" action: "<<static_cast<int32_t>(action);
 }
 
 /**
@@ -1194,7 +1208,7 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
 
 int32_t OhosAccessibilityBridge::ClearFocusedFocusAccessibilityNode() {
   // todo ...
-  FML_DLOG(INFO) << "=== ClearFocusedFocusAccessibilityNode is end";
+  FML_DLOG(INFO) << "=== ClearFocusedFocusAccessibilityNode is end ===";
   return 0;
 }
 int32_t OhosAccessibilityBridge::GetAccessibilityNodeCursorPosition(
@@ -1202,7 +1216,7 @@ int32_t OhosAccessibilityBridge::GetAccessibilityNodeCursorPosition(
     int32_t requestId,
     int32_t* index) {
   // todo ...
-  FML_DLOG(INFO) << "=== GetAccessibilityNodeCursorPosition is end";
+  FML_DLOG(INFO) << "=== GetAccessibilityNodeCursorPosition is end ===";
   return 0;
 }
 
