@@ -1414,6 +1414,18 @@ void OhosAccessibilityBridge::removeSemanticsNode(
   }
 }
 
+/**
+ * when the system accessibility service is shut down,
+ * clear all the flutter semantics-relevant caches like maps, vectors 
+ */
+void OhosAccessibilityBridge::ClearFlutterSemanticsCaches() {
+  flutterSemanticsTree_.clear();
+  parentChildIdVec.clear();
+  screenRectMap_.clear();
+  actions_mp_.clear();
+  flutterNavigationStack.clear();
+}
+
 void OhosAccessibilityBridge::printTest(flutter::SemanticsNode node) {
   FML_DLOG(INFO) << "==================SemanticsNode=====================";
   SkMatrix _transform = node.transform.asM33();

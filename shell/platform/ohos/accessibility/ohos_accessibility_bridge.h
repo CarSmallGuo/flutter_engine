@@ -76,6 +76,8 @@ class OhosAccessibilityBridge {
   std::pair<std::pair<float, float>, std::pair<float, float>> GetAbsoluteScreenRect(int32_t flutterNodeId);
   void SetAbsoluteScreenRect(int32_t flutterNodeId, float left, float top, float right, float bottom);
 
+  void ClearFlutterSemanticsCaches();
+
  private:
   static OhosAccessibilityBridge bridgeInstance; 
 
