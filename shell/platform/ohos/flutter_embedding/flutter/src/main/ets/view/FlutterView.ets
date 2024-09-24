@@ -336,7 +336,7 @@ export class FlutterView {
     }
 
     // 根据是否全屏显示，设置标题栏高度（若全屏，则及时规避）
-    if (this.checkFullScreen && (setFullScreen || FlutterManager.getInstance().getFullScreenListener().useFullScreen())) { // 全屏显示
+    if (this.checkFullScreen && (setFullScreen || this.mainWindow.getWindowProperties().isLayoutFullScreen)) { // 全屏显示
       this.viewportMetrics.physicalViewPaddingTop = this.systemAvoidArea?.topRect.height ?? 0;
       this.viewportMetrics.physicalViewPaddingBottom = this.navigationAvoidArea?.bottomRect.height ?? 0;
     } else { // 非全屏显示（保持规避效果）
@@ -358,10 +358,10 @@ export class FlutterView {
   private onKeyboardAreaChange() {
     if (this.checkKeyboard) {
       let keyboardAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_KEYBOARD);
-      this.viewportMetrics.physicalViewInsetTop = keyboardAvoidArea?.topRect.height ?? 0
-      this.viewportMetrics.physicalViewInsetLeft = keyboardAvoidArea?.leftRect.width ?? 0
-      this.viewportMetrics.physicalViewInsetBottom = keyboardAvoidArea?.bottomRect.height ?? 0
-      this.viewportMetrics.physicalViewInsetRight = keyboardAvoidArea?.rightRect.width ?? 0
+      this.viewportMetrics.physicalViewInsetTop = this.keyboardAvoidArea!.topRect.height
+      this.viewportMetrics.physicalViewInsetLeft = this.keyboardAvoidArea!.leftRect.width
+      this.viewportMetrics.physicalViewInsetBottom = this.keyboardAvoidArea!.bottomRect.height
+      this.viewportMetrics.physicalViewInsetRight = this.keyboardAvoidArea!.rightRect.width
     } else {
       this.viewportMetrics.physicalViewInsetTop = 0
       this.viewportMetrics.physicalViewInsetLeft = 0
@@ -373,10 +373,10 @@ export class FlutterView {
   private onGestureAreaChange() {
     if (this.checkGesture) {
       let gestureAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM_GESTURE);
-      this.viewportMetrics.systemGestureInsetTop = gestureAvoidArea?.topRect.height ?? 0
-      this.viewportMetrics.systemGestureInsetLeft = gestureAvoidArea?.leftRect.width ?? 0
-      this.viewportMetrics.systemGestureInsetBottom = gestureAvoidArea?.bottomRect.height ?? 0
-      this.viewportMetrics.systemGestureInsetRight = gestureAvoidArea?.rightRect.width ?? 0
+      this.viewportMetrics.systemGestureInsetTop = this.gestureAvoidArea!.topRect.height
+      this.viewportMetrics.systemGestureInsetLeft = this.gestureAvoidArea!.leftRect.width
+      this.viewportMetrics.systemGestureInsetBottom = this.gestureAvoidArea!.bottomRect.height
+      this.viewportMetrics.systemGestureInsetRight = this.gestureAvoidArea!.rightRect.width
     } else {
       this.viewportMetrics.systemGestureInsetTop = 0
       this.viewportMetrics.systemGestureInsetLeft = 0
