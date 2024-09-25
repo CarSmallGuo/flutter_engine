@@ -99,7 +99,13 @@ class OhosAccessibilityBridge {
   std::string GetNodeComponentType(const flutter::SemanticsNode& node);
   flutter::SemanticsAction ArkuiActionsToFlutterActions(ArkUI_Accessibility_ActionType arkui_action);
 
+  bool IsNodeCheckable(flutter::SemanticsNode flutterNode);
+  bool IsNodeChecked(flutter::SemanticsNode flutterNode);
+  bool IsNodeSelected(flutter::SemanticsNode flutterNode);
+  bool IsNodeClickable(flutter::SemanticsNode flutterNode);
   bool IsNodeScrollable(flutter::SemanticsNode flutterNode);
+  bool IsNodePassword(flutter::SemanticsNode flutterNode);
+  bool IsNodeVisible(flutter::SemanticsNode flutterNode);
   void PerformSetText(flutter::SemanticsNode flutterNode, ArkUI_Accessibility_ActionType action, ArkUI_AccessibilityActionArguments* actionArguments);
   void PerformSelectText(flutter::SemanticsNode flutterNode, ArkUI_Accessibility_ActionType action, ArkUI_AccessibilityActionArguments* actionArguments);
 
@@ -108,8 +114,9 @@ class OhosAccessibilityBridge {
   void onWindowNameChange(flutter::SemanticsNode route);
   void removeSemanticsNode(flutter::SemanticsNode nodeToBeRemoved);
    
-  void printTest(flutter::SemanticsNode node);
-  void printTestActions(flutter::CustomAccessibilityAction customAccessibilityAction);
+  void GetSemanticsNodeDebugInfo(flutter::SemanticsNode node);
+  void GetSemanticsFlagsDebugInfo(flutter::SemanticsNode node);
+  void GetCustomActionDebugInfo(flutter::CustomAccessibilityAction customAccessibilityAction);
 };
 
 }  // namespace flutter
