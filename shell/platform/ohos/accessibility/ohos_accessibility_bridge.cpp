@@ -789,7 +789,6 @@ bool OhosAccessibilityBridge::IsNodeClickable(flutter::SemanticsNode flutterNode
          || flutterNode.HasFlag(FLAGS_::kIsButton) 
          || flutterNode.HasFlag(FLAGS_::kIsTextField) 
          || flutterNode.HasFlag(FLAGS_::kIsImage)
-         || flutterNode.HasFlag(FLAGS_::kIsHeader)
          || flutterNode.HasFlag(FLAGS_::kIsLiveRegion)
          || flutterNode.HasFlag(FLAGS_::kIsMultiline)
          || flutterNode.HasFlag(FLAGS_::kIsLink)

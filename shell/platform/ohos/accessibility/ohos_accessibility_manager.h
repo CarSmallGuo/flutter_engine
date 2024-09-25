@@ -15,14 +15,6 @@
 #ifndef OHOS_ACCESSIBILITY_MANAGER_H
 #define OHOS_ACCESSIBILITY_MANAGER_H
 
-// #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
-// #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
-// #include "types.h"
-// #include "ohos_logging.h"
-// #include "flutter/fml/logging.h"
-// #include <functional>
-
-// #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 
 namespace flutter {
 /**
