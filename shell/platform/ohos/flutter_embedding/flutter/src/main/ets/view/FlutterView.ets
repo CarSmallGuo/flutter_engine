@@ -135,6 +135,7 @@ export class FlutterView {
   private navigationAvoidArea: window.AvoidArea;
   private gestureAvoidArea: window.AvoidArea;
   private keyboardAvoidArea: window.AvoidArea;
+  private needSetViewport: boolean = false;
 
 
   constructor(viewId: string, context: Context) {
@@ -350,8 +351,10 @@ export class FlutterView {
 
     this.onKeyboardAreaChange()
     this.onGestureAreaChange()
-    if (!this.viewportMetrics.isEqual(originalMetrics)) {
-      this.updateViewportMetrics()
+    if (!this.viewportMetrics.isEqual(originalMetrics) || this.needSetViewport) {
+      if (!this.updateViewportMetrics()) {
+        this.needSetViewport = true;
+      }
     }
   }
 
@@ -389,7 +392,7 @@ export class FlutterView {
     return this.flutterEngine != null
   }
 
-  private updateViewportMetrics() {
+  private updateViewportMetrics(): boolean{
     if (this.isAttachedToFlutterEngine()) {
       this?.flutterEngine?.getFlutterNapi()?.setViewportMetrics(this.viewportMetrics.devicePixelRatio,
         this.viewportMetrics.physicalWidth,
@@ -410,7 +413,9 @@ export class FlutterView {
         new Array(0),
         new Array(0),
         new Array(0))
+        return true;
     }
+    return false;
   }
 
   onKeyEvent(event: KeyEvent) {
