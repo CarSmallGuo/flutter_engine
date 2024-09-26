@@ -742,7 +742,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
                                                    childCount, childNodeIds);
 
   /**
-   * 根据当前flutter节点的SemanticsFlags特性，配置对应的elementinfo属性
+   * 根据当前flutter节点的SemanticsFlags特性，配置对应的eelmentinfo属性
    */
   // 判断当前节点是否可点击
   if (IsNodeClickable(flutterNode)) {
