@@ -47,8 +47,8 @@ class OhosAccessibilityBridge {
 
   bool isOhosAccessibilityEnabled_;
   int64_t nativeShellHolder_;
+  ArkUI_AccessibilityProvider* provider_;
 
-  
   void updateSemantics(flutter::SemanticsNodeUpdates update,
                        flutter::CustomAccessibilityActionUpdates actions);
 
@@ -59,14 +59,20 @@ class OhosAccessibilityBridge {
   // obtain the flutter semnatics node
   flutter::SemanticsNode getOrCreateFlutterSemanticsNode(int32_t id);
 
-  int32_t FindAccessibilityNodeInfosById(int64_t elementId, ArkUI_AccessibilitySearchMode mode, int32_t requestId, ArkUI_AccessibilityElementInfoList* elementList);
-  int32_t FindAccessibilityNodeInfosByText(int64_t elementId, const char* text, int32_t requestId, ArkUI_AccessibilityElementInfoList* elementList);
-  int32_t FindFocusedAccessibilityNode(int64_t elementId, ArkUI_AccessibilityFocusType focusType, int32_t requestId, ArkUI_AccessibilityElementInfo* elementinfo);
-  int32_t FindNextFocusAccessibilityNode(int64_t elementId, ArkUI_AccessibilityFocusMoveDirection direction, int32_t requestId, ArkUI_AccessibilityElementInfo* elementList);
-  int32_t ExecuteAccessibilityAction(int64_t elementId, ArkUI_Accessibility_ActionType action, ArkUI_AccessibilityActionArguments *actionArguments, int32_t requestId);
+  int32_t FindAccessibilityNodeInfosById(int64_t elementId, ArkUI_AccessibilitySearchMode mode, 
+                                         int32_t requestId, 
+                                         ArkUI_AccessibilityElementInfoList* elementList);
+  int32_t FindAccessibilityNodeInfosByText(int64_t elementId, const char* text, int32_t requestId, 
+                                           ArkUI_AccessibilityElementInfoList* elementList);
+  int32_t FindFocusedAccessibilityNode(int64_t elementId, ArkUI_AccessibilityFocusType focusType, 
+                                       int32_t requestId, ArkUI_AccessibilityElementInfo* elementinfo);
+  int32_t FindNextFocusAccessibilityNode(int64_t elementId, ArkUI_AccessibilityFocusMoveDirection direction, 
+                                         int32_t requestId, ArkUI_AccessibilityElementInfo* elementList);
+  int32_t ExecuteAccessibilityAction(int64_t elementId, ArkUI_Accessibility_ActionType action, 
+                                     ArkUI_AccessibilityActionArguments *actionArguments, 
+                                     int32_t requestId);
   int32_t ClearFocusedFocusAccessibilityNode();
   int32_t GetAccessibilityNodeCursorPosition(int64_t elementId, int32_t requestId, int32_t* index);
-  ArkUI_AccessibilityProvider* provider_;
 
   void Flutter_SendAccessibilityAsyncEvent(int64_t elementId, ArkUI_AccessibilityEventType eventType);
   void FlutterNodeToElementInfoById(ArkUI_AccessibilityElementInfo* elementInfoFromList, int64_t elementId);
@@ -106,8 +112,13 @@ class OhosAccessibilityBridge {
   bool IsNodeScrollable(flutter::SemanticsNode flutterNode);
   bool IsNodePassword(flutter::SemanticsNode flutterNode);
   bool IsNodeVisible(flutter::SemanticsNode flutterNode);
-  void PerformSetText(flutter::SemanticsNode flutterNode, ArkUI_Accessibility_ActionType action, ArkUI_AccessibilityActionArguments* actionArguments);
-  void PerformSelectText(flutter::SemanticsNode flutterNode, ArkUI_Accessibility_ActionType action, ArkUI_AccessibilityActionArguments* actionArguments);
+
+  void PerformSetText(flutter::SemanticsNode flutterNode, 
+                      ArkUI_Accessibility_ActionType action, 
+                      ArkUI_AccessibilityActionArguments* actionArguments);
+  void PerformSelectText(flutter::SemanticsNode flutterNode, 
+                         ArkUI_Accessibility_ActionType action, 
+                         ArkUI_AccessibilityActionArguments* actionArguments);
 
   void AddRouteNodes(std::vector<flutter::SemanticsNode> edges, flutter::SemanticsNode node);
   std::string GetRouteName(flutter::SemanticsNode node);

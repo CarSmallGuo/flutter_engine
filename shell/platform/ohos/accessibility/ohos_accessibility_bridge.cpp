@@ -47,7 +47,7 @@ void OhosAccessibilityBridge::updateSemantics(
     const flutter::SemanticsNode& node = item.second;
 
     // print semantics node and flags info for debugging
-    GetSemanticsNodeDebugInfo(node);  
+    GetSemanticsNodeDebugInfo(node);
     GetSemanticsFlagsDebugInfo(node);
 
     /**
@@ -694,7 +694,8 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
   FML_DLOG(INFO) << "FlutterNodeToElementInfoById SetAccessibilityText = "
                  << text;
   std::string hint = flutterNode.hint;
-  OH_ArkUI_AccessibilityElementInfoSetHintText(elementInfoFromList, hint.c_str());
+  OH_ArkUI_AccessibilityElementInfoSetHintText(elementInfoFromList,
+                                               hint.c_str());
 
   // 配置child节点信息
   int32_t childCount =
@@ -713,49 +714,56 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
   /**
    * 根据当前flutter节点的SemanticsFlags特性，配置对应的elementinfo属性
    */
-  //判断当前节点是否可点击
-  if(IsNodeClickable(flutterNode)) {
+  // 判断当前节点是否可点击
+  if (IsNodeClickable(flutterNode)) {
     OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfoFromList, true);
-    FML_DLOG(INFO) <<"flutterNode.id="<<flutterNode.id<<" OH_ArkUI_AccessibilityElementInfoSetClickable -> true";
-  } 
-  //判断当前节点是否可获焦点
+    FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
+                   << " OH_ArkUI_AccessibilityElementInfoSetClickable -> true";
+  }
+  // 判断当前节点是否可获焦点
   if (IsNodeFocusable(flutterNode)) {
     OH_ArkUI_AccessibilityElementInfoSetFocusable(elementInfoFromList, true);
-    FML_DLOG(INFO) <<"flutterNode.id="<<flutterNode.id<<" OH_ArkUI_AccessibilityElementInfoSetFocusable -> true";
-  } 
-  //判断当前节点是否为密码输入框
-  if(IsNodePassword(flutterNode)) {
+    FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
+                   << " OH_ArkUI_AccessibilityElementInfoSetFocusable -> true";
+  }
+  // 判断当前节点是否为密码输入框
+  if (IsNodePassword(flutterNode)) {
     OH_ArkUI_AccessibilityElementInfoSetIsPassword(elementInfoFromList, true);
-    FML_DLOG(INFO) <<"flutterNode.id="<<flutterNode.id<<" OH_ArkUI_AccessibilityElementInfoSetIsPassword -> true";
+    FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
+                   << " OH_ArkUI_AccessibilityElementInfoSetIsPassword -> true";
   }
-  //判断当前节点是否具备checkable状态 (如：checkbox, radio button)
-  if(IsNodeCheckable(flutterNode)) {
+  // 判断当前节点是否具备checkable状态 (如：checkbox, radio button)
+  if (IsNodeCheckable(flutterNode)) {
     OH_ArkUI_AccessibilityElementInfoSetCheckable(elementInfoFromList, true);
-    FML_DLOG(INFO) <<"flutterNode.id="<<flutterNode.id<<" OH_ArkUI_AccessibilityElementInfoSetCheckable -> true";
+    FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
+                   << " OH_ArkUI_AccessibilityElementInfoSetCheckable -> true";
   }
-  //判断当前节点(check box/radio button)是否checked/unchecked
-  if(IsNodeChecked(flutterNode)) {
+  // 判断当前节点(check box/radio button)是否checked/unchecked
+  if (IsNodeChecked(flutterNode)) {
     OH_ArkUI_AccessibilityElementInfoSetChecked(elementInfoFromList, true);
-     FML_DLOG(INFO) <<"flutterNode.id="<<flutterNode.id<<" OH_ArkUI_AccessibilityElementInfoSetChecked -> true";
+    FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
+                   << " OH_ArkUI_AccessibilityElementInfoSetChecked -> true";
   }
-  //判断当前节点组件是否可显示
-  if(IsNodeVisible(flutterNode)) {
+  // 判断当前节点组件是否可显示
+  if (IsNodeVisible(flutterNode)) {
     OH_ArkUI_AccessibilityElementInfoSetVisible(elementInfoFromList, true);
-     FML_DLOG(INFO) <<"flutterNode.id="<<flutterNode.id<<" OH_ArkUI_AccessibilityElementInfoSetVisible -> true";
+    FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
+                   << " OH_ArkUI_AccessibilityElementInfoSetVisible -> true";
   }
-  //判断当前节点组件是否选中
-  if(IsNodeSelected(flutterNode)) {
+  // 判断当前节点组件是否选中
+  if (IsNodeSelected(flutterNode)) {
     OH_ArkUI_AccessibilityElementInfoSetSelected(elementInfoFromList, true);
-     FML_DLOG(INFO) <<"flutterNode.id="<<flutterNode.id<<" OH_ArkUI_AccessibilityElementInfoSetSelected -> true";
+    FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
+                   << " OH_ArkUI_AccessibilityElementInfoSetSelected -> true";
   }
-  //当前节点组件默认enabled
+  // 当前节点组件默认enabled
   OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfoFromList, true);
 
   // 获取当前节点的组件类型
   std::string componentTypeName = GetNodeComponentType(flutterNode);
   FML_DLOG(INFO) << "FlutterNodeToElementInfoById componentTypeName = "
                  << componentTypeName;
-  //flutter节点对应elementinfo所属的组件类型（如：root， button，text等）
+  // flutter节点对应elementinfo所属的组件类型（如：root， button，text等）
   if (elementId == 0) {
     OH_ArkUI_AccessibilityElementInfoSetComponentType(elementInfoFromList,
                                                       "root");
@@ -784,50 +792,56 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
 /**
  * 判断当前flutter节点组件是否可点击
  */
-bool OhosAccessibilityBridge::IsNodeClickable(flutter::SemanticsNode flutterNode) {
-  return flutterNode.HasFlag(FLAGS_::kHasCheckedState) 
-         || flutterNode.HasFlag(FLAGS_::kIsButton) 
-         || flutterNode.HasFlag(FLAGS_::kIsTextField) 
-         || flutterNode.HasFlag(FLAGS_::kIsImage)
-         || flutterNode.HasFlag(FLAGS_::kIsLiveRegion)
-         || flutterNode.HasFlag(FLAGS_::kIsMultiline)
-         || flutterNode.HasFlag(FLAGS_::kIsLink)
-         || flutterNode.HasFlag(FLAGS_::kIsSlider)
-         || flutterNode.HasFlag(FLAGS_::kIsKeyboardKey)
-         || flutterNode.HasFlag(FLAGS_::kHasToggledState)
-         || flutterNode.HasFlag(FLAGS_::kHasImplicitScrolling);
+bool OhosAccessibilityBridge::IsNodeClickable(
+    flutter::SemanticsNode flutterNode) {
+  return flutterNode.HasFlag(FLAGS_::kHasCheckedState) ||
+         flutterNode.HasFlag(FLAGS_::kIsButton) ||
+         flutterNode.HasFlag(FLAGS_::kIsTextField) ||
+         flutterNode.HasFlag(FLAGS_::kIsImage) ||
+         flutterNode.HasFlag(FLAGS_::kIsLiveRegion) ||
+         flutterNode.HasFlag(FLAGS_::kIsMultiline) ||
+         flutterNode.HasFlag(FLAGS_::kIsLink) ||
+         flutterNode.HasFlag(FLAGS_::kIsSlider) ||
+         flutterNode.HasFlag(FLAGS_::kIsKeyboardKey) ||
+         flutterNode.HasFlag(FLAGS_::kHasToggledState) ||
+         flutterNode.HasFlag(FLAGS_::kHasImplicitScrolling);
 }
 /**
  * 判断当前flutter节点组件是否可显示
  */
-bool OhosAccessibilityBridge::IsNodeVisible(flutter::SemanticsNode flutterNode) {
+bool OhosAccessibilityBridge::IsNodeVisible(
+    flutter::SemanticsNode flutterNode) {
   return flutterNode.HasFlag(FLAGS_::kIsHidden) ? false : true;
 }
 /**
  * 判断当前flutter节点组件是否具备checkable属性
  */
-bool OhosAccessibilityBridge::IsNodeCheckable(flutter::SemanticsNode flutterNode) {
+bool OhosAccessibilityBridge::IsNodeCheckable(
+    flutter::SemanticsNode flutterNode) {
   return flutterNode.HasFlag(FLAGS_::kHasCheckedState);
 }
 /**
  * 判断当前flutter节点组件是否checked/unchecked（checkbox、radio button）
  */
-bool OhosAccessibilityBridge::IsNodeChecked(flutter::SemanticsNode flutterNode) {
+bool OhosAccessibilityBridge::IsNodeChecked(
+    flutter::SemanticsNode flutterNode) {
   return flutterNode.HasFlag(FLAGS_::kIsChecked);
 }
 /**
  * 判断当前flutter节点组件是否选中
  */
-bool OhosAccessibilityBridge::IsNodeSelected(flutter::SemanticsNode flutterNode) {
+bool OhosAccessibilityBridge::IsNodeSelected(
+    flutter::SemanticsNode flutterNode) {
   return flutterNode.HasFlag(FLAGS_::kIsSelected);
 }
 /**
  * 判断当前flutter节点组件是否为密码输入框
  */
-bool OhosAccessibilityBridge::IsNodePassword(flutter::SemanticsNode flutterNode) {
-  return flutterNode.HasFlag(FLAGS_::kIsTextField) && flutterNode.HasFlag(FLAGS_::kIsObscured);
+bool OhosAccessibilityBridge::IsNodePassword(
+    flutter::SemanticsNode flutterNode) {
+  return flutterNode.HasFlag(FLAGS_::kIsTextField) &&
+         flutterNode.HasFlag(FLAGS_::kIsObscured);
 }
-
 
 /**
  * Called to obtain element information based on a specified node.
@@ -1544,7 +1558,8 @@ void OhosAccessibilityBridge::ClearFlutterSemanticsCaches() {
   flutterNavigationVec_.clear();
 }
 
-void OhosAccessibilityBridge::GetSemanticsNodeDebugInfo(flutter::SemanticsNode node) {
+void OhosAccessibilityBridge::GetSemanticsNodeDebugInfo(
+    flutter::SemanticsNode node) {
   FML_DLOG(INFO) << "-------------------SemanticsNode------------------";
   SkMatrix _transform = node.transform.asM33();
   FML_DLOG(INFO) << "node.id=" << node.id;
@@ -1611,58 +1626,39 @@ void OhosAccessibilityBridge::GetSemanticsNodeDebugInfo(flutter::SemanticsNode n
   FML_DLOG(INFO) << "------------------SemanticsNode-----------------";
 }
 
-void OhosAccessibilityBridge::GetSemanticsFlagsDebugInfo(flutter::SemanticsNode node) {
+void OhosAccessibilityBridge::GetSemanticsFlagsDebugInfo(
+    flutter::SemanticsNode node) {
   FML_DLOG(INFO) << "----------------SemanticsFlags-------------------------";
   FML_DLOG(INFO) << "kHasCheckedState: "
                  << node.HasFlag(FLAGS_::kHasCheckedState);
-  FML_DLOG(INFO) << "kIsChecked:"
-                 << node.HasFlag(FLAGS_::kIsChecked);
-  FML_DLOG(INFO) << "kIsSelected:"
-                 << node.HasFlag(FLAGS_::kIsSelected);
-  FML_DLOG(INFO) << "kIsButton:"
-                 << node.HasFlag(FLAGS_::kIsButton);
-  FML_DLOG(INFO) << "kIsTextField:"
-                 << node.HasFlag(FLAGS_::kIsTextField);
-  FML_DLOG(INFO) << "kIsFocused:"
-                 << node.HasFlag(FLAGS_::kIsFocused);
+  FML_DLOG(INFO) << "kIsChecked:" << node.HasFlag(FLAGS_::kIsChecked);
+  FML_DLOG(INFO) << "kIsSelected:" << node.HasFlag(FLAGS_::kIsSelected);
+  FML_DLOG(INFO) << "kIsButton:" << node.HasFlag(FLAGS_::kIsButton);
+  FML_DLOG(INFO) << "kIsTextField:" << node.HasFlag(FLAGS_::kIsTextField);
+  FML_DLOG(INFO) << "kIsFocused:" << node.HasFlag(FLAGS_::kIsFocused);
   FML_DLOG(INFO) << "kHasEnabledState:"
                  << node.HasFlag(FLAGS_::kHasEnabledState);
-  FML_DLOG(INFO) << "kIsEnabled:"
-                 << node.HasFlag(FLAGS_::kIsEnabled);
+  FML_DLOG(INFO) << "kIsEnabled:" << node.HasFlag(FLAGS_::kIsEnabled);
   FML_DLOG(INFO) << "kIsInMutuallyExclusiveGroup:"
                  << node.HasFlag(FLAGS_::kIsInMutuallyExclusiveGroup);
-  FML_DLOG(INFO) << "kIsHeader:"
-                 << node.HasFlag(FLAGS_::kIsHeader);
-  FML_DLOG(INFO) << "kIsObscured:"
-                 << node.HasFlag(FLAGS_::kIsObscured);
-  FML_DLOG(INFO) << "kScopesRoute:"
-                 << node.HasFlag(FLAGS_::kScopesRoute);
-  FML_DLOG(INFO) << "kNamesRoute:"
-                 << node.HasFlag(FLAGS_::kNamesRoute);
-  FML_DLOG(INFO) << "kIsHidden:"
-                 << node.HasFlag(FLAGS_::kIsHidden);
-  FML_DLOG(INFO) << "kIsImage:"
-                 << node.HasFlag(FLAGS_::kIsImage);
-  FML_DLOG(INFO) << "kIsLiveRegion:"
-                 << node.HasFlag(FLAGS_::kIsLiveRegion);
+  FML_DLOG(INFO) << "kIsHeader:" << node.HasFlag(FLAGS_::kIsHeader);
+  FML_DLOG(INFO) << "kIsObscured:" << node.HasFlag(FLAGS_::kIsObscured);
+  FML_DLOG(INFO) << "kScopesRoute:" << node.HasFlag(FLAGS_::kScopesRoute);
+  FML_DLOG(INFO) << "kNamesRoute:" << node.HasFlag(FLAGS_::kNamesRoute);
+  FML_DLOG(INFO) << "kIsHidden:" << node.HasFlag(FLAGS_::kIsHidden);
+  FML_DLOG(INFO) << "kIsImage:" << node.HasFlag(FLAGS_::kIsImage);
+  FML_DLOG(INFO) << "kIsLiveRegion:" << node.HasFlag(FLAGS_::kIsLiveRegion);
   FML_DLOG(INFO) << "kHasToggledState:"
                  << node.HasFlag(FLAGS_::kHasToggledState);
-  FML_DLOG(INFO) << "kIsToggled:"
-                 << node.HasFlag(FLAGS_::kIsToggled);
+  FML_DLOG(INFO) << "kIsToggled:" << node.HasFlag(FLAGS_::kIsToggled);
   FML_DLOG(INFO) << "kHasImplicitScrolling:"
                  << node.HasFlag(FLAGS_::kHasImplicitScrolling);
-  FML_DLOG(INFO) << "kIsMultiline:"
-                 << node.HasFlag(FLAGS_::kIsMultiline);
-  FML_DLOG(INFO) << "kIsReadOnly:"
-                 << node.HasFlag(FLAGS_::kIsReadOnly);
-  FML_DLOG(INFO) << "kIsFocusable:"
-                 << node.HasFlag(FLAGS_::kIsFocusable);
-  FML_DLOG(INFO) << "kIsLink:"
-                 << node.HasFlag(FLAGS_::kIsLink);
-  FML_DLOG(INFO) << "kIsSlider:"
-                 << node.HasFlag(FLAGS_::kIsSlider);
-  FML_DLOG(INFO) << "kIsKeyboardKey:"
-                 << node.HasFlag(FLAGS_::kIsKeyboardKey);
+  FML_DLOG(INFO) << "kIsMultiline:" << node.HasFlag(FLAGS_::kIsMultiline);
+  FML_DLOG(INFO) << "kIsReadOnly:" << node.HasFlag(FLAGS_::kIsReadOnly);
+  FML_DLOG(INFO) << "kIsFocusable:" << node.HasFlag(FLAGS_::kIsFocusable);
+  FML_DLOG(INFO) << "kIsLink:" << node.HasFlag(FLAGS_::kIsLink);
+  FML_DLOG(INFO) << "kIsSlider:" << node.HasFlag(FLAGS_::kIsSlider);
+  FML_DLOG(INFO) << "kIsKeyboardKey:" << node.HasFlag(FLAGS_::kIsKeyboardKey);
   FML_DLOG(INFO) << "kIsCheckStateMixed:"
                  << node.HasFlag(FLAGS_::kIsCheckStateMixed);
   FML_DLOG(INFO) << "----------------SemanticsFlags--------------------";
