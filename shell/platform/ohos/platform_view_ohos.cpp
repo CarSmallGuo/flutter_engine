@@ -139,9 +139,13 @@ void PlatformViewOHOS::NotifyCreate(
     fml::TaskRunner::RunNowOrPostTask(
         task_runners_.GetRasterTaskRunner(),
         [&latch, surface = ohos_surface_.get(),
-         native_window = std::move(native_window)]() {
-          LOGI("NotifyCreate start4");
-          surface->SetNativeWindow(native_window);
+         native_window = std::move(native_window), this]() {
+          if (GetDestroyed()) {
+            LOGW("NotifyCreate, GetDestroyed is true, ignore this call.");
+          } else {
+            LOGI("NotifyCreate start4");
+            surface->SetNativeWindow(native_window);
+          }
           latch.Signal();
         });
     latch.Wait();
@@ -158,9 +162,13 @@ void PlatformViewOHOS::NotifySurfaceWindowChanged(
     fml::TaskRunner::RunNowOrPostTask(
         task_runners_.GetRasterTaskRunner(),
         [&latch, surface = ohos_surface_.get(),
-         native_window = std::move(native_window)]() {
-          surface->TeardownOnScreenContext();
-          surface->SetNativeWindow(native_window);
+         native_window = std::move(native_window), this]() {
+          if (GetDestroyed()) {
+            LOGW("NotifySurfaceWindowChanged, GetDestroyed is true, ignore this call.");
+          } else {
+            surface->TeardownOnScreenContext();
+            surface->SetNativeWindow(native_window);
+          }
           latch.Signal();
         });
     latch.Wait();
@@ -173,29 +181,24 @@ void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
     fml::AutoResetWaitableEvent latch;
     fml::TaskRunner::RunNowOrPostTask(
         task_runners_.GetRasterTaskRunner(),  //
-        [&latch, surface = ohos_surface_.get(), size]() {
-          surface->OnScreenSurfaceResize(size);
+        [&latch, surface = ohos_surface_.get(), size, this]() {
+          if (GetDestroyed()) {
+            LOGW("NotifyChanged, GetDestroyed is true, ignore this call.");
+          } else {
+            surface->OnScreenSurfaceResize(size);
+          }
           latch.Signal();
         });
     latch.Wait();
   }
 }
 
-pthread_mutex_t PlatformViewOHOS::mutex_;
-bool PlatformViewOHOS::isDestroyed_ = false;
-
 bool PlatformViewOHOS::GetDestroyed() {
-  bool ret;
-  pthread_mutex_lock(&mutex_);
-  ret = isDestroyed_;
-  pthread_mutex_unlock(&mutex_);
-  return ret;
+  return isDestroyed_;
 }
 
 void PlatformViewOHOS::SetDestroyed(bool isDestroyed) {
-  pthread_mutex_lock(&mutex_);
   isDestroyed_ = isDestroyed;
-  pthread_mutex_unlock(&mutex_);
 }
 
 // |PlatformView|
@@ -477,6 +480,19 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
     RegisterTexture(ohos_external_gl);
   }
   return surface_id;
+}
+
+void PlatformViewOHOS::SetTextureBufferSize(
+    int64_t texture_id,
+    int32_t width,
+    int32_t height)
+{
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    auto iter = external_texture_gl_.find(texture_id);
+    if (iter != external_texture_gl_.end()) {
+      iter->second->setTextureBufferSize(width, height);
+    }
+  }
 }
 
 void PlatformViewOHOS::OnNativeImageFrameAvailable(void *data)

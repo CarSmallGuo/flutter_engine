@@ -179,6 +179,10 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);
 
+  static napi_value nativeSetTextureBufferSize(
+    napi_env env,
+    napi_callback_info info);
+
   // Surface相关，XComponent调用
   static void SurfaceCreated(int64_t shell_holder, void* window);
 
@@ -202,6 +206,9 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);
   static napi_value nativeDecodeUtf8(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeLookupCallbackInformation(
       napi_env env,
       napi_callback_info info);
 

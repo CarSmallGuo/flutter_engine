@@ -17,6 +17,7 @@ import common from '@ohos.app.ability.common';
 import resourceManager from '@ohos.resourceManager';
 import image from '@ohos.multimedia.image';
 import FlutterNapi from '../../../ets/embedding/engine/FlutterNapi';
+import { FlutterCallbackInformation } from '../../../ets/view/FlutterCallbackInformation';
 
 export const getContext: (a: number) => napiContext;
 
@@ -130,3 +131,7 @@ export const nativeRegisterTexture: (nativeShellHolderId: number, textureId: num
 export const nativeEncodeUtf8: (str: string) => Uint8Array;
 
 export const nativeDecodeUtf8: (array: Uint8Array) => string;
+
+export const nativeSetTextureBufferSize: (nativeShellHolderId: number, textureId: number, width: number, height: number) => void;
+
+export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;

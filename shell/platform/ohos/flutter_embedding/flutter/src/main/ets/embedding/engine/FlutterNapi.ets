@@ -101,8 +101,8 @@ export default class FlutterNapi {
 
   runBundleAndSnapshotFromLibrary(
     bundlePath: string,
-    entrypointFunctionName: string,
-    pathToEntrypointFunction: string,
+    entrypointFunctionName: string | undefined,
+    pathToEntrypointFunction: string | undefined,
     assetManager: resourceManager.ResourceManager,
     entrypointArgs: Array<string>) {
     if (!FlutterNapi.hasInit) {
@@ -138,6 +138,11 @@ export default class FlutterNapi {
   }
 
   static nativeLookupCallbackInformation(handle: number): FlutterCallbackInformation | null {
+    let callbackInformation = new FlutterCallbackInformation();
+    let ret : number = flutter.nativeLookupCallbackInformation(callbackInformation, handle);
+    if (ret == 0) {
+      return callbackInformation;
+    }
     return null;
   }
 
@@ -479,6 +484,15 @@ export default class FlutterNapi {
       return 0;
     }
     return flutter.nativeRegisterTexture(this.nativeShellHolderId!, textureId);
+  }
+
+  setTextureBufferSize(textureId: number, width: number, height: number): void {
+    Log.d(TAG, "called setTextureBufferSize ");
+    if (!this.isAttached()) {
+      Log.e(TAG, "setTextureBufferSize this.nativeShellHolderId:" + this.nativeShellHolderId)
+      return;
+    }
+    flutter.nativeSetTextureBufferSize(this.nativeShellHolderId!, textureId, width, height);
   }
 
   /** Dispatch Touch Event */
