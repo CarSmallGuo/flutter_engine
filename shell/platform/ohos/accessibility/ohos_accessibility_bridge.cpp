@@ -215,6 +215,9 @@ void OhosAccessibilityBridge::updateSemantics(
   FML_DLOG(INFO) << "=== UpdateSemantics is end ===";
 }
 
+/**
+ * 判断是否可滑动
+ */
 bool OhosAccessibilityBridge::IsNodeScrollable(
     flutter::SemanticsNode flutterNode) {
   // int32_t scrollChildren = 0;
@@ -223,6 +226,12 @@ bool OhosAccessibilityBridge::IsNodeScrollable(
   // double scrollExtentMax = std::nan("");
   // double scrollExtentMin = std::nan("");
   return flutterNode.scrollPosition != std::nan("");
+}
+/**
+ * 判断当前节点组件是否是滑动组件，如: listview, gridview等
+ */
+bool OhosAccessibilityBridge::IsScrollableWidget(flutter::SemanticsNode flutterNode) {
+  return flutterNode.HasFlag(FLAGS_::kHasImplicitScrolling);
 }
 
 void OhosAccessibilityBridge::announce(std::unique_ptr<char[]>& message) {
@@ -395,16 +404,6 @@ void OhosAccessibilityBridge::SetAbsoluteScreenRect(int32_t flutterNodeId,
   FML_DLOG(INFO) << "SetAbsoluteScreenRect -> insert { " << flutterNodeId
                  << ", <" << left << ", " << top << ", " << right << ", "
                  << bottom << "> } is succeed";
-  // if (screenRectMap_.find(flutterNodeId) == screenRectMap_.end()) {
-  //   screenRectMap_[flutterNodeId] = std::make_pair(std::make_pair(left, top),
-  //                                    std::make_pair(right, bottom));
-  //   FML_DLOG(INFO) << "SetAbsoluteScreenRect -> insert { " << flutterNodeId
-  //                  << ", <" << left << ", " << top << ", " << right << ", "
-  //                  << bottom << "> } is succeed";
-  // } else {
-  //   FML_DLOG(ERROR) << "SetAbsoluteScreenRect -> flutterNodeId="
-  //                   << flutterNodeId << " already exists !";
-  // }
 }
 
 std::pair<std::pair<float, float>, std::pair<float, float>>
@@ -572,7 +571,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
                                                      childCount, childNodeIds);
 
     // 配置常用属性
-    OH_ArkUI_AccessibilityElementInfoSetCheckable(elementInfoFromList, true);
+
     OH_ArkUI_AccessibilityElementInfoSetFocusable(elementInfoFromList, true);
     OH_ArkUI_AccessibilityElementInfoSetVisible(elementInfoFromList, true);
     OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfoFromList, true);
@@ -604,69 +603,100 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
                  << flutterNode.id << " SceenRect = (" << left << ", " << top
                  << ", " << right << ", " << bottom << ")";
 
-  // 若为非文本类输入框组件
-  if (!flutterNode.HasFlag(FLAGS_::kIsTextField)) {
+  //当节点为textfield文本输入框组件类型
+  if (IsTextField(flutterNode)) { 
     // 设置elementinfo的action类型
-    int32_t actionTypeNum = 5;
+    int32_t actionTypeNum = 10;
     ArkUI_AccessibleAction actions[actionTypeNum];
-    actions[0].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS;
-    actions[0].description = "获取焦点";
-    actions[1].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS;
-    actions[1].description = "清除焦点";
-    actions[2].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK;
-    actions[2].description = "点击动作";
-    actions[3].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_FORWARD;
-    actions[3].description = "向上滑动";
-    actions[4].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD;
-    actions[4].description = "向下滑动";
-    OH_ArkUI_AccessibilityElementInfoSetOperationActions(
-        elementInfoFromList, actionTypeNum, actions);
 
-  } else {  // 若为textfield文本输入框组件类型
-    // 设置elementinfo的action类型
-    int32_t actionTypeNum = 12;
-    ArkUI_AccessibleAction actions[actionTypeNum];
     actions[0].actionType = ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS;
     actions[0].description = "获取焦点";
+
     actions[1].actionType = ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS;
     actions[1].description = "清除焦点";
+
     actions[2].actionType = ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK;
     actions[2].description = "点击操作";
+
+    actions[3].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_LONG_CLICK;
+    actions[3].description = "长按操作";
+
+    actions[4].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_COPY;
+    actions[4].description = "文本复制";
+
+    actions[5].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_PASTE;
+    actions[5].description = "文本粘贴";
+
+    actions[6].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CUT;
+    actions[6].description = "文本剪切";
+
+    actions[7].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SELECT_TEXT;
+    actions[7].description = "文本选择";
+
+    actions[8].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_TEXT;
+    actions[8].description = "文本内容设置";
+
+    actions[9].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_CURSOR_POSITION;
+    actions[9].description = "光标位置设置";
+
+    OH_ArkUI_AccessibilityElementInfoSetOperationActions(
+        elementInfoFromList, actionTypeNum, actions);
+
+  } else if(IsScrollableWidget(flutterNode)) {
+    // 当节点为可滑动组件
+    int32_t actionTypeNum = 5;
+    ArkUI_AccessibleAction actions[actionTypeNum];
+
+    actions[0].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS;
+    actions[0].description = "获取焦点";
+
+    actions[1].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS; 
+    actions[1].description = "清除焦点";
+
+    actions[2].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK;
+    actions[2].description = "点击动作";
+
     actions[3].actionType = ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_FORWARD;
     actions[3].description = "向上滑动";
+
     actions[4].actionType = ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD;
     actions[4].description = "向下滑动";
-    actions[5].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_LONG_CLICK;
-    actions[5].description = "长按操作";
-    actions[6].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_COPY;
-    actions[6].description = "文本复制";
-    actions[7].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_PASTE;
-    actions[7].description = "文本粘贴";
-    actions[8].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CUT;
-    actions[8].description = "文本剪切";
-    actions[9].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SELECT_TEXT;
-    actions[9].description = "文本选择";
-    actions[10].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_TEXT;
-    actions[10].description = "文本内容设置";
-    actions[11].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_CURSOR_POSITION;
-    actions[11].description = "光标位置设置";
+
+    OH_ArkUI_AccessibilityElementInfoSetOperationActions(
+        elementInfoFromList, actionTypeNum, actions);
+
+  } else {
+    // 设置elementinfo的action类型
+    int32_t actionTypeNum = 3;
+    ArkUI_AccessibleAction actions[actionTypeNum];
+
+    actions[0].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS;
+    actions[0].description = "获取焦点";
+
+    actions[1].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS;
+    actions[1].description = "清除焦点";
+
+    actions[2].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK;
+    actions[2].description = "点击动作";
+
     OH_ArkUI_AccessibilityElementInfoSetOperationActions(
         elementInfoFromList, actionTypeNum, actions);
   }
@@ -789,6 +819,12 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
       << "=== OhosAccessibilityBridge::FlutterNodeToElementInfoById is end ===";
 }
 
+/**
+ * 判断当前节点是否为textfield文本框
+ */
+bool OhosAccessibilityBridge::IsTextField(flutter::SemanticsNode flutterNode) {
+  return flutterNode.HasFlag(FLAGS_::kIsTextField);
+}
 /**
  * 判断当前flutter节点组件是否可点击
  */

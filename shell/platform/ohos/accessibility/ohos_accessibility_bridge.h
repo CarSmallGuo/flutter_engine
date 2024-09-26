@@ -113,6 +113,8 @@ class OhosAccessibilityBridge {
   bool IsNodePassword(flutter::SemanticsNode flutterNode);
   bool IsNodeVisible(flutter::SemanticsNode flutterNode);
 
+  bool IsTextField(flutter::SemanticsNode flutterNode);
+  bool IsScrollableWidget(flutter::SemanticsNode flutterNode);
   void PerformSetText(flutter::SemanticsNode flutterNode, 
                       ArkUI_Accessibility_ActionType action, 
                       ArkUI_AccessibilityActionArguments* actionArguments);
