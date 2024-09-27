@@ -487,20 +487,33 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToSceenRect(
       newBottom =
           (currTop + _kMTransY + currBottom) * realScaleFactor + realParentTop;
     }
-    SetAbsoluteScreenRect(currNode.id, newLeft, newTop, newRight, newBottom);
+
+    //若子节点rect超过父节点则跳过显示（单个屏幕显示不下，滑动再重新显示）
+    if (newLeft < realParentLeft || newTop < realParentTop ||
+      newRight > realParentRight || newBottom > realParentBottom ||
+      newLeft >= newRight || newTop >= newBottom) {
+      FML_DLOG(ERROR) << "ConvertChildRelativeRectToSceenRect childRect is "
+                        "bigger than parentRect -> { nodeId: "
+                      << currNode.id << ", (" << newLeft << ", " << newTop << ", "
+                      << newRight << ", " << newBottom << ")}";
+      SetAbsoluteScreenRect(currNode.id, newLeft, realParentTop-1260, realParentRight, realParentBottom-2720);
+    } else {
+      SetAbsoluteScreenRect(currNode.id, newLeft, newTop, newRight, newBottom);
+    }
+
   }
   FML_DLOG(INFO) << "ConvertChildRelativeRectToSceenRect -> { nodeId: "
                  << currNode.id << ", (" << newLeft << ", " << newTop << ", "
                  << newRight << ", " << newBottom << ")}";
 
-  if (newLeft < realParentLeft || newTop < realParentTop ||
-      newRight > realParentRight || newBottom > realParentBottom ||
-      newLeft >= newRight || newTop >= newBottom) {
-    FML_DLOG(ERROR) << "ConvertChildRelativeRectToSceenRect childRect is "
-                       "bigger than parentRect -> { nodeId: "
-                    << currNode.id << ", (" << newLeft << ", " << newTop << ", "
-                    << newRight << ", " << newBottom << ")}";
-  }
+  // if (newLeft < realParentLeft || newTop < realParentTop ||
+  //     newRight > realParentRight || newBottom > realParentBottom ||
+  //     newLeft >= newRight || newTop >= newBottom) {
+  //   FML_DLOG(ERROR) << "ConvertChildRelativeRectToSceenRect childRect is "
+  //                      "bigger than parentRect -> { nodeId: "
+  //                   << currNode.id << ", (" << newLeft << ", " << newTop << ", "
+  //                   << newRight << ", " << newBottom << ")}";
+  // }
 }
 
 /**
