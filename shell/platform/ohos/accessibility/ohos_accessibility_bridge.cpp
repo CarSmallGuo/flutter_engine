@@ -230,7 +230,8 @@ bool OhosAccessibilityBridge::IsNodeScrollable(
 /**
  * 判断当前节点组件是否是滑动组件，如: listview, gridview等
  */
-bool OhosAccessibilityBridge::IsScrollableWidget(flutter::SemanticsNode flutterNode) {
+bool OhosAccessibilityBridge::IsScrollableWidget(
+    flutter::SemanticsNode flutterNode) {
   return flutterNode.HasFlag(FLAGS_::kHasImplicitScrolling);
 }
 
@@ -603,8 +604,8 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
                  << flutterNode.id << " SceenRect = (" << left << ", " << top
                  << ", " << right << ", " << bottom << ")";
 
-  //当节点为textfield文本输入框组件类型
-  if (IsTextField(flutterNode)) { 
+  // 当节点为textfield文本输入框组件类型
+  if (IsTextField(flutterNode)) {
     // 设置elementinfo的action类型
     int32_t actionTypeNum = 10;
     ArkUI_AccessibleAction actions[actionTypeNum];
@@ -652,7 +653,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
     OH_ArkUI_AccessibilityElementInfoSetOperationActions(
         elementInfoFromList, actionTypeNum, actions);
 
-  } else if(IsScrollableWidget(flutterNode)) {
+  } else if (IsScrollableWidget(flutterNode)) {
     // 当节点为可滑动组件
     int32_t actionTypeNum = 5;
     ArkUI_AccessibleAction actions[actionTypeNum];
@@ -662,7 +663,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
     actions[0].description = "获取焦点";
 
     actions[1].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS; 
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS;
     actions[1].description = "清除焦点";
 
     actions[2].actionType = ArkUI_Accessibility_ActionType::
