@@ -37,6 +37,22 @@ typedef flutter::SemanticsNode FLUTTER_NODE_;
 /**
  * flutter和ohos的无障碍服务桥接
  */
+struct AbsoluteRect {
+  float left;
+  float top;
+  float right;
+  float bottom;
+
+  static constexpr AbsoluteRect MakeEmpty() {
+    return AbsoluteRect{0.0, 0.0, 0.0, 0.0};
+  }
+};
+
+struct SemanticsNodeExtent : flutter::SemanticsNode {
+  int32_t parentId = -1;
+  AbsoluteRect abRect = AbsoluteRect::MakeEmpty();
+};
+
 class OhosAccessibilityBridge {
  public:
   OhosAccessibilityBridge();
