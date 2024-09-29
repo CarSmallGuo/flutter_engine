@@ -51,6 +51,16 @@ struct AbsoluteRect {
 struct SemanticsNodeExtent : flutter::SemanticsNode {
   int32_t parentId = -1;
   AbsoluteRect abRect = AbsoluteRect::MakeEmpty();
+
+  int32_t previousFlags;
+  int32_t previousActions;
+  int32_t previousTextSelectionBase;
+  int32_t previousTextSelectionExtent;
+  float previousScrollPosition;
+  float previousScrollExtentMax;
+  float previousScrollExtentMin;
+  std::string previousValue;
+  std::string previousLabel;
 };
 
 class OhosAccessibilityBridge {
@@ -123,10 +133,21 @@ class OhosAccessibilityBridge {
                              float right,
                              float bottom);
 
+  SemanticsNodeExtent SetAndGetSemanticsNodeExtent(flutter::SemanticsNode node);
+
+  void FlutterScrollExecution(flutter::SemanticsNode node,
+                              ArkUI_AccessibilityElementInfo* elementInfoFromList);
+                              
   void ClearFlutterSemanticsCaches();
 
  private:
   static OhosAccessibilityBridge bridgeInstance;
+  static const int32_t ROOT_NODE_ID = 0;
+  constexpr static const double SCROLL_EXTENT_FOR_INFINITY = 100000.0;
+  constexpr static const double SCROLL_POSITION_CAP_FOR_INFINITY = 70000.0;
+  flutter::SemanticsNode inputFocusedNode;
+  flutter::SemanticsNode lastInputFocusedNode;
+  flutter::SemanticsNode accessibilityFocusedNode;
 
   std::shared_ptr<OhosAccessibilityManager> ax_manager_;
   std::vector<std::pair<int32_t, int32_t>> parentChildIdVec;
@@ -138,10 +159,6 @@ class OhosAccessibilityBridge {
   std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
   std::vector<int32_t> flutterNavigationVec_;
 
-  static const int32_t ROOT_NODE_ID = 0;
-  constexpr static const double SCROLL_EXTENT_FOR_INFINITY = 100000.0;
-  constexpr static const double SCROLL_POSITION_CAP_FOR_INFINITY = 70000.0;
-
   void FlutterSetElementInfoProperties(ArkUI_AccessibilityElementInfo* elementInfoFromList,
                                       int64_t elementId);
   void FlutterTreeToArkuiTree(
@@ -152,7 +169,9 @@ class OhosAccessibilityBridge {
   flutter::SemanticsAction ArkuiActionsToFlutterActions(
       ArkUI_Accessibility_ActionType arkui_action);
 
-  bool IsNodeFocusable(const flutter::SemanticsNode& node);
+  bool HasScrolled(const flutter::SemanticsNode& flutterNode);
+
+  bool IsNodeFocusable(const flutter::SemanticsNode& flutterNode);
   bool IsNodeCheckable(flutter::SemanticsNode flutterNode);
   bool IsNodeChecked(flutter::SemanticsNode flutterNode);
   bool IsNodeSelected(flutter::SemanticsNode flutterNode);
@@ -162,6 +181,7 @@ class OhosAccessibilityBridge {
   bool IsNodeVisible(flutter::SemanticsNode flutterNode);
 
   bool IsTextField(flutter::SemanticsNode flutterNode);
+  bool IsSlider(flutter::SemanticsNode flutterNode);
   bool IsScrollableWidget(flutter::SemanticsNode flutterNode);
   void PerformSetText(flutter::SemanticsNode flutterNode,
                       ArkUI_Accessibility_ActionType action,
