@@ -142,15 +142,17 @@ class OhosAccessibilityBridge {
   constexpr static const double SCROLL_EXTENT_FOR_INFINITY = 100000.0;
   constexpr static const double SCROLL_POSITION_CAP_FOR_INFINITY = 70000.0;
 
+  void FlutterSetElementInfoProperties(ArkUI_AccessibilityElementInfo* elementInfoFromList,
+                                      int64_t elementId);
   void FlutterTreeToArkuiTree(
       ArkUI_AccessibilityElementInfoList* elementInfoList);
 
   flutter::SemanticsNode getFlutterRootSemanticsNode();
-  bool IsNodeFocusable(const flutter::SemanticsNode& node);
   std::string GetNodeComponentType(const flutter::SemanticsNode& node);
   flutter::SemanticsAction ArkuiActionsToFlutterActions(
       ArkUI_Accessibility_ActionType arkui_action);
 
+  bool IsNodeFocusable(const flutter::SemanticsNode& node);
   bool IsNodeCheckable(flutter::SemanticsNode flutterNode);
   bool IsNodeChecked(flutter::SemanticsNode flutterNode);
   bool IsNodeSelected(flutter::SemanticsNode flutterNode);

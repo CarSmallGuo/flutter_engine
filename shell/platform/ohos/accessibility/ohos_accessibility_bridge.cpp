@@ -600,13 +600,29 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
 
   /**  NOTE: when elementId >= 1 */
   FML_DLOG(INFO) << "FlutterNodeToElementInfoById elementId = " << elementId;
+
+  //根据flutter节点信息配置elementinfo无障碍属性
+  FlutterSetElementInfoProperties(elementInfoFromList, elementId);
+
+  FML_DLOG(INFO)
+      << "=== OhosAccessibilityBridge::FlutterNodeToElementInfoById is end ===";
+}
+
+/**
+ * 根据flutter节点信息配置elementinfo无障碍属性
+ */
+void OhosAccessibilityBridge::FlutterSetElementInfoProperties(ArkUI_AccessibilityElementInfo* elementInfoFromList,
+                                      int64_t elementId) {
   flutter::SemanticsNode flutterNode =
       getOrCreateFlutterSemanticsNode(static_cast<int32_t>(elementId));
 
-  // flutter父子节点相对坐标位置的矩阵变换，转化为绝对屏幕坐标
+  //set elementinfo id
+  OH_ArkUI_AccessibilityElementInfoSetElementId(elementInfoFromList,
+                                                flutterNode.id);
+  //convert relative rect to absolute rect 
   ConvertChildRelativeRectToSceenRect(flutterNode);
   auto rectPairs = GetAbsoluteScreenRect(flutterNode.id);
-  // 设置elementinfo的屏幕绝对坐标rect
+  //set screen rect in xcomponent
   int32_t left = rectPairs.first.first;
   int32_t top = rectPairs.first.second;
   int32_t right = rectPairs.second.first;
@@ -617,9 +633,9 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
                  << flutterNode.id << " SceenRect = (" << left << ", " << top
                  << ", " << right << ", " << bottom << ")";
 
-  // 当节点为textfield文本输入框组件类型
+  // if node is textfield 
   if (IsTextField(flutterNode)) {
-    // 设置elementinfo的action类型
+    // set elementinfo action types
     int32_t actionTypeNum = 10;
     ArkUI_AccessibleAction actions[actionTypeNum];
 
@@ -667,7 +683,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
         elementInfoFromList, actionTypeNum, actions);
 
   } else if (IsScrollableWidget(flutterNode)) {
-    // 当节点为可滑动组件
+    //if node is scrollable component
     int32_t actionTypeNum = 5;
     ArkUI_AccessibleAction actions[actionTypeNum];
 
@@ -695,7 +711,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
         elementInfoFromList, actionTypeNum, actions);
 
   } else {
-    // 设置elementinfo的action类型
+    // set common component action types 
     int32_t actionTypeNum = 3;
     ArkUI_AccessibleAction actions[actionTypeNum];
 
@@ -715,11 +731,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
         elementInfoFromList, actionTypeNum, actions);
   }
 
-  // 根据flutternode信息配置对应的elementinfo
-  OH_ArkUI_AccessibilityElementInfoSetElementId(elementInfoFromList,
-                                                flutterNode.id);
-
-  // 设置父节点id
+  //set current elementinfo parent id
   int32_t parentId = GetParentId(elementId);
   if (parentId < 0) {
     FML_DLOG(ERROR)
@@ -731,17 +743,18 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
     FML_DLOG(INFO) << "FlutterNodeToElementInfoById GetParentId = " << parentId;
   }
 
-  // 设置无障碍播报文本
+  //set accessibility text for announcing
   std::string text = flutterNode.label;
   OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(elementInfoFromList,
                                                         text.c_str());
   FML_DLOG(INFO) << "FlutterNodeToElementInfoById SetAccessibilityText = "
                  << text;
+                 
   std::string hint = flutterNode.hint;
   OH_ArkUI_AccessibilityElementInfoSetHintText(elementInfoFromList,
                                                hint.c_str());
 
-  // 配置child节点信息
+  //set chidren elementinfo ids
   int32_t childCount =
       static_cast<int32_t>(flutterNode.childrenInTraversalOrder.size());
   int64_t childNodeIds[childCount];
@@ -756,9 +769,9 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
                                                    childCount, childNodeIds);
 
   /**
-   * 根据当前flutter节点的SemanticsFlags特性，配置对应的eelmentinfo属性
+   * 根据当前flutter节点的SemanticsFlags特性，配置对应的elmentinfo属性
    */
-  // 判断当前节点是否可点击
+  //判断当前节点是否可点击
   if (IsNodeClickable(flutterNode)) {
     OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfoFromList, true);
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
@@ -829,8 +842,6 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
   // 无障碍组，设置为true时表示该组件及其所有子组件为一整个可以选中的组件，无障碍服务将不再关注其子组件内容。默认值：false
   OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup(elementInfoFromList,
                                                          false);
-  FML_DLOG(INFO)
-      << "=== OhosAccessibilityBridge::FlutterNodeToElementInfoById is end ===";
 }
 
 /**
