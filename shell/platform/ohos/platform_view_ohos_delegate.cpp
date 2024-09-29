@@ -212,19 +212,11 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
     }
 
     if (!actions_buffer.empty()) {
-      //   napi_facade_->FlutterViewUpdateCustomAccessibilityActions(actions_buffer,
-      //                                                             action_strings);
-    //   ax_bridge_router_->updateCustomAccessibilityActions(actions_buffer,
-    //                                                       action_strings);
       FML_DLOG(INFO) << "PlatformViewOHOSDelegate::"
                         "updateCustomAccessibilityActions is called";
     }
 
     if (!buffer.empty()) {
-      //   napi_facade_->FlutterViewUpdateSemantics(buffer, strings,
-      //                                            string_attribute_args);
-    //   ax_bridge_router_->updateSemantics(buffer, strings,
-    //                                      string_attribute_args);
       FML_DLOG(INFO) << "PlatformViewOHOSDelegate::UpdateSemantics is called";
     }
   }

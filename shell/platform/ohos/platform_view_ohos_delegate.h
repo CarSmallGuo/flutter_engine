@@ -28,9 +28,6 @@ namespace flutter {
 
 class PlatformViewOHOSDelegate {
  public:
-//   PlatformViewOHOSDelegate() = default;
-//   ~PlatformViewOHOSDelegate() = default;
-
   explicit PlatformViewOHOSDelegate(
       std::shared_ptr<PlatformViewOHOSNapi> napi_facade);
 
