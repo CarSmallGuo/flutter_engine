@@ -146,6 +146,7 @@ class PlatformViewOHOS final : public PlatformView {
   std::shared_ptr<PlatformViewOHOSDelegate> platform_view_ohos_delegate_;  
 
   bool isDestroyed_;
+  std::atomic<bool> isDestroyed_;
 
   bool GetDestroyed();
 

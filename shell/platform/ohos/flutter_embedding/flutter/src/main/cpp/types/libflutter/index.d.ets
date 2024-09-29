@@ -18,6 +18,7 @@ import resourceManager from '@ohos.resourceManager';
 import image from '@ohos.multimedia.image';
 import FlutterNapi from '../../../ets/embedding/engine/FlutterNapi';
 import { ByteBuffer } from '../../../ets/util/ByteBuffer';
+import { FlutterCallbackInformation } from '../../../ets/view/FlutterCallbackInformation';
 
 export const getContext: (a: number) => napiContext;
 
@@ -152,3 +153,4 @@ export const nativeAnnounce: (message: string) => void;
 export const nativeSetSemanticsEnabled: (nativeShellHolderId: number, enabled: boolean) => void;
 
 export const nativeGetShellHolderId: (nativeShellHolderId: number) => void;
+export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;
