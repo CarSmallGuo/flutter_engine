@@ -130,17 +130,10 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     FML_LOG(ERROR) << "OHOSExternalTextureGL::Paint, the current status is detached";
     return;
   }
-  if (!freeze && new_frame_ready_) {
-    if (pixelMap_ != nullptr) {
-      ProducePixelMapToNativeImage();
-    }
-    Update();
-    new_frame_ready_ = false;
-  }
 
   GrGLTextureInfo textureInfo;
 
-  if (!freeze && !first_update_ && !isEmulator_ && !new_frame_ready_ && pixelMap_ == nullptr) {
+  if (!freeze && !first_update_ && !isEmulator_ && backGroundTextureName_ == 0 && pixelMap_ == nullptr) {
     setBackground(bounds.width(), bounds.height());
     textureInfo = {GL_TEXTURE_EXTERNAL_OES, backGroundTextureName_, GL_RGBA8_OES};
   } else {
@@ -207,6 +200,9 @@ void OHOSExternalTextureGL::MarkNewFrameAvailable()
   new_frame_ready_ = true;
   if (texture_name_ == 0) {
     Attach();
+  }
+  if (pixelMap_ != nullptr) { // 外接纹理图片场景
+    ProducePixelMapToNativeImage();
   }
   Update();
 }
