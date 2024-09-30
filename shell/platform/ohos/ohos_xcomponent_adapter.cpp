@@ -345,14 +345,14 @@ void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component, void* wind
   int32_t ret = OH_NativeXComponent_GetXComponentSize(component, window,
                                                       &width_, &height_);
   if (ret == OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
-    LOGD("XComponent Current width:%{public}d,height:%{public}d",
+    LOGD("XComponentManger::OnSurfaceChanged Current width:%{public}d,height:%{public}d",
          static_cast<int>(width_), static_cast<int>(height_));
   }
   if (isEngineAttached_) {
     PlatformViewOHOSNapi::SurfaceChanged(std::stoll(shellholderId_), width_,
                                          height_);
   } else {
-    LOGE("OnSurfaceChanged XComponentBase is not attached");
+    LOGE("XComponentManger::OnSurfaceChanged XComponentBase is not attached");
   }
 }
 
