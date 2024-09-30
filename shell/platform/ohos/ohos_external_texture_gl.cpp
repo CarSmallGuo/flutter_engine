@@ -97,7 +97,8 @@ void OHOSExternalTextureGL::Attach()
   if (result->GetResult()) {
     FML_DLOG(INFO) << "ResourceContextMakeCurrent successed";
     glGenTextures(1, &texture_name_);
-    FML_DLOG(INFO) << "OHOSExternalTextureGL::Attach, glGenTextures texture_name_=" << texture_name_ << ", Id()=" << Id();
+    FML_DLOG(INFO) << "OHOSExternalTextureGL::Attach, glGenTextures texture_name_="
+      << texture_name_ << ", Id()=" << Id();
     if (nativeImage_ == nullptr) {
       nativeImage_ = OH_NativeImage_Create(texture_name_, GL_TEXTURE_EXTERNAL_OES);
       if (nativeImage_ == nullptr) {
