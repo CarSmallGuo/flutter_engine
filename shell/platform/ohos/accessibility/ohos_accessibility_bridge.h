@@ -21,8 +21,6 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
-#include "flutter/fml/log_level.h"
 #include "flutter/lib/ui/semantics/custom_accessibility_action.h"
 #include "flutter/lib/ui/semantics/semantics_node.h"
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_manager.h"
@@ -124,7 +122,7 @@ class OhosAccessibilityBridge {
       int64_t elementId);
   int32_t GetParentId(int64_t elementId);
 
-  void ConvertChildRelativeRectToSceenRect(flutter::SemanticsNode node);
+  void ConvertChildRelativeRectToScreenRect(flutter::SemanticsNode node);
   std::pair<std::pair<float, float>, std::pair<float, float>>
   GetAbsoluteScreenRect(int32_t flutterNodeId);
   void SetAbsoluteScreenRect(int32_t flutterNodeId,

@@ -79,15 +79,17 @@ void OhosAccessibilityBridge::updateSemantics(
                      << ", " << node.childrenInTraversalOrder[i] << ")";
     }
 
-    //当滑动节点产生滑动，并执行滑动处理
-    if(HasScrolled(node)) {
-      ArkUI_AccessibilityElementInfo* _elementInfo = OH_ArkUI_CreateAccessibilityElementInfo();
+    // 当滑动节点产生滑动，并执行滑动处理
+    if (HasScrolled(node)) {
+      ArkUI_AccessibilityElementInfo* _elementInfo =
+          OH_ArkUI_CreateAccessibilityElementInfo();
       FlutterNodeToElementInfoById(_elementInfo, static_cast<int64_t>(node.id));
       FlutterScrollExecution(node, _elementInfo);
     }
 
-    //判断是否触发liveRegion活动区，当前节点是否活跃（暂不影响正常功能）
-    if (node.HasFlag(FLAGS_::kIsLiveRegion)) {}
+    // 判断是否触发liveRegion活动区，当前节点是否活跃（暂不影响正常功能）
+    if (node.HasFlag(FLAGS_::kIsLiveRegion)) {
+    }
   }
 
   // TODO: 遍历更新的actions，并将所有的actions的id添加进actionMap
@@ -110,9 +112,9 @@ void OhosAccessibilityBridge::updateSemantics(
   FML_DLOG(INFO) << "=== UpdateSemantics is end ===";
 }
 
-void OhosAccessibilityBridge::FlutterScrollExecution(flutter::SemanticsNode node,
-                                                     ArkUI_AccessibilityElementInfo* elementInfoFromList) {
-
+void OhosAccessibilityBridge::FlutterScrollExecution(
+    flutter::SemanticsNode node,
+    ArkUI_AccessibilityElementInfo* elementInfoFromList) {
   double nodePosition = node.scrollPosition;
   double nodeScrollExtentMax = node.scrollExtentMax;
   double nodeScrollExtentMin = node.scrollExtentMin;
@@ -137,27 +139,28 @@ void OhosAccessibilityBridge::FlutterScrollExecution(flutter::SemanticsNode node
 
   if (node.HasAction(ACTIONS_::kScrollUp) ||
       node.HasAction(ACTIONS_::kScrollDown)) {
-    // TODO: ohos/arkui未提供相应的滑动属性配置event (暂未影响正常功能)
   } else if (node.HasAction(ACTIONS_::kScrollLeft) ||
-            node.HasAction(ACTIONS_::kScrollRight)) {
-    // TODO: ohos/arkui未提供相应的滑动属性配置event (暂未影响正常功能)
+             node.HasAction(ACTIONS_::kScrollRight)) {
   }
 
-  //当可滑动组件存在滑动子节点
+  // 当可滑动组件存在滑动子节点
   if (node.scrollChildren > 0) {
-    //配置当前滑动组件的子节点总数
+    // 配置当前滑动组件的子节点总数
     int32_t itemCount = node.scrollChildren;
-    OH_ArkUI_AccessibilityElementInfoSetItemCount(elementInfoFromList, itemCount);
+    OH_ArkUI_AccessibilityElementInfoSetItemCount(elementInfoFromList,
+                                                  itemCount);
 
-    //设置当前滑动index
+    // 设置当前滑动index
     int32_t currentItemIndex = node.scrollIndex;
-    OH_ArkUI_AccessibilityElementInfoSetCurrentItemIndex(elementInfoFromList, currentItemIndex);
+    OH_ArkUI_AccessibilityElementInfoSetCurrentItemIndex(elementInfoFromList,
+                                                         currentItemIndex);
 
-    //设置当前页面可见的起始滑动index
+    // 设置当前页面可见的起始滑动index
     int32_t startItemIndex = node.scrollIndex;
-    OH_ArkUI_AccessibilityElementInfoSetStartItemIndex(elementInfoFromList, startItemIndex);
+    OH_ArkUI_AccessibilityElementInfoSetStartItemIndex(elementInfoFromList,
+                                                       startItemIndex);
 
-    //计算当前滑动位置页面的可见子滑动节点数量
+    // 计算当前滑动位置页面的可见子滑动节点数量
     int visibleChildren = 0;
     // handle hidden children at the beginning and end of the list.
     for (const auto& childId : node.childrenInHitTestOrder) {
@@ -166,30 +169,35 @@ void OhosAccessibilityBridge::FlutterScrollExecution(flutter::SemanticsNode node
         visibleChildren += 1;
       }
     }
-    //当可见滑动子节点数量超过滑动组件总子节点数量
+    // 当可见滑动子节点数量超过滑动组件总子节点数量
     if (node.scrollIndex + visibleChildren > node.scrollChildren) {
-        FML_DLOG(ERROR) << "FlutterScrollExecution -> Scroll index is out of bounds";
+      FML_DLOG(ERROR)
+          << "FlutterScrollExecution -> Scroll index is out of bounds";
     }
-    //当滑动击中子节点数量为0
+    // 当滑动击中子节点数量为0
     if (!node.childrenInHitTestOrder.size()) {
-        FML_DLOG(ERROR) << "FlutterScrollExecution -> Had scrollChildren but no childrenInHitTestOrder";
+      FML_DLOG(ERROR) << "FlutterScrollExecution -> Had scrollChildren but no "
+                         "childrenInHitTestOrder";
     }
 
-    //设置当前页面可见的末尾滑动index
+    // 设置当前页面可见的末尾滑动index
     int32_t endItemIndex = node.scrollIndex + visibleChildren - 1;
-    OH_ArkUI_AccessibilityElementInfoSetEndItemIndex(elementInfoFromList, endItemIndex);
-
+    OH_ArkUI_AccessibilityElementInfoSetEndItemIndex(elementInfoFromList,
+                                                     endItemIndex);
   }
-  //发送相应的事件到arkui无障碍子系统
-  Flutter_SendAccessibilityAsyncEvent(static_cast<int64_t>(node.id), 
-                                      ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_SCROLLED);
+  // 发送相应的事件到arkui无障碍子系统
+  Flutter_SendAccessibilityAsyncEvent(
+      static_cast<int64_t>(node.id),
+      ArkUI_AccessibilityEventType::
+          ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_SCROLLED);
 }
 
 /**
- * extent common struct SemanticsNode to 
+ * extent common struct SemanticsNode to
  * derived struct SemanticsNodeExtent
  */
-SemanticsNodeExtent OhosAccessibilityBridge::SetAndGetSemanticsNodeExtent(flutter::SemanticsNode node) {
+SemanticsNodeExtent OhosAccessibilityBridge::SetAndGetSemanticsNodeExtent(
+    flutter::SemanticsNode node) {
   SemanticsNodeExtent nodeEx = SemanticsNodeExtent();
   nodeEx.id = std::move(node.id);
   nodeEx.flags = std::move(node.flags);
@@ -223,7 +231,8 @@ SemanticsNodeExtent OhosAccessibilityBridge::SetAndGetSemanticsNodeExtent(flutte
   nodeEx.transform = std::move(node.transform);
   nodeEx.childrenInTraversalOrder = std::move(node.childrenInTraversalOrder);
   nodeEx.childrenInHitTestOrder = std::move(node.childrenInHitTestOrder);
-  nodeEx.customAccessibilityActions = std::move(node.customAccessibilityActions);
+  nodeEx.customAccessibilityActions =
+      std::move(node.customAccessibilityActions);
 
   return nodeEx;
 }
@@ -231,18 +240,19 @@ SemanticsNodeExtent OhosAccessibilityBridge::SetAndGetSemanticsNodeExtent(flutte
 /**
  * 判断当前节点是否已经滑动
  */
-bool OhosAccessibilityBridge::HasScrolled(const flutter::SemanticsNode& flutterNode) {
-    return flutterNode.scrollPosition != std::nan("");
+bool OhosAccessibilityBridge::HasScrolled(
+    const flutter::SemanticsNode& flutterNode) {
+  return flutterNode.scrollPosition != std::nan("");
 }
 /**
  * 判断是否可滑动
  */
 bool OhosAccessibilityBridge::IsNodeScrollable(
     flutter::SemanticsNode flutterNode) {
-  return flutterNode.HasAction(ACTIONS_::kScrollLeft) 
-         || flutterNode.HasAction(ACTIONS_::kScrollRight)
-         || flutterNode.HasAction(ACTIONS_::kScrollUp)
-         || flutterNode.HasAction(ACTIONS_::kScrollDown);
+  return flutterNode.HasAction(ACTIONS_::kScrollLeft) ||
+         flutterNode.HasAction(ACTIONS_::kScrollRight) ||
+         flutterNode.HasAction(ACTIONS_::kScrollUp) ||
+         flutterNode.HasAction(ACTIONS_::kScrollDown);
 }
 /**
  * 判断当前节点组件是否是滑动组件，如: listview, gridview等
@@ -442,7 +452,7 @@ OhosAccessibilityBridge::GetAbsoluteScreenRect(int32_t flutterNodeId) {
  * flutter无障碍语义树的子节点相对坐标系转化为屏幕绝对坐标的映射算法
  * TODO: 当前算法流程为初期版本，需要完善优化（目前暂未考虑旋转、透视场景）
  */
-void OhosAccessibilityBridge::ConvertChildRelativeRectToSceenRect(
+void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
     flutter::SemanticsNode currNode) {
   // 获取当前flutter节点的相对rect
   auto currLeft = static_cast<float>(currNode.rect.fLeft);
@@ -474,7 +484,7 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToSceenRect(
   auto realParentRight = _rectPairs.second.first;
   auto realParentBottom = _rectPairs.second.second;
 
-  //获取root节点的绝对坐标
+  // 获取root节点的绝对坐标
   auto _rootRect = GetAbsoluteScreenRect(0);
   auto rootRight = _rootRect.second.first;
   auto rootBottom = _rootRect.second.second;
@@ -507,7 +517,8 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToSceenRect(
        * newRight = (currLeft + _kMTransX + currRight) * realScaleFactor;
        * newBottom = (currTop + _kMTransY + currBottom) * realScaleFactor;
        */
-      // 子节点的屏幕绝对坐标转换，包括offset偏移值计算、缩放系数变换 （增强版本）
+      // 子节点的屏幕绝对坐标转换，包括offset偏移值计算、缩放系数变换
+      // （增强版本）
       newLeft = (currLeft + _kMTransX) * realScaleFactor + realParentLeft;
       newTop = (currTop + _kMTransY) * realScaleFactor + realParentTop;
       newRight =
@@ -516,22 +527,22 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToSceenRect(
           (currTop + _kMTransY + currBottom) * realScaleFactor + realParentTop;
     }
 
-    //若子节点rect超过父节点则跳过显示（单个屏幕显示不下，滑动再重新显示）
+    // 若子节点rect超过父节点则跳过显示（单个屏幕显示不下，滑动再重新显示）
     if (newLeft < realParentLeft || newTop < realParentTop ||
-      newRight > realParentRight || newBottom > realParentBottom ||
-      newLeft >= newRight || newTop >= newBottom) {
-      FML_DLOG(ERROR) << "ConvertChildRelativeRectToSceenRect childRect is "
-                        "bigger than parentRect -> { nodeId: "
-                      << currNode.id << ", (" << newLeft << ", " << newTop << ", "
-                      << newRight << ", " << newBottom << ")}";
-      SetAbsoluteScreenRect(currNode.id, newLeft, realParentTop-rootRight, realParentRight, realParentBottom-rootBottom);
+        newRight > realParentRight || newBottom > realParentBottom ||
+        newLeft >= newRight || newTop >= newBottom) {
+      FML_DLOG(ERROR) << "ConvertChildRelativeRectToScreenRect childRect is "
+                         "bigger than parentRect -> { nodeId: "
+                      << currNode.id << ", (" << newLeft << ", " << newTop
+                      << ", " << newRight << ", " << newBottom << ")}";
+      SetAbsoluteScreenRect(currNode.id, newLeft, realParentTop - rootRight,
+                            realParentRight, realParentBottom - rootBottom);
 
     } else {
       SetAbsoluteScreenRect(currNode.id, newLeft, newTop, newRight, newBottom);
     }
-
   }
-  FML_DLOG(INFO) << "ConvertChildRelativeRectToSceenRect -> { nodeId: "
+  FML_DLOG(INFO) << "ConvertChildRelativeRectToScreenRect -> { nodeId: "
                  << currNode.id << ", (" << newLeft << ", " << newTop << ", "
                  << newRight << ", " << newBottom << ")}";
 }
@@ -584,7 +595,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
     OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(
         elementInfoFromList, flutterNode.label.empty()
                                  ? flutterNode.hint.c_str()
-                                 : flutterNode.label.c_str()); 
+                                 : flutterNode.label.c_str());
     OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel(elementInfoFromList,
                                                            "yes");
     OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup(elementInfoFromList,
@@ -620,7 +631,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
   /**  NOTE: when elementId >= 1 */
   FML_DLOG(INFO) << "FlutterNodeToElementInfoById elementId = " << elementId;
 
-  //根据flutter节点信息配置elementinfo无障碍属性
+  // 根据flutter节点信息配置elementinfo无障碍属性
   FlutterSetElementInfoProperties(elementInfoFromList, elementId);
 
   FML_DLOG(INFO)
@@ -630,18 +641,19 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
 /**
  * 根据flutter节点信息配置elementinfo无障碍属性
  */
-void OhosAccessibilityBridge::FlutterSetElementInfoProperties(ArkUI_AccessibilityElementInfo* elementInfoFromList,
-                                      int64_t elementId) {
+void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
+    ArkUI_AccessibilityElementInfo* elementInfoFromList,
+    int64_t elementId) {
   flutter::SemanticsNode flutterNode =
       getOrCreateFlutterSemanticsNode(static_cast<int32_t>(elementId));
 
-  //set elementinfo id
+  // set elementinfo id
   OH_ArkUI_AccessibilityElementInfoSetElementId(elementInfoFromList,
                                                 flutterNode.id);
-  //convert relative rect to absolute rect 
-  ConvertChildRelativeRectToSceenRect(flutterNode);
+  // convert relative rect to absolute rect
+  ConvertChildRelativeRectToScreenRect(flutterNode);
   auto rectPairs = GetAbsoluteScreenRect(flutterNode.id);
-  //set screen rect in xcomponent
+  // set screen rect in xcomponent
   int32_t left = rectPairs.first.first;
   int32_t top = rectPairs.first.second;
   int32_t right = rectPairs.second.first;
@@ -652,7 +664,7 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(ArkUI_Accessibilit
                  << flutterNode.id << " SceenRect = (" << left << ", " << top
                  << ", " << right << ", " << bottom << ")";
 
-  // if node is a textfield 
+  // if node is a textfield
   if (IsTextField(flutterNode)) {
     // set elementinfo action types
     int32_t actionTypeNum = 10;
@@ -701,9 +713,8 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(ArkUI_Accessibilit
     OH_ArkUI_AccessibilityElementInfoSetOperationActions(
         elementInfoFromList, actionTypeNum, actions);
 
-  } else if (IsScrollableWidget(flutterNode) 
-             || IsNodeScrollable(flutterNode)) {
-    //if node is a scrollable component
+  } else if (IsScrollableWidget(flutterNode) || IsNodeScrollable(flutterNode)) {
+    // if node is a scrollable component
     int32_t actionTypeNum = 5;
     ArkUI_AccessibleAction actions[actionTypeNum];
 
@@ -731,7 +742,7 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(ArkUI_Accessibilit
         elementInfoFromList, actionTypeNum, actions);
 
   } else {
-    // set common component action types 
+    // set common component action types
     int32_t actionTypeNum = 3;
     ArkUI_AccessibleAction actions[actionTypeNum];
 
@@ -751,7 +762,7 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(ArkUI_Accessibilit
         elementInfoFromList, actionTypeNum, actions);
   }
 
-  //set current elementinfo parent id
+  // set current elementinfo parent id
   int32_t parentId = GetParentId(elementId);
   if (parentId < 0) {
     FML_DLOG(ERROR)
@@ -763,7 +774,7 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(ArkUI_Accessibilit
     FML_DLOG(INFO) << "FlutterNodeToElementInfoById GetParentId = " << parentId;
   }
 
-  //set accessibility text for announcing
+  // set accessibility text for announcing
   std::string text = flutterNode.label;
   OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(elementInfoFromList,
                                                         text.c_str());
@@ -774,7 +785,7 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(ArkUI_Accessibilit
   OH_ArkUI_AccessibilityElementInfoSetHintText(elementInfoFromList,
                                                hint.c_str());
 
-  //set chidren elementinfo ids
+  // set chidren elementinfo ids
   int32_t childCount =
       static_cast<int32_t>(flutterNode.childrenInTraversalOrder.size());
   int64_t childNodeIds[childCount];
@@ -791,7 +802,7 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(ArkUI_Accessibilit
   /**
    * 根据当前flutter节点的SemanticsFlags特性，配置对应的elmentinfo属性
    */
-  //判断当前节点是否可点击
+  // 判断当前节点是否可点击
   if (IsNodeClickable(flutterNode)) {
     OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfoFromList, true);
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
@@ -833,20 +844,20 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(ArkUI_Accessibilit
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetSelected -> true";
   }
-  //判断当前节点组件是否可滑动
-  if(IsNodeScrollable(flutterNode)) {
+  // 判断当前节点组件是否可滑动
+  if (IsNodeScrollable(flutterNode)) {
     OH_ArkUI_AccessibilityElementInfoSetScrollable(elementInfoFromList, true);
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetScrollable -> true";
   }
-  //判断当前节点组件是否可编辑（文本输入框）
-  if(IsTextField(flutterNode)) {
+  // 判断当前节点组件是否可编辑（文本输入框）
+  if (IsTextField(flutterNode)) {
     OH_ArkUI_AccessibilityElementInfoSetEditable(elementInfoFromList, true);
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetEditable -> true";
   }
-  if(IsSlider(flutterNode)) {
-    //TODO 动态改变滑动条的值
+  if (IsSlider(flutterNode)) {
+    // TODO 动态改变滑动条的值
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetRangeInfo -> true";
   }
