@@ -92,11 +92,9 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   enum class AttachmentState { uninitialized, attached, detached };
 
-  std::atomic<AttachmentState> state_;
+  AttachmentState state_;
 
   bool new_frame_ready_ = false;
-
-  bool texture_update_ = false;
 
   GLuint texture_name_ = 0;
 

@@ -95,9 +95,10 @@ void OHOSExternalTextureGL::Attach()
   OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
   auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
   if (result->GetResult()) {
-    FML_DLOG(INFO)<<"ResourceContextMakeCurrent successed";
+    FML_DLOG(INFO) << "ResourceContextMakeCurrent successed";
     glGenTextures(1, &texture_name_);
-    FML_DLOG(INFO) << "OHOSExternalTextureGL::Paint, glGenTextures texture_name_=" << texture_name_ << ", Id()=" << Id();
+    FML_DLOG(INFO) << "OHOSExternalTextureGL::Attach, glGenTextures texture_name_="
+      << texture_name_ << ", Id()=" << Id();
     if (nativeImage_ == nullptr) {
       nativeImage_ = OH_NativeImage_Create(texture_name_, GL_TEXTURE_EXTERNAL_OES);
       if (nativeImage_ == nullptr) {
@@ -130,22 +131,10 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     FML_LOG(ERROR) << "OHOSExternalTextureGL::Paint, the current status is detached";
     return;
   }
-  if (state_ == AttachmentState::uninitialized) {
-    Attach();
-    if (!freeze && new_frame_ready_ && pixelMap_ != nullptr) {
-      ProducePixelMapToNativeImage();
-      Update();
-    }
-    new_frame_ready_ = false;
-  }
-
-  if (!freeze && texture_update_ && pixelMap_ == nullptr) {
-      Update();
-  }
 
   GrGLTextureInfo textureInfo;
 
-  if (!freeze && !first_update_ && !isEmulator_ && !new_frame_ready_ && pixelMap_ == nullptr) {
+  if (!freeze && !first_update_ && !isEmulator_ && backGroundTextureName_ == 0 && pixelMap_ == nullptr) {
     setBackground(bounds.width(), bounds.height());
     textureInfo = {GL_TEXTURE_EXTERNAL_OES, backGroundTextureName_, GL_RGBA8_OES};
   } else {
@@ -189,13 +178,13 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
 
 void OHOSExternalTextureGL::OnGrContextCreated()
 {
-  FML_DLOG(INFO)<<" OHOSExternalTextureGL::OnGrContextCreated";
+  FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextCreated";
   state_ = AttachmentState::uninitialized;
 }
 
 void OHOSExternalTextureGL::OnGrContextDestroyed()
 {
-  FML_DLOG(INFO)<<" OHOSExternalTextureGL::OnGrContextDestroyed";
+  FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextDestroyed";
   if (state_ == AttachmentState::attached) {
     Detach();
     glDeleteTextures(1, &texture_name_);
@@ -208,14 +197,15 @@ void OHOSExternalTextureGL::OnGrContextDestroyed()
 
 void OHOSExternalTextureGL::MarkNewFrameAvailable()
 {
-  FML_DLOG(INFO)<<" OHOSExternalTextureGL::MarkNewFrameAvailable";
+  FML_DLOG(INFO) << " OHOSExternalTextureGL::MarkNewFrameAvailable";
   new_frame_ready_ = true;
-  texture_update_ = true;
-  if (pixelMap_ == nullptr) {
-    Update();
-  } else {
-    FML_DLOG(INFO) << "pixelMap_ is nullptr, texture_name_=" << texture_name_;
+  if (texture_name_ == 0) {
+    Attach();
   }
+  if (pixelMap_ != nullptr) { // 外接纹理图片场景
+    ProducePixelMapToNativeImage();
+  }
+  Update();
 }
 
 void OHOSExternalTextureGL::OnTextureUnregistered()
@@ -224,10 +214,6 @@ void OHOSExternalTextureGL::OnTextureUnregistered()
     << ", Id()=" << Id()
     << ", nativeImage_=" << nativeImage_
     << ", backGroundNativeImage_=" << backGroundNativeImage_;
-  if (state_ != AttachmentState::attached) {
-    FML_LOG(ERROR) << "OHOSExternalTextureGL::OnTextureUnregistered, the current status is not attached";
-    return;
-  }
   first_update_ = false;
   if (nativeImage_ != nullptr) {
     OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);
@@ -252,7 +238,6 @@ void OHOSExternalTextureGL::Update()
     FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeImage_UpdateSurfaceImage err code:" << ret;
     return;
   }
-  texture_update_ = false;
   first_update_ = true;
   UpdateTransform(nativeImage_);
 }
@@ -300,7 +285,7 @@ void OHOSExternalTextureGL::DispatchImage(ImageNative* image)
 
 void OHOSExternalTextureGL::setBackground(int32_t width, int32_t height)
 {
-  FML_DLOG(INFO)<<" OHOSExternalTextureGL::setBackground";
+  FML_DLOG(INFO) << " OHOSExternalTextureGL::setBackground";
   if (backGroundNativeImage_ != nullptr) {
     return;
   }
@@ -309,7 +294,7 @@ void OHOSExternalTextureGL::setBackground(int32_t width, int32_t height)
   OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
   auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
   if (result->GetResult()) {
-    FML_DLOG(INFO)<<"ResourceContextMakeCurrent successed";
+    FML_DLOG(INFO) << "ResourceContextMakeCurrent successed";
     glGenTextures(1, &backGroundTextureName_);
     FML_DLOG(INFO) << "OHOSExternalTextureGL::setBackground, glGenTextures backGroundTextureName_=" << backGroundTextureName_;
     if (backGroundNativeImage_ == nullptr) {
