@@ -35,40 +35,6 @@
 
 namespace flutter {
 
-std::vector<std::string> StringArrayToVector(napi_env env,
-                                             napi_value arrayValue) {
-  napi_status status;
-  uint32_t arrayLength = 0;
-  status = napi_get_array_length(env, arrayValue, &arrayLength);
-  LOGE("StringArrayToVector get array length  %{pubilc}d", arrayLength);
-  if (status != napi_ok) {
-    LOGE("StringArrayToVector napi_get_array_length error ");
-  }
-  std::vector<std::string> stringArray;
-  for (uint32_t i = 0; i < arrayLength; i++) {
-    napi_value elementValue;
-    status = napi_get_element(env, arrayValue, i, &elementValue);
-    if (status != napi_ok) {
-      LOGE("StringArrayToVector napi_get_element error");
-    }
-    size_t stringLength;
-    status = napi_get_value_string_utf8(env, elementValue, nullptr, 0,
-                                        &stringLength);
-    if (status != napi_ok) {
-      LOGE("StringArrayToVector napi_get_value_string_utf8 error");
-    }
-
-    std::string stringValue(stringLength, '\0');
-    status = napi_get_value_string_utf8(env, elementValue, &stringValue[0],
-                                        stringLength + 1, nullptr);
-    if (status != napi_ok) {
-      LOGE("StringArrayToVector napi_get_value_string_utf8 error");
-    }
-    stringArray.push_back(stringValue);
-  }
-  return stringArray;
-}
-
 OhosMain::OhosMain(const flutter::Settings& settings)
     : settings_(settings), observatory_uri_callback_() {}
 
