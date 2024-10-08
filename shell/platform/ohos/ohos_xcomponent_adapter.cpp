@@ -368,7 +368,7 @@ void XComponentBase::OnSurfaceDestroyed(OH_NativeXComponent* component,
     PlatformViewOHOSNapi::SurfaceDestroyed(std::stoll(shellholderId_));
     int32_t ret = OH_NativeWindow_NativeObjectUnreference(window);
     if (ret) {
-      LOGE("NativeObjectReference failed:%{public}d", ret);
+      LOGE("NativeObjectUnreference failed:%{public}d", ret);
     }
   } else {
     LOGE("XComponentManger::OnSurfaceDestroyed XComponentBase is not attached");
