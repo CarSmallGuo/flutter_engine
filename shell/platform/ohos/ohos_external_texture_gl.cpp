@@ -161,6 +161,10 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     FML_LOG(ERROR) << "OHOSExternalTextureGL::Paint, the current status is detached";
     return;
   }
+  if (!freeze && texture_update_ && pixelMap_ == nullptr) {
+    // 多引擎场景(multi_flutters_ohos)需要在这里执行Update
+    Update();
+  }
 
   GrGLTextureInfo textureInfo;
 
@@ -229,6 +233,7 @@ void OHOSExternalTextureGL::MarkNewFrameAvailable()
 {
   FML_DLOG(INFO) << " OHOSExternalTextureGL::MarkNewFrameAvailable";
   new_frame_ready_ = true;
+  texture_update_ = true;
   if (texture_name_ == 0) {
     Attach();
   }
@@ -259,6 +264,7 @@ void OHOSExternalTextureGL::Update()
     return;
   }
   int32_t ret = OH_NativeImage_UpdateSurfaceImage(nativeImage_);
+  texture_update_ = false;
   if (ret != 0) {
     FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeImage_UpdateSurfaceImage err code:" << ret;
     return;
