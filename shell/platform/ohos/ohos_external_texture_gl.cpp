@@ -99,14 +99,7 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
 {
   FML_DLOG(INFO) << "~OHOSExternalTextureGL, texture_name_=" << texture_name_ << ", Id()=" << Id();
   if (state_ == AttachmentState::attached) {
-    if (texture_name_ != 0) {
-      glDeleteTextures(1, &texture_name_);
-      texture_name_ = 0;
-    }
-    if (backGroundTextureName_ != 0) {
-      glDeleteTextures(1, &backGroundTextureName_);
-      backGroundTextureName_ = 0;
-    }
+    Detach();
   }
   state_ = AttachmentState::uninitialized;
   nativeImage_ = nullptr;
@@ -124,7 +117,6 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
 
 void OHOSExternalTextureGL::Attach()
 {
-  FML_DLOG(INFO) << "OHOSExternalTextureGL::Attach, Id()=" << Id();
   if (state_ != AttachmentState::uninitialized) {
     FML_LOG(ERROR) << "OHOSExternalTextureGL::Attach, the current status is not uninitialized";
     return;
@@ -216,20 +208,20 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
 
 void OHOSExternalTextureGL::OnGrContextCreated()
 {
-  FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextCreated";
+  FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextCreated"
+                 << ", texture_name_=" << texture_name_
+                 << ", Id()=" << Id();
   state_ = AttachmentState::uninitialized;
 }
 
 void OHOSExternalTextureGL::OnGrContextDestroyed()
 {
-  FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextDestroyed";
+  FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextDestroyed"
+                 << ", texture_name_=" << texture_name_
+                 << ", Id()=" << Id();
   if (state_ == AttachmentState::attached) {
     Detach();
-    glDeleteTextures(1, &texture_name_);
-  }
-  state_ = AttachmentState::detached;
-  if (backGroundTextureName_ != 0) {
-    glDeleteTextures(1, &backGroundTextureName_);
+    state_ = AttachmentState::detached;
   }
 }
 
@@ -253,14 +245,9 @@ void OHOSExternalTextureGL::OnTextureUnregistered()
     << ", nativeImage_=" << nativeImage_
     << ", backGroundNativeImage_=" << backGroundNativeImage_;
   first_update_ = false;
-  if (nativeImage_ != nullptr) {
-    OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);
-    OH_NativeImage_Destroy(&nativeImage_);
-    nativeImage_ = nullptr;
-  }
-  if (backGroundNativeImage_ != nullptr) {
-    OH_NativeImage_Destroy(&backGroundNativeImage_);
-    backGroundNativeImage_ = nullptr;
+  if (state_ == AttachmentState::attached) {
+    Detach();
+    state_ = AttachmentState::detached;
   }
 }
 
@@ -287,12 +274,36 @@ void OHOSExternalTextureGL::Detach()
     FML_LOG(ERROR) << "OHOSExternalTextureGL::Detach, the current status is not attached";
     return;
   }
-  OH_NativeImage_DetachContext(nativeImage_);
-  OH_NativeImage_DetachContext(backGroundNativeImage_);
-  OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
-  OH_NativeWindow_DestroyNativeWindow(backGroundNativeWindow_);
-  nativeWindow_ = nullptr;
-  backGroundNativeWindow_ = nullptr;
+
+  if (nativeImage_ != nullptr) {
+    OH_NativeImage_DetachContext(nativeImage_);
+    OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);
+    OH_NativeImage_Destroy(&nativeImage_);
+    nativeImage_ = nullptr;
+  }
+  if (nativeWindow_ != nullptr) {
+    OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
+    nativeWindow_ = nullptr;
+  }
+
+  if (backGroundNativeImage_ != nullptr) {
+    OH_NativeImage_DetachContext(backGroundNativeImage_);
+    OH_NativeImage_Destroy(&backGroundNativeImage_);
+    backGroundNativeImage_ = nullptr;
+  }
+  if (backGroundNativeWindow_ != nullptr) {
+    OH_NativeWindow_DestroyNativeWindow(backGroundNativeWindow_);
+    backGroundNativeWindow_ = nullptr;
+  }
+
+  if (texture_name_ != 0) {
+    glDeleteTextures(1, &texture_name_);
+    texture_name_ = 0;
+  }
+  if (backGroundTextureName_ != 0) {
+    glDeleteTextures(1, &backGroundTextureName_);
+    backGroundTextureName_ = 0;
+  }
 }
 
 void OHOSExternalTextureGL::UpdateTransform(OH_NativeImage *image)
