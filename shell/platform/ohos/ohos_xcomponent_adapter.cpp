@@ -330,9 +330,13 @@ void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component,
        (int)height_);
   ret = SetNativeWindowOpt((OHNativeWindow*)window, width_, height_);
   if (ret) {
-    LOGD("SetNativeWindowOpt failed:%{public}d", ret);
+    LOGE("SetNativeWindowOpt failed:%{public}d", ret);
   }
   if (isEngineAttached_) {
+    ret = OH_NativeWindow_NativeObjectReference(window);
+    if (ret) {
+      LOGE("NativeObjectReference failed:%{public}d", ret);
+    }
     PlatformViewOHOSNapi::SurfaceCreated(std::stoll(shellholderId_), window);
   } else {
     LOGE("OnSurfaceCreated XComponentBase is not attached");
@@ -362,8 +366,12 @@ void XComponentBase::OnSurfaceDestroyed(OH_NativeXComponent* component,
   LOGD("XComponentManger::OnSurfaceDestroyed");
   if (isEngineAttached_) {
     PlatformViewOHOSNapi::SurfaceDestroyed(std::stoll(shellholderId_));
+    int32_t ret = OH_NativeWindow_NativeObjectUnreference(window);
+    if (ret) {
+      LOGE("NativeObjectUnreference failed:%{public}d", ret);
+    }
   } else {
-    LOGE("OnSurfaceCreated OnSurfaceDestroyed is not attached");
+    LOGE("XComponentManger::OnSurfaceDestroyed XComponentBase is not attached");
   }
 }
 
