@@ -20,6 +20,7 @@
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>
 
+#include <multimedia/image_framework/image/pixelmap_native.h>
 #include <multimedia/image_framework/image_mdk.h>
 #include <multimedia/image_framework/image_pixel_map_mdk.h>
 #include <native_buffer/native_buffer.h>
