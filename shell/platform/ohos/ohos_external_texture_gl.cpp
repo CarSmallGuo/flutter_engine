@@ -39,7 +39,8 @@ constexpr const char *EGL_EXT_PLATFORM_WAYLAND = "EGL_EXT_platform_wayland";
 constexpr const char *EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
 constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 
-static int PixelMapToWindowFormat(PIXEL_FORMAT pixel_format) {
+static int PixelMapToWindowFormat(PIXEL_FORMAT pixel_format)
+{
   switch (pixel_format) {
     case PIXEL_FORMAT_RGB_565:
       return NATIVEBUFFER_PIXEL_FMT_RGB_565;
@@ -69,7 +70,8 @@ static int PixelMapToWindowFormat(PIXEL_FORMAT pixel_format) {
   return 0;
 }
 
-static bool IsPixelMapYUVFormat(PIXEL_FORMAT format) {
+static bool IsPixelMapYUVFormat(PIXEL_FORMAT format)
+{
   return format == PIXEL_FORMAT_NV21 || format == PIXEL_FORMAT_NV12 ||
          format == PIXEL_FORMAT_YCBCR_P010 || format == PIXEL_FORMAT_YCRCB_P010;
 }
@@ -447,8 +449,8 @@ void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
     return;
   }
   
-  int window_format = PixelMapToWindowFormat((PIXEL_FORMAT)pixelMapInfo.pixelFormat);
-  ret = OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, SET_FORMAT, window_format);
+  int windowFormat = PixelMapToWindowFormat((PIXEL_FORMAT)pixelMapInfo.pixelFormat);
+  ret = OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, SET_FORMAT, windowFormat);
 
   uint64_t usage = 0;
   OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, GET_USAGE, &usage);
@@ -517,7 +519,6 @@ void OHOSExternalTextureGL::HandlePixelMapBuffer(NativePixelMap* pixelMap, OHNat
     << " h:" << pixelMapInfo.height;
   FML_DLOG(INFO) << "OHOSExternalTextureGL pixelMapInfo rowSize:" << pixelMapInfo.rowSize
     << " format:" << pixelMapInfo.pixelFormat;
-
 
   uint32_t real_height = pixelMapInfo.height;
   if (IsPixelMapYUVFormat((PIXEL_FORMAT)pixelMapInfo.pixelFormat)) {
