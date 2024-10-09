@@ -112,6 +112,9 @@ void OhosAccessibilityBridge::updateSemantics(
   FML_DLOG(INFO) << "=== UpdateSemantics is end ===";
 }
 
+/**
+ * flutter可滑动组件的滑动逻辑处理实现
+ */
 void OhosAccessibilityBridge::FlutterScrollExecution(
     flutter::SemanticsNode node,
     ArkUI_AccessibilityElementInfo* elementInfoFromList) {
@@ -119,6 +122,7 @@ void OhosAccessibilityBridge::FlutterScrollExecution(
   double nodeScrollExtentMax = node.scrollExtentMax;
   double nodeScrollExtentMin = node.scrollExtentMin;
   double infinity = std::numeric_limits<double>::infinity();
+
   // 设置flutter可滑动的最大范围值
   if (nodeScrollExtentMax == infinity) {
     nodeScrollExtentMax = SCROLL_EXTENT_FOR_INFINITY;
@@ -509,6 +513,7 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
       newTop = realParentTop;
       newRight = realParentRight;
       newBottom = realParentBottom;
+
     } else {
       /**
        * 子节点的屏幕绝对坐标转换，包括offset偏移值计算、缩放系数变换 (初期版本)
@@ -535,8 +540,11 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
                          "bigger than parentRect -> { nodeId: "
                       << currNode.id << ", (" << newLeft << ", " << newTop
                       << ", " << newRight << ", " << newBottom << ")}";
-      SetAbsoluteScreenRect(currNode.id, newLeft, realParentTop - rootRight,
-                            realParentRight, realParentBottom - rootBottom);
+      // 防止溢出屏幕坐标
+      newTop = realParentTop - rootRight;
+      newBottom = realParentBottom - rootBottom;
+      SetAbsoluteScreenRect(currNode.id, newLeft, newTop, realParentRight,
+                            newBottom);
 
     } else {
       SetAbsoluteScreenRect(currNode.id, newLeft, newTop, newRight, newBottom);

@@ -154,6 +154,7 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeGetShellHolderId",
           flutter::PlatformViewOHOSNapi::nativeGetShellHolderId),
+      DECLARE_NAPI_FUNCTION(
           "nativeDecodeUtf8",
           flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),
        DECLARE_NAPI_FUNCTION(

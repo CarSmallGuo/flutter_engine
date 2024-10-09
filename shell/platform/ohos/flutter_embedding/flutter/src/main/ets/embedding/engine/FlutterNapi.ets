@@ -320,7 +320,7 @@ export default class FlutterNapi {
     }
   }
 
-  setSemanticsEnabled2(enabled: boolean, responseId: number): void {
+  setSemanticsEnabledWithRespId(enabled: boolean, responseId: number): void {
     this.ensureRunningOnMainThread();
     if (this.isAttached()) {
       flutter.nativeSetSemanticsEnabled(this.nativeShellHolderId!, enabled);
