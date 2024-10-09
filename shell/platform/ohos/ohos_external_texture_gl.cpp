@@ -518,11 +518,9 @@ void OHOSExternalTextureGL::HandlePixelMapBuffer(NativePixelMap* pixelMap, OHNat
   FML_DLOG(INFO) << "OHOSExternalTextureGL pixelMapInfo rowSize:" << pixelMapInfo.rowSize
     << " format:" << pixelMapInfo.pixelFormat;
 
-  FML_LOG(ERROR)<<"OHOSExternalTextureGL IsPixelMapYUVFormat 0";
 
   uint32_t real_height = pixelMapInfo.height;
   if (IsPixelMapYUVFormat((PIXEL_FORMAT)pixelMapInfo.pixelFormat)) {
-      FML_LOG(ERROR)<<"OHOSExternalTextureGL IsPixelMapYUVFormat 1";
     // y is height, uv is height/2
     real_height = pixelMapInfo.height + (pixelMapInfo.height + 1) / 2;
   }
