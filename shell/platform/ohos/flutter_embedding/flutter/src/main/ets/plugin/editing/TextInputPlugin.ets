@@ -132,6 +132,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
         + editingState.selectionEnd + " composingStart:" + editingState.composingStart + " composingEnd" +
       editingState.composingEnd);
     this.mEditable.updateTextInputState(editingState);
+    this.changeSelection();
   }
 
   clearClient(): void {
