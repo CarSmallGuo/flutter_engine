@@ -360,11 +360,10 @@ export class FlutterView {
 
   private onKeyboardAreaChange() {
     if (this.checkKeyboard) {
-      let keyboardAvoidArea: window.AvoidArea | undefined = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_KEYBOARD);
-      this.viewportMetrics.physicalViewInsetTop = this.keyboardAvoidArea!.topRect.height
-      this.viewportMetrics.physicalViewInsetLeft = this.keyboardAvoidArea!.leftRect.width
-      this.viewportMetrics.physicalViewInsetBottom = this.keyboardAvoidArea!.bottomRect.height
-      this.viewportMetrics.physicalViewInsetRight = this.keyboardAvoidArea!.rightRect.width
+      this.viewportMetrics.physicalViewInsetTop = this.keyboardAvoidArea?.topRect.height ?? 0
+      this.viewportMetrics.physicalViewInsetLeft = this.keyboardAvoidArea?.leftRect.width ?? 0
+      this.viewportMetrics.physicalViewInsetBottom = this.keyboardAvoidArea?.bottomRect.height ?? 0
+      this.viewportMetrics.physicalViewInsetRight = this.keyboardAvoidArea?.rightRect.width ?? 0
     } else {
       this.viewportMetrics.physicalViewInsetTop = 0
       this.viewportMetrics.physicalViewInsetLeft = 0
@@ -375,11 +374,10 @@ export class FlutterView {
 
   private onGestureAreaChange() {
     if (this.checkGesture) {
-      let gestureAvoidArea: window.AvoidArea | undefined = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM_GESTURE);
-      this.viewportMetrics.systemGestureInsetTop = this.gestureAvoidArea!.topRect.height
-      this.viewportMetrics.systemGestureInsetLeft = this.gestureAvoidArea!.leftRect.width
-      this.viewportMetrics.systemGestureInsetBottom = this.gestureAvoidArea!.bottomRect.height
-      this.viewportMetrics.systemGestureInsetRight = this.gestureAvoidArea!.rightRect.width
+      this.viewportMetrics.systemGestureInsetTop = this.gestureAvoidArea?.topRect.height ?? 0
+      this.viewportMetrics.systemGestureInsetLeft = this.gestureAvoidArea?.leftRect.width ?? 0
+      this.viewportMetrics.systemGestureInsetBottom = this.gestureAvoidArea?.bottomRect.height ?? 0
+      this.viewportMetrics.systemGestureInsetRight = this.gestureAvoidArea?.rightRect.width ?? 0
     } else {
       this.viewportMetrics.systemGestureInsetTop = 0
       this.viewportMetrics.systemGestureInsetLeft = 0
