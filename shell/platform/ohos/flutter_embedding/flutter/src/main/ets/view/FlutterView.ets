@@ -337,7 +337,7 @@ export class FlutterView {
     }
 
     // 根据是否全屏显示，设置标题栏高度（若全屏，则及时规避）
-    if (this.checkFullScreen && (setFullScreen || this.mainWindow.getWindowProperties().isLayoutFullScreen)) { // 全屏显示
+    if (this.checkFullScreen && (setFullScreen || this.mainWindow?.getWindowProperties().isLayoutFullScreen)) { // 全屏显示
       this.viewportMetrics.physicalViewPaddingTop = this.systemAvoidArea?.topRect.height ?? 0;
       this.viewportMetrics.physicalViewPaddingBottom = this.navigationAvoidArea?.bottomRect.height ?? 0;
     } else { // 非全屏显示（保持规避效果）
