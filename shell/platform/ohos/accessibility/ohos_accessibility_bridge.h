@@ -143,7 +143,6 @@ class OhosAccessibilityBridge {
   static const int32_t ROOT_NODE_ID = 0;
   constexpr static const double SCROLL_EXTENT_FOR_INFINITY = 100000.0;
   constexpr static const double SCROLL_POSITION_CAP_FOR_INFINITY = 70000.0;
-  int32_t accessibilityFeatureFlags = 0;
 
   flutter::SemanticsNode inputFocusedNode;
   flutter::SemanticsNode lastInputFocusedNode;
