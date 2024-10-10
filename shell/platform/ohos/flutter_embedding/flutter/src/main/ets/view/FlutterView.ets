@@ -360,7 +360,7 @@ export class FlutterView {
 
   private onKeyboardAreaChange() {
     if (this.checkKeyboard) {
-      let keyboardAvoidArea: window.AvoidArea | null = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_KEYBOARD);
+      let keyboardAvoidArea: window.AvoidArea | undefined = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_KEYBOARD);
       this.viewportMetrics.physicalViewInsetTop = this.keyboardAvoidArea!.topRect.height
       this.viewportMetrics.physicalViewInsetLeft = this.keyboardAvoidArea!.leftRect.width
       this.viewportMetrics.physicalViewInsetBottom = this.keyboardAvoidArea!.bottomRect.height
@@ -375,7 +375,7 @@ export class FlutterView {
 
   private onGestureAreaChange() {
     if (this.checkGesture) {
-      let gestureAvoidArea: window.AvoidArea | null = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM_GESTURE);
+      let gestureAvoidArea: window.AvoidArea | undefined = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM_GESTURE);
       this.viewportMetrics.systemGestureInsetTop = this.gestureAvoidArea!.topRect.height
       this.viewportMetrics.systemGestureInsetLeft = this.gestureAvoidArea!.leftRect.width
       this.viewportMetrics.systemGestureInsetBottom = this.gestureAvoidArea!.bottomRect.height
