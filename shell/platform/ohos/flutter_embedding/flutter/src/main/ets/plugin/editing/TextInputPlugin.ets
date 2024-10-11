@@ -78,7 +78,6 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   mEditable: ListenableEditingState;
   private mRestartInputPending: boolean = false;
   private plugin: EditingStateWatcher | Any;
-  private imcFlag: boolean = false;
   private inputTypeNone: string = 'NONE'
   private keyboardStatus: inputMethod.KeyboardStatus = inputMethod.KeyboardStatus.HIDE;
   private inputAttribute: inputMethod.InputAttribute = { textInputType: 0, enterKeyType: 1 }
@@ -133,6 +132,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
         + editingState.selectionEnd + " composingStart:" + editingState.composingStart + " composingEnd" +
       editingState.composingEnd);
     this.mEditable.updateTextInputState(editingState);
+    this.changeSelection();
   }
 
   clearClient(): void {
@@ -144,22 +144,11 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       return;
     }
     await this.attach(true);
-    if (!this.imcFlag) {
-      this.listenKeyBoardEvent();
-    }
-    this.inputMethodController.showTextInput().then(() => {
-      Log.d(TextInputMethodHandlerImpl.TAG, "Succeeded in showing softKeyboard");
-    }).catch((err: Any) => {
-      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to show softKeyboard:" + JSON.stringify(err));
-    });
+    this.listenKeyBoardEvent();
   }
 
   private async hideTextInput(): Promise<void> {
-    this.inputMethodController.hideTextInput().then(() => {
-      Log.d(TextInputMethodHandlerImpl.TAG, "Succeeded in hide softKeyboard");
-    }).catch((err: Any) => {
-      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to hide softKeyboard:" + JSON.stringify(err));
-    })
+    this.inputMethodController.detach();
   }
 
   async attach(showKeyboard: boolean): Promise<void> {
@@ -264,12 +253,16 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       return;
     }
     Log.d(TextInputMethodHandlerImpl.TAG, "listenKeyBoardEvent success");
-    this.imcFlag = true;
   }
 
   private insertTextCallback = (text: string) => {
     Log.d(TextInputMethodHandlerImpl.TAG, "insertText: " + text);
-    this.mEditable.handleInsertTextEvent(text);
+    if (text.length > 1 && text.substring(text.length - 1, text.length == " ") {
+       this.mEditable.handleInsertEnglishTextEvent(text);
+    } else {
+       this.mEditable.handleInsertTextEvent(text);
+    }
+
     this.changeSelection();
   }
 
@@ -287,6 +280,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     /// 临时规避缺少newline对应枚举类型问题
     if (functionKey.enterKeyType == NEWLINE_KEY_TYPE) {
       this.mEditable.handleNewlineEvent();
+      this.changeSelection();
     }
     this.mEditable.handleFunctionKey(functionKey);
   }
@@ -319,8 +313,6 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.inputMethodController.off('sendFunctionKey', this.sendFunctionKeyCallback);
     this.inputMethodController.off('sendKeyboardStatus', this.sendKeyboardStatusCallback);
     this.inputMethodController.off('selectByRange', this.selectByRangeCallback);
-    this.imcFlag = false;
-    this.inputMethodController.detach()
   }
 
   public clearTextInputClient(): void {
