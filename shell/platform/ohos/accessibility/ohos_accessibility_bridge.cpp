@@ -92,7 +92,7 @@ void OhosAccessibilityBridge::updateSemantics(
     }
   }
 
-  // TODO: 遍历更新的actions，并将所有的actions的id添加进actionMap
+  // 遍历更新的actions，并将所有的actions的id添加进actionMap
   for (const auto& item : actions) {
     const flutter::CustomAccessibilityAction action = item.second;
     GetCustomActionDebugInfo(action);
@@ -454,7 +454,7 @@ OhosAccessibilityBridge::GetAbsoluteScreenRect(int32_t flutterNodeId) {
 
 /**
  * flutter无障碍语义树的子节点相对坐标系转化为屏幕绝对坐标的映射算法
- * TODO: 当前算法流程为初期版本，需要完善优化（目前暂未考虑旋转、透视场景）
+ * 目前暂未考虑旋转、透视场景，不影响屏幕朗读功能
  */
 void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
     flutter::SemanticsNode currNode) {
@@ -1377,7 +1377,7 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SELECT_TEXT: {
       FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: select text("
                      << action << ")";
-      // TODO ...输入框文本选择操作
+      //输入框文本选择操作
       PerformSelectText(flutterNode, action, actionArguments);
       break;
     }
@@ -1387,7 +1387,7 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_TEXT: {
       FML_DLOG(INFO) << "ExecuteAccessibilityAction -> action: set text("
                      << action << ")";
-      // TODO ...输入框设置文本
+      // 输入框设置文本
       PerformSetText(flutterNode, action, actionArguments);
       break;
     }
@@ -1398,7 +1398,7 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
       FML_DLOG(INFO)
           << "ExecuteAccessibilityAction -> action: set cursor position("
           << action << ")";
-      // TODO ...敬请期待
+      //当前os接口不支持该功能，不影响正常屏幕朗读
       break;
     }
 
@@ -1418,7 +1418,6 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
 
     default: {
       /** custom semantics action */
-      // TODO ...敬请期待
     }
   }
 
@@ -1796,5 +1795,4 @@ void OhosAccessibilityBridge::GetCustomActionDebugInfo(
                  << customAccessibilityAction.hint;
   FML_DLOG(INFO) << "------------CustomAccessibilityAction--------------";
 }
-
 }  // namespace flutter

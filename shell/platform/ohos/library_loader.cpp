@@ -151,6 +151,9 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeSetSemanticsEnabled",
           flutter::PlatformViewOHOSNapi::nativeSetSemanticsEnabled),
+    DECLARE_NAPI_FUNCTION(
+          "nativeSetFontWeightScale",
+          flutter::PlatformViewOHOSNapi::nativeSetFontWeightScale),
       DECLARE_NAPI_FUNCTION(
           "nativeGetShellHolderId",
           flutter::PlatformViewOHOSNapi::nativeGetShellHolderId),

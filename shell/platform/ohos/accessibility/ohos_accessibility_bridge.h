@@ -23,8 +23,9 @@
 #include <vector>
 #include "flutter/lib/ui/semantics/custom_accessibility_action.h"
 #include "flutter/lib/ui/semantics/semantics_node.h"
-#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_manager.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
+#include "flutter/fml/mapping.h"
+#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_manager.h"
 
 namespace flutter {
 

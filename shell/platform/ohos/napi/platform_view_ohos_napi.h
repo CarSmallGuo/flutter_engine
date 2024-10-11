@@ -29,6 +29,7 @@
 #include "flutter/shell/platform/ohos/napi_common.h"
 #include "napi/native_api.h"
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
+#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_features.h"
 
 // class for all c++ to call js function
 namespace flutter {
@@ -215,6 +216,9 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);
   static napi_value nativeSetSemanticsEnabled(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeSetFontWeightScale(
       napi_env env,
       napi_callback_info info);
   static napi_value nativeGetShellHolderId(

@@ -60,6 +60,20 @@ export default class AccessibilityBridge implements AccessibilityMessageHandler 
 
 }
 
+export class AccessibilityManager {
+  private fontWeightScale: number | null = null;
+
+  setFontWeightScale(fontWeightScale: number): void {
+    this.fontWeightScale  = fontWeightScale;
+    Log.i(TAG, 'setFontWeightScale: ' + JSON.stringify(this.fontWeightScale));
+  }
+
+  getFontWeightScale(): number {
+    Log.i(TAG, 'getFontWeightScale: ' + JSON.stringify(this.fontWeightScale));
+    return this.fontWeightScale!;
+  }
+}
+
 export enum Action {
   TAP = 1 << 0,
   LONG_PRESS = 1 << 1,

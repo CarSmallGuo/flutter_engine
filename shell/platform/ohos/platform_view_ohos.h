@@ -37,7 +37,6 @@
 #include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
 #include "flutter/shell/platform/ohos/platform_view_ohos_delegate.h"
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
-
 namespace flutter {
 
 class OhosSurfaceFactoryImpl : public OhosSurfaceFactory {

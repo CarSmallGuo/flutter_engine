@@ -86,6 +86,7 @@ source_set("flutter_ohos_sources") {
              "ohos_logging.h",
              "platform_view_ohos_delegate.h",
              "./accessibility/ohos_accessibility_bridge.h",
+             "./accessibility/ohos_accessibility_features.h",
              "./accessibility/ohos_accessibility_manager.h",
            ]
 
@@ -119,6 +120,7 @@ source_set("flutter_ohos_sources") {
       "./surface/ohos_snapshot_surface_producer.cpp",
       "platform_view_ohos_delegate.cpp",
       "./accessibility/ohos_accessibility_bridge.cpp",
+      "./accessibility/ohos_accessibility_features.cpp",
       "./accessibility/ohos_accessibility_manager.cpp",
   ]
 

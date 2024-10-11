@@ -152,5 +152,8 @@ export const nativeAnnounce: (message: string) => void;
 
 export const nativeSetSemanticsEnabled: (nativeShellHolderId: number, enabled: boolean) => void;
 
+export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightScale: number) => void;
+
 export const nativeGetShellHolderId: (nativeShellHolderId: number) => void;
+
 export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;
