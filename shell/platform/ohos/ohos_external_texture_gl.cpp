@@ -589,6 +589,12 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
     return;
   }
 
+  ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, SET_TIMEOUT, 0);
+  if (ret != 0) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL SET_TIMEOUT err:" << ret;
+    return;
+  }
+
   uint64_t usage = 0;
   OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, GET_USAGE, &usage);
   usage |= NATIVEBUFFER_USAGE_CPU_READ;
