@@ -171,6 +171,47 @@ export class ListenableEditingState {
     this.notifyListenersIfNeeded(true, true, false);
   }
 
+  handleInsertEnglishTextEvent(text: string): void {
+    let start = this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
+    let end = this.mSelectionStartCache > this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
+    const length = text.length;
+    this.replace(start, end, text, 0, length);
+    let englishReg = new RegExp("[A-Za-z^']");
+
+    if (start == 0 || !this.mStringCache.substring(start - 1, start).match(englishReg)) {
+      let tempStr: string = this.mStringCache.substring(0, start) + text + this.mStringCache.substring(end);
+      this.mStringCache = tempStr;
+      this.setSelectionStart(this.mStringCache.length);
+      this.setSelectionEnd(this.mStringCache.length);
+    } else {
+      for (let i = start; i <= start; i--) {
+        if (this.mStringCache.substring(i - 1, i).match(englishReg)) {
+          start = i;
+        } else {
+          break;
+        }
+      }
+      for (let i = end; i >= start; i++) {
+        if (this.mStringCache.substring(i, i + 1).match(englishReg)) {
+          end = i;
+        } else {
+          break;
+        }
+      }
+      let tempStr: string = this.mStringCache.substring(0, start - 1) + text + this.mStringCache.substring(end + 1);
+      let selectionLength: number = start - 1 + text.length;
+      this.mStringCache = tempStr;
+      this.setSelectionStart(selectionLength);
+      this.setSelectionEnd(selectionLength);
+    }
+
+    if (this.mListeners == null) {
+      Log.e(TAG, "mListeners is null");
+      return;
+    }
+    this.notifyListenersIfNeeded(true, true, false);
+  }
+
   updateTextInputState(state: TextEditState): void {
     this.beginBatchEdit();
     this.setStringCache(state.text);

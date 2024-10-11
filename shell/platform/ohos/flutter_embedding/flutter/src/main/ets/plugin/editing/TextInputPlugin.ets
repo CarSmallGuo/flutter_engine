@@ -257,7 +257,12 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   private insertTextCallback = (text: string) => {
     Log.d(TextInputMethodHandlerImpl.TAG, "insertText: " + text);
-    this.mEditable.handleInsertTextEvent(text);
+    if (text.length > 1 && text.substring(text.length - 1, text.length == " ") {
+       this.mEditable.handleInsertEnglishTextEvent(text);
+    } else {
+       this.mEditable.handleInsertTextEvent(text);
+    }
+
     this.changeSelection();
   }
 
