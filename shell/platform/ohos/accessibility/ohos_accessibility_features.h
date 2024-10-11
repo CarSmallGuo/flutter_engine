@@ -37,7 +37,6 @@ class OhosAccessibilityFeatures {
     static const int32_t BOLD_TEXT_WEIGHT_ADJUSTMENT = 300;
     int32_t accessibilityFeatureFlags = 0;
 };
-    
+  
 }
-
 #endif 

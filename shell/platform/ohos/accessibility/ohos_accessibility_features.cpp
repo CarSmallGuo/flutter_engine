@@ -54,5 +54,4 @@ namespace flutter {
                     << accessibilityFeatureFlags;
      accessibilityFeatureFlags = 0;
    }
-
 }

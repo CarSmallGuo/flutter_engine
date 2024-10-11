@@ -1801,7 +1801,6 @@ napi_value PlatformViewOHOSNapi::nativeDecodeUtf8(napi_env env, napi_callback_in
 napi_value PlatformViewOHOSNapi::nativeUpdateSemantics(
     napi_env env,
     napi_callback_info info) {
-  // TODO ets calls c++
 
   return nullptr;
 }
@@ -1809,7 +1808,6 @@ napi_value PlatformViewOHOSNapi::nativeUpdateSemantics(
 napi_value PlatformViewOHOSNapi::nativeUpdateCustomAccessibilityActions(
     napi_env env,
     napi_callback_info info) {
-  // TODO ets calls c++
 
   return nullptr;
 }
