@@ -270,17 +270,14 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private insertTextCallback = (text: string) => {
     Log.d(TextInputMethodHandlerImpl.TAG, "insertText: " + text);
     this.mEditable.handleInsertTextEvent(text);
-    this.changeSelection();
   }
 
   private deleteLeftCallback = (length: number) => {
     this.mEditable.handleDeleteEvent(false, length);
-    this.changeSelection();
   }
 
   private deleteRightCallback = (length: number) => {
     this.mEditable.handleDeleteEvent(true, length);
-    this.changeSelection();
   }
 
   private sendFunctionKeyCallback = (functionKey: inputMethod.FunctionKey) => {
@@ -302,14 +299,6 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   private selectByRangeCallback = (range: inputMethod.Range) => {
     this.mEditable.handleSelectByRange(range);
-  }
-
-  changeSelection(): void {
-    try {
-      this.inputMethodController.changeSelection(this.mEditable.getStringCache(), this.mEditable.getSelectionStart(), this.mEditable.getSelectionEnd());
-    } catch (err) {
-      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to changeSelection:" + JSON.stringify(err));
-    }
   }
 
   cancelListenKeyBoardEvent(): void {
