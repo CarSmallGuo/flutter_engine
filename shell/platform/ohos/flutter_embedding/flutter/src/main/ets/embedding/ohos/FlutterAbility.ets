@@ -105,11 +105,6 @@ export class FlutterAbility extends UIAbility implements Host {
     }
     this.errorManagerId = errorManager.on('error', observer);
 
-    let flutterApplicationInfo = ApplicationInfoLoader.load(this.context);
-
-    if (flutterApplicationInfo.isDebugMode) {
-      this.delegate?.initWindow();
-    }
   }
 
   onDestroy() {

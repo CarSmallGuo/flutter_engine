@@ -96,7 +96,7 @@ export default class FlutterLoader {
     this.flutterApplicationInfo = ApplicationInfoLoader.load(context);
     await prefetchDefaultFontManager();
     if (this.flutterApplicationInfo!.isDebugMode) {
-      await this.copyResource(context)
+      this.copyResource(context)
     }
     this.initResult = new InitResult(
       `${context.filesDir}/`,
@@ -107,9 +107,9 @@ export default class FlutterLoader {
   }
 
 
-  private async copyResource(context: common.Context) {
+  private copyResource(context: common.Context) {
     let filePath = context.filesDir + FILE_SEPARATOR + this.flutterApplicationInfo!.flutterAssetsDir
-    const timestamp = await this.checkTimestamp(filePath);
+    const timestamp = this.checkTimestamp(filePath);
     if (timestamp == null) {
       Log.d(TAG, "no need copyResource")
       return;
@@ -125,19 +125,19 @@ export default class FlutterLoader {
         fs.mkdirSync(filePath)
       }
 
-      let icudtlBuffer = await this.context.resourceManager.getRawFileContent(this.flutterApplicationInfo!.flutterAssetsDir + "/icudtl.dat")
+      let icudtlBuffer = this.context.resourceManager.getRawFileContentSync(this.flutterApplicationInfo!.flutterAssetsDir + "/icudtl.dat")
       let icudtlFile = fs.openSync(filePath + FILE_SEPARATOR + "/icudtl.dat", fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE)
       fs.writeSync(icudtlFile.fd, icudtlBuffer.buffer)
 
-      let kernelBuffer = await this.context.resourceManager.getRawFileContent(this.flutterApplicationInfo!.flutterAssetsDir + FILE_SEPARATOR + DEFAULT_KERNEL_BLOB)
+      let kernelBuffer = this.context.resourceManager.getRawFileContentSync(this.flutterApplicationInfo!.flutterAssetsDir + FILE_SEPARATOR + DEFAULT_KERNEL_BLOB)
       let kernelFile = fs.openSync(filePath + FILE_SEPARATOR + DEFAULT_KERNEL_BLOB, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE)
       fs.writeSync(kernelFile.fd, kernelBuffer.buffer)
 
-      let vmBuffer = await this.context.resourceManager.getRawFileContent(this.flutterApplicationInfo!.flutterAssetsDir + FILE_SEPARATOR + this.flutterApplicationInfo!.vmSnapshotData)
+      let vmBuffer = this.context.resourceManager.getRawFileContentSync(this.flutterApplicationInfo!.flutterAssetsDir + FILE_SEPARATOR + this.flutterApplicationInfo!.vmSnapshotData)
       let vmFile = fs.openSync(filePath + FILE_SEPARATOR + this.flutterApplicationInfo!.vmSnapshotData, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE)
       fs.writeSync(vmFile.fd, vmBuffer.buffer)
 
-      let isolateBuffer = await this.context.resourceManager.getRawFileContent(this.flutterApplicationInfo!.flutterAssetsDir + FILE_SEPARATOR + this.flutterApplicationInfo!.isolateSnapshotData)
+      let isolateBuffer = this.context.resourceManager.getRawFileContentSync(this.flutterApplicationInfo!.flutterAssetsDir + FILE_SEPARATOR + this.flutterApplicationInfo!.isolateSnapshotData)
       let isolateFile = fs.openSync(filePath + FILE_SEPARATOR + this.flutterApplicationInfo!.isolateSnapshotData, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE)
       fs.writeSync(isolateFile.fd, isolateBuffer.buffer)
 
@@ -191,7 +191,7 @@ export default class FlutterLoader {
           + this.flutterApplicationInfo!.nativeLibraryDir
           + FILE_SEPARATOR
           + this.flutterApplicationInfo!.aotSharedLibraryName);
-      
+
       const fileIsAccess = fs.accessSync(OH_ICU_DATA_FILE_PATH)
 
       if (fileIsAccess) {
@@ -247,8 +247,8 @@ export default class FlutterLoader {
     return this.flutterApplicationInfo == null ? "" : this.flutterApplicationInfo!.flutterAssetsDir + "/" + filePath;
   }
 
-  private async checkTimestamp(dataDir: string) : Promise<string | null> {
-    let bundleInfo = await bundleManager.getBundleInfoForSelf(bundleManager.BundleFlag.GET_BUNDLE_INFO_DEFAULT);
+  private checkTimestamp(dataDir: string) {
+    let bundleInfo = bundleManager.getBundleInfoForSelfSync(bundleManager.BundleFlag.GET_BUNDLE_INFO_DEFAULT);
     const expectedTimestamp = TIMESTAMP_PREFIX + bundleInfo.versionCode + "-" + bundleInfo.updateTime;
     const existingTimestamps = this.getExistingTimestamps(dataDir);
     if (existingTimestamps == null) {
@@ -288,8 +288,8 @@ class InitResult {
   dataDirPath: string;
 
   constructor(appStoragePath: string,
-              engineCachesPath: string,
-              dataDirPath: string) {
+    engineCachesPath: string,
+    dataDirPath: string) {
     this.appStoragePath = appStoragePath;
     this.engineCachesPath = engineCachesPath;
     this.dataDirPath = dataDirPath;

@@ -178,9 +178,9 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
       this.isFlutterEngineFromHostOrCache = true;
       if (this.flutterEngine == null) {
         throw new Error(
-            "The requested cached FlutterEngine did not exist in the FlutterEngineCache: '"
-                + cachedEngineId
-                + "'");
+          "The requested cached FlutterEngine did not exist in the FlutterEngineCache: '"
+            + cachedEngineId
+            + "'");
       }
       return;
     }
@@ -202,9 +202,9 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
       const flutterEngineGroup = FlutterEngineGroupCache.instance.get(cachedEngineGroupId);
       if (flutterEngineGroup == null) {
         throw new Error(
-            "The requested cached FlutterEngineGroup did not exist in the FlutterEngineGroupCache: '"
-                + cachedEngineGroupId
-                + "'");
+          "The requested cached FlutterEngineGroup did not exist in the FlutterEngineGroupCache: '"
+            + cachedEngineGroupId
+            + "'");
       }
 
       if (this.context != null) {
@@ -218,8 +218,8 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
     // Our host did not provide a custom FlutterEngine. Create a FlutterEngine to back our
     // FlutterView.
     Log.d(
-        TAG,
-        "No preferred FlutterEngine was provided. Creating a new FlutterEngine for this FlutterAbility.");
+      TAG,
+      "No preferred FlutterEngine was provided. Creating a new FlutterEngine for this FlutterAbility.");
 
     let group = this.engineGroup;
     if (group == null && this.context != null) {
