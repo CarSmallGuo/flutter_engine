@@ -52,6 +52,8 @@ namespace flutter {
      ohos_shell_holder->GetPlatformView()->PlatformView::SetAccessibilityFeatures(accessibilityFeatureFlags);
      FML_DLOG(INFO) << "SendAccessibilityFlags -> accessibilityFeatureFlags = "
                     << accessibilityFeatureFlags;
+     // set accessibility feature flag to 0
      accessibilityFeatureFlags = 0;
    }
+
 }

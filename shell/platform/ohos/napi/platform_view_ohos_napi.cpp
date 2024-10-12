@@ -1812,9 +1812,9 @@ napi_value PlatformViewOHOSNapi::nativeUpdateCustomAccessibilityActions(
   return nullptr;
 }
 
-
-
-
+/**
+ * 无障碍特征之字体加粗功能，获取ets侧系统字体粗细系数
+ */
 napi_value PlatformViewOHOSNapi::nativeSetFontWeightScale(napi_env env, napi_callback_info info) {
   napi_status ret;
   size_t argc = 2;
@@ -1846,8 +1846,6 @@ napi_value PlatformViewOHOSNapi::nativeSetFontWeightScale(napi_env env, napi_cal
                  << " fontWeightScale: "<< fontWeightScale;
   return nullptr;
 }
-
-
 
 napi_value PlatformViewOHOSNapi::nativeLookupCallbackInformation(napi_env env, napi_callback_info info)
 {

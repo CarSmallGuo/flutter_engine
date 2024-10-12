@@ -22,12 +22,7 @@ export default class AccessibilityBridge {
 
   private accessibilityChannel: AccessibilityChannel | null = null;
 
-  constructor(){
-
-  }
-
-
-
+  constructor(){}
 }
 
 export class AccessibilityManager {
