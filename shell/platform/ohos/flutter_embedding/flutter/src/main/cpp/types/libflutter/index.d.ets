@@ -17,6 +17,7 @@ import common from '@ohos.app.ability.common';
 import resourceManager from '@ohos.resourceManager';
 import image from '@ohos.multimedia.image';
 import FlutterNapi from '../../../ets/embedding/engine/FlutterNapi';
+import { ByteBuffer } from '../../../ets/util/ByteBuffer';
 import { FlutterCallbackInformation } from '../../../ets/view/FlutterCallbackInformation';
 
 export const getContext: (a: number) => napiContext;
@@ -110,6 +111,12 @@ export const nativeXComponentDispatchMouseWheel: (nativeShellHolderId: number,
                                                   timestamp: number
                                                   ) => void;
 
+
+// send updateSemantics and updateCustomAccessibilityActions from ets to c++
+export const nativeUpdateSemantics: (buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]) => void;
+export const nativeUpdateCustomAccessibilityActions: (buffer: ByteBuffer, strings: string[]) => void;
+
+
 /**
  * Detaches flutterNapi和engine之间的关联
  * 这个方法执行前提是flutterNapi已经和engine关联
@@ -133,5 +140,20 @@ export const nativeEncodeUtf8: (str: string) => Uint8Array;
 export const nativeDecodeUtf8: (array: Uint8Array) => string;
 
 export const nativeSetTextureBufferSize: (nativeShellHolderId: number, textureId: number, width: number, height: number) => void;
+
+/**
+ * accessibiltyChannel中的
+ */
+export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number, responseId: number) => void;
+
+export const nativeAccessibilityStateChange: (state: Boolean) => void;
+
+export const nativeAnnounce: (message: string) => void;
+
+export const nativeSetSemanticsEnabled: (nativeShellHolderId: number, enabled: boolean) => void;
+
+export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightScale: number) => void;
+
+export const nativeGetShellHolderId: (nativeShellHolderId: number) => void;
 
 export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;
