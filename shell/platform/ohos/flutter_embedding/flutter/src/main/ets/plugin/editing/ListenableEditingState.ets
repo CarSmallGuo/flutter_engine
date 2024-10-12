@@ -262,9 +262,10 @@ export class ListenableEditingState {
       }
       let tbStart = start == end ? start - 1 : start;
       let tbEnd = start == end ? -1 : 0;
-      let crCode: number = this.mStringCache.charCodeAt(tbStart)
-      if ( 0xdc00 <= crCode && crCode <= 0xdffff ) {
-        tbStart = tbStart - 1
+      let crString: string = this.mStringCache.charAt(tbStart - 1)
+      if (crString >= '\uD800' && crString <= '\uDBFF') {
+        tbStart = tbStart - 1;
+        // 如果判断倒数第二个字符不满足条件，则最后一个是非emoji表情包的普通字符，正常截取，剔除掉最后一个字符，即可
       }
       this.replace(tbStart, end, "", 0, tbEnd);
       this.mSelectionStartCache = tbStart;
@@ -277,9 +278,10 @@ export class ListenableEditingState {
         return;
       }
       let tbStart = start == end ? 1 : 0;
-      let crCode: number = this.mStringCache.charCodeAt(tbStart)
-      if ( 0xdc00 <= crCode && crCode <= 0xdffff ) {
-        tbStart = tbStart - 1
+      let crString: string = this.mStringCache.charAt(tbStart - 1)
+      if (crString >= '\uD800' && crString <= '\uDBFF') {
+        tbStart = tbStart - 1;
+        // 如果判断倒数第二个字符不满足条件，则最后一个是非emoji表情包的普通字符，正常截取，剔除掉最后一个字符，即可
       }
       this.replace(start, end, "", tbStart, 0);
       this.mSelectionEndCache = start;
