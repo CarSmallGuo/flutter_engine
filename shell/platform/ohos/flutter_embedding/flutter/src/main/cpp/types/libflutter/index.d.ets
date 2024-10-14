@@ -157,3 +157,13 @@ export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightS
 export const nativeGetShellHolderId: (nativeShellHolderId: number) => void;
 
 export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;
+
+export const nativeUnicodeIsEmoji: (code: number) => number;
+
+export const nativeUnicodeIsEmojiModifier: (code: number) => number;
+
+export const nativeUnicodeIsEmojiModifierBase: (code: number) => number;
+
+export const nativeUnicodeIsVariationSelector: (code: number) => number;
+
+export const nativeUnicodeIsRegionalIndicatorSymbol: (code: number) => number;

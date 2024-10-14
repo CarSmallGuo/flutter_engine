@@ -522,6 +522,26 @@ export default class FlutterNapi {
     }
   }
 
+  static unicodeIsEmoji(code: number): boolean {
+    return Boolean(flutter.nativeUnicodeIsEmoji(code));
+  }
+
+  static unicodeIsEmojiModifier(code: number): boolean {
+    return Boolean(flutter.nativeUnicodeIsEmojiModifier(code));
+  }
+
+  static unicodeIsEmojiModifierBase(code: number): boolean {
+    return Boolean(flutter.nativeUnicodeIsEmojiModifierBase(code));
+  }
+
+  static unicodeIsVariationSelector(code: number): boolean {
+    return Boolean(flutter.nativeUnicodeIsVariationSelector(code));
+  }
+
+  static unicodeIsRegionalIndicatorSymbol(code: number): boolean {
+    return Boolean(flutter.nativeUnicodeIsRegionalIndicatorSymbol(code));
+  }
+
 }
 
 export interface AccessibilityDelegate {
