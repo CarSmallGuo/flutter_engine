@@ -38,6 +38,7 @@ constexpr const char *CHARACTER_STRING_WHITESPACE = " ";
 constexpr const char *EGL_EXT_PLATFORM_WAYLAND = "EGL_EXT_platform_wayland";
 constexpr const char *EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
 constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
+constexpr uint32_t WHITE_COLOR = 0xFFFFFFFF;
 
 static int PixelMapToWindowFormat(PIXEL_FORMAT pixel_format)
 {
@@ -396,10 +397,9 @@ void OHOSExternalTextureGL::ProduceColorToBackGroundImage(int32_t width, int32_t
   }
 
   uint32_t* destAddr = static_cast<uint32_t *>(mappedAddr);
-  uint32_t value = 0xFFFFFFFF;
 
-  for (int32_t x = 0; x < handle->size / 4; x++) {
-    *destAddr++ = value;
+  for (int32_t x = 0; x < handle->size / PIXEL_SIZE; x++) {
+    *destAddr++ = WHITE_COLOR;
   }
 
     // munmap after use
