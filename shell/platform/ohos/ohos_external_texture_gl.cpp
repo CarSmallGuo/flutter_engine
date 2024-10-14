@@ -398,10 +398,8 @@ void OHOSExternalTextureGL::ProduceColorToBackGroundImage(int32_t width, int32_t
   uint32_t* destAddr = static_cast<uint32_t *>(mappedAddr);
   uint32_t value = 0xFFFFFFFF;
 
-  for (int32_t x = 0; x < handle->width; x++) {
-    for (int32_t y = 0; y < handle->height; y++) {
-      *destAddr++ = value;
-    }
+  for (int32_t x = 0; x < handle->size / 4; x++) {
+    *destAddr++ = value;
   }
 
     // munmap after use
