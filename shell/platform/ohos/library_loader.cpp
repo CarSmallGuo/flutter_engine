@@ -154,21 +154,21 @@ static napi_value Init(napi_env env, napi_value exports) {
           "nativeLookupCallbackInformation",
           flutter::PlatformViewOHOSNapi::nativeLookupCallbackInformation),
 
-    DECLARE_NAPI_FUNCTION(
-        "nativeUnicodeIsEmoji",
-        flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmoji),
-    DECLARE_NAPI_FUNCTION(
-        "nativeUnicodeIsEmojiModifier",
-        flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifier),
-    DECLARE_NAPI_FUNCTION(
-        "nativeUnicodeIsEmojiModifierBase",
-        flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifierBase),
-    DECLARE_NAPI_FUNCTION(
-        "nativeUnicodeIsVariationSelector",
-        flutter::PlatformViewOHOSNapi::nativeUnicodeIsVariationSelector),
-    DECLARE_NAPI_FUNCTION(
-        "nativeUnicodeIsRegionalIndicatorSymbol",
-        flutter::PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsEmoji",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmoji),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsEmojiModifier",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifier),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsEmojiModifierBase",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifierBase),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsVariationSelector",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsVariationSelector),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsRegionalIndicatorSymbol",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol),
   };
 
   FML_DLOG(INFO) << "Init NAPI size=" << sizeof(desc) / sizeof(desc[0]);

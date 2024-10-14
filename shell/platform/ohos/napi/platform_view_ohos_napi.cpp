@@ -1900,8 +1900,8 @@ napi_value PlatformViewOHOSNapi::nativeLookupCallbackInformation(napi_env env, n
   return result;
 }
 
-napi_value PlatformViewOHOSNapi::nativeUnicodeIsEmoji(napi_env env,
-                                                      napi_callback_info info) {
+napi_value PlatformViewOHOSNapi::nativeUnicodeIsEmoji(napi_env env, napi_callback_info info) 
+{
   size_t argc = 1;
   napi_value args[1] = {nullptr};
   napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
@@ -1922,9 +1922,8 @@ napi_value PlatformViewOHOSNapi::nativeUnicodeIsEmoji(napi_env env,
   return result;
 }
 
-napi_value PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifier(
-    napi_env env,
-    napi_callback_info info) {
+napi_value PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifier(napi_env env, napi_callback_info info)
+{
   size_t argc = 1;
   napi_value args[1] = {nullptr};
   napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
@@ -1945,9 +1944,8 @@ napi_value PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifier(
   return result;
 }
 
-napi_value PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifierBase(
-    napi_env env,
-    napi_callback_info info) {
+napi_value PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifierBase(napi_env env, napi_callback_info info) 
+{
   size_t argc = 1;
   napi_value args[1] = {nullptr};
   napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
@@ -1961,17 +1959,15 @@ napi_value PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifierBase(
     return nullptr;
   }
 
-  is_emoji =
-      u_hasBinaryProperty(codePoint, UProperty::UCHAR_EMOJI_MODIFIER_BASE);
+  is_emoji = u_hasBinaryProperty(codePoint, UProperty::UCHAR_EMOJI_MODIFIER_BASE);
 
   napi_value result;
   napi_create_int32(env, (int)is_emoji, &result);
   return result;
 }
 
-napi_value PlatformViewOHOSNapi::nativeUnicodeIsVariationSelector(
-    napi_env env,
-    napi_callback_info info) {
+napi_value PlatformViewOHOSNapi::nativeUnicodeIsVariationSelector(napi_env env, napi_callback_info info) 
+{
   size_t argc = 1;
   napi_value args[1] = {nullptr};
   napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
@@ -1985,17 +1981,15 @@ napi_value PlatformViewOHOSNapi::nativeUnicodeIsVariationSelector(
     return nullptr;
   }
 
-  is_emoji =
-      u_hasBinaryProperty(codePoint, UProperty::UCHAR_VARIATION_SELECTOR);
+  is_emoji = u_hasBinaryProperty(codePoint, UProperty::UCHAR_VARIATION_SELECTOR);
 
   napi_value result;
   napi_create_int32(env, (int)is_emoji, &result);
   return result;
 }
 
-napi_value PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol(
-    napi_env env,
-    napi_callback_info info) {
+napi_value PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol(napi_env env, napi_callback_info info)
+{
   size_t argc = 1;
   napi_value args[1] = {nullptr};
   napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
@@ -2009,8 +2003,7 @@ napi_value PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol(
     return nullptr;
   }
 
-  is_emoji =
-      u_hasBinaryProperty(codePoint, UProperty::UCHAR_REGIONAL_INDICATOR);
+  is_emoji = u_hasBinaryProperty(codePoint, UProperty::UCHAR_REGIONAL_INDICATOR);
 
   napi_value result;
   napi_create_int32(env, (int)is_emoji, &result);
