@@ -224,6 +224,26 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);
 
+  static napi_value nativeUnicodeIsEmoji(
+      napi_env env,
+      napi_callback_info info);
+
+  static napi_value nativeUnicodeIsEmojiModifier(
+      napi_env env,
+      napi_callback_info info);
+
+  static napi_value nativeUnicodeIsEmojiModifierBase(
+      napi_env env,
+      napi_callback_info info);
+
+  static napi_value nativeUnicodeIsVariationSelector(
+      napi_env env,
+      napi_callback_info info);
+
+  static napi_value nativeUnicodeIsRegionalIndicatorSymbol(
+      napi_env env,
+      napi_callback_info info);
+
  private:
   static napi_env env_;
   napi_ref ref_napi_obj_;
