@@ -83,8 +83,11 @@ void OhosAccessibilityBridge::updateSemantics(
     if (HasScrolled(node)) {
       ArkUI_AccessibilityElementInfo* _elementInfo =
           OH_ArkUI_CreateAccessibilityElementInfo();
+
       FlutterNodeToElementInfoById(_elementInfo, static_cast<int64_t>(node.id));
       FlutterScrollExecution(node, _elementInfo);
+
+      OH_ArkUI_DestoryAccessibilityElementInfo(_elementInfo);
     }
 
     // 判断是否触发liveRegion活动区，当前节点是否活跃（暂不影响正常功能）
@@ -864,13 +867,24 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetEditable -> true";
   }
+  // 判断当前节点组件是否为滑动条
   if (IsSlider(flutterNode)) {
     // TODO 动态改变滑动条的值
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetRangeInfo -> true";
   }
-  // 当前节点组件默认enabled
-  OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfoFromList, true);
+  // 判断当前节点组件是否支持长按
+  if (IsNodeHasLongPress(flutterNode)) {
+    OH_ArkUI_AccessibilityElementInfoSetLongClickable(elementInfoFromList, true);
+    FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
+                   << " OH_ArkUI_AccessibilityElementInfoSetLongClickable -> true";
+  }
+  // 判断当前节点组件是否enabled
+  if (IsNodeEnabled(flutterNode)) {
+    OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfoFromList, true);
+    FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
+                   << " OH_ArkUI_AccessibilityElementInfoSetEnabled -> true";
+  }
 
   // 获取当前节点的组件类型
   std::string componentTypeName = GetNodeComponentType(flutterNode);
@@ -887,12 +901,13 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
   FML_DLOG(INFO) << "FlutterNodeToElementInfoById SetComponentType: "
                  << componentTypeName;
 
-  // 无障碍重要性，用于控制某个组件是否可被无障碍辅助服务所识别。支持的值为:
-  //  “auto”：根据组件不同会转换为“yes”或者“no”。
-  //  “yes”：当前组件可被无障碍辅助服务所识别。
-  //  “no”：当前组件不可被无障碍辅助服务所识别。
-  //  “no-hide-descendants”：当前组件及其所有子组件不可被无障碍辅助服务所识别。
-  //  默认值：“auto”
+  /**
+   * 无障碍重要性，用于控制某个组件是否可被无障碍辅助服务所识别。支持的值为（默认值：“auto”）：
+   * “auto”：根据组件不同会转换为“yes”或者“no”
+   * “yes”：当前组件可被无障碍辅助服务所识别
+   * “no”：当前组件不可被无障碍辅助服务所识别
+   * “no-hide-descendants”：当前组件及其所有子组件不可被无障碍辅助服务所识别
+   */
   OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel(elementInfoFromList,
                                                          "yes");
   // 无障碍组，设置为true时表示该组件及其所有子组件为一整个可以选中的组件，无障碍服务将不再关注其子组件内容。默认值：false
@@ -917,7 +932,8 @@ bool OhosAccessibilityBridge::IsSlider(flutter::SemanticsNode flutterNode) {
  */
 bool OhosAccessibilityBridge::IsNodeClickable(
     flutter::SemanticsNode flutterNode) {
-  return flutterNode.HasFlag(FLAGS_::kHasCheckedState) ||
+  return flutterNode.HasAction(ACTIONS_::kTap) ||
+         flutterNode.HasFlag(FLAGS_::kHasCheckedState) ||
          flutterNode.HasFlag(FLAGS_::kIsButton) ||
          flutterNode.HasFlag(FLAGS_::kIsTextField) ||
          flutterNode.HasFlag(FLAGS_::kIsImage) ||
@@ -941,14 +957,14 @@ bool OhosAccessibilityBridge::IsNodeVisible(
  */
 bool OhosAccessibilityBridge::IsNodeCheckable(
     flutter::SemanticsNode flutterNode) {
-  return flutterNode.HasFlag(FLAGS_::kHasCheckedState);
+  return flutterNode.HasFlag(FLAGS_::kHasCheckedState) || flutterNode.HasFlag(FLAGS_::kHasToggledState);
 }
 /**
  * 判断当前flutter节点组件是否checked/unchecked（checkbox、radio button）
  */
 bool OhosAccessibilityBridge::IsNodeChecked(
     flutter::SemanticsNode flutterNode) {
-  return flutterNode.HasFlag(FLAGS_::kIsChecked);
+  return flutterNode.HasFlag(FLAGS_::kIsChecked) || flutterNode.HasFlag(FLAGS_::kIsToggled);
 }
 /**
  * 判断当前flutter节点组件是否选中
@@ -964,6 +980,18 @@ bool OhosAccessibilityBridge::IsNodePassword(
     flutter::SemanticsNode flutterNode) {
   return flutterNode.HasFlag(FLAGS_::kIsTextField) &&
          flutterNode.HasFlag(FLAGS_::kIsObscured);
+}
+/**
+ * 判断当前flutter节点组件是否支持长按功能
+ */
+bool OhosAccessibilityBridge::IsNodeHasLongPress(flutter::SemanticsNode flutterNode) {
+  return flutterNode.HasAction(ACTIONS_::kLongPress);
+} 
+/**
+ * 判断当前flutter节点是否enabled
+ */
+bool OhosAccessibilityBridge::IsNodeEnabled(flutter::SemanticsNode flutterNode) {
+  return !flutterNode.HasFlag(FLAGS_::kHasEnabledState) || flutterNode.HasFlag(FLAGS_::kIsEnabled);
 }
 
 /**
@@ -1084,7 +1112,9 @@ int32_t OhosAccessibilityBridge::FindNextFocusAccessibilityNode(
   return 0;
 }
 
-/** 将arkui的action类型转化为flutter的action类型 */
+/** 
+ * 将arkui的action类型转化为flutter的action类型 
+ * */
 flutter::SemanticsAction OhosAccessibilityBridge::ArkuiActionsToFlutterActions(
     ArkUI_Accessibility_ActionType arkui_action) {
   // 部分arkui操作和flutter操作的映射，其余action暂时无法适配, 这里先return 0
@@ -1329,13 +1359,13 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
       if (currComponetType == "ListView") {
         /** Scrolled event, sent when a scrollable component experiences a
          * scroll event. 4096 */
-        ArkUI_AccessibilityEventType scrollEventType2 =
+        ArkUI_AccessibilityEventType scrollBackwardEventType =
             ArkUI_AccessibilityEventType::
                 ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_SCROLLED;
-        Flutter_SendAccessibilityAsyncEvent(elementId, scrollEventType2);
+        Flutter_SendAccessibilityAsyncEvent(elementId, scrollBackwardEventType);
         FML_DLOG(INFO)
             << "ExecuteAccessibilityAction -> action: scroll backward("
-            << action << ")" << " event: scroll backward(" << scrollEventType2
+            << action << ")" << " event: scroll backward(" << scrollBackwardEventType
             << ")";
       }
       break;

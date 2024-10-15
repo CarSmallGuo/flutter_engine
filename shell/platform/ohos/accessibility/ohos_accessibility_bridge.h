@@ -179,6 +179,8 @@ class OhosAccessibilityBridge {
   bool IsNodeScrollable(flutter::SemanticsNode flutterNode);
   bool IsNodePassword(flutter::SemanticsNode flutterNode);
   bool IsNodeVisible(flutter::SemanticsNode flutterNode);
+  bool IsNodeEnabled(flutter::SemanticsNode flutterNode);
+  bool IsNodeHasLongPress(flutter::SemanticsNode flutterNode);
 
   bool IsTextField(flutter::SemanticsNode flutterNode);
   bool IsSlider(flutter::SemanticsNode flutterNode);
