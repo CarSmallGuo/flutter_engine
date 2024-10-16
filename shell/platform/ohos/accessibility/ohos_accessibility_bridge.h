@@ -21,11 +21,11 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include "flutter/fml/mapping.h"
 #include "flutter/lib/ui/semantics/custom_accessibility_action.h"
 #include "flutter/lib/ui/semantics/semantics_node.h"
-#include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
-#include "flutter/fml/mapping.h"
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_manager.h"
+#include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 
 namespace flutter {
 
@@ -70,6 +70,7 @@ class OhosAccessibilityBridge {
   static OhosAccessibilityBridge* GetInstance();
 
   bool isOhosAccessibilityEnabled_;
+  bool IS_FLUTTER_NAVIGATE = false;
   int64_t nativeShellHolder_;
   ArkUI_AccessibilityProvider* provider_;
 
@@ -134,9 +135,10 @@ class OhosAccessibilityBridge {
 
   SemanticsNodeExtent SetAndGetSemanticsNodeExtent(flutter::SemanticsNode node);
 
-  void FlutterScrollExecution(flutter::SemanticsNode node,
-                              ArkUI_AccessibilityElementInfo* elementInfoFromList);
-                              
+  void FlutterScrollExecution(
+      flutter::SemanticsNode node,
+      ArkUI_AccessibilityElementInfo* elementInfoFromList);
+
   void ClearFlutterSemanticsCaches();
 
  private:
@@ -159,8 +161,30 @@ class OhosAccessibilityBridge {
   std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
   std::vector<int32_t> flutterNavigationVec_;
 
-  void FlutterSetElementInfoProperties(ArkUI_AccessibilityElementInfo* elementInfoFromList,
-                                      int64_t elementId);
+  static const int32_t FOCUSABLE_FLAGS =
+      static_cast<int32_t>(FLAGS_::kHasCheckedState) |
+      static_cast<int32_t>(FLAGS_::kIsChecked) |
+      static_cast<int32_t>(FLAGS_::kIsSelected) |
+      static_cast<int32_t>(FLAGS_::kIsTextField) |
+      static_cast<int32_t>(FLAGS_::kIsFocused) |
+      static_cast<int32_t>(FLAGS_::kHasEnabledState) |
+      static_cast<int32_t>(FLAGS_::kIsEnabled) |
+      static_cast<int32_t>(FLAGS_::kIsInMutuallyExclusiveGroup) |
+      static_cast<int32_t>(FLAGS_::kHasToggledState) |
+      static_cast<int32_t>(FLAGS_::kIsToggled) |
+      static_cast<int32_t>(FLAGS_::kHasToggledState) |
+      static_cast<int32_t>(FLAGS_::kIsFocusable) |
+      static_cast<int32_t>(FLAGS_::kIsSlider);
+
+  static const int32_t SCROLLABLE_ACTIONS =
+      static_cast<int32_t>(ACTIONS_::kScrollUp) |
+      static_cast<int32_t>(ACTIONS_::kScrollDown) |
+      static_cast<int32_t>(ACTIONS_::kScrollLeft) |
+      static_cast<int32_t>(ACTIONS_::kScrollRight);
+
+  void FlutterSetElementInfoProperties(
+      ArkUI_AccessibilityElementInfo* elementInfoFromList,
+      int64_t elementId);
   void FlutterTreeToArkuiTree(
       ArkUI_AccessibilityElementInfoList* elementInfoList);
 
@@ -202,6 +226,9 @@ class OhosAccessibilityBridge {
   void GetSemanticsFlagsDebugInfo(flutter::SemanticsNode node);
   void GetCustomActionDebugInfo(
       flutter::CustomAccessibilityAction customAccessibilityAction);
+
+  void PageStateUpdate(int64_t elementId);
+  void RequestFocusWhenPageUpdate();
 };
 
 }  // namespace flutter

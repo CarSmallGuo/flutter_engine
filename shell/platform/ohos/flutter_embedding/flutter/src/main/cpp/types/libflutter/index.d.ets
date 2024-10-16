@@ -157,3 +157,5 @@ export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightS
 export const nativeGetShellHolderId: (nativeShellHolderId: number) => void;
 
 export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;
+
+export const nativeGetFlutterNavigationAction: (isNavigate: boolean) => void;

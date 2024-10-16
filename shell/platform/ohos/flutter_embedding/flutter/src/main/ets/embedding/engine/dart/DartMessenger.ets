@@ -12,7 +12,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import { ErrorEvent, Queue, taskpool, worker, MessageEvents } from '@kit.ArkTS';
+import { ErrorEvent, Queue, taskpool, worker, MessageEvents, JSON } from '@kit.ArkTS';
 
 import Log from '../../../util/Log';
 import { BinaryMessageHandler, BinaryMessenger, BinaryReply, TaskPriority, TaskQueue, TaskQueueOptions } from '../../../plugin/common/BinaryMessenger';
@@ -97,6 +97,11 @@ export class DartMessenger implements BinaryMessenger, PlatformMessageHandler {
     } finally {
       TraceSection.endWithId("DartMessenger#send on " + channel, traceId);
     }
+    //获取当前flutter页面是否路由跳转，并传递到native侧
+    if(channel == "flutter/navigation") {
+      this.flutterNapi.setFlutterNavigationAction(true);
+      Log.d(TAG, "setFlutterNavigationAction -> '" + channel + "'");
+    }
   }
 
   dispatchMessageToQueue(handlerInfo: HandlerInfo, message: ArrayBuffer, replyId: number): void {
@@ -126,6 +131,11 @@ export class DartMessenger implements BinaryMessenger, PlatformMessageHandler {
       this.dispatchMessageToQueue(handlerInfo, message, replyId);
     } else {
       this.invokeHandler(handlerInfo?.handler as BinaryMessageHandler, message, replyId);
+    }
+    //获取当前flutter页面是否路由跳转，并传递到native侧
+    if(channel == "flutter/navigation") {
+      this.flutterNapi.setFlutterNavigationAction(true);
+      Log.d(TAG, "setFlutterNavigationAction -> '" + channel + "'");
     }
   }
 

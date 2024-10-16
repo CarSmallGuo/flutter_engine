@@ -151,7 +151,7 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeSetSemanticsEnabled",
           flutter::PlatformViewOHOSNapi::nativeSetSemanticsEnabled),
-    DECLARE_NAPI_FUNCTION(
+      DECLARE_NAPI_FUNCTION(
           "nativeSetFontWeightScale",
           flutter::PlatformViewOHOSNapi::nativeSetFontWeightScale),
       DECLARE_NAPI_FUNCTION(
@@ -160,9 +160,13 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeDecodeUtf8",
           flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),
-       DECLARE_NAPI_FUNCTION(
+      DECLARE_NAPI_FUNCTION(
           "nativeLookupCallbackInformation",
           flutter::PlatformViewOHOSNapi::nativeLookupCallbackInformation),
+      DECLARE_NAPI_FUNCTION(
+          "nativeGetFlutterNavigationAction",
+          flutter::PlatformViewOHOSNapi::nativeGetFlutterNavigationAction),
+
   };
 
   FML_DLOG(INFO) << "Init NAPI size=" << sizeof(desc) / sizeof(desc[0]);

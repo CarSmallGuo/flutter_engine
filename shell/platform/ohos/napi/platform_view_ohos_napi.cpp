@@ -2044,4 +2044,25 @@ napi_value PlatformViewOHOSNapi::nativeLookupCallbackInformation(napi_env env, n
   napi_create_int32(env, 0, &result);
   return result;
 }
+ 
+napi_value PlatformViewOHOSNapi::nativeGetFlutterNavigationAction(napi_env env, napi_callback_info info) {
+  napi_status ret;
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  bool isNavigate;
+  ret = napi_get_value_bool(env, args[0], &isNavigate);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeGetFlutterNavigationAction "
+                       "napi_get_value_bool error:"
+                    << ret;
+    return nullptr;
+  }
+
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->IS_FLUTTER_NAVIGATE = isNavigate;
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeGetFlutterNavigationAction -> "<<isNavigate;
+  return nullptr;
+}
 }  // namespace flutter

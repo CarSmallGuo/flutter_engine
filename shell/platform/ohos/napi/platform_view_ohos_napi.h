@@ -227,6 +227,9 @@ class PlatformViewOHOSNapi {
   static napi_value nativeLookupCallbackInformation(
       napi_env env,
       napi_callback_info info);
+  static napi_value nativeGetFlutterNavigationAction(
+      napi_env env,
+      napi_callback_info info);
 
  private:
   static napi_env env_;

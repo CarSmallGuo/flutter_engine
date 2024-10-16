@@ -540,6 +540,16 @@ export default class FlutterNapi {
     }
   }
 
+  setFlutterNavigationAction(isNavigate: boolean): void {
+    this.ensureRunningOnMainThread();
+    if (this.isAttached()) {
+      Log.i(TAG, "setFlutterNavigationAction: " + isNavigate);
+      flutter.nativeGetFlutterNavigationAction(isNavigate);
+    } else {
+      Log.w(TAG, "setFlutterNavigationAction is detached !");
+    }
+  }
+
 }
 
 export interface AccessibilityDelegate {
