@@ -97,11 +97,7 @@ export class DartMessenger implements BinaryMessenger, PlatformMessageHandler {
     } finally {
       TraceSection.endWithId("DartMessenger#send on " + channel, traceId);
     }
-    //获取当前flutter页面是否路由跳转，并传递到native侧
-    if(channel == "flutter/navigation") {
-      this.flutterNapi.setFlutterNavigationAction(true);
-      Log.d(TAG, "setFlutterNavigationAction -> '" + channel + "'");
-    }
+    this.IsFlutterNavigationExecuted(channel);
   }
 
   dispatchMessageToQueue(handlerInfo: HandlerInfo, message: ArrayBuffer, replyId: number): void {
@@ -132,11 +128,7 @@ export class DartMessenger implements BinaryMessenger, PlatformMessageHandler {
     } else {
       this.invokeHandler(handlerInfo?.handler as BinaryMessageHandler, message, replyId);
     }
-    //获取当前flutter页面是否路由跳转，并传递到native侧
-    if(channel == "flutter/navigation") {
-      this.flutterNapi.setFlutterNavigationAction(true);
-      Log.d(TAG, "setFlutterNavigationAction -> '" + channel + "'");
-    }
+    this.IsFlutterNavigationExecuted(channel);
   }
 
   handlePlatformMessageResponse(replyId: number, reply: ArrayBuffer): void {
@@ -166,6 +158,14 @@ export class DartMessenger implements BinaryMessenger, PlatformMessageHandler {
    */
   getPendingChannelResponseCount(): number {
     return this.pendingReplies.size;
+  }
+
+  //获取当前flutter页面是否路由跳转，并传递到native侧
+  IsFlutterNavigationExecuted(channel: String): void {
+    if(channel == "flutter/navigation") {
+      this.flutterNapi.setFlutterNavigationAction(true);
+      Log.d(TAG, "setFlutterNavigationAction -> '" + channel + "'");
+    }
   }
 }
 
