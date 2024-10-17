@@ -118,9 +118,6 @@ void PlatformConfiguration::UpdateLifecycleState(const std::string& data) {
 void PlatformConfiguration::UpdateSemanticsEnabled(bool enabled) {
   std::shared_ptr<tonic::DartState> dart_state =
       update_semantics_enabled_.dart_state().lock();
-  FML_DLOG(INFO)
-      << "PlatformConfiguration::UpdateSemanticsEnabled is called, enabled:"
-      << enabled;
   if (!dart_state) {
     return;
   }
@@ -134,9 +131,6 @@ void PlatformConfiguration::UpdateSemanticsEnabled(bool enabled) {
 void PlatformConfiguration::UpdateAccessibilityFeatures(int32_t values) {
   std::shared_ptr<tonic::DartState> dart_state =
       update_accessibility_features_.dart_state().lock();
-  FML_DLOG(INFO)
-      << "PlatformConfiguration::UpdateAccessibilityFeatures is called, values:"
-      << values;
   if (!dart_state) {
     return;
   }
@@ -151,7 +145,6 @@ void PlatformConfiguration::DispatchPlatformMessage(
   std::shared_ptr<tonic::DartState> dart_state =
       dispatch_platform_message_.dart_state().lock();
 
-  FML_DLOG(INFO) << "DispatchPlatformMessage channel: " << message->channel();
   if (!dart_state) {
     FML_DLOG(WARNING)
         << "Dropping platform message for lack of DartState on channel: "
@@ -197,7 +190,6 @@ void PlatformConfiguration::DispatchSemanticsAction(int32_t id,
   if (Dart_IsError(args_handle)) {
     return;
   }
-  FML_DLOG(INFO) << "PlatformConfiguration::DispatchSemanticsAction: id=" << id<<" action="<<static_cast<int32_t>(action);
   tonic::CheckAndHandleError(tonic::DartInvoke(
       dispatch_semantics_action_.Get(),
       {tonic::ToDart(id), tonic::ToDart(static_cast<int32_t>(action)),
@@ -363,8 +355,6 @@ Dart_Handle PlatformConfigurationNativeApi::SendPortPlatformMessage(
 void PlatformConfigurationNativeApi::RespondToPlatformMessage(
     int response_id,
     const tonic::DartByteData& data) {
-  FML_DLOG(INFO) << "PlatformConfigurationNativeApi::RespondToPlatformMessage:"
-                 << response_id;
   if (Dart_IsNull(data.dart_handle())) {
     UIDartState::Current()
         ->platform_configuration()
@@ -424,7 +414,6 @@ void PlatformConfigurationNativeApi::UpdateSemantics(SemanticsUpdate* update) {
   UIDartState::ThrowIfUIOperationsProhibited();
   UIDartState::Current()->platform_configuration()->client()->UpdateSemantics(
       update);
-  FML_DLOG(INFO) << "PlatformConfigurationNativeApi::UpdateSemantics is called";
 }
 
 Dart_Handle PlatformConfigurationNativeApi::ComputePlatformResolvedLocale(

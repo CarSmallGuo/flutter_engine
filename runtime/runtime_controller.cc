@@ -175,7 +175,6 @@ bool RuntimeController::SetSemanticsEnabled(bool enabled) {
   if (auto* platform_configuration = GetPlatformConfigurationIfAvailable()) {
     platform_configuration->UpdateSemanticsEnabled(
         platform_data_.semantics_enabled);
-    FML_DLOG(INFO)<<"RuntimeController::SetSemanticsEnabled, enable="<<enabled;
     return true;
   }
 
@@ -187,7 +186,6 @@ bool RuntimeController::SetAccessibilityFeatures(int32_t flags) {
   if (auto* platform_configuration = GetPlatformConfigurationIfAvailable()) {
     platform_configuration->UpdateAccessibilityFeatures(
         platform_data_.accessibility_feature_flags_);
-    FML_DLOG(INFO)<<"RuntimeController::SetAccessibilityFeatures=";
     return true;
   }
 
@@ -286,7 +284,6 @@ bool RuntimeController::DispatchSemanticsAction(int32_t id,
   TRACE_EVENT1("flutter", "RuntimeController::DispatchSemanticsAction", "mode",
                "basic");
   if (auto* platform_configuration = GetPlatformConfigurationIfAvailable()) {
-    FML_DLOG(INFO) << "RuntimeController::DispatchSemanticsAction, id="<<id<<" action="<<static_cast<int32_t>(action);
     platform_configuration->DispatchSemanticsAction(id, action,
                                                     std::move(args));
     return true;
@@ -320,9 +317,7 @@ void RuntimeController::Render(Scene* scene) {
 void RuntimeController::UpdateSemantics(SemanticsUpdate* update) {
   if (platform_data_.semantics_enabled) {
     client_.UpdateSemantics(update->takeNodes(), update->takeActions());
-    FML_DLOG(INFO) << "RuntimeController::UpdateSemantics is called";
   }
-  FML_DLOG(INFO) << "RuntimeController::UpdateSemantics, platform_data_.semantics_enabled = false";
 }
 
 // |PlatformConfigurationClient|
