@@ -92,11 +92,9 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private mRestartInputPending: boolean = false;
   private plugin: EditingStateWatcher | Any;
   private imcFlag: boolean = false;
+  private inputTypeNone: string = 'NONE';
   private keyboardStatus: inputMethod.KeyboardStatus = inputMethod.KeyboardStatus.HIDE;
-  private inputAttribute: inputMethod.InputAttribute =
-    { textInputType: inputMethod.TextInputType.TEXT, enterKeyType: inputMethod.EnterKeyType.NONE };
-  private keyboardFocusState: boolean = false;
-  private focusViewId: string = "";
+  private inputAttribute: inputMethod.InputAttribute = { textInputType: 0, enterKeyType: 1 };
 
   constructor(plugin: TextInputPlugin | Any, viewId: string) {
     this.textConfig = {
@@ -185,13 +183,9 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   private async hideTextInput(): Promise<void> {
-    await this.inputMethodController.detach().then(() => {
-      this.keyboardStatus = inputMethod.KeyboardStatus.HIDE;
-      this.cancelListenKeyBoardEvent();
-    }).catch((err: BusinessError) => {
-      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to detach: " + JSON.stringify(err));
-      this.keyboardStatus = inputMethod.KeyboardStatus.NONE;
-    });
+    this.inputMethodController.detach();
+    this.keyboardStatus = inputMethod.KeyboardStatus.NONE;
+    this.cancelListenKeyBoardEvent();
   }
 
   async attach(showKeyboard: boolean): Promise<void> {
@@ -354,6 +348,9 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.keyboardStatus = state;
     if (state == inputMethod.KeyboardStatus.HIDE) {
       this.plugin.textInputChannel.onConnectionClosed(this.inputTarget.id);
+      /// 收起软键盘时重置键盘状态，避免出现软键盘类型问题
+      /// 系统对软键盘的改变也会被该方法监听到，如果继续使用使用detach和取消监听方法会导致其他问题，使用updateAttribute方法去重置，取消监听放在detach方法内，避免出现问题
+      this.inputMethodController.updateAttribute({ textInputType: 0, enterKeyType: 1 });
     }
   }
 
@@ -362,12 +359,12 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   cancelListenKeyBoardEvent(): void {
-    this.inputMethodController?.off('insertText', this.insertTextCallback);
-    this.inputMethodController?.off('deleteLeft', this.deleteLeftCallback);
-    this.inputMethodController?.off('deleteRight', this.deleteRightCallback);
-    this.inputMethodController?.off('sendFunctionKey', this.sendFunctionKeyCallback);
-    this.inputMethodController?.off('sendKeyboardStatus', this.sendKeyboardStatusCallback);
-    this.inputMethodController?.off('selectByRange', this.selectByRangeCallback);
+    this.inputMethodController.off('insertText', this.insertTextCallback);
+    this.inputMethodController.off('deleteLeft', this.deleteLeftCallback);
+    this.inputMethodController.off('deleteRight', this.deleteRightCallback);
+    this.inputMethodController.off('sendFunctionKey', this.sendFunctionKeyCallback);
+    this.inputMethodController.off('sendKeyboardStatus', this.sendKeyboardStatusCallback);
+    this.inputMethodController.off('selectByRange', this.selectByRangeCallback);
     this.imcFlag = false;
   }
 
