@@ -189,7 +189,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       if (this.viewPhysicalInfo.has(viewId)) {
         oldPhysicalHeight = this.viewPhysicalInfo.get(viewId) as number;
         //高度变化小于1，不做刷新处理，减少闪烁
-        if (physicalHeight - oldPhysicalHeight < this.dValue) {
+        if (physicalHeight - oldPhysicalHeight > 0 && physicalHeight - oldPhysicalHeight < this.dValue) {
 
           this.setParams(params!, "width", physicalWidth);
           this.setParams(params!, "height", oldPhysicalHeight);
