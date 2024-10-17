@@ -78,6 +78,7 @@ export default class PlatformViewsController implements PlatformViewsHandler {
   private currentFrameUsedOverlayLayerIds: HashSet<number>;
   private currentFrameUsedPlatformViewIds: HashSet<number>;
   private platformViewParent: Map<number, FlutterMutatorView>;
+  private nodeControllers: Stack<EmbeddingNodeController>;
 
   constructor() {
     this.registry = new PlatformViewRegistryImpl();
