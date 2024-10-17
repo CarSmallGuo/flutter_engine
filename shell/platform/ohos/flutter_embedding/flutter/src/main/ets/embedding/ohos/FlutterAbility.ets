@@ -81,7 +81,7 @@ export class FlutterAbility extends UIAbility implements Host {
     this.delegate = new FlutterAbilityAndEntryDelegate(this);
     await this?.delegate?.onAttach(this.context);
     Log.i(TAG, 'onAttach end');
-        this?.delegate?.platformPlugin?.setUIAbilityContext(this.context);
+    this?.delegate?.platformPlugin?.setUIAbilityContext(this.context);
     this?.delegate?.onRestoreInstanceState(want);
 
     if (this.stillAttachedForEvent("onCreate")) {
