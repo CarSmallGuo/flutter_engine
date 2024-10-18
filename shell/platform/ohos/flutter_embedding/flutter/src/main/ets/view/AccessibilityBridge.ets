@@ -12,10 +12,65 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+import AccessibilityChannel, {AccessibilityMessageHandler} from '../embedding/engine/systemchannels/AccessibilityChannel';
+import { ByteBuffer } from '../util/ByteBuffer';
+import Log from '../util/Log';
 
-export default class AccessibilityBridge {
+const TAG = "AccessibilityBridge";
+
+export default class AccessibilityBridge implements AccessibilityMessageHandler {
+
+  private accessibilityChannel: AccessibilityChannel | null = null;
+
   constructor(){
 
+  }
+
+  announce(message: string): void {
+    throw new Error('Method not implemented.');
+    // android -> rootAccessibilityView.announceForAccessibility(message);
+  }
+
+  onTap(nodeId: number): void {
+    throw new Error('Method not implemented.');
+    // android -> sendAccessibilityEvent(nodeId, AccessibilityEvent.TYPE_VIEW_CLICKED);
+  }
+
+  onLongPress(nodeId: number): void {
+    throw new Error('Method not implemented.');
+    // android -> sendAccessibilityEvent(nodeId, AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
+  }
+
+  onTooltip(nodeId: string): void {
+    throw new Error('Method not implemented.');
+  }
+
+  updateSemantics(buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]): void {
+      Log.d(TAG, "AccessibilityBridge.ets updateSemantics is called");
+  }
+
+  updateCustomAccessibilityActions(buffer: ByteBuffer, strings: string[]): void {
+    Log.d(TAG, "AccessibilityBridge.ets updateCustomAccessibilityActions is called");
+
+  }
+
+  accessibilityStateChange(state: Boolean): void{
+    Log.d(TAG, "AccessibilityBridge.ets accessibilityStateChange is called");
+  }
+
+}
+
+export class AccessibilityManager {
+  private fontWeightScale: number | null = null;
+
+  setFontWeightScale(fontWeightScale: number): void {
+    this.fontWeightScale  = fontWeightScale;
+    Log.i(TAG, 'setFontWeightScale: ' + JSON.stringify(this.fontWeightScale));
+  }
+
+  getFontWeightScale(): number {
+    Log.i(TAG, 'getFontWeightScale: ' + JSON.stringify(this.fontWeightScale));
+    return this.fontWeightScale!;
   }
 }
 
