@@ -42,8 +42,7 @@ struct AbsoluteRect {
   float right;
   float bottom;
 
-  static constexpr AbsoluteRect MakeEmpty() 
-  {
+  static constexpr AbsoluteRect MakeEmpty() {
     return AbsoluteRect{0.0, 0.0, 0.0, 0.0};
   }
 };
@@ -162,20 +161,40 @@ class OhosAccessibilityBridge {
   std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
   std::vector<int32_t> flutterNavigationVec_;
 
-  const std::unordered_map<std::string, ArkUI_Accessibility_ActionType> ArkUI_ACTION_TYPE_MAP_ = {
-    {"invalid", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_INVALID},
-    {"click", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK},
-    {"long press", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_LONG_CLICK},
-    {"focus acquisition", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS},
-    {"focus clearance", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS},
-    {"forward scroll", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_FORWARD},
-    {"backward scroll", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD},
-    {"copy text", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_COPY},
-    {"paste text", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_PASTE},
-    {"cut text", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CUT},
-    {"text selection", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SELECT_TEXT},
-    {"set text", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_TEXT},
-    {"text cursor position setting", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_CURSOR_POSITION},
+  const std::unordered_map<std::string, ArkUI_Accessibility_ActionType>
+      ArkUI_ACTION_TYPE_MAP_ = {
+          {"invalid", ArkUI_Accessibility_ActionType::
+                          ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_INVALID},
+          {"click", ArkUI_Accessibility_ActionType::
+                        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK},
+          {"long press", ArkUI_Accessibility_ActionType::
+                             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_LONG_CLICK},
+          {"focus acquisition",
+           ArkUI_Accessibility_ActionType::
+               ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS},
+          {"focus clearance",
+           ArkUI_Accessibility_ActionType::
+               ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS},
+          {"forward scroll",
+           ArkUI_Accessibility_ActionType::
+               ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_FORWARD},
+          {"backward scroll",
+           ArkUI_Accessibility_ActionType::
+               ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD},
+          {"copy text", ArkUI_Accessibility_ActionType::
+                            ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_COPY},
+          {"paste text", ArkUI_Accessibility_ActionType::
+                             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_PASTE},
+          {"cut text", ArkUI_Accessibility_ActionType::
+                           ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CUT},
+          {"text selection",
+           ArkUI_Accessibility_ActionType::
+               ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SELECT_TEXT},
+          {"set text", ArkUI_Accessibility_ActionType::
+                           ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_TEXT},
+          {"text cursor position setting",
+           ArkUI_Accessibility_ActionType::
+               ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_CURSOR_POSITION},
   };
 
   static const int32_t FOCUSABLE_FLAGS =
