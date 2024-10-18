@@ -136,11 +136,12 @@ void OHOSExternalTextureGL::Attach()
         FML_LOG(ERROR) << "Error with OH_NativeImage_Create";
         return;
       }
-      nativeWindow_ = OH_NativeImage_AcquireNativeWindow(nativeImage_);
-      if (nativeWindow_ == nullptr) {
-        FML_LOG(ERROR) << "Error with OH_NativeImage_AcquireNativeWindow";
-        return;
-      }
+    }
+
+    nativeWindow_ = OH_NativeImage_AcquireNativeWindow(nativeImage_);
+    if (nativeWindow_ == nullptr) {
+      FML_LOG(ERROR) << "Error with OH_NativeImage_AcquireNativeWindow";
+      return;
     }
 
     int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
@@ -382,6 +383,15 @@ void OHOSExternalTextureGL::setBackground(int32_t width, int32_t height)
 void OHOSExternalTextureGL::setTextureBufferSize(int32_t width, int32_t height)
 {
   FML_DLOG(INFO) << "OHOSExternalTextureGL::SetTextureBufferSize";
+  if (nativeWindow_ == nullptr && nativeImage_) {
+    nativeWindow_ = OH_NativeImage_AcquireNativeWindow(nativeImage_);
+  }
+
+  if (nativeWindow_ == nullptr) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL::SetTextureBufferSize nativeWindow_ is nullptr";
+    return;
+  }
+  
   int code = SET_BUFFER_GEOMETRY;
   int32_t ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, code, width, height);
   if (ret != 0) {
