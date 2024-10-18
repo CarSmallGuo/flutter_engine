@@ -271,10 +271,10 @@ void XComponentBase::BindXComponentCallback() {
 
 /** Called when need to get element infos based on a specified node. */
 int32_t FindAccessibilityNodeInfosById(
-  int64_t elementId,
-  ArkUI_AccessibilitySearchMode mode,
-  int32_t requestId,
-  ArkUI_AccessibilityElementInfoList* elementList)
+    int64_t elementId,
+    ArkUI_AccessibilitySearchMode mode,
+    int32_t requestId,
+    ArkUI_AccessibilityElementInfoList* elementList)
 {
   auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
   ohosAccessibilityBridge->FindAccessibilityNodeInfosById(elementId, mode, requestId, elementList);
@@ -284,10 +284,10 @@ int32_t FindAccessibilityNodeInfosById(
 
 /** Called when need to get element infos based on a specified node and text content. */
 int32_t FindAccessibilityNodeInfosByText(
-  int64_t elementId,
-  const char* text,
-  int32_t requestId,
-  ArkUI_AccessibilityElementInfoList* elementList)
+    int64_t elementId,
+    const char* text,
+    int32_t requestId,
+    ArkUI_AccessibilityElementInfoList* elementList)
 {
   auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
   ohosAccessibilityBridge->FindAccessibilityNodeInfosByText(elementId, text, requestId, elementList);
@@ -297,8 +297,10 @@ int32_t FindAccessibilityNodeInfosByText(
 
 /** Called when need to get the focused element info based on a specified node. */
 int32_t FindFocusedAccessibilityNode(
-int64_t elementId, ArkUI_AccessibilityFocusType focusType,
-int32_t requestId, ArkUI_AccessibilityElementInfo* elementinfo)
+    int64_t elementId, 
+    ArkUI_AccessibilityFocusType focusType,
+    int32_t requestId, 
+    ArkUI_AccessibilityElementInfo* elementinfo)
 {
   auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
   ohosAccessibilityBridge->FindFocusedAccessibilityNode(elementId, focusType, requestId, elementinfo);
@@ -308,10 +310,10 @@ int32_t requestId, ArkUI_AccessibilityElementInfo* elementinfo)
 
 /** Query the node that can be focused based on the reference node. Query the next node that can be focused based on the mode and direction. */
 int32_t FindNextFocusAccessibilityNode(
-  int64_t elementId,
-  ArkUI_AccessibilityFocusMoveDirection direction,
-  int32_t requestId,
-  ArkUI_AccessibilityElementInfo *elementList)
+    int64_t elementId,
+    ArkUI_AccessibilityFocusMoveDirection direction,
+    int32_t requestId,
+    ArkUI_AccessibilityElementInfo *elementList)
 {
   auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
   ohosAccessibilityBridge->FindNextFocusAccessibilityNode(elementId, direction, requestId, elementList);
@@ -321,10 +323,10 @@ int32_t FindNextFocusAccessibilityNode(
 
 /** Performing the Action operation on a specified node. */
 int32_t ExecuteAccessibilityAction(
-  int64_t elementId,
-  ArkUI_Accessibility_ActionType action,
-  ArkUI_AccessibilityActionArguments* actionArguments,
-  int32_t requestId)
+    int64_t elementId,
+    ArkUI_Accessibility_ActionType action,
+    ArkUI_AccessibilityActionArguments* actionArguments,
+    int32_t requestId)
 {
   auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
   ohosAccessibilityBridge->ExecuteAccessibilityAction(elementId, action, actionArguments, requestId);
@@ -341,9 +343,9 @@ int32_t ClearFocusedFocusAccessibilityNode()
 
 /** Queries the current cursor position of a specified node. */
 int32_t GetAccessibilityNodeCursorPosition(
-  int64_t elementId,
-  int32_t requestId,
-  int32_t* index)
+    int64_t elementId,
+    int32_t requestId,
+    int32_t* index)
 {
   auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
   ohosAccessibilityBridge->GetAccessibilityNodeCursorPosition(elementId, requestId, index);
@@ -405,13 +407,15 @@ void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
     
     BindAccessibilityProviderCallback();
     ArkUI_AccessibilityProvider* accessibilityProvider = nullptr;
-    int32_t ret1 = OH_NativeXComponent_GetNativeAccessibilityProvider(nativeXComponent_, &accessibilityProvider); 
-    if(ret1 != 0) {
+    int32_t ret1 = OH_NativeXComponent_GetNativeAccessibilityProvider(
+      nativeXComponent_, &accessibilityProvider); 
+    if (ret1 != 0) {
       LOGE("OH_NativeXComponent_GetNativeAccessibilityProvider is failed");
       return;
     }
-    int32_t ret2 = OH_ArkUI_AccessibilityProviderRegisterCallback(accessibilityProvider, &accessibilityProviderCallback_);
-    if(ret2 != 0) {
+    int32_t ret2 = OH_ArkUI_AccessibilityProviderRegisterCallback(
+      accessibilityProvider, &accessibilityProviderCallback_);
+    if (ret2 != 0) {
       LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is failed");
       return;
     }

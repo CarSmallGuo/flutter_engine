@@ -584,7 +584,6 @@ napi_value PlatformViewOHOSNapi::nativeUpdateOhosAssetManager(
     napi_callback_info info) {
   LOGD("PlatformViewOHOSNapi::nativeUpdateOhosAssetManager");
 
-  // TODO:
   return nullptr;
 }
 
@@ -595,7 +594,6 @@ napi_value PlatformViewOHOSNapi::nativeGetPixelMap(napi_env env,
                                                    napi_callback_info info) {
   LOGD("PlatformViewOHOSNapi::nativeGetPixelMap");
 
-  // TODO:
   return nullptr;
 }
 
