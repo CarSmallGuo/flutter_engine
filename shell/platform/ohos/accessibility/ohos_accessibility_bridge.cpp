@@ -85,7 +85,7 @@ void OhosAccessibilityBridge::RequestFocusWhenPageUpdate()
       ArkUI_AccessibilityEventType::
           ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_REQUEST_ACCESSIBILITY_FOCUS);
 
-  int32_t requestFocusId = 4;
+  int32_t requestFocusId = 0;
   OH_ArkUI_AccessibilityEventSetRequestFocusId(reqFocusEventInfo,
                                                requestFocusId);
 
@@ -725,8 +725,8 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
 /**
  * 判断源字符串是否包含目标字符串
  */
-bool OhosAccessibilityBridge::Contains(const std::string& source,
-                                       const std::string& target)
+bool OhosAccessibilityBridge::Contains(const std::string source,
+                                       const std::string target)
 {
   return source.find(target) != std::string::npos;
 }
@@ -738,78 +738,102 @@ void OhosAccessibilityBridge::FlutterSetElementInfoOperationActions(
     ArkUI_AccessibilityElementInfo* elementInfoFromList,
     std::string widget_type)
 {
-  // 计算不同组件类型的action类型数组数量
-  int32_t actionTypeNum = 0;
   if (widget_type == "textfield") {
-    for (const auto action_item : ArkUI_ACTION_TYPE_MAP_) {
-      std::string action_description = action_item.first;
-      if (Contains(action_description, "focus")) {
-        actionTypeNum++;
-      };
-      if (Contains(action_description, "click")) {
-        actionTypeNum++;
-      };
-      if (Contains(action_description, "text")) {
-        actionTypeNum++;
-      };
-      if (Contains(action_description, "press")) {
-        actionTypeNum++;
-      };
-    }
+    // set elementinfo action types
+    int32_t actionTypeNum = 10;
+    ArkUI_AccessibleAction actions[actionTypeNum];
+
+    actions[0].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS;
+    actions[0].description = "获取焦点";
+
+    actions[1].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS;
+    actions[1].description = "清除焦点";
+
+    actions[2].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK;
+    actions[2].description = "点击操作";
+
+    actions[3].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_LONG_CLICK;
+    actions[3].description = "长按操作";
+
+    actions[4].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_COPY;
+    actions[4].description = "文本复制";
+
+    actions[5].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_PASTE;
+    actions[5].description = "文本粘贴";
+
+    actions[6].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CUT;
+    actions[6].description = "文本剪切";
+
+    actions[7].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SELECT_TEXT;
+    actions[7].description = "文本选择";
+
+    actions[8].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_TEXT;
+    actions[8].description = "文本内容设置";
+
+    actions[9].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_CURSOR_POSITION;
+    actions[9].description = "光标位置设置";
+
+    OH_ArkUI_AccessibilityElementInfoSetOperationActions(
+        elementInfoFromList, actionTypeNum, actions);
+
   } else if (widget_type == "scrollable") {
-    for (const auto action_item : ArkUI_ACTION_TYPE_MAP_) {
-      std::string action_description = action_item.first;
-      if (Contains(action_description, "focus")) {
-        actionTypeNum++;
-      };
-      if (Contains(action_description, "click")) {
-        actionTypeNum++;
-      };
-      if (Contains(action_description, "scroll")) {
-        actionTypeNum++;
-      };
-    }
+    // if node is a scrollable component
+    int32_t actionTypeNum = 5;
+    ArkUI_AccessibleAction actions[actionTypeNum];
+
+    actions[0].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS;
+    actions[0].description = "获取焦点";
+
+    actions[1].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS;
+    actions[1].description = "清除焦点";
+
+    actions[2].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK;
+    actions[2].description = "点击动作";
+
+    actions[3].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_FORWARD;
+    actions[3].description = "向上滑动";
+
+    actions[4].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD;
+    actions[4].description = "向下滑动";
+
+    OH_ArkUI_AccessibilityElementInfoSetOperationActions(
+        elementInfoFromList, actionTypeNum, actions);
+
   } else {
-    for (const auto action_item : ArkUI_ACTION_TYPE_MAP_) {
-      std::string action_description = action_item.first;
-      if (Contains(action_description, "focus")) {
-        actionTypeNum++;
-      };
-      if (Contains(action_description, "click")) {
-        actionTypeNum++;
-      };
-    }
+    // set common component action types
+    int32_t actionTypeNum = 3;
+    ArkUI_AccessibleAction actions[actionTypeNum];
+
+    actions[0].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS;
+    actions[0].description = "获取焦点";
+
+    actions[1].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS;
+    actions[1].description = "清除焦点";
+
+    actions[2].actionType = ArkUI_Accessibility_ActionType::
+        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK;
+    actions[2].description = "点击动作";
+
+    OH_ArkUI_AccessibilityElementInfoSetOperationActions(
+        elementInfoFromList, actionTypeNum, actions);
   }
-  // 配置相应组件的action操作属性
-  ArkUI_AccessibleAction actions[actionTypeNum];
-  int32_t count = 0;
-  for (const auto item : ArkUI_ACTION_TYPE_MAP_) {
-    std::string description = item.first;
-    if (widget_type == "textfield") {
-      // textfield组件类型包含focus, text, click, long press动作类型
-      if (Contains(description, "focus") || Contains(description, "click") ||
-          Contains(description, "text") || Contains(description, "press")) {
-        actions[count++].actionType = item.second;
-        actions[count - 1].description = description.c_str();
-      }
-    } else if (widget_type == "scrollable") {
-      // 可滑动组件类型包含focus, scroll, click动作类型
-      if (Contains(description, "focus") || Contains(description, "click") ||
-          Contains(description, "scroll")) {
-        actions[count++].actionType = item.second;
-        actions[count - 1].description = description.c_str();
-      }
-    } else {
-      // 通用组件包含点击、获焦、失焦
-      if (Contains(description, "focus") || Contains(description, "click")) {
-        actions[count++].actionType = item.second;
-        actions[count - 1].description = description.c_str();
-      }
-    }
-  }
-  // set elementinfo OperationActions
-  OH_ArkUI_AccessibilityElementInfoSetOperationActions(elementInfoFromList,
-                                                       actionTypeNum, actions);
 }
 
 /**

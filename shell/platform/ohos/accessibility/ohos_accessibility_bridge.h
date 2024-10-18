@@ -161,7 +161,7 @@ class OhosAccessibilityBridge {
   std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
   std::vector<int32_t> flutterNavigationVec_;
 
-  const std::unordered_map<std::string, ArkUI_Accessibility_ActionType>
+  const std::map<std::string, ArkUI_Accessibility_ActionType>
       ArkUI_ACTION_TYPE_MAP_ = {
           {"invalid", ArkUI_Accessibility_ActionType::
                           ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_INVALID},
@@ -269,7 +269,7 @@ class OhosAccessibilityBridge {
   void PageStateUpdate(int64_t elementId);
   void RequestFocusWhenPageUpdate();
 
-  bool Contains(const std::string& source, const std::string& target);
+  bool Contains(const std::string source, const std::string target);
 };
 
 }  // namespace flutter
