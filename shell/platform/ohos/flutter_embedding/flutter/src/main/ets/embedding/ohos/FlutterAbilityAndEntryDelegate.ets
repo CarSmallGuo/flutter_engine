@@ -12,21 +12,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
-import common from '@ohos.app.ability.common';
+import { AbilityConstant, Want, common } from '@kit.AbilityKit';
 import FlutterEngineConfigurator from './FlutterEngineConfigurator';
 import FlutterEngineProvider from './FlutterEngineProvider';
 import FlutterEngine from '../engine/FlutterEngine';
 import PlatformPlugin, { PlatformPluginDelegate } from '../../plugin/PlatformPlugin';
-import Want from '@ohos.app.ability.Want';
 import FlutterShellArgs from '../engine/FlutterShellArgs';
-import DartExecutor, { DartEntrypoint } from '../engine/dart/DartExecutor';
+import { DartEntrypoint } from '../engine/dart/DartExecutor';
 import FlutterAbilityLaunchConfigs from './FlutterAbilityLaunchConfigs';
 import Log from '../../util/Log';
 import FlutterInjector from '../../FlutterInjector';
-import UIAbility from '@ohos.app.ability.UIAbility';
 import ExclusiveAppComponent from './ExclusiveAppComponent';
-import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 import TextInputPlugin from '../../plugin/editing/TextInputPlugin';
 import { FlutterPlugin } from '../engine/plugins/FlutterPlugin';
 import FlutterEngineCache from '../engine/FlutterEngineCache';
@@ -46,7 +42,7 @@ const FRAMEWORK_RESTORATION_BUNDLE_KEY = "framework";
  * 1、初始化engine
  * 2、处理ability生命周期回调
  */
-class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility> {
+class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<common.UIAbilityContext> {
   protected host?: Host | null;
   flutterEngine?: FlutterEngine | null;
   platformPlugin?: PlatformPlugin;
@@ -257,7 +253,7 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
       .setDartEntrypointArgs(this.host?.getDartEntrypointArgs() ?? []);
   }
 
-  createView(context: Context): FlutterView {
+  createView(context: common.UIAbilityContext): FlutterView {
     this.flutterView = FlutterManager.getInstance().createFlutterView(context)
     if (this.flutterEngine && this.host?.attachToEngineAutomatically()) {
       this.flutterView.attachToFlutterEngine(this.flutterEngine!!);
@@ -403,14 +399,14 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
     this.host?.detachFromFlutterEngine();
   }
 
-  getAppComponent(): UIAbility {
-    const ability = this.host?.getAbility();
-    if (ability == null) {
+  getAppComponent(): common.UIAbilityContext {
+    const context = this.host?.getAbilityContext();
+    if (context == null) {
       throw new Error(
         "FlutterAbilityAndFragmentDelegate's getAppComponent should only "
-          + "be queried after onAttach, when the host's ability should always be non-null");
+          + "be queried after onAttach, when the host's ability context should always be non-null");
     }
-    return ability;
+    return context;
   }
 
   onNewWant(want: Want, launchParams: AbilityConstant.LaunchParam): void {
@@ -467,7 +463,7 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
  */
 interface Host extends FlutterEngineProvider, FlutterEngineConfigurator, PlatformPluginDelegate {
 
-  getAbility(): UIAbility;
+  getAbilityContext(): common.UIAbilityContext;
 
   shouldDispatchAppLifecycleState(): boolean;
 
@@ -515,7 +511,7 @@ interface Host extends FlutterEngineProvider, FlutterEngineConfigurator, Platfor
   shouldRestoreAndSaveState(): boolean;
 
   /* Return the ExclusiveAppComponent */
-  getExclusiveAppComponent(): ExclusiveAppComponent<UIAbility> | null
+  getExclusiveAppComponent(): ExclusiveAppComponent<common.UIAbilityContext> | null
 
   providePlatformPlugin(flutterEngine: FlutterEngine): PlatformPlugin | undefined
 

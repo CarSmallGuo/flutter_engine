@@ -42,7 +42,7 @@ export default class PlatformPlugin {
   private static TAG = "PlatformPlugin";
   callback = new PlatformPluginCallback();
 
-  constructor(platformChannel: PlatformChannel, context: common.Context, platformPluginDelegate?: PlatformPluginDelegate) {
+  constructor(platformChannel: PlatformChannel, context: common.UIAbilityContext, platformPluginDelegate?: PlatformPluginDelegate) {
     this.callback.platformChannel = platformChannel;
     this.callback.context = context;
     this.callback.applicationContext = context?.getApplicationContext();
@@ -61,8 +61,8 @@ export default class PlatformPlugin {
         }
         this.callback.lastWindow = data;
       });
-      const uiAbility = FlutterManager.getInstance().getUIAbility(context);
-      const windowStage = FlutterManager.getInstance().getWindowStage(uiAbility);
+
+      const windowStage = context.windowStage;
       this.callback.mainWindow = windowStage.getMainWindowSync();
     } catch (err) {
       Log.e(PlatformPlugin.TAG, "Failed to obtain the top window. Cause: " + JSON.stringify(err));
@@ -75,10 +75,6 @@ export default class PlatformPlugin {
     if (this.callback.currentTheme != null) {
       this.callback.setSystemChromeSystemUIOverlayStyle(this.callback.currentTheme);
     }
-  }
-
-  setUIAbilityContext(context: common.UIAbilityContext): void {
-    this.callback.uiAbilityContext = context;
   }
 
   setSystemChromeChangeListener(): void {
@@ -111,9 +107,8 @@ export class PlatformPluginCallback implements PlatformMessageHandler {
   lastWindow: window.Window | null = null;
   platformChannel: PlatformChannel | null = null;
   platformPluginDelegate: PlatformPluginDelegate | null = null;
-  context: common.Context | null = null;
+  context: common.UIAbilityContext | null = null;
   showBarOrNavigation: ('status' | 'navigation')[] = ['status', 'navigation'];
-  uiAbilityContext: common.UIAbilityContext | null = null;
   callbackId: number | null = null;
   applicationContext: common.ApplicationContext | null = null;
   currentTheme: SystemChromeStyle | null = null;
@@ -168,7 +163,7 @@ export class PlatformPluginCallback implements PlatformMessageHandler {
     Log.d(PlatformPluginCallback.TAG, "setApplicationSwitcherDescription: " + JSON.stringify(description));
     try {
       let label: string = description?.label;
-      this.uiAbilityContext?.setMissionLabel(label).then(() => {
+      this.context?.setMissionLabel(label).then(() => {
         Log.d(PlatformPluginCallback.TAG, "Succeeded in seting mission label");
       })
     } catch (err) {
@@ -206,7 +201,7 @@ export class PlatformPluginCallback implements PlatformMessageHandler {
 
   getClipboardData(result: MethodResult): void {
     let atManager = abilityAccessCtrl.createAtManager();
-    atManager.requestPermissionsFromUser(this.uiAbilityContext, ['ohos.permission.READ_PASTEBOARD']).then((data) => {
+    atManager.requestPermissionsFromUser(this.context, ['ohos.permission.READ_PASTEBOARD']).then((data) => {
       // https://developer.huawei.com/consumer/cn/doc/harmonyos-references-V5/js-apis-permissionrequestresult-V5
       // 相应请求权限的结果：
       // -1：未授权，表示权限已设置，无需弹窗，需要用户在"设置"中修改

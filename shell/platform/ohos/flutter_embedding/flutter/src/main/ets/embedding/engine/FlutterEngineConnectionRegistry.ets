@@ -12,12 +12,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
+import { AbilityConstant, Want, common } from '@kit.AbilityKit';
 import PluginRegistry from './plugins/PluginRegistry';
 import { FlutterAssets, FlutterPlugin, FlutterPluginBinding } from './plugins/FlutterPlugin';
 import FlutterEngine from './FlutterEngine';
 import AbilityAware from './plugins/ability/AbilityAware';
-import UIAbility from '@ohos.app.ability.UIAbility';
 import {
   AbilityPluginBinding,
   WindowFocusChangedListener,
@@ -25,15 +24,11 @@ import {
   NewWantListener
 } from './plugins/ability/AbilityPluginBinding';
 import HashSet from '@ohos.util.HashSet';
-import Want from '@ohos.app.ability.Want';
-import AbilityConstant from '@ohos.app.ability.AbilityConstant';
-import common from '@ohos.app.ability.common';
 import FlutterLoader from './loader/FlutterLoader';
 import Log from '../../util/Log';
 import ToolUtils from '../../util/ToolUtils';
 import AbilityControlSurface from './plugins/ability/AbilityControlSurface';
 import ExclusiveAppComponent from '../ohos/ExclusiveAppComponent';
-import FlutterEngineGroup from './FlutterEngineGroup';
 import Any from '../../plugin/common/Any';
 
 const TAG = "FlutterEngineCxnRegistry";
@@ -51,7 +46,7 @@ export default class FlutterEngineConnectionRegistry implements PluginRegistry, 
   // AbilityAware
   private abilityAwarePlugins = new Map<string, AbilityAware>();
 
-  private exclusiveAbility: ExclusiveAppComponent<UIAbility> | null = null;
+  private exclusiveAbility: ExclusiveAppComponent<common.UIAbilityContext> | null = null;
   private abilityPluginBinding: FlutterEngineAbilityPluginBinding | null = null;
 
   constructor(appContext: common.Context, flutterEngine: FlutterEngine, flutterLoader: FlutterLoader) {
@@ -137,14 +132,14 @@ export default class FlutterEngineConnectionRegistry implements PluginRegistry, 
     return this.exclusiveAbility != null;
   }
 
-  attachToAbility(exclusiveAbility: ExclusiveAppComponent<UIAbility>): void {
+  attachToAbility(exclusiveAbility: ExclusiveAppComponent<common.UIAbilityContext>): void {
     if (this.exclusiveAbility != null) {
       this.exclusiveAbility.detachFromFlutterEngine();
     }
     // If we were already attached to an app component, detach from it.
     this.detachFromAppComponent();
     this.exclusiveAbility = exclusiveAbility;
-    this.attachToAbilityInternal(exclusiveAbility.getAppComponent(),);
+    this.attachToAbilityInternal(exclusiveAbility.getAppComponent());
   }
 
   detachFromAbility(): void {
@@ -178,8 +173,8 @@ export default class FlutterEngineConnectionRegistry implements PluginRegistry, 
     }
   }
 
-  private attachToAbilityInternal(ability: UIAbility): void {
-    this.abilityPluginBinding = new FlutterEngineAbilityPluginBinding(ability);
+  private attachToAbilityInternal(context: common.UIAbilityContext): void {
+    this.abilityPluginBinding = new FlutterEngineAbilityPluginBinding(context);
     // Notify all AbilityAware plugins that they are now attached to a new Ability.
     this.abilityAwarePlugins.forEach(abilityAware => abilityAware.onAttachedToAbility(this.abilityPluginBinding!));
   }
@@ -197,18 +192,18 @@ export default class FlutterEngineConnectionRegistry implements PluginRegistry, 
 }
 
 class FlutterEngineAbilityPluginBinding implements AbilityPluginBinding {
-  private ability: UIAbility;
+  private context: common.UIAbilityContext;
   private onNewWantListeners = new HashSet<NewWantListener>();
   private onWindowFocusChangedListeners = new HashSet<WindowFocusChangedListener>();
   private onSaveStateListeners = new HashSet<OnSaveStateListener>();
 
-  constructor(ability: UIAbility) {
-    this.ability = ability;
+  constructor(context: common.UIAbilityContext) {
+    this.context = context;
 
   }
 
-  getAbility(): UIAbility {
-    return this.ability;
+  getAbilityContext(): common.UIAbilityContext {
+    return this.context;
   }
 
   addOnNewWantListener(listener: NewWantListener): void {

@@ -12,13 +12,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-
-import UIAbility from '@ohos.app.ability.UIAbility'
-import Want from '@ohos.app.ability.Want';
-import AbilityConstant from '@ohos.app.ability.AbilityConstant';
+import { AbilityConstant, Want, common } from '@kit.AbilityKit';
 
 export interface AbilityPluginBinding {
-  getAbility(): UIAbility;
+  getAbilityContext(): common.UIAbilityContext;
   /**
    * Adds a listener that is invoked whenever the associated {@link ohos.app.ability.UIAbility}'s {@code
    * onNewWant(...)} method is invoked.
