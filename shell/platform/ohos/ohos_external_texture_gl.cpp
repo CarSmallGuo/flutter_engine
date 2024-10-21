@@ -39,6 +39,44 @@ constexpr const char *EGL_EXT_PLATFORM_WAYLAND = "EGL_EXT_platform_wayland";
 constexpr const char *EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
 constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 
+static int PixelMapToWindowFormat(PIXEL_FORMAT pixel_format)
+{
+  switch (pixel_format) {
+    case PIXEL_FORMAT_RGB_565:
+      return NATIVEBUFFER_PIXEL_FMT_RGB_565;
+    case PIXEL_FORMAT_RGBA_8888:
+      return NATIVEBUFFER_PIXEL_FMT_RGBA_8888;
+    case PIXEL_FORMAT_BGRA_8888:
+      return NATIVEBUFFER_PIXEL_FMT_BGRA_8888;
+    case PIXEL_FORMAT_RGB_888:
+      return NATIVEBUFFER_PIXEL_FMT_RGB_888;
+    case PIXEL_FORMAT_NV21:
+      return NATIVEBUFFER_PIXEL_FMT_YCRCB_420_SP;
+    case PIXEL_FORMAT_NV12:
+      return NATIVEBUFFER_PIXEL_FMT_YCBCR_420_SP;
+    case PIXEL_FORMAT_RGBA_1010102:
+      return NATIVEBUFFER_PIXEL_FMT_RGBA_1010102;
+    case PIXEL_FORMAT_YCBCR_P010:
+      return NATIVEBUFFER_PIXEL_FMT_YCBCR_P010;
+    case PIXEL_FORMAT_YCRCB_P010:
+      return NATIVEBUFFER_PIXEL_FMT_YCRCB_P010;
+    case PIXEL_FORMAT_ALPHA_8:
+    case PIXEL_FORMAT_RGBA_F16:
+    case PIXEL_FORMAT_UNKNOWN:
+    default:
+      // no support/unknow format: cannot copy
+      return 0;
+  }
+  return 0;
+}
+
+static bool IsPixelMapYUVFormat(PIXEL_FORMAT format)
+{
+  return format == PIXEL_FORMAT_NV21 || format == PIXEL_FORMAT_NV12 ||
+         format == PIXEL_FORMAT_YCBCR_P010 || format == PIXEL_FORMAT_YCRCB_P010;
+}
+
+
 OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface)
   : Texture(id), ohos_surface_(std::move(ohos_surface)), transform(SkMatrix::I())
 {
@@ -134,7 +172,7 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
 
   GrGLTextureInfo textureInfo;
 
-  if (!freeze && !first_update_ && !isEmulator_ && backGroundTextureName_ == 0 && pixelMap_ == nullptr) {
+  if (!freeze && !first_update_ && !isEmulator_ && !new_frame_ready_ && pixelMap_ == nullptr) {
     setBackground(bounds.width(), bounds.height());
     textureInfo = {GL_TEXTURE_EXTERNAL_OES, backGroundTextureName_, GL_RGBA8_OES};
   } else {
@@ -410,6 +448,10 @@ void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
         << ret;
     return;
   }
+  
+  int windowFormat = PixelMapToWindowFormat((PIXEL_FORMAT)pixelMapInfo.pixelFormat);
+  ret = OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, SET_FORMAT, windowFormat);
+
   uint64_t usage = 0;
   OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, GET_USAGE, &usage);
   usage |= NATIVEBUFFER_USAGE_CPU_READ;
@@ -478,13 +520,19 @@ void OHOSExternalTextureGL::HandlePixelMapBuffer(NativePixelMap* pixelMap, OHNat
   FML_DLOG(INFO) << "OHOSExternalTextureGL pixelMapInfo rowSize:" << pixelMapInfo.rowSize
     << " format:" << pixelMapInfo.pixelFormat;
 
+  uint32_t real_height = pixelMapInfo.height;
+  if (IsPixelMapYUVFormat((PIXEL_FORMAT)pixelMapInfo.pixelFormat)) {
+    // y is height, uv is height/2
+    real_height = pixelMapInfo.height + (pixelMapInfo.height + 1) / 2;
+  }
+
   // 复制图片纹理数据到内存中，需要处理DMA内存补齐相关的逻辑
   if (pixelMapInfo.width * PIXEL_SIZE != pixelMapInfo.rowSize) {
     // 直接复制整块内存
-    memcpy(destAddr, pixel, pixelMapInfo.height * pixelMapInfo.rowSize);
+    memcpy(destAddr, pixel, real_height * pixelMapInfo.rowSize);
   } else {
     // 需要处理DMA内存补齐相关的逻辑
-    for (uint32_t i = 0; i < pixelMapInfo.height; i++) {
+    for (uint32_t i = 0; i < real_height; i++) {
       memcpy(destAddr, pixel, pixelMapInfo.rowSize);
       destAddr += stride / PIXEL_SIZE;
       pixel += pixelMapInfo.width;
