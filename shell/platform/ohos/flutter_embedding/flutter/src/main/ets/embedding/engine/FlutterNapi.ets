@@ -22,7 +22,7 @@ import { FlutterCallbackInformation } from '../../view/FlutterCallbackInformatio
 import image from '@ohos.multimedia.image';
 import { EngineLifecycleListener } from './FlutterEngine';
 import { ByteBuffer } from '../../util/ByteBuffer';
-import { Action } from '../../view/AccessibilityBridge'
+import { AccessibilityManager, Action } from '../../view/AccessibilityBridge'
 import LocalizationPlugin from '../../plugin/localization/LocalizationPlugin';
 import i18n from '@ohos.i18n';
 import Any from '../../plugin/common/Any';
@@ -54,6 +54,9 @@ export default class FlutterNapi {
   localizationPlugin: LocalizationPlugin | null = null;
 
   isDisplayingFlutterUi: boolean = false;
+  accessibilityManager: AccessibilityManager | null = null;
+
+
   /**
    * 更新刷新率
    * @param rate
@@ -500,6 +503,43 @@ export default class FlutterNapi {
     if (this.isAttached()) {
       TouchEventProcessor.getInstance().postTouchEvent(strings);
     }
+  }
+
+  getShellHolderId(): void {
+    this.ensureRunningOnMainThread();
+    if (this.isAttached()) {
+      flutter.nativeGetShellHolderId(this.nativeShellHolderId!);
+    }
+  }
+
+  setFontWeightScale(fontWeightScale: number): void {
+    this.ensureRunningOnMainThread();
+    if (this.isAttached()) {
+      Log.i(TAG, "setFontWeightScale: " + fontWeightScale);
+      flutter.nativeSetFontWeightScale(this.nativeShellHolderId!, fontWeightScale);
+    } else {
+      Log.w(TAG, "setFontWeightScale is detached !");
+    }
+  }
+
+  static unicodeIsEmoji(code: number): boolean {
+    return Boolean(flutter.nativeUnicodeIsEmoji(code));
+  }
+
+  static unicodeIsEmojiModifier(code: number): boolean {
+    return Boolean(flutter.nativeUnicodeIsEmojiModifier(code));
+  }
+
+  static unicodeIsEmojiModifierBase(code: number): boolean {
+    return Boolean(flutter.nativeUnicodeIsEmojiModifierBase(code));
+  }
+
+  static unicodeIsVariationSelector(code: number): boolean {
+    return Boolean(flutter.nativeUnicodeIsVariationSelector(code));
+  }
+
+  static unicodeIsRegionalIndicatorSymbol(code: number): boolean {
+    return Boolean(flutter.nativeUnicodeIsRegionalIndicatorSymbol(code));
   }
 
 }
