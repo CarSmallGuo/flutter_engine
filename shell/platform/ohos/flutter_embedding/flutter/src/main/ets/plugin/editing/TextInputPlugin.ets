@@ -23,7 +23,6 @@ import Log from '../../util/Log';
 import { EditingStateWatcher, ListenableEditingState } from './ListenableEditingState';
 import Any from '../common/Any';
 import { inputDevice } from '@kit.InputKit';
-import { BusinessError } from '@kit.BasicServicesKit';
 
 /// 临时规避缺少newline对应枚举问题
 const NEWLINE_KEY_TYPE: number = 8;
@@ -95,6 +94,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private inputTypeNone: string = 'NONE';
   private keyboardStatus: inputMethod.KeyboardStatus = inputMethod.KeyboardStatus.HIDE;
   private inputAttribute: inputMethod.InputAttribute = { textInputType: 0, enterKeyType: 1 };
+  private keyboardFocusState: boolean = false
 
   constructor(plugin: TextInputPlugin | Any, viewId: string) {
     this.textConfig = {
@@ -110,8 +110,6 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   /// 通过判断是否是TextInputType.none来决定是否弹出键盘
   show(): void {
     if (this.canShowTextInput()) {
-      // Ensure the Xcomponent gains focus before the soft keyboard is displayed.
-      focusControl.requestFocus(this.focusViewId);
       this.keyboardFocusState = true;
       this.showTextInput();
     } else {
@@ -120,8 +118,6 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   hide(): void {
-    // Ensure the Xcomponent loses focus before the soft keyboard is hided.
-    focusControl.requestFocus("unfocus-xcomponent-node");
     this.keyboardFocusState = false;
     this.hideTextInput();
   }
@@ -194,16 +190,10 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       this.keyboardStatus = inputMethod.KeyboardStatus.SHOW;
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to attach:" + JSON.stringify(err));
-      this.keyboardStatus = inputMethod.KeyboardStatus.NONE;
     }
   }
 
   handleChangeFocus(focusState: boolean) {
-    if (focusState && this.keyboardFocusState) {
-      // When the app loses focus, the system automatically detaches the input method.
-      // Upon regaining focus, if the input method should be displayed, it must be reattached.
-      this.show();
-    }
     try {
       inputDevice.getDeviceList((Error: Error, ids: Array<number>) => {
         let isPhysicalKeyboard = false;

@@ -137,7 +137,31 @@ export class FlutterAbility extends UIAbility implements Host {
     this.delegate?.initWindow();
     this.mainWindow = windowStage.getMainWindowSync();
     try {
-      windowStage.on('windowStageEvent', this.windowStageEventCallback);
+      windowStage.on('windowStageEvent', (data) => {
+        let stageEventType: window.WindowStageEventType = data;
+        switch (stageEventType) {
+          case window.WindowStageEventType.SHOWN: // 切到前台
+            Log.i(TAG, 'windowStage foreground.');
+            break;
+          case window.WindowStageEventType.ACTIVE: // 获焦状态
+            Log.i(TAG, 'windowStage active.');
+            if (this.stillAttachedForEvent("onWindowFocusChanged")) {
+              this.delegate?.getFlutterEngine()?.getTextInputChannel()?.textInputMethodHandler?.handleChangeFocus(true);
+              this?.delegate?.onWindowFocusChanged(true);
+            }
+            break;
+          case window.WindowStageEventType.INACTIVE: // 失焦状态
+            Log.i(TAG, 'windowStage inactive.');
+            if (this.stillAttachedForEvent("onWindowFocusChanged")) {
+              this?.delegate?.onWindowFocusChanged(false);
+            }
+            break;
+          case window.WindowStageEventType.HIDDEN: // 切到后台
+            Log.i(TAG, 'windowStage background.');
+            break;
+        }
+      });
+
       this.flutterView = this.delegate!!.createView(this.context)
       Log.i(TAG, 'onWindowStageCreate:' + this.flutterView!!.getId());
       let storage: LocalStorage = new LocalStorage();
