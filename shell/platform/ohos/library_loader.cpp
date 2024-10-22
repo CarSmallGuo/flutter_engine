@@ -132,15 +132,43 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeSetTextureBackGroundPixelMap",
           flutter::PlatformViewOHOSNapi::nativeSetTextureBackGroundPixelMap),
+      DECLARE_NAPI_FUNCTION("nativeEncodeUtf8",
+                            flutter::PlatformViewOHOSNapi::nativeEncodeUtf8),
+      DECLARE_NAPI_FUNCTION("nativeDecodeUtf8",
+                            flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),
       DECLARE_NAPI_FUNCTION(
-          "nativeEncodeUtf8",
-          flutter::PlatformViewOHOSNapi::nativeEncodeUtf8),
+          "nativeUpdateSemantics",
+          flutter::PlatformViewOHOSNapi::nativeUpdateSemantics),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUpdateCustomAccessibilityActions",
+          flutter::PlatformViewOHOSNapi::nativeUpdateCustomAccessibilityActions),
+
+    DECLARE_NAPI_FUNCTION(
+          "nativeSetFontWeightScale",
+          flutter::PlatformViewOHOSNapi::nativeSetFontWeightScale),
+
       DECLARE_NAPI_FUNCTION(
           "nativeDecodeUtf8",
           flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),
        DECLARE_NAPI_FUNCTION(
           "nativeLookupCallbackInformation",
           flutter::PlatformViewOHOSNapi::nativeLookupCallbackInformation),
+
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsEmoji",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmoji),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsEmojiModifier",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifier),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsEmojiModifierBase",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifierBase),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsVariationSelector",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsVariationSelector),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsRegionalIndicatorSymbol",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol),
   };
 
   FML_DLOG(INFO) << "Init NAPI size=" << sizeof(desc) / sizeof(desc[0]);

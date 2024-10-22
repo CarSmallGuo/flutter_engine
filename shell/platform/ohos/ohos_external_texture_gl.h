@@ -20,6 +20,7 @@
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>
 
+#include <multimedia/image_framework/image/pixelmap_native.h>
 #include <multimedia/image_framework/image_mdk.h>
 #include <multimedia/image_framework/image_pixel_map_mdk.h>
 #include <native_buffer/native_buffer.h>
@@ -95,6 +96,8 @@ class OHOSExternalTextureGL : public flutter::Texture {
   AttachmentState state_;
 
   bool new_frame_ready_ = false;
+
+  bool texture_update_ = false;
 
   GLuint texture_name_ = 0;
 

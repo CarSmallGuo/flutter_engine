@@ -134,6 +134,7 @@ export class FlutterView {
   private navigationAvoidArea: window.AvoidArea;
   private gestureAvoidArea: window.AvoidArea;
   private keyboardAvoidArea: window.AvoidArea;
+  private needSetViewport: boolean = false;
 
 
   constructor(viewId: string, context: Context) {
@@ -176,16 +177,16 @@ export class FlutterView {
 
   private avoidAreaChangeCallback = (data: window.AvoidAreaOptions) => {
     Log.i(TAG, "avoidAreaChangeCallback, type=" + data.type);
+    if (data.type == window.AvoidAreaType.TYPE_SYSTEM) { //0
+      this.systemAvoidArea = data.area;
+    } else if (data.type == window.AvoidAreaType.TYPE_SYSTEM_GESTURE) { //2
+      this.gestureAvoidArea = data.area;
+    } else if (data.type == window.AvoidAreaType.TYPE_KEYBOARD) { //3
+      this.keyboardAvoidArea = data.area;
+    } else if (data.type == window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR) { //4
+      this.navigationAvoidArea = data.area;
+    }
     if (this.isAttachedToFlutterEngine()) {
-      if (data.type == window.AvoidAreaType.TYPE_SYSTEM) { //0
-        this.systemAvoidArea = data.area;
-      } else if (data.type == window.AvoidAreaType.TYPE_SYSTEM_GESTURE) { //2
-        this.gestureAvoidArea = data.area;
-      } else if (data.type == window.AvoidAreaType.TYPE_KEYBOARD) { //3
-        this.keyboardAvoidArea = data.area;
-      } else if (data.type == window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR) { //4
-        this.navigationAvoidArea = data.area;
-      }
       this.onAreaChange(null);
     }
   }
@@ -357,7 +358,7 @@ export class FlutterView {
     }
 
     // 根据是否全屏显示，设置标题栏高度（若全屏，则及时规避）
-    if (this.checkFullScreen && (setFullScreen || FlutterManager.getInstance().getFullScreenListener().useFullScreen())) { // 全屏显示
+    if (this.checkFullScreen && (setFullScreen || this.mainWindow?.getWindowProperties().isLayoutFullScreen)) { // 全屏显示
       this.viewportMetrics.physicalViewPaddingTop = this.systemAvoidArea?.topRect.height ?? 0;
       this.viewportMetrics.physicalViewPaddingBottom = this.navigationAvoidArea?.bottomRect.height ?? 0;
     } else { // 非全屏显示（保持规避效果）
@@ -371,18 +372,19 @@ export class FlutterView {
 
     this.onKeyboardAreaChange()
     this.onGestureAreaChange()
-    if (!this.viewportMetrics.isEqual(originalMetrics)) {
-      this.updateViewportMetrics()
+    if (!this.viewportMetrics.isEqual(originalMetrics) || this.needSetViewport) {
+      if (!this.updateViewportMetrics()) {
+        this.needSetViewport = true;
+      }
     }
   }
 
   private onKeyboardAreaChange() {
     if (this.checkKeyboard) {
-      let keyboardAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_KEYBOARD);
-      this.viewportMetrics.physicalViewInsetTop = keyboardAvoidArea?.topRect.height ?? 0
-      this.viewportMetrics.physicalViewInsetLeft = keyboardAvoidArea?.leftRect.width ?? 0
-      this.viewportMetrics.physicalViewInsetBottom = keyboardAvoidArea?.bottomRect.height ?? 0
-      this.viewportMetrics.physicalViewInsetRight = keyboardAvoidArea?.rightRect.width ?? 0
+      this.viewportMetrics.physicalViewInsetTop = this.keyboardAvoidArea?.topRect.height ?? 0
+      this.viewportMetrics.physicalViewInsetLeft = this.keyboardAvoidArea?.leftRect.width ?? 0
+      this.viewportMetrics.physicalViewInsetBottom = this.keyboardAvoidArea?.bottomRect.height ?? 0
+      this.viewportMetrics.physicalViewInsetRight = this.keyboardAvoidArea?.rightRect.width ?? 0
     } else {
       this.viewportMetrics.physicalViewInsetTop = 0
       this.viewportMetrics.physicalViewInsetLeft = 0
@@ -393,11 +395,10 @@ export class FlutterView {
 
   private onGestureAreaChange() {
     if (this.checkGesture) {
-      let gestureAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM_GESTURE);
-      this.viewportMetrics.systemGestureInsetTop = gestureAvoidArea?.topRect.height ?? 0
-      this.viewportMetrics.systemGestureInsetLeft = gestureAvoidArea?.leftRect.width ?? 0
-      this.viewportMetrics.systemGestureInsetBottom = gestureAvoidArea?.bottomRect.height ?? 0
-      this.viewportMetrics.systemGestureInsetRight = gestureAvoidArea?.rightRect.width ?? 0
+      this.viewportMetrics.systemGestureInsetTop = this.gestureAvoidArea?.topRect.height ?? 0
+      this.viewportMetrics.systemGestureInsetLeft = this.gestureAvoidArea?.leftRect.width ?? 0
+      this.viewportMetrics.systemGestureInsetBottom = this.gestureAvoidArea?.bottomRect.height ?? 0
+      this.viewportMetrics.systemGestureInsetRight = this.gestureAvoidArea?.rightRect.width ?? 0
     } else {
       this.viewportMetrics.systemGestureInsetTop = 0
       this.viewportMetrics.systemGestureInsetLeft = 0
@@ -410,7 +411,7 @@ export class FlutterView {
     return this.flutterEngine != null
   }
 
-  private updateViewportMetrics() {
+  private updateViewportMetrics(): boolean {
     if (this.isAttachedToFlutterEngine()) {
       Log.i(TAG, 'updateViewportMetrics devicePixelRatio:' + this.viewportMetrics.devicePixelRatio)
       this?.flutterEngine?.getFlutterNapi()?.setViewportMetrics(this.viewportMetrics.devicePixelRatio,
@@ -432,7 +433,9 @@ export class FlutterView {
         new Array(0),
         new Array(0),
         new Array(0))
+        return true;
     }
+    return false;
   }
 
   onKeyEvent(event: KeyEvent) {
