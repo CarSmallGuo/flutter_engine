@@ -25,7 +25,13 @@ import PlatformViewsControllerTest from './plugin/platform/PlatformViewsControll
 import RawPointerCoordTest from './plugin/platform/RawPointerCoordTest.test';
 import RootDvModelManagerTest from './plugin/platform/RootDvModelManagerTest.test';
 import ByteBufferTest from './plugin/util/ByteBufferTest.test';
-
+import DartMessengerTest from './embedding/engine/DartMessengerTest.test'
+import ApplicationInfoTest from './embedding/engine/ApplicationInfoTest.test'
+import FlutterApplicationInfoTest from './embedding/engine/FlutterApplicationInfoTest.test'
+import FlutterLoaderTest from './embedding/engine/FlutterLoaderTest.test'
+import FlutterMutatorViewTest from './embedding/engine/FlutterMutatorViewTest.test'
+import FlutterMutatorsStackTest from './embedding/engine/FlutterMutatorsStackTest.test'
+import FlutterRendererTest  from './embedding/engine/FlutterRendererTest.test'
 export default function testsuite() {
   FlutterAbilityAndEntryDelegateTest();
   FlutterAbilityTest();
@@ -40,4 +46,11 @@ export default function testsuite() {
   RawPointerCoordTest();
   RootDvModelManagerTest();
   ByteBufferTest();
+  DartMessengerTest();
+  ApplicationInfoTest();
+  FlutterApplicationInfoTest();
+  FlutterLoaderTest()
+  FlutterMutatorViewTest();
+  FlutterMutatorsStackTest();
+  FlutterRendererTest();
 }
