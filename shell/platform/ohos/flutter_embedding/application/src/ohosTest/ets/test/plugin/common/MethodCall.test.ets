@@ -12,17 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { MethodCall } from "@ohos/flutter_ohos";
+import { describe, expect, it } from "@ohos/hypium";
 
-import common from '@ohos.app.ability.common';
-import ApplicationInfoLoader from '@ohos/flutter_ohos/src/main/ets/embedding/engine/loader/ApplicationInfoLoader'
-import { describe,it, expect } from '@ohos/hypium';
-export default function ApplicationInfoTest() {
-  describe('ApplicationInfoTest', () => {
-    it('TestLoad', 0, async (done: Function) => {
-      let context: common.Context = getContext();
-      let applicationInfo = ApplicationInfoLoader.load(context)
-      expect(applicationInfo).not().assertNull();
-      done();
-    })
+export default function MethodCallUnitTest() {
+  describe('MethodCall', () => {
+    it("MethodCall_argument", 0, argument);
+
+    it("MethodCall_hasArgument", 0, hasArgument);
   })
 }
+
+function argument() {
+  let ob = new MethodCall("get", null);
+  expect(ob.argument("key")).assertNull();
+}
+
+function hasArgument() {
+  let ob = new MethodCall("get", null);
+  expect(ob.hasArgument("key")).assertFalse();
+}
+
+
