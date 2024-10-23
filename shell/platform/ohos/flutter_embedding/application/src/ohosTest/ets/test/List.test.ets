@@ -31,6 +31,20 @@ import FlutterLoaderTest from './embedding/engine/FlutterLoaderTest.test'
 import FlutterMutatorViewTest from './embedding/engine/FlutterMutatorViewTest.test'
 import FlutterMutatorsStackTest from './embedding/engine/FlutterMutatorsStackTest.test'
 import FlutterRendererTest  from './embedding/engine/FlutterRendererTest.test'
+import TouchEventProcessorTest from './embedding/ohos/TouchEventProcessorTest.test';
+import TouchEventTrackerTest from './embedding/ohos/TouchEventTrackerTest.test';
+import WindowInfoRepositoryCallbackAdapterWrapperTest from './embedding/ohos/WindowInfoRepositoryCallbackAdapterWrapperTest.test';
+import FlutterEngineTest from './embedding/engine/FlutterEngineTest.test';
+import FlutterEngineCacheTest from './embedding/engine/FlutterEngineCacheTest.test';
+import FlutterEngineConnectionRegistryTest from './embedding/engine/FlutterEngineConnectionRegistryTest.test';
+import FlutterEngineGroupCacheTest from './embedding/engine/FlutterEngineGroupCacheTest.test';
+import FlutterEngineGroupTest from './embedding/engine/FlutterEngineGroupTest.test';
+import FlutterNapiTest from './embedding/engine/FlutterNapiTest.test';
+import FlutterOverlaySurfaceTest from './embedding/engine/FlutterOverlaySurfaceTest.test';
+import FlutterShellArgsTest from './embedding/engine/FlutterShellArgsTest.test';
+import BinaryMessengerTest from './plugin/common/BinaryMessengerTest.test';
+import DartExecutorTest from './embedding/engine/dart/DartExecutorTest.test';
+
 export default function testsuite() {
   FlutterAbilityAndEntryDelegateTest();
   FlutterAbilityTest();
@@ -51,4 +65,17 @@ export default function testsuite() {
   FlutterMutatorViewTest();
   FlutterMutatorsStackTest();
   FlutterRendererTest();
+  TouchEventProcessorTest();
+  TouchEventTrackerTest();
+  WindowInfoRepositoryCallbackAdapterWrapperTest();
+  FlutterEngineTest();
+  FlutterEngineCacheTest();
+  FlutterEngineConnectionRegistryTest();
+  FlutterEngineGroupCacheTest();
+  FlutterEngineGroupTest();
+  FlutterNapiTest();
+  FlutterOverlaySurfaceTest();
+  FlutterShellArgsTest();
+  BinaryMessengerTest();
+  DartExecutorTest();
 }
