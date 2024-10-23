@@ -54,6 +54,19 @@ import FlutterShellArgsTest from './embedding/engine/FlutterShellArgsTest.test';
 import BinaryMessengerTest from './plugin/common/BinaryMessengerTest.test';
 import DartExecutorTest from './embedding/engine/dart/DartExecutorTest.test';
 
+import PathUtilsTest from './plugin/util/PathUtils.test';
+import StringUtilsTest from './plugin/util/StringUtils.test';
+import ToolUtilsTest from './plugin/util/ToolUtils.test';
+import MessageChannelUtilsTest from './plugin/util/MessageChannelUtils.test';
+import LogTest from './plugin/util/Log.test';
+import TraceSectionTest from './plugin/util/TraceSection.test';
+import FlutterInjectorTest from './FlutterInjector.test';
+import SendableBinaryCodecTest from './plugin/common/SendableBinaryCodec.test';
+import dynamicViewJsonTest from './view/DynamicView/dynamicViewJson.test';
+import PlatformOverlayViewTest from './plugin/platform/PlatformOverlayView.test';
+import PlatformViewTest from './plugin/platform/PlatformView.test';
+import FlutterRunArgumentsTest from './view/FlutterRunArguments.test';
+
 export default function testsuite() {
   FlutterAbilityAndEntryDelegateTest();
   FlutterAbilityTest();
@@ -94,4 +107,17 @@ export default function testsuite() {
   FlutterShellArgsTest();
   BinaryMessengerTest();
   DartExecutorTest();
+  PathUtilsTest();
+  StringUtilsTest();
+  ToolUtilsTest();
+  MessageChannelUtilsTest();
+  LogTest();
+  TraceSectionTest();
+  FlutterInjectorTest();
+  SendableBinaryCodecTest();
+  dynamicViewJsonTest();
+  PlatformOverlayViewTest();
+  PlatformViewTest();
+  PlatformViewTest();
+  FlutterRunArgumentsTest();
 }
