@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import FlutterAbilityAndEntryDelegateTest from './embedding/ohos/FlutterAbilityAndEntryDelegateTest.test';
 import FlutterAbilityTest from './embedding/ohos/FlutterAbilityTest.test';
 import FlutterEntryTest from './embedding/ohos/FlutterEntryTest.test';
