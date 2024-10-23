@@ -15,21 +15,7 @@
 
 {
   "app": {
-    "signingConfigs": [
-      {
-        "name": "default",
-        "type": "HarmonyOS",
-        "material": {
-          "certpath": "C:\\Users\\song_zhifei\\.ohos\\config\\default_flutter_embedding_owhKTgi0_ny5-JoTZcHG6WbGm9Bqc5XM8zBOWIS_5Tk=.cer",
-          "storePassword": "0000001B98FB6E742DFECA6EF904B5B68444A704EA90F762B3BCFBFD3861372F6EC644076E93AE11BC3E6F",
-          "keyAlias": "debugKey",
-          "keyPassword": "0000001BDD0A07CDF57F54B38A497FE4E0858D1A33B65FBD79DD7206F97BE067E86AE5AE86897562A6A538",
-          "profile": "C:\\Users\\song_zhifei\\.ohos\\config\\default_flutter_embedding_owhKTgi0_ny5-JoTZcHG6WbGm9Bqc5XM8zBOWIS_5Tk=.p7b",
-          "signAlg": "SHA256withECDSA",
-          "storeFile": "C:\\Users\\song_zhifei\\.ohos\\config\\default_flutter_embedding_owhKTgi0_ny5-JoTZcHG6WbGm9Bqc5XM8zBOWIS_5Tk=.p12"
-        }
-      }
-    ],
+    "signingConfigs": [],
     "products": [
       {
         "name": "default",
