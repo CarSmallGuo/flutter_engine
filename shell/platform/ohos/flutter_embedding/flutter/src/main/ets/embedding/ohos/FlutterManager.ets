@@ -109,7 +109,7 @@ export default class FlutterManager {
     return this.mFullScreenListener;
   }
 
-  setUseFullScreen(use: boolean, context?: Context) {
+  setUseFullScreen(use: boolean, context?: Context | null | undefined) {
     this.mFullScreenListener.setUseFullScreen(use, context);
   }
 
@@ -120,7 +120,7 @@ export default class FlutterManager {
 
 export interface FullScreenListener {
   useFullScreen(): boolean;
-  setUseFullScreen(useFullScreen: boolean, context?: Context): void;
+  setUseFullScreen(useFullScreen: boolean, context?: Context | null | undefined): void;
   onScreenStateChanged(data: window.WindowStatusType): void;
 }
 
@@ -132,7 +132,7 @@ export class DefaultFullScreenListener implements FullScreenListener {
     return this.fullScreen;
   }
 
-  setUseFullScreen(useFullScreen: boolean, context?: Context): void {
+  setUseFullScreen(useFullScreen: boolean, context?: Context | null | undefined): void {
     this.fullScreen = useFullScreen;
     this.skipCheck = true;
 
