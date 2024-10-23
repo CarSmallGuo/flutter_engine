@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import FlutterAbilityAndEntryDelegateTest from './embedding/ohos/FlutterAbilityAndEntryDelegateTest.test';
 import FlutterAbilityTest from './embedding/ohos/FlutterAbilityTest.test';
 import FlutterEntryTest from './embedding/ohos/FlutterEntryTest.test';
@@ -24,6 +25,14 @@ import PlatformViewsControllerTest from './plugin/platform/PlatformViewsControll
 import RawPointerCoordTest from './plugin/platform/RawPointerCoordTest.test';
 import RootDvModelManagerTest from './plugin/platform/RootDvModelManagerTest.test';
 import ByteBufferTest from './plugin/util/ByteBufferTest.test';
+import PlatformChannelUnitTest from './embedding/engine/systemchannels/PlatformChannel.test';
+import RestorationChannelUnitTest from './embedding/engine/systemchannels/RestorationChannel.test';
+import SettingsChannelUnitTest from './embedding/engine/systemchannels/SettingsChannel.test';
+import TextInputChannelUnitTest from './embedding/engine/systemchannels/TextInputChannel.test';
+import JSONMethodCodecUnitTest from './plugin/common/JSONMethodCodec.test';
+import MethodCallUnitTest from './plugin/common/MethodCall.test';
+import AccessibilityEventsDelegateUnitTest from './plugin/platform/AccessibilityEventsDelegate.test';
+
 import DartMessengerTest from './embedding/engine/DartMessengerTest.test'
 import ApplicationInfoTest from './embedding/engine/ApplicationInfoTest.test'
 import FlutterApplicationInfoTest from './embedding/engine/FlutterApplicationInfoTest.test'
@@ -44,6 +53,13 @@ export default function testsuite() {
   RawPointerCoordTest();
   RootDvModelManagerTest();
   ByteBufferTest();
+  PlatformChannelUnitTest();
+  RestorationChannelUnitTest();
+  SettingsChannelUnitTest();
+  TextInputChannelUnitTest();
+  JSONMethodCodecUnitTest();
+  MethodCallUnitTest();
+  AccessibilityEventsDelegateUnitTest();
   DartMessengerTest();
   ApplicationInfoTest();
   FlutterApplicationInfoTest();
