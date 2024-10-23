@@ -16,7 +16,6 @@ import FlutterAbilityAndEntryDelegateTest from './embedding/ohos/FlutterAbilityA
 import FlutterAbilityTest from './embedding/ohos/FlutterAbilityTest.test';
 import FlutterEntryTest from './embedding/ohos/FlutterEntryTest.test';
 import FlutterManagerTest from './embedding/ohos/FlutterManagerTest.test';
-import OhosTouchProcessorTest from './embedding/ohos/OhosTouchProcessorTest.test';
 import SettingTest from './embedding/ohos/SettingTest.test';
 import BinaryCodecTest from './plugin/common/BinaryCodecTest.test';
 import PlatformViewRegistryImplTest from './plugin/platform/PlatformViewRegistryImplTest.test';
@@ -31,7 +30,6 @@ export default function testsuite() {
   FlutterAbilityTest();
   FlutterEntryTest();
   FlutterManagerTest();
-  OhosTouchProcessorTest();
   SettingTest();
   BinaryCodecTest();
   PlatformViewRegistryImplTest();

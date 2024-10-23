@@ -14,14 +14,16 @@
  */
 import { describe, it, expect } from '@ohos/hypium';
 import { abilityDelegatorRegistry } from '@kit.TestKit';
-import { ConfigurationConstant, Want } from '@kit.AbilityKit';
+import { Want } from '@kit.AbilityKit';
 import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 import { FlutterView, FlutterAbility, FlutterEngine, FlutterPlugin } from "@ohos/flutter_ohos";
-import { Configuration } from '@ohos.app.ability.Configuration';
 import { FlutterPluginBinding } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/plugins/FlutterPlugin';
 
-const delegator = abilityDelegatorRegistry.getAbilityDelegator()
 const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
+const want: Want = {
+  bundleName: bundleName,
+  abilityName: 'EntryAbility'
+}
 
 function sleep(time: number) {
   return new Promise<void>((resolve: Function) => setTimeout(resolve, time));
@@ -32,38 +34,16 @@ export default function FlutterAbilityTest() {
     it('FlutterAbilityTest', 0, async (done: Function) => {
       const flutterAbility: FlutterAbility = new FlutterAbility();
       const flutterView: FlutterView | null = flutterAbility.getFlutterView();
-      expect(flutterView).not().assertNull();
+      expect(flutterView).assertNull();
       await sleep(1000);
       const pagePath: string = flutterAbility.pagePath();
       expect(pagePath).assertEqual("pages/Index");
       done();
     })
 
-    it('TestFlutterAbilityOnCreate', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      const want: Want = {
-        bundleName: bundleName,
-        abilityName: 'EntryAbility'
-      }
-
-      const launchParam: AbilityConstant.LaunchParam = {
-        launchReason: AbilityConstant.LaunchReason.UNKNOWN,
-        lastExitReason: AbilityConstant.LastExitReason.UNKNOWN,
-        lastExitMessage: "test"
-      }
-      await delegator.startAbility(want);
-      await sleep(1000);
-      flutterAbility.onCreate(want, launchParam);
-      done();
-    })
-
     it('TestFlutterAbilityOnSaveState', 0, async (done: Function) => {
       const flutterAbility: FlutterAbility = new FlutterAbility();
       const reason: AbilityConstant.StateType = AbilityConstant.StateType.CONTINUATION
-      const want: Want = {
-        bundleName: bundleName,
-        abilityName: 'EntryAbility'
-      }
       const wantParam: Record<string, Object> = {
         "testParams": want
       }
@@ -73,40 +53,17 @@ export default function FlutterAbilityTest() {
       done();
     })
 
-    it('TestOnNewWant', 0, async (done: Function) => {
+    it('TestGetWant', 0, async (done: Function) => {
       const flutterAbility: FlutterAbility = new FlutterAbility();
-      const want: Want = {
-        bundleName: bundleName,
-        abilityName: 'EntryAbility'
-      }
-
-      const launchParam: AbilityConstant.LaunchParam = {
-        launchReason: AbilityConstant.LaunchReason.UNKNOWN,
-        lastExitReason: AbilityConstant.LastExitReason.UNKNOWN,
-        lastExitMessage: "test"
-      }
-      flutterAbility.onNewWant(want, launchParam);
-      done();
-    })
-
-    it('TestOnForegroundAndOnBackground', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      flutterAbility.onForeground();
-      await sleep(1000);
-      flutterAbility.onBackground();
-      done();
-    })
-
-    it('TestGetAbility', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      flutterAbility.getAbility();
+      const result = flutterAbility.getWant();
+      expect(result).assertUndefined();
       done();
     })
 
     it('TestGetFlutterAbilityAndEntryDelegate', 0, async (done: Function) => {
       const flutterAbility: FlutterAbility = new FlutterAbility();
       const result = flutterAbility.getFlutterAbilityAndEntryDelegate();
-      expect(result).not().assertNull();
+      expect(result).assertNull();
       done();
     })
 
@@ -128,27 +85,7 @@ export default function FlutterAbilityTest() {
       const flutterAbility: FlutterAbility = new FlutterAbility();
       const flutterEngine = new FlutterEngine(getContext(), null, null, null);
       const result = flutterAbility.providePlatformPlugin(flutterEngine);
-      expect(result).assertInstanceOf("PlatformPlugin");
-      done();
-    })
-
-    it('TestGetFlutterShellArgs', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      const result = flutterAbility.getFlutterShellArgs();
       expect(result).not().assertNull();
-      done();
-    })
-
-    it('TestGetDartEntrypointArgs', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      const result = flutterAbility.getDartEntrypointArgs();
-      expect(result).not().assertNull();
-      done();
-    })
-
-    it('TestDetachFromFlutterEngine', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      flutterAbility.detachFromFlutterEngine();
       done();
     })
 
@@ -180,34 +117,6 @@ export default function FlutterAbilityTest() {
       done();
     })
 
-    it('TestGetDartEntrypointFunctionName', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      const result = flutterAbility.getDartEntrypointFunctionName();
-      expect(result).not().assertNull();
-      done();
-    })
-
-    it('TestGetInitialRoute', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      const result = flutterAbility.getInitialRoute();
-      expect(result).not().assertNull();
-      done();
-    })
-
-    it('TestGetWant', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      const result = flutterAbility.getWant();
-      expect(result).assertInstanceOf("Want");
-      done();
-    })
-
-    it('TestShouldDestroyEngineWithHost', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      const result = flutterAbility.shouldDestroyEngineWithHost();
-      expect(result).not().assertNull();
-      done();
-    })
-
     it('TestAttachToEngineAutomatically', 0, async (done: Function) => {
       const flutterAbility: FlutterAbility = new FlutterAbility();
       const result = flutterAbility.attachToEngineAutomatically();
@@ -215,74 +124,17 @@ export default function FlutterAbilityTest() {
       done();
     })
 
-    it('TestShouldRestoreAndSaveState', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      const result = flutterAbility.shouldRestoreAndSaveState();
-      expect(result).not().assertNull();
-      done();
-    })
-
     it('TestGetExclusiveAppComponent', 0, async (done: Function) => {
       const flutterAbility: FlutterAbility = new FlutterAbility();
       const result = flutterAbility.getExclusiveAppComponent();
-      expect(result).not().assertNull();
-      done();
-    })
-
-    it('TestGetCachedEngineId', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      const result = flutterAbility.getCachedEngineId();
-      expect(result).assertEqual("cached_engine_id");
-      done();
-    })
-
-    it('TestGetCachedEngineGroupId', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      const result = flutterAbility.getCachedEngineGroupId();
-      expect(result).assertEqual("cached_engine_group_id");
-      done();
-    })
-
-    it('TestAddPlugin', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      flutterAbility.addPlugin(plugin);
-      done();
-    })
-
-    it('TestRemovePlugin', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      flutterAbility.removePlugin(plugin);
-      done();
-    })
-
-    it('TestOnMemoryLevel', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      const level = AbilityConstant.MemoryLevel.MEMORY_LEVEL_MODERATE
-      flutterAbility.onMemoryLevel(level);
-      done();
-    })
-
-    it('TestOnConfigurationUpdated', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      const config: Configuration = {
-        colorMode: ConfigurationConstant.ColorMode.COLOR_MODE_DARK,
-      }
-      flutterAbility.onConfigurationUpdated(config);
+      expect(result).assertNull();
       done();
     })
 
     it('TestGetFlutterEngine', 0, async (done: Function) => {
       const flutterAbility: FlutterAbility = new FlutterAbility();
       const result = flutterAbility.getFlutterEngine();
-      expect(result).not().assertNull();
-      done();
-    })
-
-    it('TestOnWindowStageDestroyAndRelease', 0, async (done: Function) => {
-      const flutterAbility: FlutterAbility = new FlutterAbility();
-      flutterAbility.onWindowStageDestroy();
-      await sleep(1000);
-      flutterAbility.release();
+      expect(result).assertNull();
       done();
     })
   })

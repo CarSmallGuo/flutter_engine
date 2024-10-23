@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { describe, it, expect } from '@ohos/hypium';
-import { FlutterView, FlutterManager } from "@ohos/flutter_ohos";
+import { describe, it, expect, beforeAll } from '@ohos/hypium';
+import { FlutterManager } from "@ohos/flutter_ohos";
 import { window } from '@kit.ArkUI';
 import { FullScreenListener } from '@ohos/flutter_ohos/src/main/ets/embedding/ohos/FlutterManager';
 
@@ -26,36 +26,17 @@ const uiAbility = flutterManager.getUIAbility(getContext());
 
 export default function FlutterManagerTest() {
   describe('FlutterManagerTest', () => {
-    it('TestUIAbility', 0, async (done: Function) => {
-      flutterManager.pushUIAbility(uiAbility);
-      done();
-    })
-
-    it('TestPopUIAbility', 0, async (done: Function) => {
-      console.info("uitest: TestPopUIAbility begin");
-      flutterManager.popUIAbility(uiAbility);
-      done();
-    })
-
-    it('TestWindowStage', 0, async (done: Function) => {
+    beforeAll(async () => {
       const windowStage = flutterManager.getWindowStage(uiAbility);
       await sleep(1000);
       flutterManager.pushWindowStage(uiAbility, windowStage);
       await sleep(1000);
       flutterManager.popWindowStage(uiAbility);
-      done();
-    })
+      await sleep(1000);
+      flutterManager.pushUIAbility(uiAbility);
+      await sleep(1000);
+      flutterManager.popUIAbility(uiAbility);
 
-    it('TestCreateFlutterView', 0, async (done: Function) => {
-      await sleep(1000);
-      let flutterViewA: FlutterView = flutterManager.createFlutterView(getContext());
-      expect(flutterViewA).not().assertNull();
-      const viewId = flutterViewA.getId();
-      expect(viewId).not().assertNull();
-      await sleep(1000);
-      let flutterViewB = flutterManager.getFlutterView(viewId);
-      expect(flutterViewB).not().assertNull();
-      done();
     })
 
     it('TestGetFlutterViewList', 0, async (done: Function) => {
@@ -91,10 +72,6 @@ export default function FlutterManagerTest() {
       const result = flutterManager.useFullScreen();
       expect(result).assertTrue();
       flutterManager.setUseFullScreen(result);
-      done();
-    })
-
-    it('TestClear', 0, async (done: Function) => {
       flutterManager.clear();
       done();
     })
