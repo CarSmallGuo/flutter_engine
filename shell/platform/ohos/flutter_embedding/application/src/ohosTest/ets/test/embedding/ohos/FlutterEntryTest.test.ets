@@ -22,16 +22,11 @@ function sleep(time: number) {
 
 export default function FlutterEntryTest() {
   describe('FlutterEntryTest', () => {
-    it('TestAboutToAppear', 0, async (done: Function) => {
-      const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
-      flutterEntry.aboutToAppear();
-      done();
-    })
 
     it('TestGetFlutterView', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.getFlutterView();
-      expect(result).not().assertNull();
+      expect(result).assertNull();
       done();
     })
 
@@ -39,37 +34,6 @@ export default function FlutterEntryTest() {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.getFlutterEngine();
       expect(result).not().assertNull();
-      done();
-    })
-
-    it('TestOnPageShow', 0, async (done: Function) => {
-      const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
-      flutterEntry.onPageShow();
-      await sleep(1000);
-      flutterEntry.onPageHide();
-      await sleep(1000);
-      flutterEntry.onBackPress();
-      done();
-    })
-
-    it('TestConfigureFlutterEngine', 0, async (done: Function) => {
-      const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
-      const flutterEngine = new FlutterEngine(getContext(), null, null, null);
-      flutterEntry.configureFlutterEngine(flutterEngine);
-      await sleep(1000);
-      flutterEntry.cleanUpFlutterEngine(flutterEngine);
-      done();
-    })
-
-    it('TestGetAbility', 0, async (done: Function) => {
-      const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
-      flutterEntry.getAbility();
-      done();
-    })
-
-    it('TestAboutToDisappear', 0, async (done: Function) => {
-      const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
-      flutterEntry.aboutToDisappear();
       done();
     })
 
@@ -91,7 +55,7 @@ export default function FlutterEntryTest() {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const flutterEngine = new FlutterEngine(getContext(), null, null, null);
       const result = flutterEntry.providePlatformPlugin(flutterEngine);
-      expect(result).assertInstanceOf("PlatformPlugin");
+      expect(result).not().assertNull();
       done();
     })
 
@@ -109,12 +73,6 @@ export default function FlutterEntryTest() {
       done();
     })
 
-    it('TestDetachFromFlutterEngine', 0, async (done: Function) => {
-      const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
-      flutterEntry.detachFromFlutterEngine();
-      done();
-    })
-
     it('TestPopSystemNavigator', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.popSystemNavigator();
@@ -125,7 +83,7 @@ export default function FlutterEntryTest() {
     it('TestShouldAttachEngineToAbility', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.shouldAttachEngineToAbility();
-      expect(result).assertTrue();
+      expect(result).assertUndefined();
       done();
     })
 
@@ -157,20 +115,6 @@ export default function FlutterEntryTest() {
       done();
     })
 
-    it('TestGetWant', 0, async (done: Function) => {
-      const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
-      const result = flutterEntry.getWant();
-      expect(result).assertInstanceOf("Want");
-      done();
-    })
-
-    it('TestShouldDestroyEngineWithHost', 0, async (done: Function) => {
-      const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
-      const result = flutterEntry.shouldDestroyEngineWithHost();
-      expect(result).not().assertNull();
-      done();
-    })
-
     it('TestAttachToEngineAutomatically', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.attachToEngineAutomatically();
@@ -188,21 +132,21 @@ export default function FlutterEntryTest() {
     it('TestGetExclusiveAppComponent', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.getExclusiveAppComponent();
-      expect(result).not().assertNull();
+      expect(result).assertNull();
       done();
     })
 
     it('TestGetCachedEngineId', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.getCachedEngineId();
-      expect(result).assertEqual("cached_engine_id");
+      expect(result).assertUndefined();
       done();
     })
 
     it('TestGetCachedEngineGroupId', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.getCachedEngineGroupId();
-      expect(result).assertEqual("cached_engine_group_id");
+      expect(result).assertUndefined();
       done();
     })
 

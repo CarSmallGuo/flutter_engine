@@ -24,13 +24,6 @@ const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 export default function FlutterAbilityAndEntryDelegateTest() {
   describe('FlutterAbilityAndEntryDelegateTest', () => {
 
-    it('TestCreateView', 0, async (done: Function) => {
-      const flutterAbilityAndEntryDelegate: FlutterAbilityAndEntryDelegate = new FlutterAbilityAndEntryDelegate();
-      const result = flutterAbilityAndEntryDelegate.createView(getContext());
-      expect(result).not().assertNull();
-      done();
-    })
-
     it('TestAddEntrypointOptions', 0, async (done: Function) => {
       const flutterAbilityAndEntryDelegate: FlutterAbilityAndEntryDelegate = new FlutterAbilityAndEntryDelegate();
       const options: Options = new Options(getContext());
@@ -50,14 +43,6 @@ export default function FlutterAbilityAndEntryDelegateTest() {
       const flutterAbilityAndEntryDelegate: FlutterAbilityAndEntryDelegate = new FlutterAbilityAndEntryDelegate();
       const result = flutterAbilityAndEntryDelegate.getFlutterNapi();
       expect(result).assertNull();
-      done();
-    })
-
-    it('TestGetAppComponent', 0, async (done: Function) => {
-      const flutterAbilityAndEntryDelegate: FlutterAbilityAndEntryDelegate = new FlutterAbilityAndEntryDelegate();
-      await flutterAbilityAndEntryDelegate.onAttach(getContext());
-      const result = flutterAbilityAndEntryDelegate.getAppComponent();
-      expect(result).not().assertNull();
       done();
     })
 

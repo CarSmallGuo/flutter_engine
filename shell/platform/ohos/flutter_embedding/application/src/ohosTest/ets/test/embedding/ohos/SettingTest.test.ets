@@ -27,14 +27,9 @@ export default function SettingTest() {
       done();
     })
 
-    it('TestSendSettings', 0, async (done: Function) => {
-      const mediaQuery: MediaQuery = new MediaQuery();
-      settings.sendSettings(mediaQuery);
-      done();
-    })
-
     it('TestGetThemeMode', 0, async (done: Function) => {
       const mediaQuery: MediaQuery = new MediaQuery();
+      settings.sendSettings(mediaQuery);
       const result: PlatformBrightness = settings.getThemeMode(mediaQuery);
       expect(result).not().assertNull();
       done();

@@ -24,21 +24,15 @@ const platformViewWrapper: PlatformViewWrapper = new PlatformViewWrapper();
 
 export default function PlatformViewWrapperTest() {
   describe('PlatformViewWrapperTest', () => {
-    it('TestPlatformViewWrapperSetTouchProcessor', 0, async (done: Function) => {
+    it('TestPlatformViewWrapperDvModel', 0, async (done: Function) => {
       const newTouchProcessor: OhosTouchProcessor = new OhosTouchProcessor();
       platformViewWrapper.setTouchProcessor(newTouchProcessor);
-      done();
-    })
-
-    it('TestPlatformViewWrapperDvModel', 0, async (done: Function) => {
+      await sleep(1000);
       const dvModel: DVModel = platformViewWrapper.getDvModel();
       expect(dvModel).not().assertNull();
       await sleep(1000);
       platformViewWrapper.addDvModel(dvModel);
-      done();
-    })
-
-    it('TestPlatformViewWrapperSetLayoutParams', 0, async (done: Function) => {
+      await sleep(1000);
       const parameters: DVModelParameters = new DVModelParameters();
       platformViewWrapper.setLayoutParams(parameters);
       done();
