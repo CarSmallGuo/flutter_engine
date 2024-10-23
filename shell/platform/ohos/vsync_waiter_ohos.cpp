@@ -46,6 +46,14 @@ void VsyncWaiterOHOS::AwaitVSync() {
   auto* weak_this = new std::weak_ptr<VsyncWaiter>(shared_from_this());
   OH_NativeVSync* handle = vsyncHandle;
 
+  // If it has touch event in the previous vsync period, mark disable DVSync;
+  // If there is no touch event, enable DVSync to get better performace.
+  if (hasTouchEvent.load()) {
+    DisableDVSync();
+  } else {
+    EnableDVSync();
+  }
+
   fml::TaskRunner::RunNowOrPostTask(
       task_runners_.GetUITaskRunner(), [weak_this, handle]() {
         int32_t ret = 0;
@@ -69,10 +77,7 @@ void VsyncWaiterOHOS::OnVsyncFromOHOS(long long timestamp, void* data) {
   int64_t frame_nanos = static_cast<int64_t>(timestamp);
   auto frame_time = fml::TimePoint::FromEpochDelta(
       fml::TimeDelta::FromNanoseconds(frame_nanos));
-  auto now = fml::TimePoint::Now();
-  if (frame_time > now) {
-    frame_time = now;
-  }
+
   auto target_time = frame_time + fml::TimeDelta::FromNanoseconds(
                                       1000000000.0 / g_refresh_rate_);
   auto* weak_this = reinterpret_cast<std::weak_ptr<VsyncWaiter>*>(data);
@@ -96,4 +101,19 @@ void VsyncWaiterOHOS::OnUpdateRefreshRate(long long refresh_rate) {
   g_refresh_rate_ = static_cast<int>(refresh_rate);
 }
 
+void VsyncWaiterOHOS::DisableDVSync() {
+  if (dvsyncEnabled.load()) {
+    OH_NativeVSync_DVSyncSwitch(vsyncHandle, false);
+    dvsyncEnabled.store(false);
+  }
+  // reset to false, if in the next vsync period hasTouchEvent is not marked, we can do DVSync.
+  hasTouchEvent.store(false);
+}
+
+void VsyncWaiterOHOS::EnableDVSync() {
+ if (!dvsyncEnabled.load()) {
+    OH_NativeVSync_DVSyncSwitch(vsyncHandle, true);
+    dvsyncEnabled.store(true);
+  }
+}
 }  // namespace flutter

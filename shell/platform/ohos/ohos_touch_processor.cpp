@@ -148,6 +148,15 @@ void OhosTouchProcessor::HandleTouchEvent(
     int64_t shell_holderID,
     OH_NativeXComponent* component,
     OH_NativeXComponent_TouchEvent* touchEvent) {
+
+    // There has touch event, update hasTouchEvent for DVSync.
+    auto ohos_shell_holder = reinterpret_cast<OHOSShellHolder*>(shell_holderID);
+    auto vsync_waiter = std::shared_ptr<flutter::VsyncWaiter>(ohos_shell_holder->GetVsyncWaiter().lock());
+    auto vsync_waiter_ohos = std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsync_waiter);
+    if (!(vsync_waiter_ohos->hasTouchEvent.load())) {
+       vsync_waiter_ohos->hasTouchEvent.store(true);
+    }
+
     if (touchEvent == nullptr) {
         return;
     }
