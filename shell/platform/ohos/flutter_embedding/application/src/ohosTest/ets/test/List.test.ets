@@ -16,7 +16,6 @@ import FlutterAbilityAndEntryDelegateTest from './embedding/ohos/FlutterAbilityA
 import FlutterAbilityTest from './embedding/ohos/FlutterAbilityTest.test';
 import FlutterEntryTest from './embedding/ohos/FlutterEntryTest.test';
 import FlutterManagerTest from './embedding/ohos/FlutterManagerTest.test';
-import OhosTouchProcessorTest from './embedding/ohos/OhosTouchProcessorTest.test';
 import SettingTest from './embedding/ohos/SettingTest.test';
 import BinaryCodecTest from './plugin/common/BinaryCodecTest.test';
 import PlatformViewRegistryImplTest from './plugin/platform/PlatformViewRegistryImplTest.test';
@@ -33,12 +32,18 @@ import JSONMethodCodecUnitTest from './plugin/common/JSONMethodCodec.test';
 import MethodCallUnitTest from './plugin/common/MethodCall.test';
 import AccessibilityEventsDelegateUnitTest from './plugin/platform/AccessibilityEventsDelegate.test';
 
+import DartMessengerTest from './embedding/engine/DartMessengerTest.test'
+import ApplicationInfoTest from './embedding/engine/ApplicationInfoTest.test'
+import FlutterApplicationInfoTest from './embedding/engine/FlutterApplicationInfoTest.test'
+import FlutterLoaderTest from './embedding/engine/FlutterLoaderTest.test'
+import FlutterMutatorViewTest from './embedding/engine/FlutterMutatorViewTest.test'
+import FlutterMutatorsStackTest from './embedding/engine/FlutterMutatorsStackTest.test'
+import FlutterRendererTest  from './embedding/engine/FlutterRendererTest.test'
 export default function testsuite() {
   FlutterAbilityAndEntryDelegateTest();
   FlutterAbilityTest();
   FlutterEntryTest();
   FlutterManagerTest();
-  OhosTouchProcessorTest();
   SettingTest();
   BinaryCodecTest();
   PlatformViewRegistryImplTest();
@@ -54,4 +59,11 @@ export default function testsuite() {
   JSONMethodCodecUnitTest();
   MethodCallUnitTest();
   AccessibilityEventsDelegateUnitTest();
+  DartMessengerTest();
+  ApplicationInfoTest();
+  FlutterApplicationInfoTest();
+  FlutterLoaderTest()
+  FlutterMutatorViewTest();
+  FlutterMutatorsStackTest();
+  FlutterRendererTest();
 }

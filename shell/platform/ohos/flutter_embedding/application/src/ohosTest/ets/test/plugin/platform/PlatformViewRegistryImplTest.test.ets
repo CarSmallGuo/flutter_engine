@@ -19,8 +19,15 @@ const platformViewRegistryImpl: PlatformViewRegistryImpl = new PlatformViewRegis
 
 export default function PlatformViewRegistryImplTest() {
   describe('PlatformViewRegistryImplTest', () => {
-    it('TestRegisterViewFactory', 0, async (done: Function) => {
+    it('TestPlatformViewRegistryImplGetFactory', 0, async (done: Function) => {
       const platformViewFactory: PlatformViewFactory = platformViewRegistryImpl.getFactory('test');
+      expect(platformViewFactory).not().assertNull();
+      done();
+    })
+
+    it('TestPlatformViewRegistryImplRegisterViewFactory', 0, async (done: Function) => {
+      const platformViewFactory: PlatformViewFactory = platformViewRegistryImpl.getFactory('test');
+      expect(platformViewFactory).not().assertNull();
       const result = platformViewRegistryImpl.registerViewFactory('test', platformViewFactory);
       expect(result).assertTrue();
       done();

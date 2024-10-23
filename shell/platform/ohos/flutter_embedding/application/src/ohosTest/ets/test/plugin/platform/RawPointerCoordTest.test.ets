@@ -29,9 +29,13 @@ const rawPointerCoords: RawPointerCoords =
 
 export default function RawPointerCoordsTest() {
   describe('RawPointerCoordsTest', () => {
-    it('TestRawPointerCoords', 0, async (done: Function) => {
+    it('TestRawPointerCoordsGetX', 0, async (done: Function) => {
       const pointX = rawPointerCoords.getX();
       expect(pointX).not().assertNull();
+      done();
+    })
+
+    it('TestRawPointerCoordsGetY', 0, async (done: Function) => {
       const pointY = rawPointerCoords.getY();
       expect(pointY).not().assertNull();
       done();
