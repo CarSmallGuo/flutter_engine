@@ -28,6 +28,9 @@
 #include "flutter/shell/common/run_configuration.h"
 #include "flutter/shell/platform/ohos/napi_common.h"
 #include "napi/native_api.h"
+
+#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_features.h"
+
 // class for all c++ to call js function
 namespace flutter {
 
@@ -199,16 +202,45 @@ class PlatformViewOHOSNapi {
   static napi_value nativeXComponentDetachFlutterEngine(
       napi_env env,
       napi_callback_info info);
-  static napi_value nativeXComponentDispatchMouseWheel(
+  static napi_value nativeXComponentDispatchMouseWheel(napi_env env,
+                                                       napi_callback_info info);
+  static napi_value nativeEncodeUtf8(napi_env env, napi_callback_info info);
+  static napi_value nativeDecodeUtf8(napi_env env, napi_callback_info info);
+
+  /**
+   * ets call c++
+   */
+  static napi_value nativeUpdateSemantics(napi_env env,
+                                          napi_callback_info info);
+  static napi_value nativeUpdateCustomAccessibilityActions(
       napi_env env,
       napi_callback_info info);
-  static napi_value nativeEncodeUtf8(
+
+  static napi_value nativeSetFontWeightScale(
       napi_env env,
       napi_callback_info info);
-  static napi_value nativeDecodeUtf8(
-      napi_env env,
-      napi_callback_info info);
+
   static napi_value nativeLookupCallbackInformation(
+      napi_env env,
+      napi_callback_info info);
+
+  static napi_value nativeUnicodeIsEmoji(
+      napi_env env,
+      napi_callback_info info);
+
+  static napi_value nativeUnicodeIsEmojiModifier(
+      napi_env env,
+      napi_callback_info info);
+
+  static napi_value nativeUnicodeIsEmojiModifierBase(
+      napi_env env,
+      napi_callback_info info);
+
+  static napi_value nativeUnicodeIsVariationSelector(
+      napi_env env,
+      napi_callback_info info);
+
+  static napi_value nativeUnicodeIsRegionalIndicatorSymbol(
       napi_env env,
       napi_callback_info info);
 

@@ -38,6 +38,45 @@ constexpr const char *CHARACTER_STRING_WHITESPACE = " ";
 constexpr const char *EGL_EXT_PLATFORM_WAYLAND = "EGL_EXT_platform_wayland";
 constexpr const char *EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
 constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
+constexpr uint32_t WHITE_COLOR = 0xFFFFFFFF;
+
+static int PixelMapToWindowFormat(PIXEL_FORMAT pixel_format)
+{
+  switch (pixel_format) {
+    case PIXEL_FORMAT_RGB_565:
+      return NATIVEBUFFER_PIXEL_FMT_RGB_565;
+    case PIXEL_FORMAT_RGBA_8888:
+      return NATIVEBUFFER_PIXEL_FMT_RGBA_8888;
+    case PIXEL_FORMAT_BGRA_8888:
+      return NATIVEBUFFER_PIXEL_FMT_BGRA_8888;
+    case PIXEL_FORMAT_RGB_888:
+      return NATIVEBUFFER_PIXEL_FMT_RGB_888;
+    case PIXEL_FORMAT_NV21:
+      return NATIVEBUFFER_PIXEL_FMT_YCRCB_420_SP;
+    case PIXEL_FORMAT_NV12:
+      return NATIVEBUFFER_PIXEL_FMT_YCBCR_420_SP;
+    case PIXEL_FORMAT_RGBA_1010102:
+      return NATIVEBUFFER_PIXEL_FMT_RGBA_1010102;
+    case PIXEL_FORMAT_YCBCR_P010:
+      return NATIVEBUFFER_PIXEL_FMT_YCBCR_P010;
+    case PIXEL_FORMAT_YCRCB_P010:
+      return NATIVEBUFFER_PIXEL_FMT_YCRCB_P010;
+    case PIXEL_FORMAT_ALPHA_8:
+    case PIXEL_FORMAT_RGBA_F16:
+    case PIXEL_FORMAT_UNKNOWN:
+    default:
+      // no support/unknow format: cannot copy
+      return 0;
+  }
+  return 0;
+}
+
+static bool IsPixelMapYUVFormat(PIXEL_FORMAT format)
+{
+  return format == PIXEL_FORMAT_NV21 || format == PIXEL_FORMAT_NV12 ||
+         format == PIXEL_FORMAT_YCBCR_P010 || format == PIXEL_FORMAT_YCRCB_P010;
+}
+
 
 OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface)
   : Texture(id), ohos_surface_(std::move(ohos_surface)), transform(SkMatrix::I())
@@ -61,14 +100,7 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
 {
   FML_DLOG(INFO) << "~OHOSExternalTextureGL, texture_name_=" << texture_name_ << ", Id()=" << Id();
   if (state_ == AttachmentState::attached) {
-    if (texture_name_ != 0) {
-      glDeleteTextures(1, &texture_name_);
-      texture_name_ = 0;
-    }
-    if (backGroundTextureName_ != 0) {
-      glDeleteTextures(1, &backGroundTextureName_);
-      backGroundTextureName_ = 0;
-    }
+    Detach();
   }
   state_ = AttachmentState::uninitialized;
   nativeImage_ = nullptr;
@@ -86,7 +118,6 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
 
 void OHOSExternalTextureGL::Attach()
 {
-  FML_DLOG(INFO) << "OHOSExternalTextureGL::Attach, Id()=" << Id();
   if (state_ != AttachmentState::uninitialized) {
     FML_LOG(ERROR) << "OHOSExternalTextureGL::Attach, the current status is not uninitialized";
     return;
@@ -105,11 +136,12 @@ void OHOSExternalTextureGL::Attach()
         FML_LOG(ERROR) << "Error with OH_NativeImage_Create";
         return;
       }
-      nativeWindow_ = OH_NativeImage_AcquireNativeWindow(nativeImage_);
-      if (nativeWindow_ == nullptr) {
-        FML_LOG(ERROR) << "Error with OH_NativeImage_AcquireNativeWindow";
-        return;
-      }
+    }
+
+    nativeWindow_ = OH_NativeImage_AcquireNativeWindow(nativeImage_);
+    if (nativeWindow_ == nullptr) {
+      FML_LOG(ERROR) << "Error with OH_NativeImage_AcquireNativeWindow";
+      return;
     }
 
     int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
@@ -130,6 +162,10 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
   if (state_ == AttachmentState::detached) {
     FML_LOG(ERROR) << "OHOSExternalTextureGL::Paint, the current status is detached";
     return;
+  }
+  if (!freeze && texture_update_ && pixelMap_ == nullptr) {
+    // 多引擎场景(multi_flutters_ohos)需要在这里执行Update
+    Update();
   }
 
   GrGLTextureInfo textureInfo;
@@ -178,20 +214,20 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
 
 void OHOSExternalTextureGL::OnGrContextCreated()
 {
-  FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextCreated";
+  FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextCreated"
+                 << ", texture_name_=" << texture_name_
+                 << ", Id()=" << Id();
   state_ = AttachmentState::uninitialized;
 }
 
 void OHOSExternalTextureGL::OnGrContextDestroyed()
 {
-  FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextDestroyed";
+  FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextDestroyed"
+                 << ", texture_name_=" << texture_name_
+                 << ", Id()=" << Id();
   if (state_ == AttachmentState::attached) {
     Detach();
-    glDeleteTextures(1, &texture_name_);
-  }
-  state_ = AttachmentState::detached;
-  if (backGroundTextureName_ != 0) {
-    glDeleteTextures(1, &backGroundTextureName_);
+    state_ = AttachmentState::detached;
   }
 }
 
@@ -199,6 +235,7 @@ void OHOSExternalTextureGL::MarkNewFrameAvailable()
 {
   FML_DLOG(INFO) << " OHOSExternalTextureGL::MarkNewFrameAvailable";
   new_frame_ready_ = true;
+  texture_update_ = true;
   if (texture_name_ == 0) {
     Attach();
   }
@@ -215,14 +252,9 @@ void OHOSExternalTextureGL::OnTextureUnregistered()
     << ", nativeImage_=" << nativeImage_
     << ", backGroundNativeImage_=" << backGroundNativeImage_;
   first_update_ = false;
-  if (nativeImage_ != nullptr) {
-    OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);
-    OH_NativeImage_Destroy(&nativeImage_);
-    nativeImage_ = nullptr;
-  }
-  if (backGroundNativeImage_ != nullptr) {
-    OH_NativeImage_Destroy(&backGroundNativeImage_);
-    backGroundNativeImage_ = nullptr;
+  if (state_ == AttachmentState::attached) {
+    Detach();
+    state_ = AttachmentState::detached;
   }
 }
 
@@ -234,6 +266,7 @@ void OHOSExternalTextureGL::Update()
     return;
   }
   int32_t ret = OH_NativeImage_UpdateSurfaceImage(nativeImage_);
+  texture_update_ = false;
   if (ret != 0) {
     FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeImage_UpdateSurfaceImage err code:" << ret;
     return;
@@ -249,12 +282,36 @@ void OHOSExternalTextureGL::Detach()
     FML_LOG(ERROR) << "OHOSExternalTextureGL::Detach, the current status is not attached";
     return;
   }
-  OH_NativeImage_DetachContext(nativeImage_);
-  OH_NativeImage_DetachContext(backGroundNativeImage_);
-  OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
-  OH_NativeWindow_DestroyNativeWindow(backGroundNativeWindow_);
-  nativeWindow_ = nullptr;
-  backGroundNativeWindow_ = nullptr;
+
+  if (nativeImage_ != nullptr) {
+    OH_NativeImage_DetachContext(nativeImage_);
+    OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);
+    OH_NativeImage_Destroy(&nativeImage_);
+    nativeImage_ = nullptr;
+  }
+  if (nativeWindow_ != nullptr) {
+    OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
+    nativeWindow_ = nullptr;
+  }
+
+  if (backGroundNativeImage_ != nullptr) {
+    OH_NativeImage_DetachContext(backGroundNativeImage_);
+    OH_NativeImage_Destroy(&backGroundNativeImage_);
+    backGroundNativeImage_ = nullptr;
+  }
+  if (backGroundNativeWindow_ != nullptr) {
+    OH_NativeWindow_DestroyNativeWindow(backGroundNativeWindow_);
+    backGroundNativeWindow_ = nullptr;
+  }
+
+  if (texture_name_ != 0) {
+    glDeleteTextures(1, &texture_name_);
+    texture_name_ = 0;
+  }
+  if (backGroundTextureName_ != 0) {
+    glDeleteTextures(1, &backGroundTextureName_);
+    backGroundTextureName_ = 0;
+  }
 }
 
 void OHOSExternalTextureGL::UpdateTransform(OH_NativeImage *image)
@@ -326,6 +383,15 @@ void OHOSExternalTextureGL::setBackground(int32_t width, int32_t height)
 void OHOSExternalTextureGL::setTextureBufferSize(int32_t width, int32_t height)
 {
   FML_DLOG(INFO) << "OHOSExternalTextureGL::SetTextureBufferSize";
+  if (nativeWindow_ == nullptr && nativeImage_) {
+    nativeWindow_ = OH_NativeImage_AcquireNativeWindow(nativeImage_);
+  }
+
+  if (nativeWindow_ == nullptr) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL::SetTextureBufferSize nativeWindow_ is nullptr";
+    return;
+  }
+  
   int code = SET_BUFFER_GEOMETRY;
   int32_t ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, code, width, height);
   if (ret != 0) {
@@ -358,12 +424,9 @@ void OHOSExternalTextureGL::ProduceColorToBackGroundImage(int32_t width, int32_t
   }
 
   uint32_t* destAddr = static_cast<uint32_t *>(mappedAddr);
-  uint32_t value = 0xFFFFFFFF;
 
-  for (int32_t x = 0; x < handle->width; x++) {
-    for (int32_t y = 0; y < handle->height; y++) {
-      *destAddr++ = value;
-    }
+  for (int32_t x = 0; x < handle->size / PIXEL_SIZE; x++) {
+    *destAddr++ = WHITE_COLOR;
   }
 
     // munmap after use
@@ -410,6 +473,10 @@ void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
         << ret;
     return;
   }
+  
+  int windowFormat = PixelMapToWindowFormat((PIXEL_FORMAT)pixelMapInfo.pixelFormat);
+  ret = OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, SET_FORMAT, windowFormat);
+
   uint64_t usage = 0;
   OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, GET_USAGE, &usage);
   usage |= NATIVEBUFFER_USAGE_CPU_READ;
@@ -478,13 +545,19 @@ void OHOSExternalTextureGL::HandlePixelMapBuffer(NativePixelMap* pixelMap, OHNat
   FML_DLOG(INFO) << "OHOSExternalTextureGL pixelMapInfo rowSize:" << pixelMapInfo.rowSize
     << " format:" << pixelMapInfo.pixelFormat;
 
+  uint32_t real_height = pixelMapInfo.height;
+  if (IsPixelMapYUVFormat((PIXEL_FORMAT)pixelMapInfo.pixelFormat)) {
+    // y is height, uv is height/2
+    real_height = pixelMapInfo.height + (pixelMapInfo.height + 1) / 2;
+  }
+
   // 复制图片纹理数据到内存中，需要处理DMA内存补齐相关的逻辑
   if (pixelMapInfo.width * PIXEL_SIZE != pixelMapInfo.rowSize) {
     // 直接复制整块内存
-    memcpy(destAddr, pixel, pixelMapInfo.height * pixelMapInfo.rowSize);
+    memcpy(destAddr, pixel, real_height * pixelMapInfo.rowSize);
   } else {
     // 需要处理DMA内存补齐相关的逻辑
-    for (uint32_t i = 0; i < pixelMapInfo.height; i++) {
+    for (uint32_t i = 0; i < real_height; i++) {
       memcpy(destAddr, pixel, pixelMapInfo.rowSize);
       destAddr += stride / PIXEL_SIZE;
       pixel += pixelMapInfo.width;
@@ -521,6 +594,12 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
   ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, code, pixelMapInfo.width, pixelMapInfo.height);
   if (ret != 0) {
     FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeWindow_NativeWindowHandleOpt err:" << ret;
+    return;
+  }
+
+  ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, SET_TIMEOUT, 0);
+  if (ret != 0) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL SET_TIMEOUT err:" << ret;
     return;
   }
 

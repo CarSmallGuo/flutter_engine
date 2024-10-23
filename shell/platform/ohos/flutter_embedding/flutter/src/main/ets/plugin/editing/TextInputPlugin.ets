@@ -79,9 +79,9 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private mRestartInputPending: boolean = false;
   private plugin: EditingStateWatcher | Any;
   private imcFlag: boolean = false;
-  private inputTypeNone: string = 'NONE'
+  private inputTypeNone: string = 'NONE';
   private keyboardStatus: inputMethod.KeyboardStatus = inputMethod.KeyboardStatus.HIDE;
-  private inputAttribute: inputMethod.InputAttribute = { textInputType: 0, enterKeyType: 1 }
+  private inputAttribute: inputMethod.InputAttribute = { textInputType: 0, enterKeyType: 1 };
 
   constructor(plugin: TextInputPlugin | Any) {
     this.textConfig = {
@@ -147,19 +147,12 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     if (!this.imcFlag) {
       this.listenKeyBoardEvent();
     }
-    this.inputMethodController.showTextInput().then(() => {
-      Log.d(TextInputMethodHandlerImpl.TAG, "Succeeded in showing softKeyboard");
-    }).catch((err: Any) => {
-      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to show softKeyboard:" + JSON.stringify(err));
-    });
   }
 
   private async hideTextInput(): Promise<void> {
-    this.inputMethodController.hideTextInput().then(() => {
-      Log.d(TextInputMethodHandlerImpl.TAG, "Succeeded in hide softKeyboard");
-    }).catch((err: Any) => {
-      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to hide softKeyboard:" + JSON.stringify(err));
-    })
+    this.inputMethodController.detach();
+    this.keyboardStatus = inputMethod.KeyboardStatus.NONE;
+    this.cancelListenKeyBoardEvent();
   }
 
   async attach(showKeyboard: boolean): Promise<void> {
@@ -171,7 +164,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   async updateAttribute(): Promise<void> {
-    if (this.keyboardStatus == inputMethod.KeyboardStatus.HIDE) {
+    if (this.keyboardStatus != inputMethod.KeyboardStatus.SHOW) {
       return;
     }
     try {
@@ -270,17 +263,14 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private insertTextCallback = (text: string) => {
     Log.d(TextInputMethodHandlerImpl.TAG, "insertText: " + text);
     this.mEditable.handleInsertTextEvent(text);
-    this.changeSelection();
   }
 
   private deleteLeftCallback = (length: number) => {
     this.mEditable.handleDeleteEvent(false, length);
-    this.changeSelection();
   }
 
   private deleteRightCallback = (length: number) => {
     this.mEditable.handleDeleteEvent(true, length);
-    this.changeSelection();
   }
 
   private sendFunctionKeyCallback = (functionKey: inputMethod.FunctionKey) => {
@@ -295,21 +285,11 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.keyboardStatus = state;
     if (state == inputMethod.KeyboardStatus.HIDE) {
       this.plugin.textInputChannel.onConnectionClosed(this.inputTarget.id);
-      this.hideTextInput()
-      this.cancelListenKeyBoardEvent()
     }
   }
 
   private selectByRangeCallback = (range: inputMethod.Range) => {
     this.mEditable.handleSelectByRange(range);
-  }
-
-  changeSelection(): void {
-    try {
-      this.inputMethodController.changeSelection(this.mEditable.getStringCache(), this.mEditable.getSelectionStart(), this.mEditable.getSelectionEnd());
-    } catch (err) {
-      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to changeSelection:" + JSON.stringify(err));
-    }
   }
 
   cancelListenKeyBoardEvent(): void {
@@ -320,7 +300,6 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.inputMethodController.off('sendKeyboardStatus', this.sendKeyboardStatusCallback);
     this.inputMethodController.off('selectByRange', this.selectByRangeCallback);
     this.imcFlag = false;
-    this.inputMethodController.detach()
   }
 
   public clearTextInputClient(): void {

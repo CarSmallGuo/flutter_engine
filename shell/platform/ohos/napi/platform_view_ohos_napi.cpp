@@ -1798,6 +1798,55 @@ napi_value PlatformViewOHOSNapi::nativeDecodeUtf8(napi_env env, napi_callback_in
     return result;
 }
 
+napi_value PlatformViewOHOSNapi::nativeUpdateSemantics(
+    napi_env env,
+    napi_callback_info info) {
+
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeUpdateCustomAccessibilityActions(
+    napi_env env,
+    napi_callback_info info) {
+
+  return nullptr;
+}
+
+/**
+ * 无障碍特征之字体加粗功能，获取ets侧系统字体粗细系数
+ */
+napi_value PlatformViewOHOSNapi::nativeSetFontWeightScale(napi_env env, napi_callback_info info) {
+  napi_status ret;
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  // get param nativeShellHolderId
+  int64_t shell_holder;
+  ret = napi_get_value_int64(env, args[0], &shell_holder);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetFontWeightScale "
+                       "napi_get_value_int64 error:"
+                    << ret;
+    return nullptr;
+  }
+  //get param fontWeightScale
+  double fontWeightScale = 1.0;
+  ret = napi_get_value_double(env, args[1], &fontWeightScale);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetFontWeightScale "
+                       "napi_get_value_double error:"
+                    << ret;
+    return nullptr;
+  }
+  // accessibility features get the params
+  auto ohosAccessibilityFeatures = OhosAccessibilityFeatures::GetInstance();
+  ohosAccessibilityFeatures->SetBoldText(fontWeightScale, shell_holder);
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetFontWeightScale -> shell_holder: "
+                 << shell_holder
+                 << " fontWeightScale: "<< fontWeightScale;
+  return nullptr;
+}
+
 napi_value PlatformViewOHOSNapi::nativeLookupCallbackInformation(napi_env env, napi_callback_info info)
 {
   napi_value result;
@@ -1848,6 +1897,116 @@ napi_value PlatformViewOHOSNapi::nativeLookupCallbackInformation(napi_env env, n
   }
   napi_delete_reference(env, callbck_napi_obj); 
   napi_create_int32(env, 0, &result);
+  return result;
+}
+
+napi_value PlatformViewOHOSNapi::nativeUnicodeIsEmoji(napi_env env, napi_callback_info info) 
+{
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  bool is_emoji = false;
+  int64_t codePoint = 0;
+  bool ret = napi_get_value_int64(env, args[0], &codePoint);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine shell_holder "
+                       "napi_get_value_int64 error";
+    return nullptr;
+  }
+
+  is_emoji = u_hasBinaryProperty(codePoint, UProperty::UCHAR_EMOJI);
+
+  napi_value result;
+  napi_create_int32(env, (int)is_emoji, &result);
+  return result;
+}
+
+napi_value PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifier(napi_env env, napi_callback_info info)
+{
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  bool is_emoji = false;
+  int64_t codePoint = 0;
+  bool ret = napi_get_value_int64(env, args[0], &codePoint);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine shell_holder "
+                       "napi_get_value_int64 error";
+    return nullptr;
+  }
+
+  is_emoji = u_hasBinaryProperty(codePoint, UProperty::UCHAR_EMOJI_MODIFIER);
+
+  napi_value result;
+  napi_create_int32(env, (int)is_emoji, &result);
+  return result;
+}
+
+napi_value PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifierBase(napi_env env, napi_callback_info info) 
+{
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  bool is_emoji = false;
+  int64_t codePoint = 0;
+  bool ret = napi_get_value_int64(env, args[0], &codePoint);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine shell_holder "
+                       "napi_get_value_int64 error";
+    return nullptr;
+  }
+
+  is_emoji = u_hasBinaryProperty(codePoint, UProperty::UCHAR_EMOJI_MODIFIER_BASE);
+
+  napi_value result;
+  napi_create_int32(env, (int)is_emoji, &result);
+  return result;
+}
+
+napi_value PlatformViewOHOSNapi::nativeUnicodeIsVariationSelector(napi_env env, napi_callback_info info) 
+{
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  bool is_emoji = false;
+  int64_t codePoint = 0;
+  bool ret = napi_get_value_int64(env, args[0], &codePoint);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine shell_holder "
+                       "napi_get_value_int64 error";
+    return nullptr;
+  }
+
+  is_emoji = u_hasBinaryProperty(codePoint, UProperty::UCHAR_VARIATION_SELECTOR);
+
+  napi_value result;
+  napi_create_int32(env, (int)is_emoji, &result);
+  return result;
+}
+
+napi_value PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol(napi_env env, napi_callback_info info)
+{
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  bool is_emoji = false;
+  int64_t codePoint = 0;
+  bool ret = napi_get_value_int64(env, args[0], &codePoint);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine shell_holder "
+                       "napi_get_value_int64 error";
+    return nullptr;
+  }
+
+  is_emoji = u_hasBinaryProperty(codePoint, UProperty::UCHAR_REGIONAL_INDICATOR);
+
+  napi_value result;
+  napi_create_int32(env, (int)is_emoji, &result);
   return result;
 }
 }  // namespace flutter
