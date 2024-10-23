@@ -6,7 +6,8 @@
   "author": "",
   "license": "",
   "dependencies": {
-    "@ohos/flutter_ohos": "file:../flutter"
+    "@ohos/flutter_ohos": "file:../flutter",
+    "@ohos/hypium": "1.0.18"
   }
 }
 
