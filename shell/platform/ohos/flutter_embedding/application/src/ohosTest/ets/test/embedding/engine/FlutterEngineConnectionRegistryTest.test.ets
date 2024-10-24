@@ -13,30 +13,26 @@
  * limitations under the License.
  */
 import { describe, beforeAll, it, expect } from '@ohos/hypium';
-import { abilityDelegatorRegistry } from '@kit.TestKit';
+import { FlutterPlugin, } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/plugins/FlutterPlugin';
 import FlutterEngine from '@ohos/flutter_ohos/src/main/ets/embedding/engine/FlutterEngine';
 import PlatformViewsController from '@ohos/flutter_ohos/src/main/ets/plugin/platform/PlatformViewsController'
 import common from '@ohos.app.ability.common';
-import FlutterEngineConnectionRegistry
-  from '@ohos/flutter_ohos/src/main/ets/embedding/engine/FlutterEngineConnectionRegistry';
-import {
-  FlutterPlugin,
-  FlutterPluginBinding
-} from '@ohos/flutter_ohos/src/main/ets/embedding/engine/plugins/FlutterPlugin';
+import FlutterEngineConnectionRegistry from '@ohos/flutter_ohos/src/main/ets/embedding/engine/FlutterEngineConnectionRegistry';
 import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 
 export default function FlutterEngineConnectionRegistryTest() {
   let flutterEngineConnectionRegistry: FlutterEngineConnectionRegistry;
   let flutterEngine: FlutterEngine;
+  let context: common.UIAbilityContext;
   const platformViewsController = new PlatformViewsController();
-  const context = getContext() as common.UIAbilityContext;
   const pluginClassName = 'test';
 
   describe('FlutterEngineConnectionRegistryTest', () => {
 
     beforeAll(() => {
-      const flutterLoader = flutterEngine.getFlutterLoader();
+      context = getContext() as common.UIAbilityContext;
       flutterEngine = new FlutterEngine(context, null, null, platformViewsController);
+      const flutterLoader = flutterEngine.getFlutterLoader();
       flutterEngineConnectionRegistry = new FlutterEngineConnectionRegistry(context, flutterEngine, flutterLoader);
     })
 

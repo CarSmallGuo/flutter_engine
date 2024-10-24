@@ -16,13 +16,13 @@ import { describe, beforeAll, expect, it } from '@ohos/hypium';
 import { common } from '@kit.AbilityKit';
 import { Options } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/FlutterEngineGroup';
 import { DartEntrypoint } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/dart/DartExecutor';
+import { resourceManager } from '@kit.LocalizationKit';
 import DartExecutor from '@ohos/flutter_ohos/src/main/ets/embedding/engine/dart/DartExecutor';
 import FlutterNapi from '@ohos/flutter_ohos/src/main/ets/embedding/engine/FlutterNapi';
-import { resourceManager } from '@kit.LocalizationKit';
 
 export default function DartExecutorTest() {
-  const context = getContext() as common.UIAbilityContext;
   const flutterNapi = new FlutterNapi();
+  let context: common.UIAbilityContext;
   let dartExecutor: DartExecutor;
   let options: Options;
   let assetManager: resourceManager.ResourceManager;
@@ -32,12 +32,11 @@ export default function DartExecutorTest() {
   describe('DartExecutorTest', () => {
 
     beforeAll(() => {
-      if (context) {
-        assetManager = context.resourceManager;
-        resourceManager = context.resourceManager;
-        dartExecutor = new DartExecutor(flutterNapi, assetManager);
-        options = new Options(context);
-      }
+      context = getContext() as common.UIAbilityContext;
+      assetManager = context.resourceManager;
+      resourceManager = context.resourceManager;
+      dartExecutor = new DartExecutor(flutterNapi, assetManager);
+      options = new Options(context);
       dartEntrypoint = options.getDartEntrypoint();
     })
 
