@@ -200,9 +200,7 @@ export interface DragDropCallback {
 
 export interface FullScreenListener {
   useFullScreen(): boolean;
-
   setUseFullScreen(useFullScreen: boolean, context?: Context | null | undefined): void;
-  
   onScreenStateChanged(data: window.WindowStatusType): void;
 }
 
