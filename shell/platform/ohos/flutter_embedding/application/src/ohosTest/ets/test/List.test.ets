@@ -33,13 +33,13 @@ import JSONMethodCodecUnitTest from './plugin/common/JSONMethodCodec.test';
 import MethodCallUnitTest from './plugin/common/MethodCall.test';
 import AccessibilityEventsDelegateUnitTest from './plugin/platform/AccessibilityEventsDelegate.test';
 
-import DartMessengerTest from './embedding/engine/DartMessengerTest.test'
-import ApplicationInfoTest from './embedding/engine/ApplicationInfoTest.test'
-import FlutterApplicationInfoTest from './embedding/engine/FlutterApplicationInfoTest.test'
-import FlutterLoaderTest from './embedding/engine/FlutterLoaderTest.test'
-import FlutterMutatorViewTest from './embedding/engine/FlutterMutatorViewTest.test'
-import FlutterMutatorsStackTest from './embedding/engine/FlutterMutatorsStackTest.test'
-import FlutterRendererTest  from './embedding/engine/FlutterRendererTest.test'
+import DartMessengerTest from './embedding/engine/dart/DartMessengerTest.test'
+import ApplicationInfoTest from './embedding/engine/loader/ApplicationInfoTest.test'
+import FlutterApplicationInfoTest from './embedding/engine/loader/FlutterApplicationInfoTest.test'
+import FlutterLoaderTest from './embedding/engine/loader/FlutterLoaderTest.test'
+import FlutterMutatorViewTest from './embedding/engine/mutatorsstack/FlutterMutatorViewTest.test'
+import FlutterMutatorsStackTest from './embedding/engine/mutatorsstack/FlutterMutatorsStackTest.test'
+import FlutterRendererTest  from './embedding/engine/renderer/FlutterRendererTest.test'
 import TouchEventProcessorTest from './embedding/ohos/TouchEventProcessorTest.test';
 import TouchEventTrackerTest from './embedding/ohos/TouchEventTrackerTest.test';
 import WindowInfoRepositoryCallbackAdapterWrapperTest from './embedding/ohos/WindowInfoRepositoryCallbackAdapterWrapperTest.test';
