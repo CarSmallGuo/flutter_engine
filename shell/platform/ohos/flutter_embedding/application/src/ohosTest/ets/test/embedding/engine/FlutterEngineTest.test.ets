@@ -13,11 +13,8 @@
  * limitations under the License.
  */
 import { describe, beforeAll, it, expect } from '@ohos/hypium';
-import FlutterEngine from '@ohos/flutter_ohos/src/main/ets/embedding/engine/FlutterEngine';
 import DartExecutor, { DartEntrypoint } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/dart/DartExecutor';
 import { Options } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/FlutterEngineGroup';
-import PlatformViewsController from '@ohos/flutter_ohos/src/main/ets/plugin/platform/PlatformViewsController'
-import common from '@ohos.app.ability.common';
 import {
   AccessibilityChannel,
   FlutterLoader,
@@ -36,15 +33,19 @@ import {
   TextInputChannel
 } from '@ohos/flutter_ohos';
 import ActivityControlSurface from '@ohos/flutter_ohos/src/main/ets/embedding/engine/plugins/ability/AbilityControlSurface';
+import PlatformViewsController from '@ohos/flutter_ohos/src/main/ets/plugin/platform/PlatformViewsController';
+import FlutterEngine from '@ohos/flutter_ohos/src/main/ets/embedding/engine/FlutterEngine';
+import common from '@ohos.app.ability.common';
 
 export default function FlutterEngineTest() {
   const platformViewsController = new PlatformViewsController();
-  const context = getContext() as common.UIAbilityContext;
+  let context: common.UIAbilityContext;
   let flutterEngine: FlutterEngine;
 
   describe('FlutterEngineTest', () => {
 
     beforeAll(() => {
+      const context = getContext() as common.UIAbilityContext;
       flutterEngine = new FlutterEngine(context, null, null, platformViewsController);
     })
 
