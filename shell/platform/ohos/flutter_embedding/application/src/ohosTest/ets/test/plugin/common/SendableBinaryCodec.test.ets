@@ -17,7 +17,6 @@ import { describe, it, expect } from '@ohos/hypium'
 import { SendableBinaryCodec } from '@ohos/flutter_ohos';
 import { buffer } from '@kit.ArkTS';
 
-
 export default function SendableBinaryCodecTest() {
   describe('SendableBinaryCodecTest', () => {
     it('encodeMessage', 0, async (done: Function) => {

@@ -13,11 +13,9 @@
  * limitations under the License.
  */
 
-
 import { describe, it, expect } from '@ohos/hypium'
 import { PlatformView } from '@ohos/flutter_ohos';
 import { Params } from '@ohos/flutter_ohos/src/main/ets/plugin/platform/PlatformView';
-
 
 export default function PlatformViewTest() {
   describe('PlatformViewTest', () => {
