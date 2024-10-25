@@ -198,10 +198,6 @@ export class FlutterView {
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
     this.mainWindow?.on('windowStatusChange', this.windowStatusChangeCallback);
     this.mainWindow?.on('keyboardHeightChange', this.keyboardHeightChangeCallback);
-    this.mainWindow?.on('windowRectChange', this.windowRectChangeCallback);
-    //监听系统无障碍服务状态改变
-    accessibility.on('accessibilityStateChange', this.accessibilityStateChangeCallback);
-
     this.systemAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
     this.navigationAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR);
     this.gestureAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM_GESTURE);
@@ -294,38 +290,14 @@ export class FlutterView {
       FlutterManager.getInstance().getFullScreenListener().onScreenStateChanged(data);
     }
   };
-  private displayChangeCallback = (data: number) => {
-    this.displayInfo = display.getDefaultDisplaySync();
-    this.flutterEngine?.getTextInputChannel()?.setDevicePixelRatio(this.displayInfo.densityPixels);
-    let devicePixelRatio: number = this.displayInfo?.densityPixels;
-    let physicalTouchSlop: number = 1.0 * this.displayInfo?.densityPixels;
-    Log.i(TAG, "Display on: " + JSON.stringify(this.displayInfo) + ". Display id:" + JSON.stringify(data))
-    if (devicePixelRatio != this.viewportMetrics.devicePixelRatio ||
-      this.viewportMetrics.physicalTouchSlop != physicalTouchSlop) {
-      this.viewportMetrics.devicePixelRatio = devicePixelRatio;
-      this.viewportMetrics.physicalTouchSlop = physicalTouchSlop
-      this.needSetViewport = true;
-      this.onAreaChange(null);
-    }
-  }
+
   private keyboardHeightChangeCallback = (data: number) => {
     Log.i(TAG, "keyboardHeightChangeCallback " + data);
     this.keyboardAvoidArea.bottomRect.height = data;
-    this.onAreaChange(null);
+    if (this.isAttachedToFlutterEngine()) {
+       this.onAreaChange(null);
+    }
   };
-  private windowRectChangeCallback = (data: window.RectChangeOptions) => {
-    Log.i(TAG, "windowRectChangeCallback " + data);
-    this.windowPosition = data.rect as window.Rect;
-    this.flutterEngine?.getTextInputChannel()?.setWindowPosition(this.windowPosition);
-  }
-  private accessibilityStateChangeCallback = (data: boolean) => {
-    Log.i(TAG, `subscribe accessibility state change, result: ${JSON.stringify(data)}`);
-    this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(data);
-  }
-  private foldStatusChangeCallback = (data: display.FoldStatus) => {
-    Log.d(TAG, `Fold status change to ${JSON.stringify(data)}`)
-    this.buildDisplayFeatures(data);
-  }
 
   getId(): string {
     return this.id;
@@ -369,9 +341,6 @@ export class FlutterView {
       this.mainWindow?.off('avoidAreaChange', this.avoidAreaChangeCallback);
       this.mainWindow?.off('windowStatusChange', this.windowStatusChangeCallback);
       this.mainWindow?.off('keyboardHeightChange', this.keyboardHeightChangeCallback);
-      this.mainWindow?.off('windowRectChange', this.windowRectChangeCallback);
-      accessibility.off('accessibilityStateChange', this.accessibilityStateChangeCallback);
-      display.off('foldStatusChange', this.foldStatusChangeCallback);
     } catch (e) {
       Log.e(TAG, "mainWindow off error: " + JSON.stringify(e));
     }
