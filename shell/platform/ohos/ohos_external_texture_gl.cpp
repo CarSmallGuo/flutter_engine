@@ -26,6 +26,7 @@
 #include "third_party/skia/include/core/SkImage.h"
 #include "third_party/skia/include/gpu/GrBackendSurface.h"
 #include "third_party/skia/include/gpu/GrDirectContext.h"
+#include "types.h"
 
 #define EGL_PLATFORM_OHOS_KHR             0x34E0
 
@@ -150,7 +151,7 @@ void OHOSExternalTextureGL::Attach()
     int32_t ret = 0;
     uint64_t usage = 0;
     ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, GET_USAGE, &usage);
-    usage |= (1ULL << 10);
+    usage |= (BUFFER_USAGE_HW_COMPOSER);
     ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, SET_USAGE, usage);
 
     ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
@@ -484,7 +485,7 @@ void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
 
   uint64_t usage = 0;
   OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, GET_USAGE, &usage);
-  usage |= NATIVEBUFFER_USAGE_CPU_READ | (1ULL << 10);
+  usage |= NATIVEBUFFER_USAGE_CPU_READ | (BUFFER_USAGE_HW_COMPOSER);
   OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, SET_USAGE, usage);
 
   if (backGroundBuffer_ != nullptr) {
@@ -610,7 +611,7 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
 
   uint64_t usage = 0;
   OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, GET_USAGE, &usage);
-  usage |= NATIVEBUFFER_USAGE_CPU_READ | (1ULL << 10);
+  usage |= NATIVEBUFFER_USAGE_CPU_READ | (BUFFER_USAGE_HW_COMPOSER);
   OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, SET_USAGE, usage);
 
   if (buffer_ != nullptr) {
