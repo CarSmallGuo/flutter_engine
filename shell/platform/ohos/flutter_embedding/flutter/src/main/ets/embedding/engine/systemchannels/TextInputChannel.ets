@@ -182,6 +182,8 @@ export interface TextInputMethodHandler {
 
   clearClient(): void;
 
+  handleChangeFocus(focusState: boolean): void;
+
 }
 
 export class Configuration {
