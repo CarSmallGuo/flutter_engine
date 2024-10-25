@@ -259,7 +259,7 @@ export struct FlutterPage {
 
   aboutToDisappear() {
     this.flutterView?.removeFirstFrameListener(this);
-    this.flutterView?.removeFirstPreloadFrameListener(this)
+    getContext()?.eventHub.off(OHOS_FLUTTER_PAGE_UPDATE)
   }
 
   onFirstFrame() {
