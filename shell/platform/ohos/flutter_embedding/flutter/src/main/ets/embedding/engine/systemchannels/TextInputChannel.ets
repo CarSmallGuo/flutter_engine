@@ -24,7 +24,8 @@ import ArrayList from '@ohos.util.ArrayList';
 import { TextEditingDelta, TextEditingDeltaJson } from '../../../plugin/editing/TextEditingDelta';
 import Any from '../../../plugin/common/Any';
 import { window } from '@kit.ArkUI';
-import { BusinessError } from '@kit.BasicServicesKit';
+import { BusinessError, print } from '@kit.BasicServicesKit';
+import { Rect } from '@kit.ArkGraphics3D';
 
 const TAG = "TextInputChannel";
 /// 规避换行标识无法显示问题，api修改后再删除
@@ -185,8 +186,6 @@ export interface TextInputMethodHandler {
   setEditingState(editingState: TextEditState): void;
 
   clearClient(): void;
-
-  handleChangeFocus(focusState: boolean): void;
 
 }
 
@@ -451,9 +450,9 @@ class TextInputCallback implements MethodCallHandler {
   constructor(handler: TextInputMethodHandler) {
     this.textInputMethodHandler = handler;
     const context = getContext(this) as Context
-    window.getLastWindow(context, (err: BusinessError, data) => {
+    window.getLastWindow(context, (err: BusinessError, data: window.Window) => {
       this.windowPosition = data.getWindowProperties().windowRect;
-      data.on('windowRectChange', (rect) => {
+      data.on('windowRectChange', (rect: window.RectChangeOptions) => {
         this.windowPosition = rect.rect;
         this.setCursorPosition();
       })
@@ -521,7 +520,6 @@ class TextInputCallback implements MethodCallHandler {
         result.notImplemented();
         break;
       case "TextInput.finishAutofillContext":
-      //TODO:
         result.notImplemented();
         break;
       case "TextInput.setCursorPotion":
