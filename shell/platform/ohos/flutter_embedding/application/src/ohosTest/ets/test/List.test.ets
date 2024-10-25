@@ -66,6 +66,21 @@ import dynamicViewJsonTest from './view/DynamicView/dynamicViewJson.test';
 import PlatformOverlayViewTest from './plugin/platform/PlatformOverlayView.test';
 import PlatformViewTest from './plugin/platform/PlatformView.test';
 import FlutterRunArgumentsTest from './view/FlutterRunArguments.test';
+import LifecycleChannelTest from './embedding/engine/systemchannels/LifecycleChannel.test';
+import FlutterExceptionTest from './plugin/common/FlutterException.test';
+import JSONMessageCodecTest from './plugin/common/JSONMessageCodec.test';
+import SendableJSONMessageCodecTest from './plugin/common/SendableJSONMessageCodec.test';
+import SendableJSONMethodCodecTest from './plugin/common/SendableJSONMethodCodec.test';
+import SendableStringCodecTest from './plugin/common/SendableStringCodec.test';
+import StandardMessageCodecTest from './plugin/common/StandardMessageCodec.test';
+import StandardMethodCodecTest from './plugin/common/StandardMethodCodec.test';
+import StringCodecTest from './plugin/common/StringCodec.test';
+import ListenableEditingStateTest from './plugin/editing/ListenableEditingState.test';
+import TextEditingDeltaTest from './plugin/editing/TextEditingDelta.test';
+import TextInputPluginTest from './plugin/editing/TextInputPlugin.test';
+import LocalizationPluginTest from './plugin/localization/LocalizationPlugin.test';
+import SendableStandardMessageCodecTest from './plugin/common/SendableStandardMessageCodec.test';
+import SendableStandardMethodCodecTest from './plugin/common/SendableStandardMethodCodec.test';
 
 export default function testsuite() {
   FlutterAbilityAndEntryDelegateTest();
@@ -120,4 +135,19 @@ export default function testsuite() {
   PlatformViewTest();
   PlatformViewTest();
   FlutterRunArgumentsTest();
+  LifecycleChannelTest();
+  FlutterExceptionTest();
+  JSONMessageCodecTest();
+  SendableJSONMessageCodecTest();
+  SendableJSONMethodCodecTest();
+  SendableStandardMessageCodecTest();
+  SendableStandardMethodCodecTest();
+  SendableStringCodecTest();
+  StandardMessageCodecTest();
+  StandardMethodCodecTest();
+  StringCodecTest();
+  ListenableEditingStateTest();
+  TextEditingDeltaTest();
+  TextInputPluginTest();
+  LocalizationPluginTest();
 }
