@@ -148,13 +148,7 @@ void OHOSExternalTextureGL::Attach()
       return;
     }
 
-    int32_t ret = 0;
-    uint64_t usage = 0;
-    ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, GET_USAGE, &usage);
-    usage |= (BUFFER_USAGE_HW_COMPOSER);
-    ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, SET_USAGE, usage);
-
-    ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
+    int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
     if (ret != 0) {
       FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeImage_AttachContext err code:" << ret;
     }
@@ -415,6 +409,11 @@ void OHOSExternalTextureGL::ProduceColorToBackGroundImage(int32_t width, int32_t
     FML_LOG(ERROR) << "OHOSExternalTextureGL::setBackground OH_NativeWindow_NativeWindowHandleOpt err:" << ret;
     return;
   }
+
+  uint64_t usage = 0;
+  OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, GET_USAGE, &usage);
+  usage |= NATIVEBUFFER_USAGE_CPU_READ | (BUFFER_USAGE_HW_COMPOSER);
+  OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, SET_USAGE, usage);
 
   ret = OH_NativeWindow_NativeWindowRequestBuffer(backGroundNativeWindow_, &backGroundBuffer_, &backGroundFenceFd);
   if (ret != 0) {
