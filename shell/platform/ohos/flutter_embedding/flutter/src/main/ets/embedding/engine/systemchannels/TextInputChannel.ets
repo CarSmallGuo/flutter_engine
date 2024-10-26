@@ -427,22 +427,15 @@ export class TextEditState {
   }
 }
 
-export interface offsetRect {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
-
 class TextInputCallback implements MethodCallHandler {
   textInputMethodHandler: TextInputMethodHandler;
-  windowPosition: offsetRect = {
+  windowPosition: window.Rect = {
     left: 0,
     top: 0,
     width: 0,
     height: 0,
   };
-  cursorPosition: offsetRect = {
+  cursorPosition: window.Rect = {
     left: 0,
     top: 0,
     width: 0,
@@ -453,9 +446,9 @@ class TextInputCallback implements MethodCallHandler {
     this.textInputMethodHandler = handler;
     const context = getContext(this) as Context
     window.getLastWindow(context, (err: BusinessError, data: window.Window) => {
-      this.windowPosition = data.getWindowProperties().windowRect;
+      this.windowPosition = data.getWindowProperties().windowRect as window.Rect;
       data.on('windowRectChange', (rect: window.RectChangeOptions) => {
-        this.windowPosition = rect.rect;
+        this.windowPosition = rect.rect as window.Rect;
         this.setCursorPosition();
       })
     })
@@ -526,7 +519,7 @@ class TextInputCallback implements MethodCallHandler {
         result.notImplemented();
         break;
       case "TextInput.setCursorPotion":
-        let cursorPosition: offsetRect = args[0];
+        let cursorPosition: window.Rect = args[0];
         this.cursorPosition = cursorPosition;
         this.setCursorPosition();
         result.success(null);
