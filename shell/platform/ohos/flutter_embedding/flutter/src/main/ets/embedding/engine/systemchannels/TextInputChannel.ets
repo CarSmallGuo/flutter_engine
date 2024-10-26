@@ -187,6 +187,8 @@ export interface TextInputMethodHandler {
 
   clearClient(): void;
 
+  handleChangeFocus(focusState: boolean): void;
+
 }
 
 export class Configuration {
@@ -520,6 +522,7 @@ class TextInputCallback implements MethodCallHandler {
         result.notImplemented();
         break;
       case "TextInput.finishAutofillContext":
+      //TODO:
         result.notImplemented();
         break;
       case "TextInput.setCursorPotion":
