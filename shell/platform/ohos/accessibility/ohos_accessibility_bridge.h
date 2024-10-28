@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,21 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #ifndef OHOS_ACCESSIBILITY_BRIDGE_H
 #define OHOS_ACCESSIBILITY_BRIDGE_H
 #include <arkui/native_interface_accessibility.h>
 #include <cstdint>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <utility>
 #include <vector>
 #include "flutter/fml/mapping.h"
 #include "flutter/lib/ui/semantics/custom_accessibility_action.h"
 #include "flutter/lib/ui/semantics/semantics_node.h"
-#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_manager.h"
-#include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
-
+#include "native_accessibility_channel.h"
 namespace flutter {
 
 typedef flutter::SemanticsFlags FLAGS_;
@@ -69,10 +66,15 @@ class OhosAccessibilityBridge {
 
   static OhosAccessibilityBridge* GetInstance();
 
-  bool isOhosAccessibilityEnabled_;
   bool IS_FLUTTER_NAVIGATE = false;
-  int64_t nativeShellHolder_;
+  int64_t native_shell_holder_id_;
   ArkUI_AccessibilityProvider* provider_;
+
+  void OnOhosAccessibilityStateChange(
+      int64_t shellHolderId,
+      bool ohosAccessibilityEnabled);
+
+  void SetNativeShellHolderId(int64_t id);
 
   void updateSemantics(flutter::SemanticsNodeUpdates update,
                        flutter::CustomAccessibilityActionUpdates actions);
@@ -143,6 +145,8 @@ class OhosAccessibilityBridge {
 
  private:
   static OhosAccessibilityBridge bridgeInstance;
+  std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
+
   static const int32_t ROOT_NODE_ID = 0;
   constexpr static const double SCROLL_EXTENT_FOR_INFINITY = 100000.0;
   constexpr static const double SCROLL_POSITION_CAP_FOR_INFINITY = 70000.0;
@@ -151,7 +155,6 @@ class OhosAccessibilityBridge {
   flutter::SemanticsNode lastInputFocusedNode;
   flutter::SemanticsNode accessibilityFocusedNode;
 
-  std::shared_ptr<OhosAccessibilityManager> ax_manager_;
   std::vector<std::pair<int32_t, int32_t>> parentChildIdVec;
   std::unordered_map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
   std::unordered_map<

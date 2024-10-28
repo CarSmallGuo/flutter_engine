@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,28 +16,28 @@
 #define OHOS_ACCESSIBILITY_FEATURES_H
 #include <cstdint>
 #include "flutter/lib/ui/window/platform_configuration.h"
+#include "native_accessibility_channel.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 
 namespace flutter {
 
 class OhosAccessibilityFeatures {
-  public:
-    OhosAccessibilityFeatures();
-    ~OhosAccessibilityFeatures();
+ public:
+  OhosAccessibilityFeatures();
+  ~OhosAccessibilityFeatures();
 
-    static OhosAccessibilityFeatures* GetInstance();
+  static OhosAccessibilityFeatures* GetInstance();
 
-    void SetBoldText(double fontWeightScale, int64_t shell_holder_id);
-    void SendAccessibilityFlags(int64_t shell_holder_id);
+  void SetBoldText(double fontWeightScale, int64_t shell_holder_id);
+  void SendAccessibilityFlags(int64_t shell_holder_id);
 
-  private:
-    static OhosAccessibilityFeatures instance;
+ private:
+  static OhosAccessibilityFeatures instance;
+  std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
 
-    // Font weight adjustment (FontWeight.Bold - FontWeight.Normal = w700 - w400 = 300)
-    static const int32_t BOLD_TEXT_WEIGHT_ADJUSTMENT = 300;
-    int32_t accessibilityFeatureFlags = 0;
+  int32_t accessibilityFeatureFlags = 0;
 };
-    
-}
 
-#endif 
+}  // namespace flutter
+
+#endif

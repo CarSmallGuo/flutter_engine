@@ -146,7 +146,7 @@ export const nativeSetTextureBufferSize: (nativeShellHolderId: number, textureId
  */
 export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number, responseId: number) => void;
 
-export const nativeAccessibilityStateChange: (state: Boolean) => void;
+export const nativeAccessibilityStateChange: (nativeShellHolderId: number, state: Boolean) => void;
 
 export const nativeAnnounce: (message: string) => void;
 

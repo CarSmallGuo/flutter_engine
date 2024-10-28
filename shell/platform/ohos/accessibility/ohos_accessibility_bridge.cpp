@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,6 +15,7 @@
 #include "ohos_accessibility_bridge.h"
 #include <limits>
 #include <string>
+#include <memory>
 #include "flutter/fml/logging.h"
 #include "flutter/shell/common/platform_view.h"
 #include "flutter/shell/platform/embedder/embedder.h"
@@ -26,12 +27,36 @@ namespace flutter {
 
 OhosAccessibilityBridge OhosAccessibilityBridge::bridgeInstance;
 
-OhosAccessibilityBridge::OhosAccessibilityBridge() {};
-OhosAccessibilityBridge::~OhosAccessibilityBridge() {};
+OhosAccessibilityBridge::OhosAccessibilityBridge() {}
+
+OhosAccessibilityBridge::~OhosAccessibilityBridge() {}
 
 OhosAccessibilityBridge* OhosAccessibilityBridge::GetInstance() 
 {
   return &OhosAccessibilityBridge::bridgeInstance;
+}
+
+/**
+ * 监听当前ohos平台是否开启无障碍屏幕朗读服务
+ */
+void OhosAccessibilityBridge::OnOhosAccessibilityStateChange(
+    int64_t shellHolderId,
+    bool ohosAccessibilityEnabled)
+{
+  native_shell_holder_id_ = shellHolderId;
+  auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
+  if (ohosAccessibilityEnabled) {
+    FML_DLOG(INFO) << "OnOhosAccessibilityEnabled()";
+    nativeAccessibilityChannel_->OnOhosAccessibilityEnabled(native_shell_holder_id_);
+  } else {
+    FML_DLOG(INFO) << "OnOhosAccessibilityEnabled()";
+    nativeAccessibilityChannel_->OnOhosAccessibilityDisabled(native_shell_holder_id_);
+  }
+}
+
+void OhosAccessibilityBridge::SetNativeShellHolderId(int64_t id)
+{
+  this->native_shell_holder_id_ = id;
 }
 
 /**
@@ -144,6 +169,7 @@ void OhosAccessibilityBridge::updateSemantics(
     if (node.HasFlag(FLAGS_::kIsHidden)) {
       continue;
     }
+
     // 判断flutter节点是否获焦
     if (IsNodeFocusable(node)) {
       FML_DLOG(INFO) << "UpdateSemantics -> flutterNode is focusable, node.id="
@@ -579,7 +605,7 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
 
   // 获取root节点的绝对坐标
   auto _rootRect = GetAbsoluteScreenRect(0);
-  auto rootRight = _rootRect.second.first;
+  // auto rootRight = _rootRect.second.first;
   auto rootBottom = _rootRect.second.second;
 
   // 真实缩放系数
@@ -628,9 +654,11 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
                       << currNode.id << ", (" << newLeft << ", " << newTop
                       << ", " << newRight << ", " << newBottom << ")}";
       // 防止溢出屏幕坐标
-      newTop = realParentTop - rootRight;
-      newBottom = realParentBottom - rootBottom;
-      SetAbsoluteScreenRect(currNode.id, newLeft, newTop, realParentRight,
+      newTop = realParentTop - rootBottom;
+      newBottom = realParentBottom - rootBottom; 
+      // newTop =  static_cast<int32_t>(newTop) % static_cast<int32_t>(rootBottom);
+      // newBottom = static_cast<int32_t>(newBottom) % static_cast<int32_t>(rootBottom);
+      SetAbsoluteScreenRect(currNode.id, newLeft, newTop, newRight,
                             newBottom);
     } else {
       SetAbsoluteScreenRect(currNode.id, newLeft, newTop, newRight, newBottom);
@@ -860,9 +888,9 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
   ArkUI_AccessibleRect rect = {left, top, right, bottom};
   OH_ArkUI_AccessibilityElementInfoSetScreenRect(elementInfoFromList, &rect);
   FML_DLOG(INFO) << "FlutterNodeToElementInfoById -> node.id= "
-                 << flutterNode.id << " SceenRect = (" << left << ", " << top
-                 << ", " << right << ", " << bottom << ")";
-
+                << flutterNode.id << " SceenRect = (" << left << ", " << top
+                << ", " << right << ", " << bottom << ")";
+ 
   // 配置arkui的elementinfo可操作动作属性
   if (IsTextField(flutterNode)) {
     // 若当前flutter节点为文本输入框组件
@@ -1149,6 +1177,8 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
     return ARKUI_ACCESSIBILITY_NATIVE_RESULT_FAILED;
   }
 
+  auto flutterNode = getOrCreateFlutterSemanticsNode(static_cast<int32_t>(elementId));
+
   if (mode == ArkUI_AccessibilitySearchMode::
                   ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_CURRENT) {
     /** Search for current nodes. (mode = 0) */
@@ -1156,28 +1186,35 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
     int64_t elementInfoCount =
         static_cast<int64_t>(flutterSemanticsTree_.size());
     for (int64_t i = 1; i < elementInfoCount; i++) {
-      ArkUI_AccessibilityElementInfo* newElementInfo =
+      auto childNode = getOrCreateFlutterSemanticsNode(static_cast<int32_t>(i));
+      if (IsNodeVisible(childNode)) {
+        ArkUI_AccessibilityElementInfo* newElementInfo =
           OH_ArkUI_AddAndGetAccessibilityElementInfo(elementList);
-      FlutterNodeToElementInfoById(newElementInfo, i);
+        FlutterNodeToElementInfoById(newElementInfo, i);
+      }
     }
 
   } else if (mode ==
              ArkUI_AccessibilitySearchMode::
                  ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_PREDECESSORS) {
     /** Search for parent nodes. (mode = 1) */
-    FlutterNodeToElementInfoById(elementInfoFromList, elementId);
-
+    if (IsNodeVisible(flutterNode)) {
+      FlutterNodeToElementInfoById(elementInfoFromList, elementId);
+    }
   } else if (mode ==
              ArkUI_AccessibilitySearchMode::
                  ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_SIBLINGS) {
     /** Search for sibling nodes. (mode = 2) */
-    FlutterNodeToElementInfoById(elementInfoFromList, elementId);
-
+    if (IsNodeVisible(flutterNode)) {
+      FlutterNodeToElementInfoById(elementInfoFromList, elementId);
+    }
   } else if (mode ==
              ArkUI_AccessibilitySearchMode::
                  ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_CHILDREN) {
     /** Search for child nodes at the next level. (mode = 4) */
-    FlutterNodeToElementInfoById(elementInfoFromList, elementId);
+    if (IsNodeVisible(flutterNode)) {
+      FlutterNodeToElementInfoById(elementInfoFromList, elementId);
+    }
 
   } else if (
       mode ==
@@ -1188,13 +1225,18 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
     int64_t elementInfoCount =
         static_cast<int64_t>(flutterSemanticsTree_.size());
     for (int64_t i = 1; i < elementInfoCount; i++) {
-      ArkUI_AccessibilityElementInfo* newElementInfo =
+      auto childNode = getOrCreateFlutterSemanticsNode(static_cast<int32_t>(i));
+      if (IsNodeVisible(childNode)) {
+        ArkUI_AccessibilityElementInfo* newElementInfo =
           OH_ArkUI_AddAndGetAccessibilityElementInfo(elementList);
-      FlutterNodeToElementInfoById(newElementInfo, i);
+        FlutterNodeToElementInfoById(newElementInfo, i);
+      }
     }
 
   } else {
-    FlutterNodeToElementInfoById(elementInfoFromList, elementId);
+    if (IsNodeVisible(flutterNode)) {
+      FlutterNodeToElementInfoById(elementInfoFromList, elementId);
+    }
   }
 
   FML_DLOG(INFO) << "--- FindAccessibilityNodeInfosById is end ---";
@@ -1304,21 +1346,18 @@ flutter::SemanticsAction OhosAccessibilityBridge::ArkuiActionsToFlutterActions(
 }
 
 /**
- * covert arkui-specific touch action to flutter-specific action
- * and dispatch it from C++ to Dart
+ * 解析flutter语义动作，并通过NativAccessibilityChannel分发
  */
 void OhosAccessibilityBridge::DispatchSemanticsAction(
     int32_t id,
     flutter::SemanticsAction action,
     fml::MallocMapping args)
 {
-  auto ohos_shell_holder =
-      reinterpret_cast<OHOSShellHolder*>(nativeShellHolder_);
-  ohos_shell_holder->GetPlatformView()->PlatformView::DispatchSemanticsAction(
-      id, action, {});
-  FML_DLOG(INFO) << "DispatchSemanticsAction -> shell_holder_id: "
-                 << nativeShellHolder_ << " id: " << id
-                 << " action: " << static_cast<int32_t>(action);
+  auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
+  nativeAccessibilityChannel_->DispatchSemanticsAction(native_shell_holder_id_,
+                                                       id,
+                                                       action,
+                                                       fml::MallocMapping());
 }
 
 /**

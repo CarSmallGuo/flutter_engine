@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,23 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_manager.h"
-#include "flutter/fml/logging.h"
+#include "ohos_accessibility_manager.h"
 
 namespace flutter {
-OhosAccessibilityManager::OhosAccessibilityManager() {};
-OhosAccessibilityManager::~OhosAccessibilityManager() {};
 
-void OhosAccessibilityManager::onAccessibilityStateChanged(
-    bool isOhosAccessibilityEnabled) {};
+OhosAccessibilityManager::OhosAccessibilityManager() {}
 
-void OhosAccessibilityManager::setOhosAccessibilityEnabled(bool isEnabled) {
-  FML_DLOG(INFO) << "OhosAccessibilityManager::setOhosAccessibilityEnabled = "
-                 << isEnabled;
+OhosAccessibilityManager::~OhosAccessibilityManager() {}
+
+/**
+ * 监听ohos平台是否开启无障碍屏幕朗读功能
+ */
+void OhosAccessibilityManager::OnAccessibilityStateChanged(
+    bool ohosAccessibilityEnabled) {}
+
+void OhosAccessibilityManager::SetOhosAccessibilityEnabled(bool isEnabled) {
   this->isOhosAccessibilityEnabled_ = isEnabled;
 }
 
-bool OhosAccessibilityManager::getOhosAccessibilityEnabled() {
+bool OhosAccessibilityManager::GetOhosAccessibilityEnabled() {
   return this->isOhosAccessibilityEnabled_;
 }
 
