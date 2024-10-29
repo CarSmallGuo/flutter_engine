@@ -26,6 +26,7 @@
 #include "third_party/skia/include/core/SkImage.h"
 #include "third_party/skia/include/gpu/GrBackendSurface.h"
 #include "third_party/skia/include/gpu/GrDirectContext.h"
+#include "types.h"
 
 #define EGL_PLATFORM_OHOS_KHR             0x34E0
 
@@ -77,16 +78,19 @@ static bool IsPixelMapYUVFormat(PIXEL_FORMAT format)
          format == PIXEL_FORMAT_YCBCR_P010 || format == PIXEL_FORMAT_YCRCB_P010;
 }
 
-
-OHOSExternalTextureGL::OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface)
-  : Texture(id), ohos_surface_(std::move(ohos_surface)), transform(SkMatrix::I())
+OHOSExternalTextureGL::OHOSExternalTextureGL(
+    int64_t id,
+    const std::shared_ptr<OHOSSurface>& ohos_surface)
+    : Texture(id),
+      ohos_surface_(std::move(ohos_surface)),
+      transform(SkMatrix::I())
 {
     state_ = AttachmentState::uninitialized;
     nativeImage_ = nullptr;
     backGroundNativeImage_ = nullptr;
     nativeWindow_ = nullptr;
     backGroundNativeWindow_ = nullptr;
-    eglContext_ =  EGL_NO_CONTEXT;
+    eglContext_ = EGL_NO_CONTEXT;
     eglDisplay_ = EGL_NO_DISPLAY;
     buffer_ = nullptr;
     backGroundBuffer_ = nullptr;
@@ -178,8 +182,9 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
   }
 
   GrBackendTexture backendTexture(1, 1, GrMipMapped::kNo, textureInfo);
+  GrSurfaceOrigin grOrigin = isEmulator_ ? kBottomLeft_GrSurfaceOrigin : kTopLeft_GrSurfaceOrigin;
   sk_sp<SkImage> image = SkImage::MakeFromTexture(
-      context.gr_context, backendTexture, kTopLeft_GrSurfaceOrigin,
+      context.gr_context, backendTexture, grOrigin,
       kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
   if (image) {
     SkAutoCanvasRestore autoRestore(context.canvas, true);
@@ -188,13 +193,8 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     // back. OpenGL's coordinate system has Positive Y equivalent to up, while
     // Skia's coordinate system has Negative Y equvalent to up.
     // 模拟器和真机在外接纹理功能的表现不一致，需要进行适配
-    if (isEmulator_) {
-      context.canvas->translate(bounds.x(), bounds.y());
-      context.canvas->scale(bounds.width(), bounds.height());
-    } else {
-      context.canvas->translate(bounds.x(), bounds.y() + bounds.height());
-      context.canvas->scale(bounds.width(), -bounds.height());
-    }
+    context.canvas->translate(bounds.x(), bounds.y() + bounds.height());
+    context.canvas->scale(bounds.width(), -bounds.height());
 
     if (!transform.isIdentity()) {
       sk_sp<SkShader> shader = image->makeShader(
@@ -410,6 +410,11 @@ void OHOSExternalTextureGL::ProduceColorToBackGroundImage(int32_t width, int32_t
     return;
   }
 
+  uint64_t usage = 0;
+  OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, GET_USAGE, &usage);
+  usage |= NATIVEBUFFER_USAGE_CPU_READ | (BUFFER_USAGE_HW_COMPOSER);
+  OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, SET_USAGE, usage);
+
   ret = OH_NativeWindow_NativeWindowRequestBuffer(backGroundNativeWindow_, &backGroundBuffer_, &backGroundFenceFd);
   if (ret != 0) {
     FML_LOG(ERROR) << "OHOSExternalTextureGL::setBackground OH_NativeWindow_NativeWindowRequestBuffer err:" << ret;
@@ -479,7 +484,7 @@ void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
 
   uint64_t usage = 0;
   OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, GET_USAGE, &usage);
-  usage |= NATIVEBUFFER_USAGE_CPU_READ;
+  usage |= NATIVEBUFFER_USAGE_CPU_READ | (BUFFER_USAGE_HW_COMPOSER);
   OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, SET_USAGE, usage);
 
   if (backGroundBuffer_ != nullptr) {
@@ -605,7 +610,7 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
 
   uint64_t usage = 0;
   OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, GET_USAGE, &usage);
-  usage |= NATIVEBUFFER_USAGE_CPU_READ;
+  usage |= NATIVEBUFFER_USAGE_CPU_READ | (BUFFER_USAGE_HW_COMPOSER);
   OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, SET_USAGE, usage);
 
   if (buffer_ != nullptr) {
