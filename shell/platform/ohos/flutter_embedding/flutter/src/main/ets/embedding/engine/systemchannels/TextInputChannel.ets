@@ -23,6 +23,9 @@ import inputMethod from '@ohos.inputMethod';
 import ArrayList from '@ohos.util.ArrayList';
 import { TextEditingDelta, TextEditingDeltaJson } from '../../../plugin/editing/TextEditingDelta';
 import Any from '../../../plugin/common/Any';
+import { display } from '@kit.ArkUI'
+import { window } from '@kit.ArkUI';
+import { BusinessError, print } from '@kit.BasicServicesKit';
 
 const TAG = "TextInputChannel";
 /// 规避换行标识无法显示问题，api修改后再删除
@@ -177,6 +180,8 @@ export interface TextInputMethodHandler {
   setPlatformViewClient(id: number, usesVirtualDisplay: boolean): void;
 
   setEditableSizeAndTransform(width: number, height: number, transform: number[]): void;
+
+  setCursorSizeAndPosition(cursorInfo: inputMethod.CursorInfo): void;
 
   setEditingState(editingState: TextEditState): void;
 
@@ -424,10 +429,49 @@ export class TextEditState {
 
 class TextInputCallback implements MethodCallHandler {
   textInputMethodHandler: TextInputMethodHandler;
-
+  windowPosition: window.Rect = {
+    left: 0,
+    top: 0,
+    width: 0,
+    height: 0,
+  };
+  cursorPosition: window.Rect = {
+    left: 0,
+    top: 0,
+    width: 0,
+    height: 0,
+  }
+  devicePixelRatio = display.getDefaultDisplaySync()?.densityPixels as number;
+  inputPosotion: window.Rect = {
+    left: 0,
+    top: 0,
+    width: 0,
+    height: 0,
+  }
   constructor(handler: TextInputMethodHandler) {
     this.textInputMethodHandler = handler;
+    const context = getContext(this) as Context
+    window.getLastWindow(context, (err: BusinessError, data: window.Window) => {
+      this.windowPosition = data.getWindowProperties().windowRect as window.Rect;
+      data.on('windowRectChange', (rect: window.RectChangeOptions) => {
+        this.windowPosition = rect.rect as window.Rect;
+        this.setCursorPosition();
+      })
+    })
+
   }
+
+  setCursorPosition() {
+    const left = (this.windowPosition.left as number) + (this.cursorPosition.left + this.inputPosotion.left) * this.devicePixelRatio;
+    const top = (this.windowPosition.top as number) + (this.cursorPosition.top + this.inputPosotion.top) * this.devicePixelRatio;
+    this.textInputMethodHandler.setCursorSizeAndPosition({
+      left: left,
+      top: top,
+      width: 100,
+      height: 50,
+    })
+  }
+
 
   onMethodCall(call: MethodCall, result: MethodResult) {
     if (this.textInputMethodHandler == null) {
@@ -466,9 +510,17 @@ class TextInputCallback implements MethodCallHandler {
         this.textInputMethodHandler.setEditingState(TextEditState.fromJson(args));
         result.success(null);
         break;
+      case "TextInput.setCaretRect":
+        this.cursorPosition.top = args.get('y');
+        this.cursorPosition.left = args.get('x');
+        this.cursorPosition.width = args.get('width');
+        this.cursorPosition.height = args.get('height');
+        this.setCursorPosition();
+        break;
       case "TextInput.setEditableSizeAndTransform":
-      //TODO:
-        result.notImplemented();
+        this.inputPosotion.left = args.get('transform')[12];
+        this.inputPosotion.top = args.get('transform')[13];
+        this.setCursorPosition();
         break;
       case "TextInput.clearClient":
         this.textInputMethodHandler.clearClient();
