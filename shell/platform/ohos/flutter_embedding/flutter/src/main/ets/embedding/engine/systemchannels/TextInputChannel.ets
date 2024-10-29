@@ -23,9 +23,9 @@ import inputMethod from '@ohos.inputMethod';
 import ArrayList from '@ohos.util.ArrayList';
 import { TextEditingDelta, TextEditingDeltaJson } from '../../../plugin/editing/TextEditingDelta';
 import Any from '../../../plugin/common/Any';
+import { display } from '@kit.ArkUI'
 import { window } from '@kit.ArkUI';
 import { BusinessError, print } from '@kit.BasicServicesKit';
-import { Rect } from '@kit.ArkGraphics3D';
 
 const TAG = "TextInputChannel";
 /// 规避换行标识无法显示问题，api修改后再删除
@@ -50,10 +50,10 @@ export default class TextInputChannel {
   }
 
   createEditingStateJSON(text: string,
-    selectionStart: number,
-    selectionEnd: number,
-    composingStart: number,
-    composingEnd: number): EditingState {
+                         selectionStart: number,
+                         selectionEnd: number,
+                         composingStart: number,
+                         composingEnd: number): EditingState {
     let state: EditingState = {
       text: text,
       selectionBase: selectionStart,
@@ -80,11 +80,11 @@ export default class TextInputChannel {
    * Instructs Flutter to update its text input editing state to reflect the given configuration.
    */
   updateEditingState(inputClientId: number,
-    text: string,
-    selectionStart: number,
-    selectionEnd: number,
-    composingStart: number,
-    composingEnd: number): void {
+                     text: string,
+                     selectionStart: number,
+                     selectionEnd: number,
+                     composingStart: number,
+                     composingEnd: number): void {
     Log.d(TAG, "updateEditingState:"
       + "Text: " + text + " Selection start: " + selectionStart + " Selection end: "
       + selectionEnd + " Composing start: " + composingStart + " Composing end: " + composingEnd);
@@ -206,17 +206,17 @@ export class Configuration {
   fields: Configuration[] = [];
 
   constructor(obscureText: boolean,
-    autocorrect: boolean,
-    enableSuggestions: boolean,
-    enableIMEPersonalizedLearning: boolean,
-    enableDeltaModel: boolean,
-    textCapitalization: TextCapitalization,
-    inputType: InputType,
-    inputAction: Number,
-    actionLabel: String,
-    autofill: boolean,
-    contentListString: [],
-    fields: Configuration[]
+              autocorrect: boolean,
+              enableSuggestions: boolean,
+              enableIMEPersonalizedLearning: boolean,
+              enableDeltaModel: boolean,
+              textCapitalization: TextCapitalization,
+              inputType: InputType,
+              inputAction: Number,
+              actionLabel: String,
+              autofill: boolean,
+              contentListString: [],
+              fields: Configuration[]
   ) {
     this.obscureText = obscureText;
     this.autocorrect = autocorrect;
@@ -363,10 +363,10 @@ export class TextEditState {
   composingEnd: number;
 
   constructor(text: string,
-    selectionStart: number,
-    selectionEnd: number,
-    composingStart: number,
-    composingEnd: number) {
+              selectionStart: number,
+              selectionEnd: number,
+              composingStart: number,
+              composingEnd: number) {
     if ((selectionStart != -1 || selectionEnd != -1)
       && (selectionStart < 0 || selectionEnd < 0)) {
       throw new Error("invalid selection: (" + selectionStart + ", " + selectionEnd + ")");
@@ -441,7 +441,13 @@ class TextInputCallback implements MethodCallHandler {
     width: 0,
     height: 0,
   }
-
+  devicePixelRatio = display.getDefaultDisplaySync()?.densityPixels as number;
+  inputPosotion: window.Rect = {
+    left: 0,
+    top: 0,
+    width: 0,
+    height: 0,
+  }
   constructor(handler: TextInputMethodHandler) {
     this.textInputMethodHandler = handler;
     const context = getContext(this) as Context
@@ -452,11 +458,12 @@ class TextInputCallback implements MethodCallHandler {
         this.setCursorPosition();
       })
     })
+
   }
 
   setCursorPosition() {
-    const left = (this.windowPosition.left as number) + this.cursorPosition.left;
-    const top = (this.windowPosition.top as number) + this.cursorPosition.top;
+    const left = (this.windowPosition.left as number) + (this.cursorPosition.left + this.inputPosotion.left) * this.devicePixelRatio;
+    const top = (this.windowPosition.top as number) + (this.cursorPosition.top + this.inputPosotion.top) * this.devicePixelRatio;
     this.textInputMethodHandler.setCursorSizeAndPosition({
       left: left,
       top: top,
@@ -464,6 +471,7 @@ class TextInputCallback implements MethodCallHandler {
       height: 50,
     })
   }
+
 
   onMethodCall(call: MethodCall, result: MethodResult) {
     if (this.textInputMethodHandler == null) {
@@ -502,9 +510,17 @@ class TextInputCallback implements MethodCallHandler {
         this.textInputMethodHandler.setEditingState(TextEditState.fromJson(args));
         result.success(null);
         break;
+      case "TextInput.setCaretRect":
+        this.cursorPosition.top = args.get('y');
+        this.cursorPosition.left = args.get('x');
+        this.cursorPosition.width = args.get('width');
+        this.cursorPosition.height = args.get('height');
+        this.setCursorPosition();
+        break;
       case "TextInput.setEditableSizeAndTransform":
-      //TODO:
-        result.notImplemented();
+        this.inputPosotion.left = args.get('transform')[12];
+        this.inputPosotion.top = args.get('transform')[13];
+        this.setCursorPosition();
         break;
       case "TextInput.clearClient":
         this.textInputMethodHandler.clearClient();
@@ -517,12 +533,6 @@ class TextInputCallback implements MethodCallHandler {
       case "TextInput.finishAutofillContext":
       //TODO:
         result.notImplemented();
-        break;
-      case "TextInput.setCursorPotion":
-        let cursorPosition: window.Rect = args[0];
-        this.cursorPosition = cursorPosition;
-        this.setCursorPosition();
-        result.success(null);
         break;
       default:
         result.notImplemented();
