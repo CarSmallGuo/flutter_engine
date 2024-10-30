@@ -38,10 +38,6 @@ namespace flutter {
   {
     FML_DLOG(INFO) << "NativeAccessibilityChannel -> OnOhosAccessibilityDisabled";
     this->SetSemanticsEnabled(shellHolderId, false);
-
-    auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
-    ohosAccessibilityBridge->ClearFlutterSemanticsCaches();
-    FML_DLOG(INFO) << "OnOhosAccessibilityDisabled -> ClearFlutterSemanticsCaches()";
   }
   
   /**
@@ -50,8 +46,6 @@ namespace flutter {
   void NativeAccessibilityChannel::SetSemanticsEnabled(int64_t shellHolderId,
                                                        bool enabled)
   {
-    FML_DLOG(INFO) << "SetSemanticsEnabled -> shellHolderId: "
-                   << shellHolderId;
     auto ohos_shell_holder =
         reinterpret_cast<OHOSShellHolder*>(shellHolderId);
     ohos_shell_holder->GetPlatformView()->SetSemanticsEnabled(enabled);
@@ -82,6 +76,9 @@ namespace flutter {
     ohos_shell_holder->GetPlatformView()->PlatformView::DispatchSemanticsAction(id, action, fml::MallocMapping());
   }
 
+  /**
+   * 更新flutter无障碍相关语义信息
+   */
   void NativeAccessibilityChannel::UpdateSemantics(
       flutter::SemanticsNodeUpdates update,
       flutter::CustomAccessibilityActionUpdates actions)
@@ -89,4 +86,23 @@ namespace flutter {
     auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
     ohos_a11y_bridge->updateSemantics(update, actions);
   }  
+
+  /**
+   * 设置无障碍消息处理器，通过无障碍通道发送处理dart侧传递的相关信息
+   */
+  void NativeAccessibilityChannel::SetAccessibilityMessageHandler(
+      std::shared_ptr<AccessibilityMessageHandler> handler)
+  {
+    this->handler = handler;
+  }
+
+  /**
+   * 利用通道内部类AccessibilityMessageHandler处理主动播报事件
+   */
+  void NativeAccessibilityChannel::AccessibilityMessageHandler::Announce(
+      std::unique_ptr<char[]>& message)
+  {
+    auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
+    ohos_a11y_bridge->Announce(message);
+  }
 }

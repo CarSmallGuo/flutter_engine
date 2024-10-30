@@ -83,9 +83,8 @@ class OhosAccessibilityBridge {
                                flutter::SemanticsAction action,
                                fml::MallocMapping args);
 
-  void announce(std::unique_ptr<char[]>& message);
+  void Announce(std::unique_ptr<char[]>& message);
 
-  // obtain the flutter semnatics node
   flutter::SemanticsNode getOrCreateFlutterSemanticsNode(int32_t id);
 
   int32_t FindAccessibilityNodeInfosById(

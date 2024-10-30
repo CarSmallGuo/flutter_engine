@@ -1907,8 +1907,8 @@ napi_value PlatformViewOHOSNapi::nativeAnnounce(
   napi_get_value_string_utf8(env, args[0], char_array.get(),
                              null_terminated_length, nullptr);
   LOGD("PlatformViewOHOSNapi::nativeAnnounce message: %{public}s", char_array.get());
-  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge->announce(char_array);
+  auto handler = std::make_shared<NativeAccessibilityChannel::AccessibilityMessageHandler>();
+  handler->Announce(char_array);
   return nullptr;
 }
 

@@ -377,7 +377,7 @@ bool OhosAccessibilityBridge::IsScrollableWidget(
 /**
  * 主动播报特定文本
  */
-void OhosAccessibilityBridge::announce(std::unique_ptr<char[]>& message)
+void OhosAccessibilityBridge::Announce(std::unique_ptr<char[]>& message)
 {
   // 创建并设置屏幕朗读事件
   ArkUI_AccessibilityEventInfo* announceEventInfo =
@@ -737,7 +737,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
     OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfoFromList, true);
     OH_ArkUI_AccessibilityElementInfoSetComponentType(elementInfoFromList,
                                                       "root");
-    OH_ArkUI_AccessibilityElementInfoSetContents(elementInfoFromList, "root_content");
+    OH_ArkUI_AccessibilityElementInfoSetContents(elementInfoFromList, flutterNode.label);
     return;
   }
 

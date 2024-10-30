@@ -14,6 +14,7 @@
  */
 #ifndef OHOS_NATIVE_ACCESSIBILITY_CHANNEL_H
 #define OHOS_NATIVE_ACCESSIBILITY_CHANNEL_H
+#include <memory>
 #include "flutter/fml/mapping.h"
 #include "flutter/lib/ui/semantics/semantics_node.h"
 #include "flutter/lib/ui/semantics/custom_accessibility_action.h"
@@ -40,15 +41,23 @@ class NativeAccessibilityChannel {
    void UpdateSemantics(flutter::SemanticsNodeUpdates update,
                         flutter::CustomAccessibilityActionUpdates actions);
 
+   class AccessibilityMessageHandler {
+    public:
+      void Announce(std::unique_ptr<char[]>& message);
+
+      void OnTap(int32_t nodeId);
+
+      void OnLongPress(int32_t nodeId);
+
+      void OnTooltip(std::unique_ptr<char[]>& message);
+   };
+
+   void SetAccessibilityMessageHandler(
+      std::shared_ptr<AccessibilityMessageHandler> handler);
+   
+ private:
+    std::shared_ptr<AccessibilityMessageHandler> handler;
 };
-
-class AccessibilityDelegate {
- public:
-    AccessibilityDelegate();
-    ~AccessibilityDelegate();
-
-};
-
 }
 
 #endif 
