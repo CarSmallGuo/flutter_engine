@@ -185,6 +185,10 @@ if (enable_unittests) {
       "fixtures/shelltest_screenshot.png",
       "fixtures/hello_loop_2.gif",
     ]
+
+    if (is_ohos) {
+      dest = "/data/flutter_unittests/common"
+    }
   }
 
   shell_host_executable("shell_benchmarks") {
@@ -284,16 +288,12 @@ if (enable_unittests) {
     testonly = true
 
     sources = [
-      "animator_unittests.cc",
       "canvas_spy_unittests.cc",
       "context_options_unittests.cc",
       "engine_unittests.cc",
-      "input_events_unittests.cc",
-      "persistent_cache_unittests.cc",
       "pipeline_unittests.cc",
       "rasterizer_unittests.cc",
       "resource_cache_limit_calculator_unittests.cc",
-      "shell_unittests.cc",
       "switches_unittests.cc",
       "variable_refresh_rate_display_unittests.cc",
       "vsync_waiter_unittests.cc",
@@ -310,6 +310,15 @@ if (enable_unittests) {
       "//third_party/googletest:gmock",
     ]
 
+    if (!is_ohos) {
+        sources += [
+          "animator_unittests.cc",
+          "input_events_unittests.cc",
+          "persistent_cache_unittests.cc",
+          "shell_unittests.cc",
+        ]
+    }
+
     if (is_fuchsia) {
       sources += [ "shell_fuchsia_unittests.cc" ]
 
@@ -319,7 +328,7 @@ if (enable_unittests) {
         "$fuchsia_sdk_root/pkg:fidl_cpp",
         "$fuchsia_sdk_root/pkg:sys_cpp",
       ]
-    } else {
+    } else if (!is_ohos) {
       # TODO(63837): This test is hard-coded to use a TestGLSurface so it cannot run on fuchsia.
       sources += [ "shell_io_manager_unittests.cc" ]
 
