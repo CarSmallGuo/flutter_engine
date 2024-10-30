@@ -45,12 +45,14 @@ void OhosAccessibilityBridge::OnOhosAccessibilityStateChange(
 {
   native_shell_holder_id_ = shellHolderId;
   auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
+
   if (ohosAccessibilityEnabled) {
     FML_DLOG(INFO) << "OnOhosAccessibilityEnabled()";
     nativeAccessibilityChannel_->OnOhosAccessibilityEnabled(native_shell_holder_id_);
   } else {
     FML_DLOG(INFO) << "OnOhosAccessibilityEnabled()";
     nativeAccessibilityChannel_->OnOhosAccessibilityDisabled(native_shell_holder_id_);
+    ClearFlutterSemanticsCaches();
   }
 }
 
@@ -656,8 +658,6 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
       // 防止溢出屏幕坐标
       newTop = realParentTop - rootBottom;
       newBottom = realParentBottom - rootBottom; 
-      // newTop =  static_cast<int32_t>(newTop) % static_cast<int32_t>(rootBottom);
-      // newBottom = static_cast<int32_t>(newBottom) % static_cast<int32_t>(rootBottom);
       SetAbsoluteScreenRect(currNode.id, newLeft, newTop, newRight,
                             newBottom);
     } else {
@@ -737,6 +737,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
     OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfoFromList, true);
     OH_ArkUI_AccessibilityElementInfoSetComponentType(elementInfoFromList,
                                                       "root");
+    OH_ArkUI_AccessibilityElementInfoSetContents(elementInfoFromList, "root_content");
     return;
   }
 
@@ -924,7 +925,8 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
                                                         text.c_str());
   FML_DLOG(INFO) << "FlutterNodeToElementInfoById SetAccessibilityText = "
                  << text;
-
+  //set contents (same as AccessibilityText)
+  OH_ArkUI_AccessibilityElementInfoSetContents(elementInfoFromList, text.c_str());
   std::string hint = flutterNode.hint;
   OH_ArkUI_AccessibilityElementInfoSetHintText(elementInfoFromList,
                                                hint.c_str());
