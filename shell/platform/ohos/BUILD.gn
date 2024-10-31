@@ -176,6 +176,12 @@ executable("flutter_ohos_unittests") {
 
   sources = [
     #"testing/mock_texture_registrar.cc",
+    "testing/ohos_assert_provider_unittests.cpp",
+    "testing/ohos_context_gl_skia_uinttests.cpp",
+    "testing/ohos_display_uinttests.cpp",
+    "testing/ohos_egl_surface_unittests.cpp",
+    "testing/ohos_environment_gl_unittests.cpp",
+    "testing/ohos_external_texture_gl_unittests.cpp",
     "testing/ohos_surface_gl_skia_unittests.cpp",
     "testing/ohos_surface_software_unittests.cpp",
     "testing/ohos_touch_processor_unittests.cpp",
