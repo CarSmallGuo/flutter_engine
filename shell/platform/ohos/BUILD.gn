@@ -182,6 +182,11 @@ executable("flutter_ohos_unittests") {
     "testing/ohos_egl_surface_unittests.cpp",
     "testing/ohos_environment_gl_unittests.cpp",
     "testing/ohos_external_texture_gl_unittests.cpp",
+    "testing/ohos_surface_gl_skia_unittests.cpp",
+    "testing/ohos_surface_software_unittests.cpp",
+    "testing/ohos_touch_processor_unittests.cpp",
+    "testing/ohos_xcomponent_adapter_unittests.cpp",
+    "testing/vsync_waiter_ohos_unittests.cpp",
   ]
 
   public_configs = [ "//flutter:config" ]

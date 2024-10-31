@@ -22,6 +22,7 @@ import inputMethod from '@ohos.inputMethod';
 import Log from '../../util/Log';
 import { EditingStateWatcher, ListenableEditingState } from './ListenableEditingState';
 import Any from '../common/Any';
+import { inputDevice } from '@kit.InputKit';
 
 /// 临时规避缺少newline对应枚举问题
 const NEWLINE_KEY_TYPE: number = 8;
@@ -78,9 +79,11 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   mEditable: ListenableEditingState;
   private mRestartInputPending: boolean = false;
   private plugin: EditingStateWatcher | Any;
-  private inputTypeNone: string = 'NONE'
+  private imcFlag: boolean = false;
+  private inputTypeNone: string = 'NONE';
   private keyboardStatus: inputMethod.KeyboardStatus = inputMethod.KeyboardStatus.HIDE;
-  private inputAttribute: inputMethod.InputAttribute = { textInputType: 0, enterKeyType: 1 }
+  private inputAttribute: inputMethod.InputAttribute = { textInputType: 0, enterKeyType: 1 };
+  private keyboardFocusState: boolean = false
 
   constructor(plugin: TextInputPlugin | Any) {
     this.textConfig = {
@@ -95,6 +98,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   /// 通过判断是否是TextInputType.none来决定是否弹出键盘
   show(): void {
     if (this.canShowTextInput()) {
+      this.keyboardFocusState = true;
       this.showTextInput();
     } else {
       this.hide();
@@ -102,6 +106,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   hide(): void {
+    this.keyboardFocusState = false;
     this.hideTextInput();
   }
 
@@ -126,6 +131,10 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   }
 
+  setCursorSizeAndPosition(cursorInfo: inputMethod.CursorInfo) {
+    this.inputMethodController.updateCursor(cursorInfo)
+  }
+
   setEditingState(editingState: TextEditState): void {
     Log.d(TextInputMethodHandlerImpl.TAG,
       "text:" + editingState.text + " selectionStart:" + editingState.selectionStart + " selectionEnd:"
@@ -143,11 +152,15 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       return;
     }
     await this.attach(true);
-    this.listenKeyBoardEvent();
+    if (!this.imcFlag) {
+      this.listenKeyBoardEvent();
+    }
   }
 
   private async hideTextInput(): Promise<void> {
     this.inputMethodController.detach();
+    this.keyboardStatus = inputMethod.KeyboardStatus.NONE;
+    this.cancelListenKeyBoardEvent();
   }
 
   async attach(showKeyboard: boolean): Promise<void> {
@@ -158,8 +171,33 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     }
   }
 
+  handleChangeFocus(focusState: boolean) {
+    try {
+      inputDevice.getDeviceList((Error: Error, ids: Array<number>) => {
+        let isPhysicalKeyboard = false;
+        for (let i = 0; i < ids.length; i++) {
+          const type = inputDevice.getKeyboardTypeSync(ids[i]);
+          if (type == inputDevice.KeyboardType.ALPHABETIC_KEYBOARD || type == inputDevice.KeyboardType.DIGITAL_KEYBOARD) {
+            isPhysicalKeyboard = true;
+            break;
+          }
+        }
+
+        if(focusState && isPhysicalKeyboard && this.keyboardFocusState) {
+          this.cancelListenKeyBoardEvent();
+          this.inputMethodController.detach().then(async () =>{
+            await this.attach(true);
+            this.listenKeyBoardEvent();
+          })
+        }
+      })
+    } catch (error) {
+      Log.e(TextInputMethodHandlerImpl.TAG, `Failed to query device. Code is ${error.code}, message is ${error.message}`)
+    }
+  }
+
   async updateAttribute(): Promise<void> {
-    if (this.keyboardStatus == inputMethod.KeyboardStatus.HIDE) {
+    if (this.keyboardStatus != inputMethod.KeyboardStatus.SHOW) {
       return;
     }
     try {
@@ -252,6 +290,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       return;
     }
     Log.d(TextInputMethodHandlerImpl.TAG, "listenKeyBoardEvent success");
+    this.imcFlag = true;
   }
 
   private insertTextCallback = (text: string) => {
@@ -279,8 +318,6 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.keyboardStatus = state;
     if (state == inputMethod.KeyboardStatus.HIDE) {
       this.plugin.textInputChannel.onConnectionClosed(this.inputTarget.id);
-      this.hideTextInput()
-      this.cancelListenKeyBoardEvent()
     }
   }
 
@@ -289,12 +326,13 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   cancelListenKeyBoardEvent(): void {
-    this.inputMethodController.off('insertText', this.insertTextCallback);
-    this.inputMethodController.off('deleteLeft', this.deleteLeftCallback);
-    this.inputMethodController.off('deleteRight', this.deleteRightCallback);
-    this.inputMethodController.off('sendFunctionKey', this.sendFunctionKeyCallback);
-    this.inputMethodController.off('sendKeyboardStatus', this.sendKeyboardStatusCallback);
-    this.inputMethodController.off('selectByRange', this.selectByRangeCallback);
+    this.inputMethodController?.off('insertText', this.insertTextCallback);
+    this.inputMethodController?.off('deleteLeft', this.deleteLeftCallback);
+    this.inputMethodController?.off('deleteRight', this.deleteRightCallback);
+    this.inputMethodController?.off('sendFunctionKey', this.sendFunctionKeyCallback);
+    this.inputMethodController?.off('sendKeyboardStatus', this.sendKeyboardStatusCallback);
+    this.inputMethodController?.off('selectByRange', this.selectByRangeCallback);
+    this.imcFlag = false;
   }
 
   public clearTextInputClient(): void {
