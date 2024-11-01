@@ -176,10 +176,22 @@ executable("flutter_ohos_unittests") {
 
   sources = [
     #"testing/mock_texture_registrar.cc",
+    "testing/ohos_assert_provider_unittests.cpp",
+    "testing/ohos_context_gl_skia_uinttests.cpp",
+    "testing/ohos_display_uinttests.cpp",
+    "testing/ohos_egl_surface_unittests.cpp",
+    "testing/ohos_environment_gl_unittests.cpp",
+    "testing/ohos_external_texture_gl_unittests.cpp",
+    "testing/ohos_surface_gl_skia_unittests.cpp",
+    "testing/ohos_surface_software_unittests.cpp",
+    "testing/ohos_touch_processor_unittests.cpp",
+    "testing/ohos_xcomponent_adapter_unittests.cpp",
+    "testing/vsync_waiter_ohos_unittests.cpp",
   ]
 
   public_configs = [ "//flutter:config" ]
 
+  cflags = ["-Wno-deprecated-declarations"]
 
   defines = [
     "FLUTTER_ENGINE_NO_PROTOTYPES",
@@ -197,6 +209,15 @@ executable("flutter_ohos_unittests") {
     "//flutter/shell/platform/embedder:embedder_test_utils",
     "//flutter/testing",
   ]
+
+  ldflags = ["-lace_ndk.z"]
+  ldflags += ["-lnative_window"]
+  ldflags += ["-lnative_vsync"]
+  ldflags += ["-limage_ndk.z"]
+  ldflags += ["-lrawfile.z"]
+  ldflags += ["-lnative_image"]
+  ldflags += ["-lpixelmap_ndk.z"]
+  ldflags += ["-lqos"]
 }
 
 shared_library("flutter_shell_native") {

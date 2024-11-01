@@ -61,6 +61,7 @@ export struct FlutterPage {
           Log.d(TAG, "XComponent onDestroy ");
           this.flutterView?.onSurfaceDestroyed()
         })
+        .renderFit(RenderFit.TOP_LEFT)
         .backgroundColor(Color.Transparent)
 
       if (this.showSplashScreen) {
@@ -114,6 +115,7 @@ export struct FlutterPage {
           Log.d(TAG, "XComponent onDestroy ");
           this.flutterView?.onSurfaceDestroyed()
         })
+        .renderFit(RenderFit.TOP_LEFT)
         .backgroundColor(Color.Transparent)
 
       if (this.showSplashScreen) {
@@ -183,7 +185,7 @@ export struct FlutterPage {
 
   aboutToDisappear() {
     this.flutterView?.removeFirstFrameListener(this);
-    getContext().eventHub.off(OHOS_FLUTTER_PAGE_UPDATE)
+    getContext()?.eventHub.off(OHOS_FLUTTER_PAGE_UPDATE)
   }
 
   onFirstFrame() {

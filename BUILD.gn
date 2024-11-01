@@ -171,6 +171,7 @@ group("unittests") {
     if (is_ohos) {
       public_deps += [
         "//flutter/fml/:fml_unittests",
+        "//flutter/shell/platform/ohos:flutter_ohos_unittests",
       ]
     }
 
