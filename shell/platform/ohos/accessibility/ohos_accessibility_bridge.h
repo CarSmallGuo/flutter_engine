@@ -47,7 +47,6 @@ struct AbsoluteRect {
 struct SemanticsNodeExtent : flutter::SemanticsNode {
   int32_t parentId = -1;
   AbsoluteRect abRect = AbsoluteRect::MakeEmpty();
-
   int32_t previousFlags;
   int32_t previousActions;
   int32_t previousTextSelectionBase;
@@ -61,10 +60,10 @@ struct SemanticsNodeExtent : flutter::SemanticsNode {
 
 class OhosAccessibilityBridge {
  public:
-  OhosAccessibilityBridge();
-  ~OhosAccessibilityBridge();
-
   static OhosAccessibilityBridge* GetInstance();
+  static void DestroyInstance();
+  OhosAccessibilityBridge(const OhosAccessibilityBridge&) = delete;
+  OhosAccessibilityBridge& operator=(const OhosAccessibilityBridge&) = delete;
 
   bool IS_FLUTTER_NAVIGATE = false;
   int64_t native_shell_holder_id_;
@@ -143,7 +142,8 @@ class OhosAccessibilityBridge {
   void ClearFlutterSemanticsCaches();
 
  private:
-  static OhosAccessibilityBridge bridgeInstance;
+  OhosAccessibilityBridge();
+  static OhosAccessibilityBridge* bridgeInstance;
   std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
 
   static const int32_t ROOT_NODE_ID = 0;
@@ -155,7 +155,7 @@ class OhosAccessibilityBridge {
   flutter::SemanticsNode accessibilityFocusedNode;
 
   std::vector<std::pair<int32_t, int32_t>> parentChildIdVec;
-  std::unordered_map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
+  std::map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
   std::unordered_map<
       int32_t,
       std::pair<std::pair<float, float>, std::pair<float, float>>>

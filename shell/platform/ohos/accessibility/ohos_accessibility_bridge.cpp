@@ -25,15 +25,21 @@
 
 namespace flutter {
 
-OhosAccessibilityBridge OhosAccessibilityBridge::bridgeInstance;
+OhosAccessibilityBridge* OhosAccessibilityBridge::bridgeInstance = nullptr;
 
 OhosAccessibilityBridge::OhosAccessibilityBridge() {}
 
-OhosAccessibilityBridge::~OhosAccessibilityBridge() {}
-
 OhosAccessibilityBridge* OhosAccessibilityBridge::GetInstance() 
 {
-  return &OhosAccessibilityBridge::bridgeInstance;
+  if(!bridgeInstance) {
+    bridgeInstance = new OhosAccessibilityBridge();
+  }
+  return bridgeInstance;
+}
+
+void OhosAccessibilityBridge::DestroyInstance() {
+  delete bridgeInstance;
+  bridgeInstance = nullptr;
 }
 
 /**
@@ -52,7 +58,6 @@ void OhosAccessibilityBridge::OnOhosAccessibilityStateChange(
   } else {
     FML_DLOG(INFO) << "OnOhosAccessibilityEnabled()";
     nativeAccessibilityChannel_->OnOhosAccessibilityDisabled(native_shell_holder_id_);
-    ClearFlutterSemanticsCaches();
   }
 }
 
@@ -342,7 +347,6 @@ SemanticsNodeExtent OhosAccessibilityBridge::SetAndGetSemanticsNodeExtent(
   nodeEx.childrenInHitTestOrder = std::move(node.childrenInHitTestOrder);
   nodeEx.customAccessibilityActions =
       std::move(node.customAccessibilityActions);
-
   return nodeEx;
 }
 
@@ -630,15 +634,7 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
       newRight = realParentRight;
       newBottom = realParentBottom;
     } else {
-      /**
-       * 子节点的屏幕绝对坐标转换，包括offset偏移值计算、缩放系数变换 (初期版本)
-       * newLeft = (currLeft + _kMTransX) * realScaleFactor;
-       * newTop = (currTop + _kMTransY) * realScaleFactor;
-       * newRight = (currLeft + _kMTransX + currRight) * realScaleFactor;
-       * newBottom = (currTop + _kMTransY + currBottom) * realScaleFactor;
-       */
       // 子节点的屏幕绝对坐标转换，包括offset偏移值计算、缩放系数变换
-      // （增强版本）
       newLeft = (currLeft + _kMTransX) * realScaleFactor + realParentLeft;
       newTop = (currTop + _kMTransY) * realScaleFactor + realParentTop;
       newRight =
@@ -717,12 +713,13 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
                                                            false);
 
     // 配置child节点信息
+    auto flutterChildVec = flutterNode.childrenInTraversalOrder;
     int32_t childCount =
-        static_cast<int32_t>(flutterNode.childrenInTraversalOrder.size());
+        static_cast<int32_t>(flutterChildVec.size());
     int64_t childNodeIds[childCount];
     for (int32_t i = 0; i < childCount; i++) {
       childNodeIds[i] =
-          static_cast<int64_t>(flutterNode.childrenInTraversalOrder[i]);
+          static_cast<int64_t>(flutterChildVec[i]);
       FML_DLOG(INFO)
           << "FlutterNodeToElementInfoById -> elementid=0 childCount="
           << childCount << " childNodeIds=" << childNodeIds[i];
@@ -737,7 +734,7 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
     OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfoFromList, true);
     OH_ArkUI_AccessibilityElementInfoSetComponentType(elementInfoFromList,
                                                       "root");
-    OH_ArkUI_AccessibilityElementInfoSetContents(elementInfoFromList, flutterNode.label);
+    OH_ArkUI_AccessibilityElementInfoSetContents(elementInfoFromList, flutterNode.label.c_str());
     return;
   }
 
@@ -932,12 +929,15 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
                                                hint.c_str());
 
   // set chidren elementinfo ids
+  auto flutterChildVec = flutterNode.childrenInTraversalOrder;
+  //按照升序排列孩子数组id
+  std::sort(flutterChildVec.begin(), flutterChildVec.end());
   int32_t childCount =
-      static_cast<int32_t>(flutterNode.childrenInTraversalOrder.size());
+      static_cast<int32_t>(flutterChildVec.size());
   int64_t childNodeIds[childCount];
   for (int32_t i = 0; i < childCount; i++) {
     childNodeIds[i] =
-        static_cast<int64_t>(flutterNode.childrenInTraversalOrder[i]);
+        static_cast<int64_t>(flutterChildVec[i]);
     FML_DLOG(INFO) << "FlutterNodeToElementInfoById -> elementid=" << elementId
                    << " childCount=" << childCount
                    << " childNodeIds=" << childNodeIds[i];
