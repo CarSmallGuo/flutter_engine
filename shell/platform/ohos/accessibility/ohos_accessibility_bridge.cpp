@@ -177,12 +177,6 @@ void OhosAccessibilityBridge::updateSemantics(
       continue;
     }
 
-    // 判断flutter节点是否获焦
-    if (IsNodeFocusable(node)) {
-      FML_DLOG(INFO) << "UpdateSemantics -> flutterNode is focusable, node.id="
-                     << node.id;
-    }
-
     // 获取当前flutter节点的全部子节点数量，并构建父子节点id映射关系
     int32_t childNodeCount = node.childrenInTraversalOrder.size();
     for (int32_t i = 0; i < childNodeCount; i++) {
@@ -1180,6 +1174,9 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
   }
 
   auto flutterNode = getOrCreateFlutterSemanticsNode(static_cast<int32_t>(elementId));
+  if(!IsNodeVisible(flutterNode)) {
+    return ARKUI_ACCESSIBILITY_NATIVE_RESULT_FAILED;
+  }
 
   if (mode == ArkUI_AccessibilitySearchMode::
                   ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_CURRENT) {
@@ -1954,6 +1951,8 @@ void OhosAccessibilityBridge::GetSemanticsFlagsDebugInfo(
     flutter::SemanticsNode node)
 {
   FML_DLOG(INFO) << "----------------SemanticsFlags-------------------------";
+  FML_DLOG(INFO) << "node.id=" << node.id;
+  FML_DLOG(INFO) << "node.label=" << node.label;
   FML_DLOG(INFO) << "kHasCheckedState: "
                  << node.HasFlag(FLAGS_::kHasCheckedState);
   FML_DLOG(INFO) << "kIsChecked:" << node.HasFlag(FLAGS_::kIsChecked);
