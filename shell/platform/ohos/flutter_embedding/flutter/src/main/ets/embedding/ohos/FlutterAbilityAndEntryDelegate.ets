@@ -27,7 +27,6 @@ import FlutterInjector from '../../FlutterInjector';
 import UIAbility from '@ohos.app.ability.UIAbility';
 import ExclusiveAppComponent from './ExclusiveAppComponent';
 import AbilityConstant from '@ohos.app.ability.AbilityConstant';
-import TextInputPlugin from '../../plugin/editing/TextInputPlugin';
 import { FlutterPlugin } from '../engine/plugins/FlutterPlugin';
 import FlutterEngineCache from '../engine/FlutterEngineCache';
 import FlutterEngineGroupCache from '../engine/FlutterEngineGroupCache';
@@ -51,7 +50,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
   flutterEngine?: FlutterEngine | null;
   platformPlugin?: PlatformPlugin;
   protected context?: common.Context;
-  protected textInputPlugin?: TextInputPlugin;
   protected isFlutterEngineFromHostOrCache: boolean = false;
   private engineGroup?: FlutterEngineGroup;
   private isHost:boolean = false;
@@ -87,7 +85,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
     //configureFlutterEngine
     this.isAttached = true;
     if (this.flutterEngine) {
-      this.textInputPlugin = new TextInputPlugin(this.flutterEngine.getTextInputChannel()!);
       this.flutterEngine.getSystemLanguages();
     }
     if (this.flutterEngine && this.flutterView && this.host?.attachToEngineAutomatically()) {
@@ -271,7 +268,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
   release() {
     this.host = null;
     this.flutterEngine = null;
-    this.textInputPlugin = undefined;
     this.platformPlugin = undefined;
   }
 

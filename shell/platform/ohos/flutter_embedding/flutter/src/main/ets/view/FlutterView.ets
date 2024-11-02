@@ -25,6 +25,7 @@ import ArrayList from '@ohos.util.ArrayList';
 import { EmbeddingNodeController } from '../embedding/ohos/EmbeddingNodeController';
 import PlatformView, { Params } from '../plugin/platform/PlatformView';
 import { JSON } from '@kit.ArkTS';
+import TextInputPlugin from '../plugin/editing/TextInputPlugin';
 
 const TAG = "FlutterViewTag";
 
@@ -120,6 +121,7 @@ export class FlutterView {
   private keyboardManager: KeyboardManager | null = null;
   private mainWindow: window.Window | null = null;
   private mouseCursorPlugin?: MouseCursorPlugin;
+  private textInputPlugin?: TextInputPlugin;
   private uiContext?: UIContext | undefined;
   private settings?: Settings;
   private mFirstFrameListeners: ArrayList<FirstFrameListener>;
@@ -285,7 +287,6 @@ export class FlutterView {
     }
     Log.i(TAG, "attachToFlutterEngine");
     this.flutterEngine = flutterEngine;
-    this.keyboardManager = new KeyboardManager(flutterEngine);
     if (this.isSurfaceAvailableForRendering) {
       this.flutterEngine.getFlutterNapi().xComponentAttachFlutterEngine(this.id)
     }
@@ -306,6 +307,8 @@ export class FlutterView {
 
     let windowId = this.mainWindow?.getWindowProperties()?.id ?? 0
     this.mouseCursorPlugin = new MouseCursorPlugin(windowId, this.flutterEngine?.getMouseCursorChannel()!);
+    this.textInputPlugin = new TextInputPlugin(this.flutterEngine?.getTextInputChannel()!);
+    this.keyboardManager = new KeyboardManager(flutterEngine, this.textInputPlugin!);
     this.settings = new Settings(this.flutterEngine.getSettingsChannel()!);
     this.sendSettings();
     this.isFlutterUiDisplayed = this.flutterEngine.getFlutterNapi().isDisplayingFlutterUi;
@@ -327,6 +330,7 @@ export class FlutterView {
     this.flutterEngine?.getPlatformViewsController()?.detachFromView();
     this.flutterEngine = null;
     this.keyboardManager = null;
+    this.textInputPlugin?.destroy();
   }
 
   onWindowCreated() {
