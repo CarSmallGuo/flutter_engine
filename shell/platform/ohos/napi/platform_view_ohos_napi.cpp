@@ -1981,9 +1981,8 @@ napi_value PlatformViewOHOSNapi::nativeSetFontWeightScale(napi_env env, napi_cal
                     << ret;
     return nullptr;
   }
-  // accessibility features get the params
-  auto ohosAccessibilityFeatures = OhosAccessibilityFeatures::GetInstance();
-  ohosAccessibilityFeatures->SetBoldText(fontWeightScale, shell_holder);
+  auto accessibilityFeatures = std::make_shared<OhosAccessibilityFeatures>();
+  accessibilityFeatures->SetBoldText(fontWeightScale, shell_holder);
   FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetFontWeightScale -> shell_holder: "
                  << shell_holder
                  << " fontWeightScale: "<< fontWeightScale;

@@ -24,6 +24,7 @@
 #include "flutter/lib/ui/semantics/custom_accessibility_action.h"
 #include "flutter/lib/ui/semantics/semantics_node.h"
 #include "native_accessibility_channel.h"
+#include "ohos_accessibility_features.h"
 namespace flutter {
 
 typedef flutter::SemanticsFlags FLAGS_;
@@ -138,13 +139,14 @@ class OhosAccessibilityBridge {
   void FlutterScrollExecution(
       flutter::SemanticsNode node,
       ArkUI_AccessibilityElementInfo* elementInfoFromList);
-
+  
   void ClearFlutterSemanticsCaches();
 
  private:
   OhosAccessibilityBridge();
   static OhosAccessibilityBridge* bridgeInstance;
   std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
+  std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
 
   static const int32_t ROOT_NODE_ID = 0;
   constexpr static const double SCROLL_EXTENT_FOR_INFINITY = 100000.0;
@@ -268,7 +270,7 @@ class OhosAccessibilityBridge {
   void GetCustomActionDebugInfo(
       flutter::CustomAccessibilityAction customAccessibilityAction);
 
-  void PageStateUpdate(int64_t elementId);
+  void PageStateUpdate();
   void RequestFocusWhenPageUpdate();
 
   bool Contains(const std::string source, const std::string target);

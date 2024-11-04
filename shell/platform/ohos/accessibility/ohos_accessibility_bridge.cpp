@@ -51,12 +51,14 @@ void OhosAccessibilityBridge::OnOhosAccessibilityStateChange(
 {
   native_shell_holder_id_ = shellHolderId;
   nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
+  accessibilityFeatures_ = std::make_shared<OhosAccessibilityFeatures>();
 
   if (ohosAccessibilityEnabled) {
     FML_DLOG(INFO) << "OnOhosAccessibilityEnabled()";
     nativeAccessibilityChannel_->OnOhosAccessibilityEnabled(native_shell_holder_id_);
   } else {
     FML_DLOG(INFO) << "OnOhosAccessibilityEnabled()";
+    accessibilityFeatures_->SetAccessibleNavigation(false, native_shell_holder_id_);
     nativeAccessibilityChannel_->OnOhosAccessibilityDisabled(native_shell_holder_id_);
   }
 }
@@ -99,11 +101,6 @@ void OhosAccessibilityBridge::updateSemantics(
      * 来添加新增的语义节点会导致已有key值自动忽略，不会更新原有key对应的value
      */
     flutterSemanticsTree_[node.id] = node;
-
-    // 若当前更新节点是隐藏的，则跳过
-    if (node.HasFlag(FLAGS_::kIsHidden)) {
-      continue;
-    }
 
     // 获取当前flutter节点的全部子节点数量，并构建父子节点id映射关系
     int32_t childNodeCount = node.childrenInTraversalOrder.size();
@@ -230,7 +227,7 @@ void OhosAccessibilityBridge::FlutterScrollExecution(
 /**
  * 当页面状态更新事件，在页面转换、切换、调整大小时发送页面状态更新事件
  */
-void OhosAccessibilityBridge::PageStateUpdate(int64_t elementId) 
+void OhosAccessibilityBridge::PageStateUpdate() 
 {
   ArkUI_AccessibilityEventInfo* pageUpdateEventInfo =
       OH_ArkUI_CreateAccessibilityEventInfo();
@@ -241,8 +238,8 @@ void OhosAccessibilityBridge::PageStateUpdate(int64_t elementId)
   OH_ArkUI_AccessibilityEventSetEventType(
       pageUpdateEventInfo,
       ArkUI_AccessibilityEventType::
-          ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ACCESSIBILITY_FOCUS_CLEARED);
-  FlutterNodeToElementInfoById(_elementInfo, elementId);
+          ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_PAGE_CONTENT_UPDATE);
+  // FlutterNodeToElementInfoById(_elementInfo, elementId);
   OH_ArkUI_AccessibilityEventSetElementInfo(pageUpdateEventInfo, _elementInfo);
 
   auto callback = [](int32_t errorCode) {
@@ -1014,6 +1011,10 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
     return ARKUI_ACCESSIBILITY_NATIVE_RESULT_FAILED;
   }
 
+  // 开启无障碍导航功能
+  accessibilityFeatures_->SetAccessibleNavigation(true, 
+                                                  native_shell_holder_id_);
+
   // 从elementinfolist中获取elementinfo
   ArkUI_AccessibilityElementInfo* elementInfoFromList =
       OH_ArkUI_AddAndGetAccessibilityElementInfo(elementList);
@@ -1023,6 +1024,7 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
     return ARKUI_ACCESSIBILITY_NATIVE_RESULT_FAILED;
   }
 
+  // 过滤非当前屏幕显示的语义节点创建、配置，防止溢出屏幕坐标绘制bug以及优化性能开销
   auto flutterNode = GetFlutterSemanticsNode(static_cast<int32_t>(elementId));
   bool VISIBLE_STATE = elementId == -1;
   if (!VISIBLE_STATE && !IsNodeVisible(flutterNode)) {
@@ -1098,7 +1100,6 @@ void OhosAccessibilityBridge::DispatchSemanticsAction(
     flutter::SemanticsAction action,
     fml::MallocMapping args)
 {
-  nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
   nativeAccessibilityChannel_->DispatchSemanticsAction(native_shell_holder_id_,
                                                        id,
                                                        action,
