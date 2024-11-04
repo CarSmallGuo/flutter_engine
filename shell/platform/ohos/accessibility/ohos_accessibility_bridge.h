@@ -84,7 +84,7 @@ class OhosAccessibilityBridge {
 
   void Announce(std::unique_ptr<char[]>& message);
 
-  flutter::SemanticsNode getOrCreateFlutterSemanticsNode(int32_t id);
+  flutter::SemanticsNode GetFlutterSemanticsNode(int32_t id);
 
   int32_t FindAccessibilityNodeInfosById(
       int64_t elementId,
@@ -229,7 +229,7 @@ class OhosAccessibilityBridge {
   void FlutterTreeToArkuiTree(
       ArkUI_AccessibilityElementInfoList* elementInfoList);
 
-  flutter::SemanticsNode getFlutterRootSemanticsNode();
+  flutter::SemanticsNode GetFlutterRootSemanticsNode();
   std::string GetNodeComponentType(const flutter::SemanticsNode& node);
   flutter::SemanticsAction ArkuiActionsToFlutterActions(
       ArkUI_Accessibility_ActionType arkui_action);
