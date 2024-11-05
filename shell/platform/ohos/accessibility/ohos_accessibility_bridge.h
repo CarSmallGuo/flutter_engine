@@ -230,6 +230,10 @@ class OhosAccessibilityBridge {
       std::string widget_type);
   void FlutterTreeToArkuiTree(
       ArkUI_AccessibilityElementInfoList* elementInfoList);
+  void BuildArkUISemanticsTree(
+      int64_t elementId,
+      ArkUI_AccessibilityElementInfo* elementInfoFromList,
+      ArkUI_AccessibilityElementInfoList* elementList);
 
   flutter::SemanticsNode GetFlutterRootSemanticsNode();
   std::string GetNodeComponentType(const flutter::SemanticsNode& node);
