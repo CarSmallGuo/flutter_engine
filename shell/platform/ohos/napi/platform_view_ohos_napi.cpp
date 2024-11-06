@@ -33,6 +33,7 @@
 #include "unicode/uchar.h"
 #include "flutter/shell/platform/ohos/ohos_xcomponent_adapter.h"
 #include "flutter/shell/platform/ohos/ohos_logging.h"
+#include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
 
 #define OHOS_SHELL_HOLDER (reinterpret_cast<OHOSShellHolder*>(shell_holder))
 namespace flutter {
@@ -2007,6 +2008,49 @@ napi_value PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol(napi_env
 
   napi_value result;
   napi_create_int32(env, (int)is_emoji, &result);
+  return result;
+}
+
+napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callback_info info)
+{
+  size_t argc = 2;
+  napi_value result;
+  napi_value args[2] = {nullptr};
+  napi_status ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (ret != napi_ok) {
+    LOGE("nativeSetDVsyncSwitch napi_get_cb_info error");
+    napi_create_int32(env, -1, &result);
+    return result;
+  }
+
+  int64_t shell_holder;
+  ret = napi_get_value_int64(env, args[0], &shell_holder);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeSetDVsyncSwitch shell_holder "
+                       "napi_get_value_int64 error";
+    return nullptr;
+  }
+
+  bool isEnable;
+  ret = napi_get_value_bool(env, args[1], &isEnable);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeSetDVsyncSwitch isEnable "
+                       "napi_get_value_bool error";
+    return nullptr;
+  }
+
+  auto vsyncWaiter = std::shared_ptr<flutter::VsyncWaiter>(OHOS_SHELL_HOLDER->GetVsyncWaiter().lock());
+  auto vsync_waiter_ohos = std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsyncWaiter);
+
+  if (isEnable) {
+    LOGD("EnableDVsync");
+    vsync_waiter_ohos->EnableDVsync();
+  } else {
+    LOGD("DisableDVsync");
+    vsync_waiter_ohos->DisableDVsync();
+  }
+
+  napi_create_int32(env, 0, &result);
   return result;
 }
 }  // namespace flutter

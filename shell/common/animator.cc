@@ -38,7 +38,7 @@ Animator::Animator(Delegate& delegate,
           task_runners.GetPlatformTaskRunner() ==
                   task_runners.GetRasterTaskRunner()
               ? 1
-              : 2)),
+              : 4)),
 #endif  // SHELL_ENABLE_METAL
       pending_frame_semaphore_(1),
       weak_factory_(this) {

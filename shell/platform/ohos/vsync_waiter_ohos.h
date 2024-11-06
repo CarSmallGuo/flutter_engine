@@ -16,6 +16,7 @@
 #ifndef VSYNC_WAITER_OHOS_H
 #define VSYNC_WAITER_OHOS_H
 #include <memory>
+#include <atomic>
 
 #include <native_vsync/native_vsync.h>
 #include "flutter/fml/macros.h"
@@ -30,7 +31,11 @@ class VsyncWaiterOHOS final : public VsyncWaiter {
 
   ~VsyncWaiterOHOS() override;
 
+  void DisableDVsync() override;
+  void EnableDVsync() override;
+
  private:
+  std::atomic<bool> dvsyncEnabled{false};
   thread_local static bool firstCall;
   // |VsyncWaiter|
   void AwaitVSync() override;
