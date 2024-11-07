@@ -36,7 +36,7 @@ import appRecovery from '@ohos.app.ability.appRecovery';
 import FlutterManager from './FlutterManager';
 import { FlutterView } from '../../view/FlutterView';
 import ApplicationInfoLoader from '../engine/loader/ApplicationInfoLoader';
-import { accessibility } from '@kit.AccessibilityKit';
+import { AccessibilityManager } from '../../view/AccessibilityBridge';
 
 const TAG = "FlutterAbility";
 
@@ -50,7 +50,8 @@ export class FlutterAbility extends UIAbility implements Host {
   private delegate?: FlutterAbilityAndEntryDelegate | null;
   private flutterView: FlutterView | null = null;
   private mainWindow?: window.Window | null;
-  private errorManagerId: number = 0;
+  private errorManagerId:number = 0;
+  private accessibilityManager?: AccessibilityManager | null;
 
   getFlutterView(): FlutterView | null {
     return this.flutterView;
@@ -87,7 +88,7 @@ export class FlutterAbility extends UIAbility implements Host {
 
     Log.i(TAG, 'MyAbility onCreate');
 
-    let observer: errorManager.ErrorObserver = {
+    let observer:errorManager.ErrorObserver = {
       onUnhandledException(errorMsg) {
         Log.e(TAG, "onUnhandledException, errorMsg:", errorMsg);
         appRecovery.saveAppState();

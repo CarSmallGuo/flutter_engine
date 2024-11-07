@@ -36,7 +36,6 @@ import { FlutterView } from '../../view/FlutterView';
 import FlutterManager from './FlutterManager';
 import Any from '../../plugin/common/Any';
 import inputMethod from '@ohos.inputMethod';
-import window from '@ohos.window';
 
 const TAG = "FlutterAbilityDelegate";
 const PLUGINS_RESTORATION_BUNDLE_KEY = "plugins";
@@ -55,7 +54,7 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
   protected context?: common.Context;
   protected isFlutterEngineFromHostOrCache: boolean = false;
   private engineGroup?: FlutterEngineGroup;
-  private isHost: boolean = false;
+  private isHost:boolean = false;
   private flutterView?: FlutterView;
   private inputMethodController: inputMethod.InputMethodController = inputMethod.getController();
 
@@ -95,14 +94,12 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
       this.flutterView.attachToFlutterEngine(this.flutterEngine!!);
     }
     this.host?.configureFlutterEngine(this.flutterEngine!!);
-    if (this.flutterEngine) {
-      this.flutterEngine.processPendingMessages();
-    }
     this.context.eventHub.on(EVENT_BACK_PRESS, () => {
       if (this.flutterView?.getKeyboardHeight() == 0) {
         this.flutterEngine?.getNavigationChannel()?.popRoute();
+        this.flutterEngine?.getPlatformViewsController()?.setBackNodeControllers();
       } else {
-        this.flutterEngine?.getTextInputChannel()?.textInputMethodHandler?.hide();
+        this.inputMethodController.detach();
       }
     });
   }
