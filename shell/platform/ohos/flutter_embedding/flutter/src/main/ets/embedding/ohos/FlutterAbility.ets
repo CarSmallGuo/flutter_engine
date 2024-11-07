@@ -37,6 +37,7 @@ import FlutterManager from './FlutterManager';
 import { FlutterView } from '../../view/FlutterView';
 import ApplicationInfoLoader from '../engine/loader/ApplicationInfoLoader';
 import { AccessibilityManager } from '../../view/AccessibilityBridge';
+import inputMethod from '@ohos.inputMethod';
 
 const TAG = "FlutterAbility";
 
@@ -52,6 +53,7 @@ export class FlutterAbility extends UIAbility implements Host {
   private mainWindow?: window.Window | null;
   private errorManagerId:number = 0;
   private accessibilityManager?: AccessibilityManager | null;
+  private inputMethodController: inputMethod.InputMethodController = inputMethod.getController();
 
   getFlutterView(): FlutterView | null {
     return this.flutterView;

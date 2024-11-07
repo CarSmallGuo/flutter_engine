@@ -335,6 +335,10 @@ export class FlutterView {
     return this.keyboardAvoidArea.bottomRect.height
   }
 
+  getKeyboardHeight() {
+    return this.keyboardAvoidArea.bottomRect.height
+  }
+
   onDestroy() {
     try {
       this.mainWindow?.off('windowSizeChange', this.windowSizeChangeCallback);
