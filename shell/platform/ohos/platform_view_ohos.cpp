@@ -439,6 +439,7 @@ void PlatformViewOHOS::RegisterExternalTextureByImage(
       RegisterTexture(ohos_external_gl);
       ohos_external_gl->DispatchImage(image);
     }
+    MarkTextureFrameAvailable(texture_id);
   }
 }
 
@@ -478,6 +479,7 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
     }
     external_texture_gl_[texture_id] = ohos_external_gl;
     RegisterTexture(ohos_external_gl);
+    MarkTextureFrameAvailable(texture_id);
   }
   return surface_id;
 }
