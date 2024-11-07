@@ -234,7 +234,8 @@ class OhosAccessibilityBridge {
       int64_t elementId,
       ArkUI_AccessibilityElementInfo* elementInfoFromList,
       ArkUI_AccessibilityElementInfoList* elementList);
-
+      
+  std::vector<int64_t> GetLevelOrderTraversalTree(int32_t rootId);
   flutter::SemanticsNode GetFlutterRootSemanticsNode();
   std::string GetNodeComponentType(const flutter::SemanticsNode& node);
   flutter::SemanticsAction ArkuiActionsToFlutterActions(
@@ -274,7 +275,7 @@ class OhosAccessibilityBridge {
   void GetCustomActionDebugInfo(
       flutter::CustomAccessibilityAction customAccessibilityAction);
 
-  void PageStateUpdate();
+  void FlutterPageUpdate(ArkUI_AccessibilityEventType eventType);
   void RequestFocusWhenPageUpdate();
 
   bool Contains(const std::string source, const std::string target);
