@@ -447,17 +447,20 @@ class TextInputCallback implements MethodCallHandler {
     this.textInputMethodHandler = handler;
   }
 
-  setWindowPosition(windowPosition: window.Rect) {
-    this.windowPosition = windowPosition;
-  }
-
-  setDevicePixelRatio(devicePixelRatio: number) {
-    this.devicePixelRatio = devicePixelRatio;
-  }
-
   setCursorPosition() {
-    const left = (this.windowPosition?.left ?? 0 as number) + (this.cursorPosition.left + this.inputPosition.left) * this.devicePixelRatio;
-    const top = (this.windowPosition?.top ?? 0 as number) + (this.cursorPosition.top + this.inputPosition.top) * this.devicePixelRatio;
+    if (!this.isListenWindow) {
+      this.isListenWindow = true;
+      const context = getContext(this) as Context
+      window.getLastWindow(context, (err: BusinessError, data: window.Window) => {
+        this.windowPosition = data.getWindowProperties().windowRect as window.Rect;
+        data.on('windowRectChange', (rect: window.RectChangeOptions) => {
+          this.windowPosition = rect.rect as window.Rect;
+          this.setCursorPosition();
+        })
+      })
+    }
+    const left = (this.windowPosition.left as number) + (this.cursorPosition.left + this.inputPosotion.left) * this.devicePixelRatio;
+    const top = (this.windowPosition.top as number) + (this.cursorPosition.top + this.inputPosotion.top) * this.devicePixelRatio;
     this.textInputMethodHandler.setCursorSizeAndPosition({
       left: left,
       top: top,
