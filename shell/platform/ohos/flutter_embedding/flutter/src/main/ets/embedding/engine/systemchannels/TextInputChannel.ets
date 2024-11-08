@@ -448,20 +448,23 @@ class TextInputCallback implements MethodCallHandler {
     width: 0,
     height: 0,
   }
+  isListenWindow: boolean = false;
   constructor(handler: TextInputMethodHandler) {
     this.textInputMethodHandler = handler;
-    const context = getContext(this) as Context
-    window.getLastWindow(context, (err: BusinessError, data: window.Window) => {
-      this.windowPosition = data.getWindowProperties().windowRect as window.Rect;
-      data.on('windowRectChange', (rect: window.RectChangeOptions) => {
-        this.windowPosition = rect.rect as window.Rect;
-        this.setCursorPosition();
-      })
-    })
-
   }
 
   setCursorPosition() {
+    if (!this.isListenWindow) {
+      this.isListenWindow = true;
+      const context = getContext(this) as Context
+      window.getLastWindow(context, (err: BusinessError, data: window.Window) => {
+        this.windowPosition = data.getWindowProperties().windowRect as window.Rect;
+        data.on('windowRectChange', (rect: window.RectChangeOptions) => {
+          this.windowPosition = rect.rect as window.Rect;
+          this.setCursorPosition();
+        })
+      })
+    }
     const left = (this.windowPosition.left as number) + (this.cursorPosition.left + this.inputPosotion.left) * this.devicePixelRatio;
     const top = (this.windowPosition.top as number) + (this.cursorPosition.top + this.inputPosotion.top) * this.devicePixelRatio;
     this.textInputMethodHandler.setCursorSizeAndPosition({
