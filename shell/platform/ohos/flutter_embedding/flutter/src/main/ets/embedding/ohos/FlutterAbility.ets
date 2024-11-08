@@ -39,7 +39,6 @@ import ApplicationInfoLoader from '../engine/loader/ApplicationInfoLoader';
 import { AccessibilityManager } from '../../view/AccessibilityBridge';
 
 const TAG = "FlutterAbility";
-const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
 
 /**
  * flutter ohos基础ability，请在让主ability继承自该类。
@@ -92,10 +91,6 @@ export class FlutterAbility extends UIAbility implements Host {
 
     Log.i(TAG, 'MyAbility onCreate');
 
-    this.context.eventHub.on(EVENT_BACK_PRESS, () => {
-      this.delegate?.flutterEngine?.getNavigationChannel()?.popRoute();
-      this.delegate?.flutterEngine?.getPlatformViewsController()?.setBackNodeControllers();
-    });
     let observer:errorManager.ErrorObserver = {
       onUnhandledException(errorMsg) {
         Log.e(TAG, "onUnhandledException, errorMsg:", errorMsg);
@@ -114,7 +109,7 @@ export class FlutterAbility extends UIAbility implements Host {
 
   onDestroy() {
     FlutterManager.getInstance().popUIAbility(this);
-    this.context.eventHub.off(EVENT_BACK_PRESS);
+
     errorManager.off('error', this.errorManagerId);
 
     if (this.flutterView != null) {

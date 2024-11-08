@@ -36,10 +36,12 @@ import FlutterNapi from '../engine/FlutterNapi';
 import { FlutterView } from '../../view/FlutterView';
 import FlutterManager from './FlutterManager';
 import Any from '../../plugin/common/Any';
+import inputMethod from '@ohos.inputMethod';
 
 const TAG = "FlutterAbilityDelegate";
 const PLUGINS_RESTORATION_BUNDLE_KEY = "plugins";
 const FRAMEWORK_RESTORATION_BUNDLE_KEY = "framework";
+const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
 
 /**
  * 主要职责：
@@ -55,7 +57,8 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
   protected isFlutterEngineFromHostOrCache: boolean = false;
   private engineGroup?: FlutterEngineGroup;
   private isHost:boolean = false;
-  private flutterView?: FlutterView
+  private flutterView?: FlutterView;
+  private inputMethodController: inputMethod.InputMethodController = inputMethod.getController();
 
   constructor(host?: Host) {
     this.host = host;
@@ -94,6 +97,14 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
       this.flutterView.attachToFlutterEngine(this.flutterEngine!!);
     }
     this.host?.configureFlutterEngine(this.flutterEngine!!);
+    this.context.eventHub.on(EVENT_BACK_PRESS, () => {
+      if (this.flutterView?.getKeyboardHeight() == 0) {
+        this.flutterEngine?.getNavigationChannel()?.popRoute();
+        this.flutterEngine?.getPlatformViewsController()?.setBackNodeControllers();
+      } else {
+        this.inputMethodController.detach();
+      }
+    });
   }
 
   /**
@@ -302,6 +313,7 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
     }
 
     this.isAttached = false;
+    this.context?.eventHub.off(EVENT_BACK_PRESS);
   }
 
   onLowMemory(): void {
