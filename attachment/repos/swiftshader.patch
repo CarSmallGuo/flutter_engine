@@ -96,3 +96,4 @@ index 30897f020..a6c3031c2 100644
  #elif defined(__FreeBSD__)
      cpuset_t cpuset;
      CPU_ZERO(&cpuset);
+     
