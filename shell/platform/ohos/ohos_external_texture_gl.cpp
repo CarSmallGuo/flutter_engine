@@ -92,8 +92,6 @@ OHOSExternalTextureGL::OHOSExternalTextureGL(
     backGroundNativeWindow_ = nullptr;
     eglContext_ = EGL_NO_CONTEXT;
     eglDisplay_ = EGL_NO_DISPLAY;
-    buffer_ = nullptr;
-    backGroundBuffer_ = nullptr;
     pixelMap_ = nullptr;
     backGroundPixelMap_ = nullptr;
     lastImage_ = nullptr;
@@ -113,8 +111,6 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
   backGroundNativeWindow_ = nullptr;
   eglContext_ =  EGL_NO_CONTEXT;
   eglDisplay_ = EGL_NO_DISPLAY;
-  buffer_ = nullptr;
-  backGroundBuffer_ = nullptr;
   pixelMap_ = nullptr;
   backGroundPixelMap_ = nullptr;
   lastImage_ = nullptr;
@@ -407,6 +403,7 @@ void OHOSExternalTextureGL::ProduceColorToBackGroundImage(int32_t width, int32_t
   usage |= NATIVEBUFFER_USAGE_CPU_READ | (BUFFER_USAGE_HW_COMPOSER);
   OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, SET_USAGE, usage);
 
+  OHNativeWindowBuffer *backGroundBuffer_;
   ret = OH_NativeWindow_NativeWindowRequestBuffer(backGroundNativeWindow_, &backGroundBuffer_, &backGroundFenceFd);
   if (ret != 0) {
     FML_LOG(ERROR) << "OHOSExternalTextureGL::setBackground OH_NativeWindow_NativeWindowRequestBuffer err:" << ret;
@@ -479,6 +476,7 @@ void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
   usage |= NATIVEBUFFER_USAGE_CPU_READ | (BUFFER_USAGE_HW_COMPOSER);
   OH_NativeWindow_NativeWindowHandleOpt(backGroundNativeWindow_, SET_USAGE, usage);
 
+  OHNativeWindowBuffer *backGroundBuffer_;
   ret = OH_NativeWindow_NativeWindowRequestBuffer(backGroundNativeWindow_, &backGroundBuffer_, &backGroundFenceFd);
   if (ret != 0) {
     FML_LOG(ERROR)
@@ -601,6 +599,7 @@ void OHOSExternalTextureGL::ProducePixelMapToNativeImage()
   usage |= NATIVEBUFFER_USAGE_CPU_READ | (BUFFER_USAGE_HW_COMPOSER);
   OH_NativeWindow_NativeWindowHandleOpt(nativeWindow_, SET_USAGE, usage);
 
+  OHNativeWindowBuffer *buffer_;
   ret = OH_NativeWindow_NativeWindowRequestBuffer(nativeWindow_, &buffer_, &fenceFd);
   if (ret != 0) {
     FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeWindow_NativeWindowRequestBuffer err:" << ret;

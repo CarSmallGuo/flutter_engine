@@ -439,7 +439,6 @@ void PlatformViewOHOS::RegisterExternalTextureByImage(
       RegisterTexture(ohos_external_gl);
       ohos_external_gl->DispatchImage(image);
     }
-    MarkTextureFrameAvailable(texture_id);
   }
 }
 
@@ -451,6 +450,7 @@ PointerDataDispatcherMaker PlatformViewOHOS::GetDispatcherMaker() {
 
 uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
 {
+  FML_DLOG(INFO) << "PlatformViewOHOS::RegisterExternalTexture, texture_id=" << texture_id;
   uint64_t surface_id = 0;
   int ret = -1;
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
@@ -479,7 +479,6 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
     }
     external_texture_gl_[texture_id] = ohos_external_gl;
     RegisterTexture(ohos_external_gl);
-    MarkTextureFrameAvailable(texture_id);
   }
   return surface_id;
 }

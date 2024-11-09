@@ -109,10 +109,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   OHNativeWindow *backGroundNativeWindow_;
 
-  OHNativeWindowBuffer *buffer_;
-
-  OHNativeWindowBuffer *backGroundBuffer_;
-
   NativePixelMap* backGroundPixelMap_;
 
   NativePixelMap* pixelMap_;
