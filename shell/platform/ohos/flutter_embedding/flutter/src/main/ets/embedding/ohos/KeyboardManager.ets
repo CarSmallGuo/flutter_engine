@@ -15,23 +15,28 @@
 import TextInputPlugin from '../../plugin/editing/TextInputPlugin';
 import FlutterEngine from '../engine/FlutterEngine';
 import KeyEventChannel, { FlutterKeyEvent } from '../engine/systemchannels/KeyEventChannel';
-import { KeyEventHandlerForEmulator } from './KeyEventHandlerForEmulator';
+import { KeyEventHandler } from './KeyEventHandler';
 
 export default class KeyboardManager {
   private keyEventChannel: KeyEventChannel | null = null
-  private keyEventHandlerForEmulator: KeyEventHandlerForEmulator;
+  private keyEventHandler: KeyEventHandler;
 
   constructor(engine: FlutterEngine, textInputPlugin: TextInputPlugin) {
     this.keyEventChannel = new KeyEventChannel(engine.dartExecutor)
-    this.keyEventHandlerForEmulator = new KeyEventHandlerForEmulator(textInputPlugin);
+    this.keyEventHandler = new KeyEventHandler(textInputPlugin);
   }
 
-  handleKeyEvent(event: KeyEvent) {
+  onKeyPreIme(event: KeyEvent) : boolean {
     this.keyEventChannel?.sendFlutterKeyEvent(new FlutterKeyEvent(event), event.type == KeyType.Up, {
       onFrameworkResponse: (isEventHandled: boolean): void => {
 
       }
     })
-    this.keyEventHandlerForEmulator.handleKeyEvent(event);
+    return false;
+  }
+
+  onKeyEvent(event: KeyEvent) : boolean {
+    this.keyEventHandler.handleKeyEvent(event);
+    return false;
   }
 }

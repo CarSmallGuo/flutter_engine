@@ -80,9 +80,10 @@ export struct FlutterPage {
       }
     })
     .onKeyPreIme((event: KeyEvent) => {
-      Log.d(TAG, "onKeyEvent " + event.type);
-      this.flutterView?.onKeyEvent(event);
-      return false;
+      return this.flutterView?.onKeyPreIme(event) ?? false;
+    })
+    .onKeyEvent((event: KeyEvent) => {
+      return this.flutterView?.onKeyEvent(event) ?? false;
     })
   }
   @Builder mouseWheelPage() {
@@ -134,9 +135,10 @@ export struct FlutterPage {
       }
     })
     .onKeyPreIme((event: KeyEvent) => {
-      Log.d(TAG, "onKeyEvent " + event.type);
-      this.flutterView?.onKeyEvent(event);
-      return false;
+      return this.flutterView?.onKeyPreIme(event) ?? false;
+    })
+    .onKeyEvent((event: KeyEvent) => {
+      return this.flutterView?.onKeyEvent(event) ?? false;
     })
     .gesture(
       PanGesture(this.panOption)
