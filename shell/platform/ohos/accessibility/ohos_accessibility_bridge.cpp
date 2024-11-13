@@ -118,6 +118,7 @@ void OhosAccessibilityBridge::updateSemantics(
       FlutterScrollExecution(node, _elementInfo);
 
       OH_ArkUI_DestoryAccessibilityElementInfo(_elementInfo);
+      _elementInfo = nullptr;
     }
 
     // 判断是否触发liveRegion活动区，当前节点是否活跃（暂不影响正常功能）
@@ -250,6 +251,7 @@ void OhosAccessibilityBridge::FlutterPageUpdate(
   OH_ArkUI_SendAccessibilityAsyncEvent(provider_, pageUpdateEventInfo,
                                        callback);
   OH_ArkUI_DestoryAccessibilityEventInfo(pageUpdateEventInfo);
+  pageUpdateEventInfo = nullptr;
 
   FML_DLOG(INFO) << "PageStateUpdate is end";
 }
@@ -287,7 +289,9 @@ void OhosAccessibilityBridge::RequestFocusWhenPageUpdate()
   OH_ArkUI_SendAccessibilityAsyncEvent(provider_, reqFocusEventInfo, callback);
 
   OH_ArkUI_DestoryAccessibilityEventInfo(reqFocusEventInfo);
+  reqFocusEventInfo = nullptr;
   OH_ArkUI_DestoryAccessibilityElementInfo(elementInfo);
+  elementInfo = nullptr;
 }
 
 /**
@@ -330,6 +334,7 @@ void OhosAccessibilityBridge::Announce(std::unique_ptr<char[]>& message)
   OH_ArkUI_SendAccessibilityAsyncEvent(provider_, announceEventInfo, callback);
 
   OH_ArkUI_DestoryAccessibilityEventInfo(announceEventInfo);
+  announceEventInfo = nullptr;
 
   return;
 }
@@ -993,7 +998,7 @@ std::vector<int64_t> OhosAccessibilityBridge::GetLevelOrderTraversalTree(int32_t
 
       std::sort(currNode.childrenInTraversalOrder.begin(), 
                 currNode.childrenInTraversalOrder.end());
-      for(auto& childId: currNode.childrenInTraversalOrder) {
+      for (auto& childId: currNode.childrenInTraversalOrder) {
         auto childNode = GetFlutterSemanticsNode(childId);
         semanticsQue.push(childNode);
       }
@@ -1525,7 +1530,9 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
 
   // 7.销毁新创建的elementinfo, eventinfo
   OH_ArkUI_DestoryAccessibilityElementInfo(_elementInfo);
+  _elementInfo = nullptr;
   OH_ArkUI_DestoryAccessibilityEventInfo(eventInfo);
+  eventInfo = nullptr;
 
   FML_DLOG(INFO)
       << "OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent is end";
