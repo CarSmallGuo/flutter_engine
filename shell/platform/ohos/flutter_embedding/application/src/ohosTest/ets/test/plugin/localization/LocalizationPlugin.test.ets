@@ -37,7 +37,7 @@ export default function LocalizationPluginTest() {
     });
     it('test_localeFromString', 0, () => {
       let localeString = "zh_CN";
-      let expectedLocale = new intl.Locale("zh_CN");
+      let expectedLocale = new intl.Locale("zh-Hans-CN");
       let actualLocale = localizationPlugin.localeFromString(localeString);
 
       expect(actualLocale.language).assertEqual(expectedLocale.language);
@@ -45,7 +45,7 @@ export default function LocalizationPluginTest() {
       expect(actualLocale.script).assertEqual(expectedLocale.script);
     })
     it('testSendLocaleToFlutter', 0, () => {
-      let mockSystemLocale = 'zh-Hans-AL';
+      let mockSystemLocale = 'zh-Hans-CN';
       (localizationChannel as Any).sendLocales = (locales:Any) => {
         expect(locales).assertContain(mockSystemLocale);
       };
