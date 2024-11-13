@@ -73,8 +73,8 @@
     },
     {
         "name": "swiftshader",
-        "target": "./src/third_party/swiftshader",
+        "target": "third_party/swiftshader",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/swiftshader.patch"
+        "file_path": "flutter/attachment/repos/swiftshader.patch"
     }
 ]
