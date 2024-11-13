@@ -84,6 +84,30 @@ export struct FlutterPage {
       this.flutterView?.onKeyEvent(event);
       return false;
     })
+    .onDragEnter((event: DragEvent, extraParams: string) => {
+      FlutterManager.getInstance().getDragEnterCbs().forEach(dragEnterCb => {
+        dragEnterCb.do(event, extraParams);
+      });
+      Log.d(TAG, "onDragEnter");
+    })
+    .onDragMove((event: DragEvent, extraParams: string) => {
+      FlutterManager.getInstance().getDragMoveCbs().forEach(dragMoveCb => {
+        dragMoveCb.do(event, extraParams);
+      });
+      Log.d(TAG, "onDragMove");
+    })
+    .onDragLeave((event: DragEvent, extraParams: string) => {
+      FlutterManager.getInstance().getDragLeaveCbs().forEach(dragLeaveCb => {
+        dragLeaveCb.do(event, extraParams);
+      });
+      Log.d(TAG, "onDragLeave");
+    })
+    .onDrop((event: DragEvent, extraParams: string) => {
+      FlutterManager.getInstance().getDropCbs().forEach(dropCb => {
+        dropCb.do(event, extraParams);
+      });
+      Log.d(TAG, "onDrop");
+    })
   }
   @Builder mouseWheelPage() {
     Stack() {
@@ -137,6 +161,30 @@ export struct FlutterPage {
       Log.d(TAG, "onKeyEvent " + event.type);
       this.flutterView?.onKeyEvent(event);
       return false;
+    })
+    .onDragEnter((event: DragEvent, extraParams: string) => {
+      FlutterManager.getInstance().getDragEnterCbs().forEach(dragEnterCb => {
+        dragEnterCb.do(event, extraParams);
+      });
+      Log.d(TAG, "onDragEnter");
+    })
+    .onDragMove((event: DragEvent, extraParams: string) => {
+      FlutterManager.getInstance().getDragMoveCbs().forEach(dragMoveCb => {
+        dragMoveCb.do(event, extraParams);
+      });
+      Log.d(TAG, "onDragMove");
+    })
+    .onDragLeave((event: DragEvent, extraParams: string) => {
+      FlutterManager.getInstance().getDragLeaveCbs().forEach(dragLeaveCb => {
+        dragLeaveCb.do(event, extraParams);
+      });
+      Log.d(TAG, "onDragLeave");
+    })
+    .onDrop((event: DragEvent, extraParams: string) => {
+      FlutterManager.getInstance().getDropCbs().forEach(dropCb => {
+        dropCb.do(event, extraParams);
+      });
+      Log.d(TAG, "onDrop");
     })
     .gesture(
       PanGesture(this.panOption)
