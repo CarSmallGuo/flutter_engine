@@ -281,5 +281,59 @@ class OhosAccessibilityBridge {
   bool Contains(const std::string source, const std::string target);
 };
 
+enum class AccessibilityAction : int32_t {
+  kTap = 1 << 0,
+  kLongPress = 1 << 1,
+  kScrollLeft = 1 << 2,
+  kScrollRight = 1 << 3,
+  kScrollUp = 1 << 4,
+  kScrollDown = 1 << 5,
+  kIncrease = 1 << 6,
+  kDecrease = 1 << 7,
+  kShowOnScreen = 1 << 8,
+  kMoveCursorForwardByCharacter = 1 << 9,
+  kMoveCursorBackwardByCharacter = 1 << 10,
+  kSetSelection = 1 << 11,
+  kCopy = 1 << 12,
+  kCut = 1 << 13,
+  kPaste = 1 << 14,
+  kDidGainAccessibilityFocus = 1 << 15,
+  kDidLoseAccessibilityFocus = 1 << 16,
+  kCustomAction = 1 << 17,
+  kDismiss = 1 << 18,
+  kMoveCursorForwardByWord = 1 << 19,
+  kMoveCursorBackwardByWord = 1 << 20,
+  kSetText = 1 << 21,
+};
+
+enum class AccessibilityFlags : int32_t {
+  kHasCheckedState = 1 << 0,
+  kIsChecked = 1 << 1,
+  kIsSelected = 1 << 2,
+  kIsButton = 1 << 3,
+  kIsTextField = 1 << 4,
+  kIsFocused = 1 << 5,
+  kHasEnabledState = 1 << 6,
+  kIsEnabled = 1 << 7,
+  kIsInMutuallyExclusiveGroup = 1 << 8,
+  kIsHeader = 1 << 9,
+  kIsObscured = 1 << 10,
+  kScopesRoute = 1 << 11,
+  kNamesRoute = 1 << 12,
+  kIsHidden = 1 << 13,
+  kIsImage = 1 << 14,
+  kIsLiveRegion = 1 << 15,
+  kHasToggledState = 1 << 16,
+  kIsToggled = 1 << 17,
+  kHasImplicitScrolling = 1 << 18,
+  kIsMultiline = 1 << 19,
+  kIsReadOnly = 1 << 20,
+  kIsFocusable = 1 << 21,
+  kIsLink = 1 << 22,
+  kIsSlider = 1 << 23,
+  kIsKeyboardKey = 1 << 24,
+  kIsCheckStateMixed = 1 << 25,
+};
+
 }  // namespace flutter
 #endif  // OHOS_ACCESSIBILITY_BRIDGE_H

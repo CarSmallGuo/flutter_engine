@@ -1589,11 +1589,9 @@ std::string OhosAccessibilityBridge::GetNodeComponentType(
     return "Button";
   }
   if (node.HasFlag(FLAGS_::kIsTextField)) {
-    // arkui没有textfield，这里直接透传或者传递textinput
     return "TextField";
   }
   if (node.HasFlag(FLAGS_::kIsMultiline)) {
-    // arkui没有多行文本textfield，这里直接透传
     return "TextArea";
   }
   if (node.HasFlag(FLAGS_::kIsLink)) {
@@ -1607,7 +1605,7 @@ std::string OhosAccessibilityBridge::GetNodeComponentType(
     return "Header";
   }
   if (node.HasFlag(FLAGS_::kIsImage)) {
-    return "Image";
+    return "ImageView";
   }
   if (node.HasFlag(FLAGS_::kHasCheckedState)) {
     if (node.HasFlag(FLAGS_::kIsInMutuallyExclusiveGroup)) {
@@ -1618,8 +1616,19 @@ std::string OhosAccessibilityBridge::GetNodeComponentType(
     }
   }
   if (node.HasFlag(FLAGS_::kHasToggledState)) {
-    // arkui没有ToggleSwitch，这里透传为Toggle
-    return "ToggleSwitch";
+    return "Switch";
+  }
+  if (node.HasFlag(FLAGS_::kHasImplicitScrolling)) {
+    if (node.HasAction(ACTIONS_::kScrollLeft) ||
+        node.HasAction(ACTIONS_::kScrollRight)) {
+      return "HorizontalScrollView";
+    } else {
+      return "ScrollView";
+    }
+  }
+  if (node.HasAction(ACTIONS_::kIncrease) || 
+      node.HasAction(ACTIONS_::kDecrease)) {
+    return "SeekBar";
   }
   if ((!node.label.empty() || !node.tooltip.empty() || !node.hint.empty())) {
     return "Text";
