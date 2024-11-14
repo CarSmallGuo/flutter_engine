@@ -80,9 +80,10 @@ export struct FlutterPage {
       }
     })
     .onKeyPreIme((event: KeyEvent) => {
-      Log.d(TAG, "onKeyEvent " + event.type);
-      this.flutterView?.onKeyEvent(event);
-      return false;
+      return this.flutterView?.onKeyPreIme(event) ?? false;
+    })
+    .onKeyEvent((event: KeyEvent) => {
+      return this.flutterView?.onKeyEvent(event) ?? false;
     })
     .onDragEnter((event: DragEvent, extraParams: string) => {
       FlutterManager.getInstance().getDragEnterCbs().forEach(dragEnterCb => {
@@ -158,9 +159,10 @@ export struct FlutterPage {
       }
     })
     .onKeyPreIme((event: KeyEvent) => {
-      Log.d(TAG, "onKeyEvent " + event.type);
-      this.flutterView?.onKeyEvent(event);
-      return false;
+      return this.flutterView?.onKeyPreIme(event) ?? false;
+    })
+    .onKeyEvent((event: KeyEvent) => {
+      return this.flutterView?.onKeyEvent(event) ?? false;
     })
     .onDragEnter((event: DragEvent, extraParams: string) => {
       FlutterManager.getInstance().getDragEnterCbs().forEach(dragEnterCb => {
