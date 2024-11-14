@@ -170,12 +170,13 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     if (pixelMap_ != nullptr) {
       // 外接纹理图片场景
       ProducePixelMapToNativeImage();
-      new_frame_ready_ = true;
+      new_frame_count++;
     }
   }
-  if (!freeze && new_frame_ready_) {
+  if (!freeze && new_frame_count > 0) {
     Update();
     new_frame_ready_ = false;
+    new_frame_count--;
   }
 
   GrGLTextureInfo textureInfo;
@@ -242,6 +243,7 @@ void OHOSExternalTextureGL::MarkNewFrameAvailable()
 {
   FML_DLOG(INFO) << " OHOSExternalTextureGL::MarkNewFrameAvailable";
   new_frame_ready_ = true;
+  new_frame_count = 2;
 }
 
 void OHOSExternalTextureGL::OnTextureUnregistered()
