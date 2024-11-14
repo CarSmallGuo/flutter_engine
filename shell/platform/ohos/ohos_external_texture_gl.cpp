@@ -42,6 +42,7 @@ constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 constexpr uint32_t WHITE_COLOR = 0xFFFFFFFF;
 
 const SkScalar DEFAULT_MATRIX[] = {1, 0, 0, 0, -1, 1, 0, 0, 1};
+const int UPDATE_FRAME_COUNT = 2;
 
 static int PixelMapToWindowFormat(PIXEL_FORMAT pixel_format)
 {
@@ -172,13 +173,13 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
     if (pixelMap_ != nullptr) {
       // 外接纹理图片场景
       ProducePixelMapToNativeImage();
-      new_frame_count++;
+      newFrameCount++;
     }
   }
-  if (!freeze && new_frame_count > 0) {
+  if (!freeze && newFrameCount > 0) {
     Update();
     new_frame_ready_ = false;
-    new_frame_count--;
+    newFrameCount--;
   }
 
   GrGLTextureInfo textureInfo;
@@ -245,7 +246,7 @@ void OHOSExternalTextureGL::MarkNewFrameAvailable()
 {
   FML_DLOG(INFO) << " OHOSExternalTextureGL::MarkNewFrameAvailable";
   new_frame_ready_ = true;
-  new_frame_count = 2;
+  newFrameCount = UPDATE_FRAME_COUNT;
 }
 
 void OHOSExternalTextureGL::OnTextureUnregistered()
@@ -327,17 +328,6 @@ void OHOSExternalTextureGL::UpdateTransform(OH_NativeImage *image)
     transform.set9(DEFAULT_MATRIX);
     if (!transform.invert(&inverted)) {
       FML_LOG(ERROR) << "UpdateTransform matrix error again";
-    }
-
-    for (int i = 0; i < 3; i++) {
-      int num = i * 3;
-      FML_LOG(ERROR) << "  " << matrix3[num] << " " << matrix3[num + 1] << " "
-                      << matrix3[num + 2];
-    }
-    for (int i = 0; i < 4; i++) {
-      int num = i * 4;
-      FML_LOG(ERROR) << "  " << m[num] << " " << m[num + 1] << " " << m[num + 2]
-                      << " " << m[num + 3];
     }
   }
   transform = inverted;

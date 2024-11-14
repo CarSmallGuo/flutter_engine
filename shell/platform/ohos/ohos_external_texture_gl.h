@@ -96,7 +96,7 @@ class OHOSExternalTextureGL : public flutter::Texture {
   AttachmentState state_;
 
   bool new_frame_ready_ = false;
-  int new_frame_count = 0;
+  int newFrameCount = 0;
 
   GLuint texture_name_ = 0;
 
