@@ -236,8 +236,6 @@ void OHOSExternalTextureGL::OnGrContextDestroyed()
                  << ", Id()=" << Id();
   if (state_ == AttachmentState::attached) {
     Detach();
-    glDeleteTextures(1, &texture_name_);
-    glDeleteTextures(1, &backGroundTextureName_);
   }
   state_ = AttachmentState::detached;
 }
@@ -305,6 +303,8 @@ void OHOSExternalTextureGL::Detach()
     OH_NativeWindow_DestroyNativeWindow(backGroundNativeWindow_);
     backGroundNativeWindow_ = nullptr;
   }
+  glDeleteTextures(1, &texture_name_);
+  glDeleteTextures(1, &backGroundTextureName_);
 }
 
 void OHOSExternalTextureGL::UpdateTransform(OH_NativeImage *image)
