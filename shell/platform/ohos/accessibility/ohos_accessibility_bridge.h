@@ -25,15 +25,12 @@
 #include "flutter/lib/ui/semantics/semantics_node.h"
 #include "native_accessibility_channel.h"
 #include "ohos_accessibility_features.h"
+
 namespace flutter {
 
 typedef flutter::SemanticsFlags FLAGS_;
 typedef flutter::SemanticsAction ACTIONS_;
-typedef flutter::SemanticsNode FLUTTER_NODE_;
 
-/**
- * flutter和ohos的无障碍服务桥接
- */
 struct AbsoluteRect {
   float left;
   float top;
@@ -59,6 +56,9 @@ struct SemanticsNodeExtent : flutter::SemanticsNode {
   std::string previousLabel;
 };
 
+/**
+ * flutter和ohos的无障碍服务桥接
+ */
 class OhosAccessibilityBridge {
  public:
   static OhosAccessibilityBridge* GetInstance();
@@ -148,6 +148,9 @@ class OhosAccessibilityBridge {
   std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
   std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
 
+  // arkui的root节点的父节点id
+  static const int32_t ARKUI_ACCESSIBILITY_ROOT_PARENT_ID = -2100000;
+  static const int32_t RET_ERROR_STATE_CODE = -999;
   static const int32_t ROOT_NODE_ID = 0;
   constexpr static const double SCROLL_EXTENT_FOR_INFINITY = 100000.0;
   constexpr static const double SCROLL_POSITION_CAP_FOR_INFINITY = 70000.0;

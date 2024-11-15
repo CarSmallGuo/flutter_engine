@@ -17,17 +17,27 @@
 #include <string>
 #include <memory>
 #include "flutter/fml/logging.h"
+#include "flutter/shell/platform/ohos/ohos_logging.h"
 #include "flutter/shell/common/platform_view.h"
 #include "flutter/shell/platform/embedder/embedder.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
 #include "third_party/skia/include/core/SkMatrix.h"
 #include "third_party/skia/include/core/SkScalar.h"
 
+#define ARKUI_SUCCEED_CODE 0
+#define ARKUI_FAILED_CODE -1
+#define ARKUI_BAD_PARAM_CODE -2
+#define ARKUI_OOM_CODE  -3
+#define ARKUI_ACCESSIBILITY_CALL_CHECK(X)                                      \
+    do {                                                                       \
+        int32_t ret = X;                                                       \
+        if (ret != ARKUI_SUCCEED_CODE) {                                       \
+          LOGE("Failed arkui a11y function call, error code:%{public}d", ret); \
+        }                                                                      \
+    }  while (false)                                                           \
+    
 namespace flutter {
-
 OhosAccessibilityBridge* OhosAccessibilityBridge::bridgeInstance = nullptr;
-
-OhosAccessibilityBridge::OhosAccessibilityBridge() {}
 
 OhosAccessibilityBridge* OhosAccessibilityBridge::GetInstance() 
 {
@@ -42,6 +52,7 @@ void OhosAccessibilityBridge::DestroyInstance() {
   bridgeInstance = nullptr;
 }
 
+OhosAccessibilityBridge::OhosAccessibilityBridge() {}
 /**
  * 监听当前ohos平台是否开启无障碍屏幕朗读服务
  */
@@ -93,6 +104,10 @@ void OhosAccessibilityBridge::updateSemantics(
     GetSemanticsNodeDebugInfo(node);
     GetSemanticsFlagsDebugInfo(node);
 
+    // if (!IsNodeVisible(node)) {
+    //   continue;
+    // }
+
     /**
      * 构建flutter无障碍语义节点树
      * NOTE: 若使用flutterSemanticsTree_.insert({node.id, node})方式
@@ -110,7 +125,7 @@ void OhosAccessibilityBridge::updateSemantics(
     }
 
     // 当滑动节点产生滑动，并执行滑动处理
-    if (HasScrolled(node)) {
+    if (HasScrolled(node) && IsNodeVisible(node)) {
       ArkUI_AccessibilityElementInfo* _elementInfo =
           OH_ArkUI_CreateAccessibilityElementInfo();
 
@@ -121,11 +136,12 @@ void OhosAccessibilityBridge::updateSemantics(
       _elementInfo = nullptr;
     }
 
-    // 判断是否触发liveRegion活动区，当前节点是否活跃（暂不影响正常功能）
+    // 判断是否触发liveRegion活动区，当前节点是否活跃
     if (node.HasFlag(FLAGS_::kIsLiveRegion)) {
       FML_DLOG(INFO)
-          << "UpdateSemantics -> flutterNode is kIsLiveRegion, node.id="
-          << node.id;
+          << "UpdateSemantics -> LiveRegion, node.id=" << node.id;
+      FlutterPageUpdate(ArkUI_AccessibilityEventType::
+          ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_PAGE_CONTENT_UPDATE);
     }
   }
 
@@ -194,12 +210,16 @@ void OhosAccessibilityBridge::FlutterScrollExecution(
   if (node.scrollChildren > 0) {
     // 配置当前滑动组件的子节点总数
     int32_t itemCount = node.scrollChildren;
-    OH_ArkUI_AccessibilityElementInfoSetItemCount(elementInfoFromList,
-                                                  itemCount);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetItemCount(
+            elementInfoFromList, itemCount)
+    );
     // 设置当前页面可见的起始滑动index
     int32_t startItemIndex = node.scrollIndex;
-    OH_ArkUI_AccessibilityElementInfoSetStartItemIndex(elementInfoFromList,
-                                                       startItemIndex);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetStartItemIndex(elementInfoFromList,
+                                                           startItemIndex)
+    );
 
     // 计算当前滑动位置页面的可见子滑动节点数量
     int visibleChildren = 0;
@@ -212,19 +232,22 @@ void OhosAccessibilityBridge::FlutterScrollExecution(
     }
     // 当可见滑动子节点数量超过滑动组件总子节点数量
     if (node.scrollIndex + visibleChildren > node.scrollChildren) {
-      FML_DLOG(ERROR)
+      FML_DLOG(WARNING)
           << "FlutterScrollExecution -> Scroll index is out of bounds";
     }
     // 当滑动击中子节点数量为0
     if (!node.childrenInHitTestOrder.size()) {
-      FML_DLOG(ERROR) << "FlutterScrollExecution -> Had scrollChildren but no "
-                         "childrenInHitTestOrder";
+      FML_DLOG(WARNING) << "FlutterScrollExecution -> Had scrollChildren but no "
+                           "childrenInHitTestOrder";
     }
 
     // 设置当前页面可见的末尾滑动index
     int32_t endItemIndex = node.scrollIndex + visibleChildren - 1;
-    OH_ArkUI_AccessibilityElementInfoSetEndItemIndex(elementInfoFromList,
-                                                     endItemIndex);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetEndItemIndex(elementInfoFromList,
+                                                         endItemIndex)
+    );
+
   }
 }
 
@@ -234,26 +257,26 @@ void OhosAccessibilityBridge::FlutterScrollExecution(
 void OhosAccessibilityBridge::FlutterPageUpdate(
     ArkUI_AccessibilityEventType eventType) 
 {
-  ArkUI_AccessibilityEventInfo* pageUpdateEventInfo =
-      OH_ArkUI_CreateAccessibilityEventInfo();
-
-  OH_ArkUI_AccessibilityEventSetEventType(
-      pageUpdateEventInfo, eventType);
-
-  auto callback = [](int32_t errorCode) {
-    FML_DLOG(WARNING) << "PageStateUpdate callback-> errorCode =" << errorCode;
-  };
   if (provider_ == nullptr) {
     FML_DLOG(ERROR) << "PageStateUpdate ->"
                        "AccessibilityProvider = nullptr";
     return;
   }
+  ArkUI_AccessibilityEventInfo* pageUpdateEventInfo =
+      OH_ArkUI_CreateAccessibilityEventInfo();
+
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityEventSetEventType(pageUpdateEventInfo, eventType)
+  );
+
+  auto callback = [](int32_t errorCode) {
+    FML_DLOG(WARNING) << "PageStateUpdate callback-> errorCode =" << errorCode;
+  };
+
   OH_ArkUI_SendAccessibilityAsyncEvent(provider_, pageUpdateEventInfo,
                                        callback);
   OH_ArkUI_DestoryAccessibilityEventInfo(pageUpdateEventInfo);
   pageUpdateEventInfo = nullptr;
-
-  FML_DLOG(INFO) << "PageStateUpdate is end";
 }
 
 /**
@@ -261,31 +284,35 @@ void OhosAccessibilityBridge::FlutterPageUpdate(
  */
 void OhosAccessibilityBridge::RequestFocusWhenPageUpdate()
 {
+  if (provider_ == nullptr) {
+    FML_DLOG(ERROR) << "RequestFocusWhenPageUpdate ->"
+                       "AccessibilityProvider = nullptr";
+    return;
+  }
   ArkUI_AccessibilityEventInfo* reqFocusEventInfo =
       OH_ArkUI_CreateAccessibilityEventInfo();
   ArkUI_AccessibilityElementInfo* elementInfo =
       OH_ArkUI_CreateAccessibilityElementInfo();
 
-  OH_ArkUI_AccessibilityEventSetEventType(
-      reqFocusEventInfo,
-      ArkUI_AccessibilityEventType::
-          ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_REQUEST_ACCESSIBILITY_FOCUS);
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityEventSetEventType(
+          reqFocusEventInfo,
+          ArkUI_AccessibilityEventType::
+              ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_REQUEST_ACCESSIBILITY_FOCUS)
+  );
 
   int32_t requestFocusId = 0;
-  OH_ArkUI_AccessibilityEventSetRequestFocusId(reqFocusEventInfo,
-                                               requestFocusId);
-
-  OH_ArkUI_AccessibilityEventSetElementInfo(reqFocusEventInfo, elementInfo);
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityEventSetRequestFocusId(reqFocusEventInfo,
+                                                   requestFocusId)
+  );
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityEventSetElementInfo(reqFocusEventInfo, elementInfo)
+  );
 
   auto callback = [](int32_t errorCode) {
     FML_DLOG(WARNING) << "PageStateUpdate callback-> errorCode =" << errorCode;
   };
-
-  if (provider_ == nullptr) {
-    FML_DLOG(ERROR) << "PageStateUpdate ->"
-                       "AccessibilityProvider = nullptr";
-    return;
-  }
   OH_ArkUI_SendAccessibilityAsyncEvent(provider_, reqFocusEventInfo, callback);
 
   OH_ArkUI_DestoryAccessibilityEventInfo(reqFocusEventInfo);
@@ -299,38 +326,31 @@ void OhosAccessibilityBridge::RequestFocusWhenPageUpdate()
  */
 void OhosAccessibilityBridge::Announce(std::unique_ptr<char[]>& message)
 {
-  // 创建并设置屏幕朗读事件
-  ArkUI_AccessibilityEventInfo* announceEventInfo =
-      OH_ArkUI_CreateAccessibilityEventInfo();
-  int32_t ret1 = OH_ArkUI_AccessibilityEventSetEventType(
-      announceEventInfo,
-      ArkUI_AccessibilityEventType::
-          ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ANNOUNCE_FOR_ACCESSIBILITY);
-  if (ret1 != 0) {
-    FML_DLOG(INFO) << "OhosAccessibilityBridge::announce "
-                      "OH_ArkUI_AccessibilityEventSetEventType failed";
-    return;
-  }
-  int32_t ret2 = OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility(
-      announceEventInfo, message.get());
-  if (ret2 != 0) {
-    FML_DLOG(INFO)
-        << "OhosAccessibilityBridge::announce "
-           "OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility failed";
-    return;
-  }
-  FML_DLOG(INFO) << ("OhosAccessibilityBridge::announce message: ")
-                 << (message.get());
-
-  auto callback = [](int32_t errorCode) {
-    FML_DLOG(WARNING) << "announce callback-> errorCode =" << errorCode;
-  };
-
   if (provider_ == nullptr) {
     FML_DLOG(ERROR) << "announce ->"
                        "AccessibilityProvider = nullptr";
     return;
   }
+  // 创建并设置屏幕朗读事件
+  ArkUI_AccessibilityEventInfo* announceEventInfo =
+      OH_ArkUI_CreateAccessibilityEventInfo();
+
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityEventSetEventType(
+          announceEventInfo,
+          ArkUI_AccessibilityEventType::
+              ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ANNOUNCE_FOR_ACCESSIBILITY)
+  );
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility(
+          announceEventInfo, message.get())
+  );
+  FML_DLOG(INFO) << ("announce -> message: ")
+                 << (message.get());
+
+  auto callback = [](int32_t errorCode) {
+    FML_DLOG(WARNING) << "announce callback-> errorCode =" << errorCode;
+  };
   OH_ArkUI_SendAccessibilityAsyncEvent(provider_, announceEventInfo, callback);
 
   OH_ArkUI_DestoryAccessibilityEventInfo(announceEventInfo);
@@ -368,7 +388,7 @@ flutter::SemanticsNode OhosAccessibilityBridge::GetFlutterSemanticsNode(
   } else {
     FML_DLOG(ERROR)
         << "GetFlutterSemanticsNode flutterSemanticsTree_ = null" << id;
-    return flutter::SemanticsNode{};
+    return {};
   }
 }
 
@@ -401,23 +421,29 @@ void OhosAccessibilityBridge::FlutterTreeToArkuiTree(
     int32_t right = static_cast<int32_t>(flutterNode.rect.fRight);
     int32_t bottom = static_cast<int32_t>(flutterNode.rect.fBottom);
     ArkUI_AccessibleRect rect = {left, top, right, bottom};
-    OH_ArkUI_AccessibilityElementInfoSetScreenRect(elementInfo, &rect);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetScreenRect(elementInfo, &rect)
+    );
 
     // 设置elementinfo的action类型
     std::string widget_type = GetNodeComponentType(flutterNode);
     FlutterSetElementInfoOperationActions(elementInfo, widget_type);
 
     // 设置elementid
-    OH_ArkUI_AccessibilityElementInfoSetElementId(elementInfo, flutterNode.id);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetElementId(elementInfo, flutterNode.id)
+    );
 
     // 设置父节点id
     int32_t parentId = GetParentId(flutterNode.id);
     if (flutterNode.id == 0) {
-      OH_ArkUI_AccessibilityElementInfoSetParentId(elementInfo, -2100000);
-      FML_DLOG(INFO) << "FlutterTreeToArkuiTree parent.id= " << parentId;
+      ARKUI_ACCESSIBILITY_CALL_CHECK(
+          OH_ArkUI_AccessibilityElementInfoSetParentId(elementInfo, ARKUI_ACCESSIBILITY_ROOT_PARENT_ID)
+      );
     } else {
-      OH_ArkUI_AccessibilityElementInfoSetParentId(elementInfo, parentId);
-      FML_DLOG(INFO) << "FlutterTreeToArkuiTree parent.id= " << parentId;
+      ARKUI_ACCESSIBILITY_CALL_CHECK(
+          OH_ArkUI_AccessibilityElementInfoSetParentId(elementInfo, parentId)
+      );
     }
 
     // 设置孩子节点
@@ -431,29 +457,38 @@ void OhosAccessibilityBridge::FlutterTreeToArkuiTree(
                      << flutterNode.id << " childCount= " << childCount
                      << " childNodeId=" << childNodeIds[i];
     }
-    OH_ArkUI_AccessibilityElementInfoSetChildNodeIds(elementInfo, childCount,
-                                                     childNodeIds);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetChildNodeIds(elementInfo, 
+                                                         childCount,
+                                                         childNodeIds)
+    );
 
     // 配置常用属性，force to true for debugging
-    OH_ArkUI_AccessibilityElementInfoSetCheckable(elementInfo, true);
-    OH_ArkUI_AccessibilityElementInfoSetFocusable(elementInfo, true);
-    OH_ArkUI_AccessibilityElementInfoSetVisible(elementInfo, true);
-    OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfo, true);
-    OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfo, true);
-
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetCheckable(elementInfo, true));
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetFocusable(elementInfo, true));
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetVisible(elementInfo, true));
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfo, true));
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfo, true));
+    
     // 设置组件类型
     std::string componentTypeName = GetNodeComponentType(flutterNode);
-    OH_ArkUI_AccessibilityElementInfoSetComponentType(
-        elementInfo, componentTypeName.c_str());
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetComponentType(
+            elementInfo, componentTypeName.c_str())
+    );
 
     std::string contents = componentTypeName + "_content";
-    OH_ArkUI_AccessibilityElementInfoSetContents(elementInfo, contents.c_str());
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetContents(elementInfo, contents.c_str())
+    );
 
     // 设置无障碍相关属性
-    OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(
-        elementInfo, flutterNode.label.c_str());
-    OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel(elementInfo, "yes");
-    OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup(elementInfo, false);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(
+            elementInfo, flutterNode.label.c_str())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel(elementInfo, "yes"));
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup(elementInfo, false));
   }
   FML_DLOG(INFO) << "FlutterTreeToArkuiTree is end";
 }
@@ -463,18 +498,21 @@ void OhosAccessibilityBridge::FlutterTreeToArkuiTree(
  */
 int32_t OhosAccessibilityBridge::GetParentId(int64_t elementId)
 {
-  int32_t childElementId = static_cast<int32_t>(elementId);
   if (!parentChildIdVec.size()) {
     FML_DLOG(INFO)
         << "OhosAccessibilityBridge::GetParentId parentChildIdMap.size()=0";
-    return -2100000;
+    return ARKUI_ACCESSIBILITY_ROOT_PARENT_ID;
   }
+  if (elementId == -1) {
+    return ARKUI_ACCESSIBILITY_ROOT_PARENT_ID;
+  }
+  int32_t childElementId = static_cast<int32_t>(elementId);
   for (const auto& item : parentChildIdVec) {
     if (item.second == childElementId) {
       return item.first;
     }
   }
-  return -2100000;
+  return RET_ERROR_STATE_CODE;
 }
 
 /**
@@ -532,6 +570,10 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
   // 获取当前flutter节点的父节点的相对rect
   int32_t parentId = GetParentId(currNode.id);
   auto parentNode = GetFlutterSemanticsNode(parentId);
+  // if (parentNode == ) {
+  //   LOGE("ConvertChildRelativeRectToScreenRect -> GetFlutterSemanticsNode 
+  //         parentNode = null, parentId:%{public}d", parentId);
+  // }
   auto parentRight = parentNode.rect.fRight;
   auto parentBottom = parentNode.rect.fBottom;
 
@@ -549,7 +591,10 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
 
   // 真实缩放系数
   float realScaleFactor = realParentRight / parentRight * 1.0;
-  float newLeft, newTop, newRight, newBottom;
+  float newLeft;
+  float newTop;
+  float newRight;
+  float newBottom;
 
   if (_kMScaleX > 1 && _kMScaleY > 1) {
     // 子节点相对父节点进行变化（缩放、 平移）
@@ -563,13 +608,13 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
     // 若当前节点的相对坐标与父亲节点的相对坐标值相同，则直接继承坐标值
     if (currRight == parentRight && currBottom == parentBottom) {
       newLeft = realParentLeft;
-      newTop = realParentTop;
-      newRight = realParentRight;
+      newTop  = realParentTop;
+      newRight  = realParentRight;
       newBottom = realParentBottom;
     } else {
       // 子节点的屏幕绝对坐标转换，包括offset偏移值计算、缩放系数变换
       newLeft = (currLeft + _kMTransX) * realScaleFactor + realParentLeft;
-      newTop = (currTop + _kMTransY) * realScaleFactor + realParentTop;
+      newTop  = (currTop + _kMTransY) * realScaleFactor + realParentTop;
       newRight =
           (currLeft + _kMTransX + currRight) * realScaleFactor + realParentLeft;
       newBottom =
@@ -585,8 +630,8 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
                       << ", " << newRight << ", " << newBottom << ")}";
       // 防止滑动场景下绿框坐标超出屏幕范围，进行正则化处理
       newLeft = static_cast<int32_t>(newLeft) % static_cast<int32_t>(rootWidth);
-      newTop = static_cast<int32_t>(newTop) % static_cast<int32_t>(rootHeight);
-      newRight = static_cast<int32_t>(newRight) % static_cast<int32_t>(rootWidth);
+      newTop  = static_cast<int32_t>(newTop) % static_cast<int32_t>(rootHeight);
+      newRight  = static_cast<int32_t>(newRight) % static_cast<int32_t>(rootWidth);
       newBottom = static_cast<int32_t>(newBottom) % static_cast<int32_t>(rootHeight);  
       SetAbsoluteScreenRect(currNode.id, newLeft, newTop, newRight,
                             newBottom);
@@ -624,7 +669,11 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
     int32_t right = static_cast<int32_t>(flutterNode.rect.fRight);
     int32_t bottom = static_cast<int32_t>(flutterNode.rect.fBottom);
     ArkUI_AccessibleRect rect = {left, top, right, bottom};
-    OH_ArkUI_AccessibilityElementInfoSetScreenRect(elementInfoFromList, &rect);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetScreenRect(
+            elementInfoFromList, &rect)
+    );
+
     // 设置root节点的屏幕绝对坐标rect
     SetAbsoluteScreenRect(0, left, top, right, bottom);
 
@@ -633,18 +682,29 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
     FlutterSetElementInfoOperationActions(elementInfoFromList, widget_type);
 
     // 根据flutternode信息配置对应的elementinfo
-    OH_ArkUI_AccessibilityElementInfoSetElementId(elementInfoFromList, 0);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetElementId(elementInfoFromList, 0)
+    );
+
     // NOTE: arkui无障碍子系统强制设置root的父节点id = -2100000 (严禁更改)
-    OH_ArkUI_AccessibilityElementInfoSetParentId(elementInfoFromList, -2100000);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetParentId(
+            elementInfoFromList, ARKUI_ACCESSIBILITY_ROOT_PARENT_ID)
+    );
+
     // 设置无障碍播报文本
-    OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(
-        elementInfoFromList, flutterNode.label.empty()
-                                 ? flutterNode.hint.c_str()
-                                 : flutterNode.label.c_str());
-    OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel(elementInfoFromList,
-                                                           "yes");
-    OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup(elementInfoFromList,
-                                                           false);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(
+            elementInfoFromList, flutterNode.label.empty() ? flutterNode.hint.c_str() : flutterNode.label.c_str())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel(
+            elementInfoFromList, "yes")
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup(
+            elementInfoFromList, false)
+    );
 
     // 配置child节点信息
     int32_t childCount = flutterNode.childrenInTraversalOrder.size();
@@ -657,17 +717,18 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
           << "FlutterNodeToElementInfoById -> elementid=0 childCount="
           << childCount << " childNodeIds=" << childNodeIds[i];
     }
-    OH_ArkUI_AccessibilityElementInfoSetChildNodeIds(elementInfoFromList,
-                                                     childCount, childNodeIds);
-
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetChildNodeIds(
+            elementInfoFromList, childCount, childNodeIds)
+    );
+    
     // 配置root节点常用属性
-    OH_ArkUI_AccessibilityElementInfoSetFocusable(elementInfoFromList, true);
-    OH_ArkUI_AccessibilityElementInfoSetVisible(elementInfoFromList, true);
-    OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfoFromList, true);
-    OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfoFromList, true);
-    OH_ArkUI_AccessibilityElementInfoSetComponentType(elementInfoFromList,
-                                                      "root");
-    OH_ArkUI_AccessibilityElementInfoSetContents(elementInfoFromList, flutterNode.label.c_str());
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetFocusable(elementInfoFromList, true));
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetVisible(elementInfoFromList, true));
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfoFromList, true));
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfoFromList, true));
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetComponentType(elementInfoFromList, "root"));
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetContents(elementInfoFromList, flutterNode.label.c_str()));
   } else {
     //当elementId >= 1时，根据flutter节点信息配置elementinfo无障碍属性
     FlutterSetElementInfoProperties(elementInfoFromList, elementId);
@@ -737,9 +798,10 @@ void OhosAccessibilityBridge::FlutterSetElementInfoOperationActions(
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_CURSOR_POSITION;
     actions[9].description = "光标位置设置";
 
-    OH_ArkUI_AccessibilityElementInfoSetOperationActions(
-        elementInfoFromList, actionTypeNum, actions);
-
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetOperationActions(
+            elementInfoFromList, actionTypeNum, actions)
+    );
   } else if (widget_type == "scrollable") {
     // if node is a scrollable component
     int32_t actionTypeNum = 5;
@@ -765,9 +827,10 @@ void OhosAccessibilityBridge::FlutterSetElementInfoOperationActions(
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD;
     actions[4].description = "向下滑动";
 
-    OH_ArkUI_AccessibilityElementInfoSetOperationActions(
-        elementInfoFromList, actionTypeNum, actions);
-
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetOperationActions(
+            elementInfoFromList, actionTypeNum, actions)
+    );
   } else {
     // set common component action types
     int32_t actionTypeNum = 3;
@@ -785,8 +848,10 @@ void OhosAccessibilityBridge::FlutterSetElementInfoOperationActions(
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK;
     actions[2].description = "点击动作";
 
-    OH_ArkUI_AccessibilityElementInfoSetOperationActions(
-        elementInfoFromList, actionTypeNum, actions);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetOperationActions(
+            elementInfoFromList, actionTypeNum, actions)
+    );
   }
 }
 
@@ -801,8 +866,11 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
       GetFlutterSemanticsNode(static_cast<int32_t>(elementId));
 
   // set elementinfo id
-  OH_ArkUI_AccessibilityElementInfoSetElementId(elementInfoFromList,
-                                                flutterNode.id);
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityElementInfoSetElementId(elementInfoFromList,
+                                                    flutterNode.id)
+  );
+
   // convert relative rect to absolute rect
   ConvertChildRelativeRectToScreenRect(flutterNode);
   auto rectPairs = GetAbsoluteScreenRect(flutterNode.id);
@@ -812,7 +880,9 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
   int32_t right = rectPairs.second.first;
   int32_t bottom = rectPairs.second.second;
   ArkUI_AccessibleRect rect = {left, top, right, bottom};
-  OH_ArkUI_AccessibilityElementInfoSetScreenRect(elementInfoFromList, &rect);
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityElementInfoSetScreenRect(elementInfoFromList, &rect)
+  );
   FML_DLOG(INFO) << "FlutterNodeToElementInfoById -> node.id= "
                 << flutterNode.id << " SceenRect = (" << left << ", " << top
                 << ", " << right << ", " << bottom << ")";
@@ -834,27 +904,29 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
 
   // set current elementinfo parent id
   int32_t parentId = GetParentId(elementId);
-  if (parentId < 0) {
-    FML_DLOG(ERROR)
-        << "FlutterNodeToElementInfoById GetParentId is null, assigned to "
-        << parentId;
-    OH_ArkUI_AccessibilityElementInfoSetParentId(elementInfoFromList, parentId);
-  } else {
-    OH_ArkUI_AccessibilityElementInfoSetParentId(elementInfoFromList, parentId);
-    FML_DLOG(INFO) << "FlutterNodeToElementInfoById GetParentId = " << parentId;
-  }
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityElementInfoSetParentId(elementInfoFromList, parentId)
+  );
+  FML_DLOG(INFO) << "FlutterNodeToElementInfoById GetParentId = " << parentId;
+  
 
   // set accessibility text for announcing
   std::string text = flutterNode.label;
-  OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(elementInfoFromList,
-                                                        text.c_str());
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(elementInfoFromList,
+                                                            text.c_str())
+  );
   FML_DLOG(INFO) << "FlutterNodeToElementInfoById SetAccessibilityText = "
                  << text;
   //set contents (same as AccessibilityText)
-  OH_ArkUI_AccessibilityElementInfoSetContents(elementInfoFromList, text.c_str());
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityElementInfoSetContents(elementInfoFromList, text.c_str())
+  );
   std::string hint = flutterNode.hint;
-  OH_ArkUI_AccessibilityElementInfoSetHintText(elementInfoFromList,
-                                               hint.c_str());
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityElementInfoSetHintText(elementInfoFromList,
+                                                   hint.c_str())
+  );
 
   // set chidren elementinfo ids
   int32_t childCount = flutterNode.childrenInTraversalOrder.size();
@@ -867,45 +939,59 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
                    << " childCount=" << childCount
                    << " childNodeIds=" << childNodeIds[i];
   }
-  OH_ArkUI_AccessibilityElementInfoSetChildNodeIds(elementInfoFromList,
-                                                   childCount, childNodeIds);
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityElementInfoSetChildNodeIds(elementInfoFromList,
+                                                       childCount, childNodeIds)
+  );
 
   /**
    * 根据当前flutter节点的SemanticsFlags特性，配置对应的elmentinfo属性
    */
   // 判断当前节点是否可点击
   if (IsNodeClickable(flutterNode)) {
-    OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfoFromList, true);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfoFromList, true)
+    );
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetClickable -> true";
   }
   // 判断当前节点是否可获焦点
   if (IsNodeFocusable(flutterNode)) {
-    OH_ArkUI_AccessibilityElementInfoSetFocusable(elementInfoFromList, true);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetFocusable(elementInfoFromList, true)
+    );
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetFocusable -> true";
   }
   // 判断当前节点是否为密码输入框
   if (IsNodePassword(flutterNode)) {
-    OH_ArkUI_AccessibilityElementInfoSetIsPassword(elementInfoFromList, true);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetIsPassword(elementInfoFromList, true)
+    );
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetIsPassword -> true";
   }
   // 判断当前节点是否具备checkable状态 (如：checkbox, radio button)
   if (IsNodeCheckable(flutterNode)) {
-    OH_ArkUI_AccessibilityElementInfoSetCheckable(elementInfoFromList, true);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetCheckable(elementInfoFromList, true)
+    );
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetCheckable -> true";
   }
   // 判断当前节点(check box/radio button)是否checked/unchecked
   if (IsNodeChecked(flutterNode)) {
-    OH_ArkUI_AccessibilityElementInfoSetChecked(elementInfoFromList, true);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetChecked(elementInfoFromList, true)
+    );
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetChecked -> true";
   }
   // 判断当前节点组件是否可显示
   if (IsNodeVisible(flutterNode)) {
-    OH_ArkUI_AccessibilityElementInfoSetVisible(elementInfoFromList, true);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetVisible(elementInfoFromList, true)
+    );
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetVisible -> true";
   }
@@ -917,13 +1003,17 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
   }
   // 判断当前节点组件是否可滑动
   if (IsNodeScrollable(flutterNode)) {
-    OH_ArkUI_AccessibilityElementInfoSetScrollable(elementInfoFromList, true);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetScrollable(elementInfoFromList, true)
+    );
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetScrollable -> true";
   }
   // 判断当前节点组件是否可编辑（文本输入框）
   if (IsTextField(flutterNode)) {
-    OH_ArkUI_AccessibilityElementInfoSetEditable(elementInfoFromList, true);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetEditable(elementInfoFromList, true)
+    );
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetEditable -> true";
   }
@@ -934,15 +1024,18 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
   }
   // 判断当前节点组件是否支持长按
   if (IsNodeHasLongPress(flutterNode)) {
-    OH_ArkUI_AccessibilityElementInfoSetLongClickable(elementInfoFromList,
-                                                      true);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetLongClickable(elementInfoFromList, true)
+    );
     FML_DLOG(INFO)
         << "flutterNode.id=" << flutterNode.id
         << " OH_ArkUI_AccessibilityElementInfoSetLongClickable -> true";
   }
   // 判断当前节点组件是否enabled
   if (IsNodeEnabled(flutterNode)) {
-    OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfoFromList, true);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfoFromList, true)
+    );
     FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                    << " OH_ArkUI_AccessibilityElementInfoSetEnabled -> true";
   }
@@ -953,11 +1046,14 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
                  << componentTypeName;
   // flutter节点对应elementinfo所属的组件类型（如：root， button，text等）
   if (elementId == 0) {
-    OH_ArkUI_AccessibilityElementInfoSetComponentType(elementInfoFromList,
-                                                      "root");
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetComponentType(elementInfoFromList, "root")
+    );
   } else {
-    OH_ArkUI_AccessibilityElementInfoSetComponentType(
-        elementInfoFromList, componentTypeName.c_str());
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetComponentType(elementInfoFromList, 
+                                                          componentTypeName.c_str())
+    );
   }
   FML_DLOG(INFO) << "FlutterNodeToElementInfoById SetComponentType: "
                  << componentTypeName;
@@ -969,11 +1065,13 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
    * “no”：当前组件不可被无障碍辅助服务所识别
    * “no-hide-descendants”：当前组件及其所有子组件不可被无障碍辅助服务所识别
    */
-  OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel(elementInfoFromList,
-                                                         "yes");
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel(elementInfoFromList, "yes");
+  );
   // 无障碍组，设置为true时表示该组件及其所有子组件为一整个可以选中的组件，无障碍服务将不再关注其子组件内容。默认值：false
-  OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup(elementInfoFromList,
-                                                         false);
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+      OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup(elementInfoFromList, false);
+  );
 }
 
 /**
@@ -1060,8 +1158,9 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
   }
 
   // 开启无障碍导航功能
-  accessibilityFeatures_->SetAccessibleNavigation(true, 
-                                                  native_shell_holder_id_);
+  if(elementId == -1 || elementId == 0) {
+      accessibilityFeatures_->SetAccessibleNavigation(true, native_shell_holder_id_);
+  }
 
   // 从elementinfolist中获取elementinfo
   ArkUI_AccessibilityElementInfo* elementInfoFromList =
@@ -1486,6 +1585,11 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
     int64_t elementId,
     ArkUI_AccessibilityEventType eventType)
 {
+  if (provider_ == nullptr) {
+    FML_DLOG(ERROR) << "Flutter_SendAccessibilityAsyncEvent "
+                       "AccessibilityProvider = nullptr";
+    return;
+  }
   // 1.创建eventInfo对象
   ArkUI_AccessibilityEventInfo* eventInfo =
       OH_ArkUI_CreateAccessibilityEventInfo();
@@ -1503,15 +1607,17 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
   if (eventType ==
       ArkUI_AccessibilityEventType::
           ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ACCESSIBILITY_FOCUSED) {
-    OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused(_elementInfo,
-                                                             true);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused(_elementInfo,
+                                                                 true)
+    );
   }
 
   // 3.设置发送事件，如配置获焦、失焦、点击、滑动事件
-  OH_ArkUI_AccessibilityEventSetEventType(eventInfo, eventType);
+  ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityEventSetEventType(eventInfo, eventType));
 
   // 4.将eventinfo事件和当前elementinfo进行绑定
-  OH_ArkUI_AccessibilityEventSetElementInfo(eventInfo, _elementInfo);
+  ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityEventSetElementInfo(eventInfo, _elementInfo));
 
   // 5.调用接口发送到ohos侧
   auto callback = [](int32_t errorCode) {
@@ -1521,11 +1627,6 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
   };
 
   // 6.发送event到OH侧
-  if (provider_ == nullptr) {
-    FML_DLOG(ERROR) << "Flutter_SendAccessibilityAsyncEvent "
-                       "AccessibilityProvider = nullptr";
-    return;
-  }
   OH_ArkUI_SendAccessibilityAsyncEvent(provider_, eventInfo, callback);
 
   // 7.销毁新创建的elementinfo, eventinfo
@@ -1605,7 +1706,7 @@ std::string OhosAccessibilityBridge::GetNodeComponentType(
     return "Header";
   }
   if (node.HasFlag(FLAGS_::kIsImage)) {
-    return "ImageView";
+    return "Image";
   }
   if (node.HasFlag(FLAGS_::kHasCheckedState)) {
     if (node.HasFlag(FLAGS_::kIsInMutuallyExclusiveGroup)) {
