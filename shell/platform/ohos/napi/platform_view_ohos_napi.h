@@ -28,7 +28,6 @@
 #include "flutter/shell/common/run_configuration.h"
 #include "flutter/shell/platform/ohos/napi_common.h"
 #include "napi/native_api.h"
-#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_features.h"
 
 // class for all c++ to call js function
@@ -87,6 +86,16 @@ class PlatformViewOHOSNapi {
 
   void FlutterViewOnTouchEvent(std::shared_ptr<std::string[]> touchPacketString,
                                int size);
+  /**
+   * accessibility-relevant interfaces
+   */
+  void GetShellHolderId();
+  void SetSemanticsEnabled(int64_t shell_hoder, bool enabled);
+  void SetAccessibilityFeatures(int64_t shell_hoder, int32_t flags);
+  void DispatchSemanticsAction(int64_t shell_hoder,
+                               int32_t id, 
+                               flutter::SemanticsAction action, 
+                               fml::MallocMapping args);
 
   static napi_value nativeUpdateRefreshRate(
       napi_env env,
@@ -236,6 +245,7 @@ class PlatformViewOHOSNapi {
   napi_ref ref_napi_obj_;
   static std::vector<std::string> system_languages;
   fml::RefPtr<fml::TaskRunner> platform_task_runner_;
+  static int64_t napi_shell_holder_id_;
 };
 
 }  // namespace flutter

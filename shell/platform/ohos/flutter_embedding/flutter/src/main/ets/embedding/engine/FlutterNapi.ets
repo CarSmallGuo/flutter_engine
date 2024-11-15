@@ -389,7 +389,7 @@ export default class FlutterNapi {
       this.accessibilityDelegate.accessibilityStateChange(state);
     }
     Log.d(TAG, "accessibilityStateChange is called");
-    flutter.nativeAccessibilityStateChange(state);
+    flutter.nativeAccessibilityStateChange(this.nativeShellHolderId!, state);
   }
 
   setLocalizationPlugin(localizationPlugin: LocalizationPlugin | null): void {
@@ -523,6 +523,7 @@ export default class FlutterNapi {
     }
   }
 
+  //native c++ get the shell holder id
   getShellHolderId(): void {
     this.ensureRunningOnMainThread();
     if (this.isAttached()) {

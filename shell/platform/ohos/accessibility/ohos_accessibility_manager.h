@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,7 +14,7 @@
  */
 #ifndef OHOS_ACCESSIBILITY_MANAGER_H
 #define OHOS_ACCESSIBILITY_MANAGER_H
-
+#include <memory>
 
 namespace flutter {
 /**
@@ -25,12 +25,13 @@ class OhosAccessibilityManager {
   OhosAccessibilityManager();
   ~OhosAccessibilityManager();
 
-  void onAccessibilityStateChanged(bool isOhosAccessibilityEnabled);
-  bool getOhosAccessibilityEnabled();
-  void setOhosAccessibilityEnabled(bool isEnabled);
+  bool isOhosAccessibilityEnabled_;
 
- private:
-  bool isOhosAccessibilityEnabled_ = false;
+  void OnAccessibilityStateChanged(bool ohosAccessibilityEnabled);
+
+  bool GetOhosAccessibilityEnabled();
+
+  void SetOhosAccessibilityEnabled(bool isEnabled);
 };
 
 }  // namespace flutter

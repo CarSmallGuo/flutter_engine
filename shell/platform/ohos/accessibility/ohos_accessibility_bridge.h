@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,30 +12,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 #ifndef OHOS_ACCESSIBILITY_BRIDGE_H
 #define OHOS_ACCESSIBILITY_BRIDGE_H
 #include <arkui/native_interface_accessibility.h>
 #include <cstdint>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <utility>
 #include <vector>
 #include "flutter/fml/mapping.h"
 #include "flutter/lib/ui/semantics/custom_accessibility_action.h"
 #include "flutter/lib/ui/semantics/semantics_node.h"
-#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_manager.h"
-#include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
+#include "native_accessibility_channel.h"
+#include "ohos_accessibility_features.h"
 
 namespace flutter {
 
 typedef flutter::SemanticsFlags FLAGS_;
 typedef flutter::SemanticsAction ACTIONS_;
-typedef flutter::SemanticsNode FLUTTER_NODE_;
 
-/**
- * flutter和ohos的无障碍服务桥接
- */
 struct AbsoluteRect {
   float left;
   float top;
@@ -50,7 +45,6 @@ struct AbsoluteRect {
 struct SemanticsNodeExtent : flutter::SemanticsNode {
   int32_t parentId = -1;
   AbsoluteRect abRect = AbsoluteRect::MakeEmpty();
-
   int32_t previousFlags;
   int32_t previousActions;
   int32_t previousTextSelectionBase;
@@ -62,17 +56,25 @@ struct SemanticsNodeExtent : flutter::SemanticsNode {
   std::string previousLabel;
 };
 
+/**
+ * flutter和ohos的无障碍服务桥接
+ */
 class OhosAccessibilityBridge {
  public:
-  OhosAccessibilityBridge();
-  ~OhosAccessibilityBridge();
-
   static OhosAccessibilityBridge* GetInstance();
+  static void DestroyInstance();
+  OhosAccessibilityBridge(const OhosAccessibilityBridge&) = delete;
+  OhosAccessibilityBridge& operator=(const OhosAccessibilityBridge&) = delete;
 
-  bool isOhosAccessibilityEnabled_;
   bool IS_FLUTTER_NAVIGATE = false;
-  int64_t nativeShellHolder_;
+  int64_t native_shell_holder_id_;
   ArkUI_AccessibilityProvider* provider_;
+
+  void OnOhosAccessibilityStateChange(
+      int64_t shellHolderId,
+      bool ohosAccessibilityEnabled);
+
+  void SetNativeShellHolderId(int64_t id);
 
   void updateSemantics(flutter::SemanticsNodeUpdates update,
                        flutter::CustomAccessibilityActionUpdates actions);
@@ -81,10 +83,9 @@ class OhosAccessibilityBridge {
                                flutter::SemanticsAction action,
                                fml::MallocMapping args);
 
-  void announce(std::unique_ptr<char[]>& message);
+  void Announce(std::unique_ptr<char[]>& message);
 
-  // obtain the flutter semnatics node
-  flutter::SemanticsNode getOrCreateFlutterSemanticsNode(int32_t id);
+  flutter::SemanticsNode GetFlutterSemanticsNode(int32_t id);
 
   int32_t FindAccessibilityNodeInfosById(
       int64_t elementId,
@@ -138,11 +139,18 @@ class OhosAccessibilityBridge {
   void FlutterScrollExecution(
       flutter::SemanticsNode node,
       ArkUI_AccessibilityElementInfo* elementInfoFromList);
-
+  
   void ClearFlutterSemanticsCaches();
 
  private:
-  static OhosAccessibilityBridge bridgeInstance;
+  OhosAccessibilityBridge();
+  static OhosAccessibilityBridge* bridgeInstance;
+  std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
+  std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
+
+  // arkui的root节点的父节点id
+  static const int32_t ARKUI_ACCESSIBILITY_ROOT_PARENT_ID = -2100000;
+  static const int32_t RET_ERROR_STATE_CODE = -999;
   static const int32_t ROOT_NODE_ID = 0;
   constexpr static const double SCROLL_EXTENT_FOR_INFINITY = 100000.0;
   constexpr static const double SCROLL_POSITION_CAP_FOR_INFINITY = 70000.0;
@@ -151,9 +159,8 @@ class OhosAccessibilityBridge {
   flutter::SemanticsNode lastInputFocusedNode;
   flutter::SemanticsNode accessibilityFocusedNode;
 
-  std::shared_ptr<OhosAccessibilityManager> ax_manager_;
   std::vector<std::pair<int32_t, int32_t>> parentChildIdVec;
-  std::unordered_map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
+  std::map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
   std::unordered_map<
       int32_t,
       std::pair<std::pair<float, float>, std::pair<float, float>>>
@@ -226,8 +233,13 @@ class OhosAccessibilityBridge {
       std::string widget_type);
   void FlutterTreeToArkuiTree(
       ArkUI_AccessibilityElementInfoList* elementInfoList);
+  void BuildArkUISemanticsTree(
+      int64_t elementId,
+      ArkUI_AccessibilityElementInfo* elementInfoFromList,
+      ArkUI_AccessibilityElementInfoList* elementList);
 
-  flutter::SemanticsNode getFlutterRootSemanticsNode();
+  std::vector<int64_t> GetLevelOrderTraversalTree(int32_t rootId);
+  flutter::SemanticsNode GetFlutterRootSemanticsNode();
   std::string GetNodeComponentType(const flutter::SemanticsNode& node);
   flutter::SemanticsAction ArkuiActionsToFlutterActions(
       ArkUI_Accessibility_ActionType arkui_action);
@@ -266,10 +278,64 @@ class OhosAccessibilityBridge {
   void GetCustomActionDebugInfo(
       flutter::CustomAccessibilityAction customAccessibilityAction);
 
-  void PageStateUpdate(int64_t elementId);
+  void FlutterPageUpdate(ArkUI_AccessibilityEventType eventType);
   void RequestFocusWhenPageUpdate();
 
   bool Contains(const std::string source, const std::string target);
+};
+
+enum class AccessibilityAction : int32_t {
+  kTap = 1 << 0,
+  kLongPress = 1 << 1,
+  kScrollLeft = 1 << 2,
+  kScrollRight = 1 << 3,
+  kScrollUp = 1 << 4,
+  kScrollDown = 1 << 5,
+  kIncrease = 1 << 6,
+  kDecrease = 1 << 7,
+  kShowOnScreen = 1 << 8,
+  kMoveCursorForwardByCharacter = 1 << 9,
+  kMoveCursorBackwardByCharacter = 1 << 10,
+  kSetSelection = 1 << 11,
+  kCopy = 1 << 12,
+  kCut = 1 << 13,
+  kPaste = 1 << 14,
+  kDidGainAccessibilityFocus = 1 << 15,
+  kDidLoseAccessibilityFocus = 1 << 16,
+  kCustomAction = 1 << 17,
+  kDismiss = 1 << 18,
+  kMoveCursorForwardByWord = 1 << 19,
+  kMoveCursorBackwardByWord = 1 << 20,
+  kSetText = 1 << 21,
+};
+
+enum class AccessibilityFlags : int32_t {
+  kHasCheckedState = 1 << 0,
+  kIsChecked = 1 << 1,
+  kIsSelected = 1 << 2,
+  kIsButton = 1 << 3,
+  kIsTextField = 1 << 4,
+  kIsFocused = 1 << 5,
+  kHasEnabledState = 1 << 6,
+  kIsEnabled = 1 << 7,
+  kIsInMutuallyExclusiveGroup = 1 << 8,
+  kIsHeader = 1 << 9,
+  kIsObscured = 1 << 10,
+  kScopesRoute = 1 << 11,
+  kNamesRoute = 1 << 12,
+  kIsHidden = 1 << 13,
+  kIsImage = 1 << 14,
+  kIsLiveRegion = 1 << 15,
+  kHasToggledState = 1 << 16,
+  kIsToggled = 1 << 17,
+  kHasImplicitScrolling = 1 << 18,
+  kIsMultiline = 1 << 19,
+  kIsReadOnly = 1 << 20,
+  kIsFocusable = 1 << 21,
+  kIsLink = 1 << 22,
+  kIsSlider = 1 << 23,
+  kIsKeyboardKey = 1 << 24,
+  kIsCheckStateMixed = 1 << 25,
 };
 
 }  // namespace flutter

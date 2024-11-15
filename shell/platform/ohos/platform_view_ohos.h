@@ -36,7 +36,8 @@
 #include "flutter/shell/platform/ohos/surface/ohos_surface.h"
 #include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
 #include "flutter/shell/platform/ohos/platform_view_ohos_delegate.h"
-#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
+#include "flutter/shell/platform/ohos/accessibility/native_accessibility_channel.h"
+
 namespace flutter {
 
 class OhosSurfaceFactoryImpl : public OhosSurfaceFactory {
@@ -135,14 +136,15 @@ class PlatformViewOHOS final : public PlatformView {
   const std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;
   std::shared_ptr<OHOSContext> ohos_context_;
 
+  std::shared_ptr<PlatformViewOHOSDelegate> platform_view_ohos_delegate_;  
+  NativeAccessibilityChannel nativeAccessibilityChannel_;  
+
   std::shared_ptr<OHOSSurface> ohos_surface_;
   std::shared_ptr<PlatformMessageHandlerOHOS> platform_message_handler_;
 
   std::shared_ptr<OhosSurfaceFactoryImpl> surface_factory_;
   std::map<int64_t, std::shared_ptr<OHOSExternalTextureGL>> external_texture_gl_;
   std::map<int64_t, void*> contextDatas_;
-
-  std::shared_ptr<PlatformViewOHOSDelegate> platform_view_ohos_delegate_;  
 
   std::atomic<bool> isDestroyed_;
 

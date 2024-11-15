@@ -37,7 +37,6 @@ import FlutterManager from './FlutterManager';
 import { FlutterView } from '../../view/FlutterView';
 import ApplicationInfoLoader from '../engine/loader/ApplicationInfoLoader';
 import { accessibility } from '@kit.AccessibilityKit';
-import { AccessibilityManager } from '../../view/AccessibilityBridge';
 
 const TAG = "FlutterAbility";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
@@ -53,7 +52,6 @@ export class FlutterAbility extends UIAbility implements Host {
   private flutterView: FlutterView | null = null;
   private mainWindow?: window.Window | null;
   private errorManagerId:number = 0;
-  private accessibilityManager?: AccessibilityManager | null;
 
   getFlutterView(): FlutterView | null {
     return this.flutterView;
@@ -116,11 +114,9 @@ export class FlutterAbility extends UIAbility implements Host {
     //冷启动对os是否开启无障碍服务进行查询
     let accessibilityState: boolean = accessibility.isOpenAccessibilitySync();
     if(accessibilityState) {
-      this.delegate?.getFlutterNapi()?.setSemanticsEnabled(accessibilityState);
+      this.delegate?.getFlutterNapi()?.accessibilityStateChange(accessibilityState);
     }
     Log.i(TAG, `accessibility isOpen state -> ${JSON.stringify(accessibilityState)}`);
-
-    this.accessibilityManager = new AccessibilityManager();
   }
 
   onDestroy() {
@@ -391,7 +387,7 @@ export class FlutterAbility extends UIAbility implements Host {
       .send(); //热启动生命周期内，实时监听系统设置环境改变并实时发送相应信息
 
     //实时获取系统字体加粗系数
-    this.delegate?.getFlutterNapi()?.setFontWeightScale(config.fontWeightScale == undefined? 0 : config.fontWeightScale);
+    this.delegate?.getFlutterNapi()?.setFontWeightScale(config.fontWeightScale == undefined? 1.0 : config.fontWeightScale);
     Log.i(TAG, 'fontWeightScale: ' + JSON.stringify(config.fontWeightScale));
 
     if (config.language != '') {
