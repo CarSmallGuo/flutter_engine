@@ -69,10 +69,6 @@ void VsyncWaiterOHOS::OnVsyncFromOHOS(long long timestamp, void* data) {
   int64_t frame_nanos = static_cast<int64_t>(timestamp);
   auto frame_time = fml::TimePoint::FromEpochDelta(
       fml::TimeDelta::FromNanoseconds(frame_nanos));
-  auto now = fml::TimePoint::Now();
-  if (frame_time > now) {
-    frame_time = now;
-  }
   auto target_time = frame_time + fml::TimeDelta::FromNanoseconds(
                                       1000000000.0 / g_refresh_rate_);
   auto* weak_this = reinterpret_cast<std::weak_ptr<VsyncWaiter>*>(data);
@@ -96,4 +92,17 @@ void VsyncWaiterOHOS::OnUpdateRefreshRate(long long refresh_rate) {
   g_refresh_rate_ = static_cast<int>(refresh_rate);
 }
 
+void VsyncWaiterOHOS::DisableDVsync() {
+  if (dvsyncEnabled.load()) {
+    OH_NativeVSync_DVSyncSwitch(vsyncHandle, false);
+    dvsyncEnabled.store(false);
+  }
+}
+
+void VsyncWaiterOHOS::EnableDVsync() {
+  if (!dvsyncEnabled.load()) {
+    OH_NativeVSync_DVSyncSwitch(vsyncHandle, true);
+    dvsyncEnabled.store(true);
+  }
+}
 }  // namespace flutter

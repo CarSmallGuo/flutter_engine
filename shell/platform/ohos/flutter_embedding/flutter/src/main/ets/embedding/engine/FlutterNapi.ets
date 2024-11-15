@@ -542,6 +542,9 @@ export default class FlutterNapi {
     return Boolean(flutter.nativeUnicodeIsRegionalIndicatorSymbol(code));
   }
 
+  SetDVsyncSwitch(isEnable: boolean): void {
+    flutter.nativeSetDVsyncSwitch(this.nativeShellHolderId!, isEnable);
+  }
 }
 
 export interface AccessibilityDelegate {
