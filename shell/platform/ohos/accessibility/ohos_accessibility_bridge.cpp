@@ -104,10 +104,6 @@ void OhosAccessibilityBridge::updateSemantics(
     GetSemanticsNodeDebugInfo(node);
     GetSemanticsFlagsDebugInfo(node);
 
-    // if (!IsNodeVisible(node)) {
-    //   continue;
-    // }
-
     /**
      * 构建flutter无障碍语义节点树
      * NOTE: 若使用flutterSemanticsTree_.insert({node.id, node})方式
@@ -365,12 +361,12 @@ flutter::SemanticsNode OhosAccessibilityBridge::GetFlutterRootSemanticsNode()
   if (!flutterSemanticsTree_.size()) {
     FML_DLOG(ERROR)
         << "GetFlutterRootSemanticsNode -> flutterSemanticsTree_.size()=0";
-    return flutter::SemanticsNode{};
+    return {};
   }
   if (flutterSemanticsTree_.find(0) == flutterSemanticsTree_.end()) {
     FML_DLOG(ERROR) << "GetFlutterRootSemanticsNode -> flutterSemanticsTree_ "
                        "has no keys = 0";
-    return flutter::SemanticsNode{};
+    return {};
   }
   return flutterSemanticsTree_.at(0);
 }
@@ -570,10 +566,6 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
   // 获取当前flutter节点的父节点的相对rect
   int32_t parentId = GetParentId(currNode.id);
   auto parentNode = GetFlutterSemanticsNode(parentId);
-  // if (parentNode == ) {
-  //   LOGE("ConvertChildRelativeRectToScreenRect -> GetFlutterSemanticsNode 
-  //         parentNode = null, parentId:%{public}d", parentId);
-  // }
   auto parentRight = parentNode.rect.fRight;
   auto parentBottom = parentNode.rect.fBottom;
 
@@ -621,9 +613,13 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
           (currTop + _kMTransY + currBottom) * realScaleFactor + realParentTop;
     }
     // 若子节点rect超过父节点则跳过显示（单个屏幕显示不下，滑动再重新显示）
-    if (newLeft < realParentLeft || newTop < realParentTop ||
-        newRight > realParentRight || newBottom > realParentBottom ||
-        newLeft >= newRight || newTop >= newBottom) {
+    const bool IS_OVER_SCREEN_AREA = newLeft < realParentLeft || 
+                                     newTop < realParentTop ||
+                                     newRight > realParentRight || 
+                                     newBottom > realParentBottom ||
+                                     newLeft >= newRight || 
+                                     newTop >= newBottom;
+    if (IS_OVER_SCREEN_AREA) {
       FML_DLOG(ERROR) << "ConvertChildRelativeRectToScreenRect childRect is "
                          "bigger than parentRect -> { nodeId: "
                       << currNode.id << ", (" << newLeft << ", " << newTop
@@ -1096,7 +1092,7 @@ std::vector<int64_t> OhosAccessibilityBridge::GetLevelOrderTraversalTree(int32_t
 
       std::sort(currNode.childrenInTraversalOrder.begin(), 
                 currNode.childrenInTraversalOrder.end());
-      for (auto& childId: currNode.childrenInTraversalOrder) {
+      for (const auto& childId: currNode.childrenInTraversalOrder) {
         auto childNode = GetFlutterSemanticsNode(childId);
         semanticsQue.push(childNode);
       }
