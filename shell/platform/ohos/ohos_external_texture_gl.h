@@ -96,8 +96,7 @@ class OHOSExternalTextureGL : public flutter::Texture {
   AttachmentState state_;
 
   bool new_frame_ready_ = false;
-
-  bool texture_update_ = false;
+  int newFrameCount = 0;
 
   GLuint texture_name_ = 0;
 
@@ -110,10 +109,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
   OHNativeWindow *nativeWindow_;
 
   OHNativeWindow *backGroundNativeWindow_;
-
-  OHNativeWindowBuffer *buffer_;
-
-  OHNativeWindowBuffer *backGroundBuffer_;
 
   NativePixelMap* backGroundPixelMap_;
 

@@ -450,6 +450,7 @@ PointerDataDispatcherMaker PlatformViewOHOS::GetDispatcherMaker() {
 
 uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
 {
+  FML_DLOG(INFO) << "PlatformViewOHOS::RegisterExternalTexture, texture_id=" << texture_id;
   uint64_t surface_id = 0;
   int ret = -1;
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
