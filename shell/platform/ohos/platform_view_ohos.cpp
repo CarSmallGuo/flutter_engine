@@ -25,7 +25,6 @@
 #include "ohos_external_texture_gl.h"
 #include "ohos_logging.h"
 #include "flutter/shell/platform/ohos/platform_view_ohos_delegate.h"
-
 #include <GLES2/gl2ext.h>
 
 namespace flutter {
@@ -300,8 +299,8 @@ void PlatformViewOHOS::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
   FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics is called";
-  auto ax_bridge_delegate_ = OhosAccessibilityBridge::GetInstance();
-  ax_bridge_delegate_->updateSemantics(update, actions);
+  auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
+  nativeAccessibilityChannel_->UpdateSemantics(update, actions);
 }
 
 // |PlatformView|

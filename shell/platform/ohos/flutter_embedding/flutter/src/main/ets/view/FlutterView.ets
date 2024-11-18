@@ -154,7 +154,7 @@ export class FlutterView {
     //监听系统无障碍服务状态改变
     accessibility.on('accessibilityStateChange', (data: boolean) => {
       Log.i(TAG, `subscribe accessibility state change, result: ${JSON.stringify(data)}`);
-      this.flutterEngine?.getFlutterNapi()?.setSemanticsEnabled(data);
+      this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(data);
     });
     this.systemAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
     this.navigationAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR);
