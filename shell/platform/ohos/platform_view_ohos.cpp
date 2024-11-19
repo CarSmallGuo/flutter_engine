@@ -577,6 +577,33 @@ void PlatformViewOHOS::OnTouchEvent(const std::shared_ptr<std::string[]> touchPa
   return napi_facade_->FlutterViewOnTouchEvent(touchPacketString, size);
 }
 
+void PlatformViewOHOS::RunTask(OHOS_THREAD_TYPE type, const fml::closure& task)
+{
+  fml::RefPtr<fml::TaskRunner> TaskRunnerPtr = nullptr;
+  switch(type) {
+    case OHOS_THREAD_TYPE::OHOS_THREAD_TYPE_PLATFORM:
+      TaskRunnerPtr = task_runners_.GetPlatformTaskRunner();
+      break;
+    case OHOS_THREAD_TYPE::OHOS_THREAD_TYPE_UI:
+      TaskRunnerPtr = task_runners_.GetUITaskRunner();
+      break;
+    case OHOS_THREAD_TYPE::OHOS_THREAD_TYPE_RASTER:
+      TaskRunnerPtr = task_runners_.GetRasterTaskRunner();
+      break;
+    case OHOS_THREAD_TYPE::OHOS_THREAD_TYPE_IO:
+      TaskRunnerPtr = task_runners_.GetIOTaskRunner();
+      break;
+    default:
+      break;
+  }
+
+  if (!TaskRunnerPtr) {
+    return;
+  }
+
+  fml::TaskRunner::RunNowOrPostTask(TaskRunnerPtr, task);
+}
+
 OhosImageFrameData::OhosImageFrameData(
     PlatformViewOHOS* context,
     int64_t texture_id)

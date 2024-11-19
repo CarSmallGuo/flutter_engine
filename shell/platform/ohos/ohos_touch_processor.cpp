@@ -16,6 +16,7 @@
 #include "flutter/shell/platform/ohos/ohos_touch_processor.h"
 #include "flutter/lib/ui/window/pointer_data_packet.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
+#include "flutter/fml/trace_event.h"
 
 namespace flutter {
 
@@ -151,6 +152,7 @@ void OhosTouchProcessor::HandleTouchEvent(
     if (touchEvent == nullptr) {
         return;
     }
+    FML_TRACE_EVENT("flutter", "HandleTouchEvent", "timeStamp", touchEvent->timeStamp);
     const int numTouchPoints = 1;
     std::unique_ptr<flutter::PointerDataPacket> packet = std::make_unique<flutter::PointerDataPacket>(numTouchPoints);
     PointerData pointerData;
@@ -196,6 +198,12 @@ void OhosTouchProcessor::HandleTouchEvent(
     auto ohos_shell_holder = reinterpret_cast<OHOSShellHolder*>(shell_holderID);
     ohos_shell_holder->GetPlatformView()->DispatchPointerDataPacket(
         std::move(packet));
+
+    // For DFX
+    fml::closure task = [timeStampDFX = touchEvent->timeStamp](void){
+        FML_TRACE_EVENT("flutter", "HandleTouchEventUI", "timeStamp", touchEvent->timeStamp);
+    };
+    ohos_shell_holder->GetPlatformView()->RunTask(OHOS_THREAD_TYPE::OHOS_THREAD_TYPE_UI, task);
 
     int numPoints = touchEvent->numPoints;
     float tiltX = 0.0;
