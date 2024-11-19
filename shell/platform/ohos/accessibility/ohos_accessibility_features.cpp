@@ -18,7 +18,11 @@
 
 namespace flutter {
 
-OhosAccessibilityFeatures::OhosAccessibilityFeatures() {};
+OhosAccessibilityFeatures::OhosAccessibilityFeatures()
+{
+    nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
+};
+
 OhosAccessibilityFeatures::~OhosAccessibilityFeatures() {};
 
 /**
@@ -67,7 +71,6 @@ void OhosAccessibilityFeatures::SetBoldText(double fontWeightScale,
  */
 void OhosAccessibilityFeatures::SendAccessibilityFlags(
     int64_t shell_holder_id) {
-  nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
   nativeAccessibilityChannel_->SetAccessibilityFeatures(shell_holder_id, accessibilityFeatureFlags);
   FML_DLOG(INFO) << "SendAccessibilityFlags -> accessibilityFeatureFlags = "
                  << accessibilityFeatureFlags;

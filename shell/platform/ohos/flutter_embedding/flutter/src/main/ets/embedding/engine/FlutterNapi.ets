@@ -347,7 +347,6 @@ export default class FlutterNapi {
 
   setAccessibilityFeatures(accessibilityFeatureFlags: number, responseId: number): void {
     if (this.isAttached()) {
-      // this.nativeSetAccessibilityFeatures(accessibilityFeatureFlags, responseId);
       flutter.nativeSetAccessibilityFeatures(accessibilityFeatureFlags, responseId);
     } else {
       Log.w(

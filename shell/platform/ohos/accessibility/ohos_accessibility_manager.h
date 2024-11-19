@@ -25,13 +25,14 @@ class OhosAccessibilityManager {
   OhosAccessibilityManager();
   ~OhosAccessibilityManager();
 
-  bool isOhosAccessibilityEnabled_;
-
   void OnAccessibilityStateChanged(bool ohosAccessibilityEnabled);
 
   bool GetOhosAccessibilityEnabled();
 
   void SetOhosAccessibilityEnabled(bool isEnabled);
+
+ private:
+   bool isOhosAccessibilityEnabled_;
 };
 
 }  // namespace flutter
