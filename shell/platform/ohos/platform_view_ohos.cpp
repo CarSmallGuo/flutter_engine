@@ -580,7 +580,7 @@ void PlatformViewOHOS::OnTouchEvent(const std::shared_ptr<std::string[]> touchPa
 void PlatformViewOHOS::RunTask(OHOS_THREAD_TYPE type, const fml::closure& task)
 {
   fml::RefPtr<fml::TaskRunner> TaskRunnerPtr = nullptr;
-  switch(type) {
+  switch (type) {
     case OHOS_THREAD_TYPE::OHOS_THREAD_TYPE_PLATFORM:
       TaskRunnerPtr = task_runners_.GetPlatformTaskRunner();
       break;

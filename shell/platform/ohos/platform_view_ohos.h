@@ -38,7 +38,7 @@
 
 namespace flutter {
 
-enum OHOS_THREAD_TYPE_TYPE {
+enum class OHOS_THREAD_TYPE {
     OHOS_THREAD_TYPE_PLATFORM,
     OHOS_THREAD_TYPE_UI,
     OHOS_THREAD_TYPE_RASTER,
