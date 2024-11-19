@@ -14,7 +14,7 @@
  */
 
 #include "flutter/shell/platform/ohos/ohos_touch_processor.h"
-#include "flutter/fml/trace_event.h"
+
 #include "flutter/lib/ui/window/pointer_data_packet.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
 
@@ -152,56 +152,54 @@ void OhosTouchProcessor::HandleTouchEvent(
     int64_t shell_holderID,
     OH_NativeXComponent* component,
     OH_NativeXComponent_TouchEvent* touchEvent) {
-  if (touchEvent == nullptr) {
-    return;
-  }
-  FML_TRACE_EVENT("flutter", "HandleTouchEvent", "timeStamp",
-                  touchEvent->timeStamp);
-  const int numTouchPoints = 1;
-  std::unique_ptr<flutter::PointerDataPacket> packet =
-      std::make_unique<flutter::PointerDataPacket>(numTouchPoints);
-  PointerData pointerData;
-  pointerData.Clear();
-  pointerData.embedder_id = touchEvent->id;
-  pointerData.time_stamp = touchEvent->timeStamp / MSEC_PER_SECOND;
-  pointerData.change = getPointerChangeForAction(touchEvent->type);
-  pointerData.physical_y = touchEvent->y;
-  pointerData.physical_x = touchEvent->x;
-  // Delta will be generated in pointer_data_packet_converter.cc.
-  pointerData.physical_delta_x = 0.0;
-  pointerData.physical_delta_y = 0.0;
-  pointerData.device = touchEvent->id;
-  // Pointer identifier will be generated in pointer_data_packet_converter.cc.
-  pointerData.pointer_identifier = 0;
-  // XComponent not support Scroll
-  pointerData.signal_kind = PointerData::SignalKind::kNone;
-  pointerData.scroll_delta_x = 0.0;
-  pointerData.scroll_delta_y = 0.0;
-  pointerData.pressure = touchEvent->force;
-  pointerData.pressure_max = 1.0;
-  pointerData.pressure_min = 0.0;
-  OH_NativeXComponent_TouchPointToolType toolType;
-  OH_NativeXComponent_GetTouchPointToolType(component, 0, &toolType);
-  pointerData.kind = getPointerDeviceTypeForToolType(toolType);
-  if (pointerData.kind == PointerData::DeviceKind::kTouch) {
-    if (pointerData.change == PointerData::Change::kDown ||
-        pointerData.change == PointerData::Change::kMove) {
-      pointerData.buttons = kPointerButtonTouchContact;
+    if (touchEvent == nullptr) {
+        return;
     }
-  }
-  pointerData.pan_x = 0.0;
-  pointerData.pan_y = 0.0;
-  // Delta will be generated in pointer_data_packet_converter.cc.
-  pointerData.pan_delta_x = 0.0;
-  pointerData.pan_delta_y = 0.0;
-  // The contact area between the fingerpad and the screen
-  pointerData.size = touchEvent->size;
-  pointerData.scale = 1.0;
-  pointerData.rotation = 0.0;
-  packet->SetPointerData(0, pointerData);
-  auto ohos_shell_holder = reinterpret_cast<OHOSShellHolder*>(shell_holderID);
-  ohos_shell_holder->GetPlatformView()->DispatchPointerDataPacket(
-      std::move(packet));
+    FML_TRACE_EVENT("flutter", "HandleTouchEvent", "timeStamp", touchEvent->timeStamp);
+    const int numTouchPoints = 1;
+    std::unique_ptr<flutter::PointerDataPacket> packet = std::make_unique<flutter::PointerDataPacket>(numTouchPoints);
+    PointerData pointerData;
+    pointerData.Clear();
+    pointerData.embedder_id = touchEvent->id;
+    pointerData.time_stamp = touchEvent->timeStamp / MSEC_PER_SECOND;
+    pointerData.change = getPointerChangeForAction(touchEvent->type);
+    pointerData.physical_y = touchEvent->y;
+    pointerData.physical_x = touchEvent->x;
+    // Delta will be generated in pointer_data_packet_converter.cc.
+    pointerData.physical_delta_x = 0.0;
+    pointerData.physical_delta_y = 0.0;
+    pointerData.device = touchEvent->id;
+    // Pointer identifier will be generated in pointer_data_packet_converter.cc.
+    pointerData.pointer_identifier = 0;
+    // XComponent not support Scroll
+    pointerData.signal_kind = PointerData::SignalKind::kNone;
+    pointerData.scroll_delta_x = 0.0;
+    pointerData.scroll_delta_y = 0.0;
+    pointerData.pressure = touchEvent->force;
+    pointerData.pressure_max = 1.0;
+    pointerData.pressure_min = 0.0;
+    OH_NativeXComponent_TouchPointToolType toolType;
+    OH_NativeXComponent_GetTouchPointToolType(component, 0, &toolType);
+    pointerData.kind = getPointerDeviceTypeForToolType(toolType);
+    if (pointerData.kind == PointerData::DeviceKind::kTouch) {
+      if (pointerData.change == PointerData::Change::kDown ||
+          pointerData.change == PointerData::Change::kMove) {
+        pointerData.buttons = kPointerButtonTouchContact;
+      }
+    }
+    pointerData.pan_x = 0.0;
+    pointerData.pan_y = 0.0;
+    // Delta will be generated in pointer_data_packet_converter.cc.
+    pointerData.pan_delta_x = 0.0;
+    pointerData.pan_delta_y = 0.0;
+    // The contact area between the fingerpad and the screen
+    pointerData.size = touchEvent->size;
+    pointerData.scale = 1.0;
+    pointerData.rotation = 0.0;
+    packet->SetPointerData(0, pointerData);
+    auto ohos_shell_holder = reinterpret_cast<OHOSShellHolder*>(shell_holderID);
+    ohos_shell_holder->GetPlatformView()->DispatchPointerDataPacket(
+        std::move(packet));
 
     // For DFX
     fml::closure task = [timeStampDFX = touchEvent->timeStamp](void) {
@@ -229,12 +227,10 @@ void OhosTouchProcessor::PlatformViewOnTouchEvent(
   touchPacket->tiltX = tiltX;
   touchPacket->tiltX = tiltY;
 
-  std::shared_ptr<std::string[]> touchPacketString =
-      packagePacketData(std::move(touchPacket));
-  int size = CHANGES_POINTER_MEMBER + PER_POINTER_MEMBER * numPoints +
-             TOUCH_EVENT_ADDITIONAL_ATTRIBUTES;
-  auto ohos_shell_holder = reinterpret_cast<OHOSShellHolder*>(shellHolderID);
-  ohos_shell_holder->GetPlatformView()->OnTouchEvent(touchPacketString, size);
+    std::shared_ptr<std::string[]> touchPacketString = packagePacketData(std::move(touchPacket));
+    int size = CHANGES_POINTER_MEMBER + PER_POINTER_MEMBER * numPoints + TOUCH_EVENT_ADDITIONAL_ATTRIBUTES;
+    ohos_shell_holder->GetPlatformView()->OnTouchEvent(touchPacketString, size);
+    return;
 }
 
 void OhosTouchProcessor::HandleMouseEvent(

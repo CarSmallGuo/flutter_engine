@@ -742,7 +742,7 @@ void PlatformViewOHOS::OnTouchEvent(
 void PlatformViewOHOS::RunTask(OhosThreadType type, const fml::closure& task) {
   fml::RefPtr<fml::TaskRunner> TaskRunnerPtr = nullptr;
   switch (type) {
-    case OhosThreadType::kPlatform:
+    case OHOS_THREAD_TYPE::OHOS_THREAD_TYPE_PLATFORM:
       TaskRunnerPtr = task_runners_.GetPlatformTaskRunner();
       break;
     case OhosThreadType::kUI:

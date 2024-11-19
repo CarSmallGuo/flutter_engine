@@ -41,11 +41,11 @@
 
 namespace flutter {
 
-enum class OhosThreadType {
-  kPlatform,
-  kUI,
-  kRaster,
-  kIO,
+enum class OHOS_THREAD_TYPE {
+    OHOS_THREAD_TYPE_PLATFORM,
+    OHOS_THREAD_TYPE_UI,
+    OHOS_THREAD_TYPE_RASTER,
+    OHOS_THREAD_TYPE_IO,
 };
 
 class OhosSurfaceFactoryImpl : public OhosSurfaceFactory {
