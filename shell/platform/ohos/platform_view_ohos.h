@@ -161,19 +161,7 @@ class PlatformViewOHOS final : public PlatformView {
 
   void OnTouchEvent(std::shared_ptr<std::string[]> touchPacketString, int size);
 
-  void RunTask(OhosThreadType type, const fml::closure& task);
-
-  void SetSemanticsBridge(std::shared_ptr<SemanticsBridge> bridge,
-                          std::shared_ptr<std::mutex> mutex);
-  void AccessibilityAnnounce(std::unique_ptr<char[]>& message);
-  void AccessibilityOnTap(int32_t nodeId);
-  void AccessibilityOnLongPress(int32_t nodeId);
-  void AccessibilityOnTooltip(std::unique_ptr<char[]>& message);
-  void OnAccessibilityStateChange(bool state);
-  void SetAccessibleNavigation(bool isAccessibleNavigation);
-  void SetBoldText(double fontWeightScale);
-
-  void SimulateTouchEvent(SemanticsNodeExtend* node);
+  void RunTask(OHOS_THREAD_TYPE type, const fml::closure& task);
 
  private:
   const std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;

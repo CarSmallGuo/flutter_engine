@@ -17,6 +17,7 @@
 
 #include "flutter/lib/ui/window/pointer_data_packet.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
+#include "flutter/fml/trace_event.h"
 
 namespace flutter {
 
@@ -155,6 +156,7 @@ void OhosTouchProcessor::HandleTouchEvent(
     if (touchEvent == nullptr) {
         return;
     }
+    FML_TRACE_EVENT("flutter", "HandleTouchEvent", "timeStamp", touchEvent->timeStamp);
     FML_TRACE_EVENT("flutter", "HandleTouchEvent", "timeStamp", touchEvent->timeStamp);
     const int numTouchPoints = 1;
     std::unique_ptr<flutter::PointerDataPacket> packet = std::make_unique<flutter::PointerDataPacket>(numTouchPoints);

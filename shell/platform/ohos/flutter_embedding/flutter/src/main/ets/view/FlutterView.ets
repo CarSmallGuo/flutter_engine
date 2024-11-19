@@ -207,12 +207,16 @@ export class FlutterView {
     this.gestureAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM_GESTURE);
     this.keyboardAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_KEYBOARD);
 
-    // 监听折叠状态的改变
-    display?.on('foldStatusChange', this.foldStatusChangeCallback);
-
     // Subscribes to display changes. Example: event that the display size is changed.
     try {
-      display.on("change", this.displayChangeCallback);
+      display.on("change", ()=>{
+        this.displayInfo = display.getDefaultDisplaySync();
+        if (this.viewportMetrics.devicePixelRatio != this.displayInfo?.densityPixels) {
+          this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
+          Log.i(TAG, "Display on: " + JSON.stringify(this.displayInfo))
+          this.updateViewportMetrics()
+        }
+      });
     } catch (e) {
       Log.e(TAG, "displayInfo error" + JSON.stringify(e));
     }
