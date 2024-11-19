@@ -52,7 +52,6 @@ export default class FlutterNapi {
   private engineLifecycleListeners = new Set<EngineLifecycleListener>();
   accessibilityDelegate: AccessibilityDelegate | null = null;
   localizationPlugin: LocalizationPlugin | null = null;
-
   isDisplayingFlutterUi: boolean = false;
   accessibilityManager: AccessibilityManager | null = null;
 
@@ -323,9 +322,10 @@ export default class FlutterNapi {
     }
   }
 
-  setSemanticsEnabled(enabled: boolean, responseId: number): void {
+  setSemanticsEnabledWithRespId(enabled: boolean, responseId: number): void {
+    this.ensureRunningOnMainThread();
     if (this.isAttached()) {
-      this.nativeSetSemanticsEnabled(enabled);
+      flutter.nativeSetSemanticsEnabled(this.nativeShellHolderId!, enabled);
     } else {
       Log.w(
         TAG,
@@ -334,12 +334,21 @@ export default class FlutterNapi {
     }
   }
 
-  // Send an empty response to a platform message received from Dart.
-  nativeSetSemanticsEnabled(enabled: boolean):void {}
+  setSemanticsEnabled(enabled: boolean): void {
+    this.ensureRunningOnMainThread();
+    if (this.isAttached()) {
+      flutter.nativeSetSemanticsEnabled(this.nativeShellHolderId!, enabled);
+    } else {
+      Log.e(
+        TAG,
+        "Tried to send a platform message response, but FlutterNapi was detached from native C++. Could not send.");
+    }
+  }
 
   setAccessibilityFeatures(accessibilityFeatureFlags: number, responseId: number): void {
     if (this.isAttached()) {
-      this.nativeSetAccessibilityFeatures(accessibilityFeatureFlags, responseId);
+      // this.nativeSetAccessibilityFeatures(accessibilityFeatureFlags, responseId);
+      flutter.nativeSetAccessibilityFeatures(accessibilityFeatureFlags, responseId);
     } else {
       Log.w(
         TAG,
@@ -372,6 +381,15 @@ export default class FlutterNapi {
         "Tried to send a platform message response, but FlutterNapi was detached from native C++. Could not send. Response ID: "
           + responseId);
     }
+  }
+
+  accessibilityStateChange(state: Boolean): void {
+    this.ensureRunningOnMainThread();
+    if(this.accessibilityDelegate != null) {
+      this.accessibilityDelegate.accessibilityStateChange(state);
+    }
+    Log.d(TAG, "accessibilityStateChange is called");
+    flutter.nativeAccessibilityStateChange(this.nativeShellHolderId!, state);
   }
 
   setLocalizationPlugin(localizationPlugin: LocalizationPlugin | null): void {
@@ -505,6 +523,7 @@ export default class FlutterNapi {
     }
   }
 
+  //native c++ get the shell holder id
   getShellHolderId(): void {
     this.ensureRunningOnMainThread();
     if (this.isAttached()) {
@@ -519,6 +538,16 @@ export default class FlutterNapi {
       flutter.nativeSetFontWeightScale(this.nativeShellHolderId!, fontWeightScale);
     } else {
       Log.w(TAG, "setFontWeightScale is detached !");
+    }
+  }
+
+  setFlutterNavigationAction(isNavigate: boolean): void {
+    this.ensureRunningOnMainThread();
+    if (this.isAttached()) {
+      Log.i(TAG, "setFlutterNavigationAction: " + isNavigate);
+      flutter.nativeGetFlutterNavigationAction(isNavigate);
+    } else {
+      Log.w(TAG, "setFlutterNavigationAction is detached !");
     }
   }
 
@@ -548,4 +577,6 @@ export interface AccessibilityDelegate {
   updateCustomAccessibilityActions(buffer: ByteBuffer, strings: string[]): void;
 
   updateSemantics(buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]): void;
+
+  accessibilityStateChange(state: Boolean): void;
 }

@@ -25,6 +25,7 @@ import ArrayList from '@ohos.util.ArrayList';
 import { EmbeddingNodeController } from '../embedding/ohos/EmbeddingNodeController';
 import PlatformView, { Params } from '../plugin/platform/PlatformView';
 import { JSON } from '@kit.ArkTS';
+import { accessibility } from '@kit.AccessibilityKit';
 import TextInputPlugin from '../plugin/editing/TextInputPlugin';
 
 const TAG = "FlutterViewTag";
@@ -152,6 +153,12 @@ export class FlutterView {
     this.mainWindow?.on('windowSizeChange', this.windowSizeChangeCallback);
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
     this.mainWindow?.on('windowStatusChange', this.windowStatusChangeCallback);
+
+    //监听系统无障碍服务状态改变
+    accessibility.on('accessibilityStateChange', (data: boolean) => {
+      Log.i(TAG, `subscribe accessibility state change, result: ${JSON.stringify(data)}`);
+      this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(data);
+    });
     this.mainWindow?.on('keyboardHeightChange', this.keyboardHeightChangeCallback);
     this.systemAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
     this.navigationAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR);
@@ -258,6 +265,9 @@ export class FlutterView {
       this.mainWindow?.off('windowSizeChange', this.windowSizeChangeCallback);
       this.mainWindow?.off('avoidAreaChange', this.avoidAreaChangeCallback);
       this.mainWindow?.off('windowStatusChange', this.windowStatusChangeCallback);
+      accessibility.off('accessibilityStateChange', (data: boolean) => {
+        Log.i(TAG, `unsubscribe accessibility state change, result: ${JSON.stringify(data)}`);
+      });
       this.mainWindow?.off('keyboardHeightChange', this.keyboardHeightChangeCallback);
     } catch (e) {
       Log.e(TAG, "mainWindow off error: " + JSON.stringify(e));
