@@ -146,7 +146,7 @@ export const nativeSetTextureBufferSize: (nativeShellHolderId: number, textureId
  */
 export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number, responseId: number) => void;
 
-export const nativeAccessibilityStateChange: (state: Boolean) => void;
+export const nativeAccessibilityStateChange: (nativeShellHolderId: number, state: Boolean) => void;
 
 export const nativeAnnounce: (message: string) => void;
 
@@ -157,6 +157,9 @@ export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightS
 export const nativeGetShellHolderId: (nativeShellHolderId: number) => void;
 
 export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;
+
+export const nativeGetFlutterNavigationAction: (isNavigate: boolean) => void;
+
 
 export const nativeUnicodeIsEmoji: (code: number) => number;
 
