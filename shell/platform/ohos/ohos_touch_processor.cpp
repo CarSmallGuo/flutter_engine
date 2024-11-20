@@ -201,17 +201,18 @@ void OhosTouchProcessor::HandleTouchEvent(
 
     // For DFX
     fml::closure task = [timeStampDFX = touchEvent->timeStamp](void) {
-        FML_TRACE_EVENT("flutter", "HandleTouchEventUI", "timeStamp", touchEvent->timeStamp);
+        FML_TRACE_EVENT("flutter", "HandleTouchEventUI", "timeStamp", timeStampDFX);
     };
     ohos_shell_holder->GetPlatformView()->RunTask(OHOS_THREAD_TYPE::OHOS_THREAD_TYPE_UI, task);
 
     PlatformViewOnTouchEvent(shell_holderID, toolType, component, touchEvent);
 }
 
-void OhosTouchProcessor::PlatformViewOnTouchEvent(int64_t shellHolderID,
-                            OH_NativeXComponent_TouchPointToolType toolType,
-                            OH_NativeXComponent* component,
-                            OH_NativeXComponent_TouchEvent* touchEvent)
+void OhosTouchProcessor::PlatformViewOnTouchEvent(
+    int64_t shellHolderID,
+    OH_NativeXComponent_TouchPointToolType toolType,
+    OH_NativeXComponent* component,
+    OH_NativeXComponent_TouchEvent* touchEvent)
 {
     int numPoints = touchEvent->numPoints;
     float tiltX = 0.0;
