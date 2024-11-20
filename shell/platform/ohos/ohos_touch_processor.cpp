@@ -203,12 +203,13 @@ void OhosTouchProcessor::HandleTouchEvent(
   ohos_shell_holder->GetPlatformView()->DispatchPointerDataPacket(
       std::move(packet));
 
-  // For DFX
-  fml::closure task = [timeStampDFX = touchEvent->timeStamp](void) {
-    FML_TRACE_EVENT("flutter", "HandleTouchEventUI", "timeStamp", timeStampDFX);
-  };
-  ohos_shell_holder->GetPlatformView()->RunTask(OhosThreadType::kUI, task);
-  PlatformViewOnTouchEvent(shell_holderID, toolType, component, touchEvent);
+    // For DFX
+    fml::closure task = [timeStampDFX = touchEvent->timeStamp](void) {
+        FML_TRACE_EVENT("flutter", "HandleTouchEventUI", "timeStamp", timeStampDFX);
+    };
+    ohos_shell_holder->GetPlatformView()->RunTask(OHOS_THREAD_TYPE::OHOS_THREAD_TYPE_UI, task);
+
+    PlatformViewOnTouchEvent(shell_holderID, toolType, component, touchEvent);
 }
 
 void OhosTouchProcessor::PlatformViewOnTouchEvent(
