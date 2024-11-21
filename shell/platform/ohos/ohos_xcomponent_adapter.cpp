@@ -21,7 +21,6 @@
 
 namespace flutter {
 
-
 bool g_isMouseLeftActive = false;
 double g_scrollDistance = 0.0;
 double g_resizeRate = 0.8;
@@ -377,27 +376,30 @@ void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
     
-    BindAccessibilityProviderCallback();
-    ArkUI_AccessibilityProvider* accessibilityProvider = nullptr;
-    int32_t ret1 = OH_NativeXComponent_GetNativeAccessibilityProvider(
-      nativeXComponent_, &accessibilityProvider); 
-    if (ret1 != 0) {
-      LOGE("OH_NativeXComponent_GetNativeAccessibilityProvider is failed");
-      return;
-    }
-    int32_t ret2 = OH_ArkUI_AccessibilityProviderRegisterCallback(
-      accessibilityProvider, &accessibilityProviderCallback_);
-    if (ret2 != 0) {
-      LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is failed");
-      return;
-    }
-    LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is %{public}d", ret2);
+    if (OH_GetSdkApiVersion() >= 13) {
+        LOGD("api version: %{public}d", OH_GetSdkApiVersion());
+        BindAccessibilityProviderCallback();
+        ArkUI_AccessibilityProvider* accessibilityProvider = nullptr;
+        int32_t ret1 = OH_NativeXComponent_GetNativeAccessibilityProvider(
+          nativeXComponent_, &accessibilityProvider); 
+        if (ret1 != 0) {
+          LOGE("OH_NativeXComponent_GetNativeAccessibilityProvider is failed");
+          return;
+        }
+        int32_t ret2 = OH_ArkUI_AccessibilityProviderRegisterCallback(
+          accessibilityProvider, &accessibilityProviderCallback_);
+        if (ret2 != 0) {
+          LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is failed");
+          return;
+        }
+        LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is %{public}d", ret2);
 
-    //将ArkUI_AccessibilityProvider传到无障碍bridge类
-    auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
-    ohosAccessibilityBridge->provider_ = accessibilityProvider;
+        //将ArkUI_AccessibilityProvider传到无障碍bridge类
+        auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+        ohosAccessibilityBridge->provider_ = accessibilityProvider;
 
-    LOGI("XComponentBase::SetNativeXComponent OH_ArkUI_AccessibilityProviderRegisterCallback is succeed");
+        LOGI("XComponentBase::SetNativeXComponent OH_ArkUI_AccessibilityProviderRegisterCallback is succeed");
+    }
   }
 }
 

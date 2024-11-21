@@ -24,15 +24,16 @@
 #include "third_party/skia/include/core/SkMatrix.h"
 #include "third_party/skia/include/core/SkScalar.h"
 
+#define OHOS_API_VERSION 13
 #define ARKUI_SUCCEED_CODE 0
 #define ARKUI_FAILED_CODE -1
 #define ARKUI_BAD_PARAM_CODE -2
 #define ARKUI_OOM_CODE  -3
 #define ARKUI_ACCESSIBILITY_CALL_CHECK(X)                                      \
     do {                                                                       \
-        int32_t ret = X;                                                       \
-        if (ret != ARKUI_SUCCEED_CODE) {                                       \
-          LOGE("Failed arkui a11y function call, error code:%{public}d", ret); \
+        int32_t RET = X;                                                       \
+        if (RET != ARKUI_SUCCEED_CODE) {                                       \
+          LOGE("Failed arkui a11y function call, error code:%{public}d", RET); \
         }                                                                      \
     }  while (false)                                                           \
     
@@ -106,15 +107,15 @@ void OhosAccessibilityBridge::updateSemantics(
 
     /**
      * 构建flutter无障碍语义节点树
-     * NOTE: 若使用flutterSemanticsTree_.insert({node.id, node})方式
+     * NOTE: 若使用g_flutterSemanticsTree.insert({node.id, node})方式
      * 来添加新增的语义节点会导致已有key值自动忽略，不会更新原有key对应的value
      */
-    flutterSemanticsTree_[node.id] = node;
+    g_flutterSemanticsTree[node.id] = node;
 
     // 获取当前flutter节点的全部子节点数量，并构建父子节点id映射关系
     int32_t childNodeCount = node.childrenInTraversalOrder.size();
     for (int32_t i = 0; i < childNodeCount; i++) {
-      parentChildIdVec.emplace_back(
+      g_parentChildIdVec.emplace_back(
           std::make_pair(node.id, node.childrenInTraversalOrder[i]));
       FML_DLOG(INFO) << "UpdateSemantics parentChildIdMap -> (" << node.id
                      << ", " << node.childrenInTraversalOrder[i] << ")";
@@ -145,16 +146,16 @@ void OhosAccessibilityBridge::updateSemantics(
   for (const auto& item : actions) {
     const flutter::CustomAccessibilityAction action = item.second;
     GetCustomActionDebugInfo(action);
-    actions_mp_[action.id] = action;
+    g_actions_mp[action.id] = action;
   }
 
   // 打印flutter语义树的不同节点的属性信息
-  for (const auto& item : flutterSemanticsTree_) {
-    FML_DLOG(INFO) << "flutterSemanticsTree_ -> {" << item.first << ", "
+  for (const auto& item : g_flutterSemanticsTree) {
+    FML_DLOG(INFO) << "g_flutterSemanticsTree -> {" << item.first << ", "
                    << item.second.id << "}";
   }
-  for (const auto& item : parentChildIdVec) {
-    FML_DLOG(INFO) << "parentChildIdVec -> (" << item.first << ", "
+  for (const auto& item : g_parentChildIdVec) {
+    FML_DLOG(INFO) << "g_parentChildIdVec -> (" << item.first << ", "
                    << item.second << ")";
   }
 
@@ -163,6 +164,7 @@ void OhosAccessibilityBridge::updateSemantics(
   for (const auto& item: levelOrderTraversalTree) {
     FML_DLOG(INFO) << "LevelOrderTraversalTree: { " << item << " }";
   }
+
   FML_DLOG(INFO) << "=== UpdateSemantics is end ===";
 }
 
@@ -358,17 +360,17 @@ void OhosAccessibilityBridge::Announce(std::unique_ptr<char[]>& message)
 //获取根节点
 flutter::SemanticsNode OhosAccessibilityBridge::GetFlutterRootSemanticsNode()
 {
-  if (!flutterSemanticsTree_.size()) {
+  if (!g_flutterSemanticsTree.size()) {
     FML_DLOG(ERROR)
-        << "GetFlutterRootSemanticsNode -> flutterSemanticsTree_.size()=0";
+        << "GetFlutterRootSemanticsNode -> g_flutterSemanticsTree.size()=0";
     return {};
   }
-  if (flutterSemanticsTree_.find(0) == flutterSemanticsTree_.end()) {
-    FML_DLOG(ERROR) << "GetFlutterRootSemanticsNode -> flutterSemanticsTree_ "
+  if (g_flutterSemanticsTree.find(0) == g_flutterSemanticsTree.end()) {
+    FML_DLOG(ERROR) << "GetFlutterRootSemanticsNode -> g_flutterSemanticsTree "
                        "has no keys = 0";
     return {};
   }
-  return flutterSemanticsTree_.at(0);
+  return g_flutterSemanticsTree.at(0);
 }
 
 /**
@@ -378,12 +380,12 @@ flutter::SemanticsNode OhosAccessibilityBridge::GetFlutterSemanticsNode(
     int32_t id)
 {
   flutter::SemanticsNode node;
-  if (flutterSemanticsTree_.count(id) > 0) {
-    return flutterSemanticsTree_.at(id);
+  if (g_flutterSemanticsTree.count(id) > 0) {
+    return g_flutterSemanticsTree.at(id);
     FML_DLOG(INFO) << "GetFlutterSemanticsNode get node.id=" << id;
   } else {
     FML_DLOG(ERROR)
-        << "GetFlutterSemanticsNode flutterSemanticsTree_ = null" << id;
+        << "GetFlutterSemanticsNode g_flutterSemanticsTree = null" << id;
     return {};
   }
 }
@@ -394,13 +396,13 @@ flutter::SemanticsNode OhosAccessibilityBridge::GetFlutterSemanticsNode(
 void OhosAccessibilityBridge::FlutterTreeToArkuiTree(
     ArkUI_AccessibilityElementInfoList* elementInfoList)
 {
-  if (flutterSemanticsTree_.size() == 0) {
+  if (g_flutterSemanticsTree.size() == 0) {
     FML_DLOG(ERROR) << "OhosAccessibilityBridge::FlutterTreeToArkuiTree "
-                       "flutterSemanticsTree_.size() = 0";
+                       "g_flutterSemanticsTree.size() = 0";
     return;
   }
   // 将flutter语义节点树传递给arkui的无障碍elementinfo
-  for (const auto& item : flutterSemanticsTree_) {
+  for (const auto& item : g_flutterSemanticsTree) {
     flutter::SemanticsNode flutterNode = item.second;
 
     // 创建elementinfo，系统自动加入到elementinfolist
@@ -494,7 +496,7 @@ void OhosAccessibilityBridge::FlutterTreeToArkuiTree(
  */
 int32_t OhosAccessibilityBridge::GetParentId(int64_t elementId)
 {
-  if (!parentChildIdVec.size()) {
+  if (!g_parentChildIdVec.size()) {
     FML_DLOG(INFO)
         << "OhosAccessibilityBridge::GetParentId parentChildIdMap.size()=0";
     return ARKUI_ACCESSIBILITY_ROOT_PARENT_ID;
@@ -503,7 +505,7 @@ int32_t OhosAccessibilityBridge::GetParentId(int64_t elementId)
     return ARKUI_ACCESSIBILITY_ROOT_PARENT_ID;
   }
   int32_t childElementId = static_cast<int32_t>(elementId);
-  for (const auto& item : parentChildIdVec) {
+  for (const auto& item : g_parentChildIdVec) {
     if (item.second == childElementId) {
       return item.first;
     }
@@ -520,7 +522,7 @@ void OhosAccessibilityBridge::SetAbsoluteScreenRect(int32_t flutterNodeId,
                                                     float right,
                                                     float bottom)
 {
-  screenRectMap_[flutterNodeId] =
+  g_screenRectMap[flutterNodeId] =
       std::make_pair(std::make_pair(left, top), std::make_pair(right, bottom));
   FML_DLOG(INFO) << "SetAbsoluteScreenRect -> insert { " << flutterNodeId
                  << ", <" << left << ", " << top << ", " << right << ", "
@@ -530,8 +532,8 @@ void OhosAccessibilityBridge::SetAbsoluteScreenRect(int32_t flutterNodeId,
 std::pair<std::pair<float, float>, std::pair<float, float>>
 OhosAccessibilityBridge::GetAbsoluteScreenRect(int32_t flutterNodeId)
 {
-  if (!screenRectMap_.empty() && screenRectMap_.count(flutterNodeId) > 0) {
-    return screenRectMap_.at(flutterNodeId);
+  if (!g_screenRectMap.empty() && g_screenRectMap.count(flutterNodeId) > 0) {
+    return g_screenRectMap.at(flutterNodeId);
   } else {
     FML_DLOG(ERROR) << "GetAbsoluteScreenRect -> flutterNodeId="
                     << flutterNodeId << " is not found !";
@@ -1143,9 +1145,9 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
       << elementId << " mode=" << mode << " requestId=" << requestId
       << " elementList= " << elementList;
 
-  if (flutterSemanticsTree_.size() == 0) {
+  if (g_flutterSemanticsTree.size() == 0) {
     FML_DLOG(INFO)
-        << "FindAccessibilityNodeInfosById flutterSemanticsTree_ is null";
+        << "FindAccessibilityNodeInfosById g_flutterSemanticsTree is null";
     return ARKUI_ACCESSIBILITY_NATIVE_RESULT_FAILED;
   }
   if (elementList == nullptr) {
@@ -1897,20 +1899,20 @@ void OhosAccessibilityBridge::onWindowNameChange(flutter::SemanticsNode route)
 void OhosAccessibilityBridge::removeSemanticsNode(
     flutter::SemanticsNode nodeToBeRemoved)
 {
-  if (!flutterSemanticsTree_.size()) {
+  if (!g_flutterSemanticsTree.size()) {
     FML_DLOG(ERROR) << "OhosAccessibilityBridge::removeSemanticsNode -> "
-                       "flutterSemanticsTree_.szie()=0";
+                       "g_flutterSemanticsTree.szie()=0";
     return;
   }
-  if (flutterSemanticsTree_.find(nodeToBeRemoved.id) ==
-      flutterSemanticsTree_.end()) {
+  if (g_flutterSemanticsTree.find(nodeToBeRemoved.id) ==
+      g_flutterSemanticsTree.end()) {
     FML_DLOG(INFO) << "Attempted to remove a node that is not in the tree.";
   }
   int32_t nodeToBeRemovedParentId = GetParentId(nodeToBeRemoved.id);
-  for (auto it = parentChildIdVec.begin(); it != parentChildIdVec.end(); it++) {
+  for (auto it = g_parentChildIdVec.begin(); it != g_parentChildIdVec.end(); it++) {
     if (it->first == nodeToBeRemovedParentId &&
         it->second == nodeToBeRemoved.id) {
-      parentChildIdVec.erase(it);
+      g_parentChildIdVec.erase(it);
     }
   }
   if (nodeToBeRemoved.platformViewId != -1) {
@@ -1923,11 +1925,11 @@ void OhosAccessibilityBridge::removeSemanticsNode(
  */
 void OhosAccessibilityBridge::ClearFlutterSemanticsCaches()
 {
-  flutterSemanticsTree_.clear();
-  parentChildIdVec.clear();
-  screenRectMap_.clear();
-  actions_mp_.clear();
-  flutterNavigationVec_.clear();
+  g_flutterSemanticsTree.clear();
+  g_parentChildIdVec.clear();
+  g_screenRectMap.clear();
+  g_actions_mp.clear();
+  g_flutterNavigationVec.clear();
 }
 
 /**
