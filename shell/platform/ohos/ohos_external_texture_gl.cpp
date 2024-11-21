@@ -42,7 +42,7 @@ constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
 constexpr uint32_t WHITE_COLOR = 0xFFFFFFFF;
 
 const SkScalar DEFAULT_MATRIX[] = {1, 0, 0, 0, -1, 1, 0, 0, 1};
-const int UPDATE_FRAME_COUNT = 2;
+const int UPDATE_FRAME_COUNT = 1;
 
 static int PixelMapToWindowFormat(PIXEL_FORMAT pixel_format)
 {
@@ -83,8 +83,10 @@ static bool IsPixelMapYUVFormat(PIXEL_FORMAT format)
 
 OHOSExternalTextureGL::OHOSExternalTextureGL(
     int64_t id,
-    const std::shared_ptr<OHOSSurface>& ohos_surface)
+    const std::shared_ptr<OHOSSurface>& ohos_surface,
+    PlatformView::Delegate& delegate)
     : Texture(id),
+      delegate_(delegate),
       ohos_surface_(std::move(ohos_surface)),
       transform(SkMatrix::I())
 {
@@ -99,6 +101,7 @@ OHOSExternalTextureGL::OHOSExternalTextureGL(
     backGroundPixelMap_ = nullptr;
     lastImage_ = nullptr;
     isEmulator_ = OhosMain::IsEmulator();
+    frameData_ = nullptr;
 }
 
 OHOSExternalTextureGL::~OHOSExternalTextureGL()
@@ -117,6 +120,20 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
   pixelMap_ = nullptr;
   backGroundPixelMap_ = nullptr;
   lastImage_ = nullptr;
+}
+
+void OnNativeImageFrameAvailable(void *data)
+{
+  auto frameData = reinterpret_cast<OhosImageFrameData *>(data);
+  if (frameData == nullptr) {
+    FML_DLOG(ERROR) << "OnNativeImageFrameAvailable, frameData is null.";
+    return;
+  }
+  if (!frameData->t) {
+    FML_DLOG(ERROR) << "OnNativeImageFrameAvailable, frameData value is not valid.";
+    return;
+  }
+  frameData->t->delegate_.OnPlatformViewMarkTextureFrameAvailable(frameData->texture_id_);
 }
 
 void OHOSExternalTextureGL::Attach()
@@ -153,6 +170,20 @@ void OHOSExternalTextureGL::Attach()
     if (ret != 0) {
       FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeImage_AttachContext err code:" << ret;
     }
+
+    if (frameData_ == nullptr) {
+      frameData_ = new OhosImageFrameData(this, Id());
+    }
+    OH_OnFrameAvailableListener listener;
+    listener.context = frameData_;
+    listener.onFrameAvailable = OnNativeImageFrameAvailable;
+    ret = OH_NativeImage_SetOnFrameAvailableListener(nativeImage_, listener);
+    if (ret != 0) {
+      FML_DLOG(ERROR)
+          << "Error with OH_NativeImage_SetOnFrameAvailableListener";
+      return;
+    }
+
     state_ = AttachmentState::attached;
   } else {
     FML_LOG(ERROR) << "ResourceContextMakeCurrent failed";
@@ -174,10 +205,10 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
       // 外接纹理图片场景
       ProducePixelMapToNativeImage();
       newFrameCount++;
+      Update();
     }
   }
   if (!freeze && newFrameCount > 0) {
-    Update();
     new_frame_ready_ = false;
     newFrameCount--;
   }
@@ -226,7 +257,9 @@ void OHOSExternalTextureGL::OnGrContextCreated()
   FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextCreated"
                  << ", texture_name_=" << texture_name_
                  << ", Id()=" << Id();
-  state_ = AttachmentState::uninitialized;
+  if (state_ == AttachmentState::attached) {
+    delegate_.OnPlatformViewMarkTextureFrameAvailable(Id());
+  }
 }
 
 void OHOSExternalTextureGL::OnGrContextDestroyed()
@@ -234,10 +267,6 @@ void OHOSExternalTextureGL::OnGrContextDestroyed()
   FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextDestroyed"
                  << ", texture_name_=" << texture_name_
                  << ", Id()=" << Id();
-  if (state_ == AttachmentState::attached) {
-    Detach();
-  }
-  state_ = AttachmentState::detached;
 }
 
 void OHOSExternalTextureGL::MarkNewFrameAvailable()
@@ -245,6 +274,9 @@ void OHOSExternalTextureGL::MarkNewFrameAvailable()
   FML_DLOG(INFO) << " OHOSExternalTextureGL::MarkNewFrameAvailable";
   new_frame_ready_ = true;
   newFrameCount = UPDATE_FRAME_COUNT;
+  if (state_ == AttachmentState::attached) {
+    Update();
+  }
 }
 
 void OHOSExternalTextureGL::OnTextureUnregistered()
@@ -288,6 +320,10 @@ void OHOSExternalTextureGL::Detach()
     OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);
     OH_NativeImage_Destroy(&nativeImage_);
     nativeImage_ = nullptr;
+  }
+  if (frameData_ != nullptr) {
+    delete (OhosImageFrameData *)frameData_;
+    frameData_ = nullptr;
   }
   if (nativeWindow_ != nullptr) {
     OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
@@ -676,5 +712,14 @@ void OHOSExternalTextureGL::DispatchBackGroundPixelMap(NativePixelMap* pixelMap)
     backGroundPixelMap_ = pixelMap;
   }
 }
+
+OhosImageFrameData::OhosImageFrameData(
+    OHOSExternalTextureGL *t,
+    int64_t texture_id
+    )
+    : t(t),
+    texture_id_(texture_id) {}
+
+OhosImageFrameData::~OhosImageFrameData() = default;
 
 }  // namespace flutter

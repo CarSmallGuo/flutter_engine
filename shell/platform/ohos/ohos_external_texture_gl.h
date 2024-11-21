@@ -31,6 +31,7 @@
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "flutter/shell/platform/ohos/ohos_surface_gl_skia.h"
 #include "flutter/shell/platform/ohos/surface/ohos_surface.h"
+#include "flutter/shell/common/platform_view.h"
 
 // maybe now unused
 namespace flutter {
@@ -38,12 +39,18 @@ namespace flutter {
 class OHOSExternalTextureGL : public flutter::Texture {
  public:
   explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface);
+  explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface,
+    PlatformView::Delegate& delegate);
 
   ~OHOSExternalTextureGL() override;
+
+  PlatformView::Delegate& delegate_;
 
   OH_NativeImage *nativeImage_;
 
   OH_NativeImage *backGroundNativeImage_;
+
+  void *frameData_;
 
   bool first_update_ = false;
 
@@ -96,7 +103,8 @@ class OHOSExternalTextureGL : public flutter::Texture {
   AttachmentState state_;
 
   bool new_frame_ready_ = false;
-  int newFrameCount = 0;
+
+  std::atomic<int> newFrameCount = 0;
 
   GLuint texture_name_ = 0;
 
@@ -129,5 +137,17 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   FML_DISALLOW_COPY_AND_ASSIGN(OHOSExternalTextureGL);
 };
+
+class OhosImageFrameData {
+ public:
+  OhosImageFrameData(OHOSExternalTextureGL *t, int64_t texture_id);
+
+  ~OhosImageFrameData();
+
+  OHOSExternalTextureGL *t;
+
+  int64_t texture_id_;
+};
+
 }  // namespace flutter
 #endif
