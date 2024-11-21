@@ -44,6 +44,8 @@ constexpr uint32_t WHITE_COLOR = 0xFFFFFFFF;
 const SkScalar DEFAULT_MATRIX[] = {1, 0, 0, 0, -1, 1, 0, 0, 1};
 const int UPDATE_FRAME_COUNT = 2;
 
+std::map<int, GrGLTextureInfo> infoMap;
+
 static int PixelMapToWindowFormat(PIXEL_FORMAT pixel_format)
 {
   switch (pixel_format) {
@@ -159,6 +161,18 @@ void OHOSExternalTextureGL::Attach()
   }
 }
 
+GrGLTextureInfo OHOSExternalTextureGL::GetGrGLTextureInfo()
+{
+  GrGLTextureInfo textureInfo;
+  if (infoMap.find(backGroundTextureName_) != infoMap.end()) {
+    textureInfo = infoMap[backGroundTextureName_];
+  } else {
+    textureInfo = {GL_TEXTURE_EXTERNAL_OES, backGroundTextureName_, GL_RGBA8_OES};
+  }
+  infoMap[backGroundTextureName_] = textureInfo;
+  return textureInfo;
+}
+
 void OHOSExternalTextureGL::Paint(PaintContext& context,
                                   const SkRect& bounds,
                                   bool freeze,
@@ -185,7 +199,7 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
   GrGLTextureInfo textureInfo;
   if (!freeze && !first_update_ && !isEmulator_ && !new_frame_ready_ && pixelMap_ == nullptr) {
     setBackground(bounds.width(), bounds.height());
-    textureInfo = {GL_TEXTURE_EXTERNAL_OES, backGroundTextureName_, GL_RGBA8_OES};
+    textureInfo = GetGrGLTextureInfo();
   } else {
     textureInfo = {GL_TEXTURE_EXTERNAL_OES, texture_name_, GL_RGBA8_OES};
   }
@@ -305,6 +319,9 @@ void OHOSExternalTextureGL::Detach()
   }
   glDeleteTextures(1, &texture_name_);
   glDeleteTextures(1, &backGroundTextureName_);
+  if (backGroundTextureName_ != 0) {
+    infoMap.erase(backGroundTextureName_);
+  }
 }
 
 void OHOSExternalTextureGL::UpdateTransform(OH_NativeImage *image)
