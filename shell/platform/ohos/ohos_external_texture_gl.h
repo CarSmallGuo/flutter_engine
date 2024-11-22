@@ -64,6 +64,8 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   void setBackground(int32_t width, int32_t height);
 
+  GrGLTextureInfo GetGrGLTextureInfo();
+
   void setTextureBufferSize(int32_t width, int32_t height);
 
   void DispatchPixelMap(NativePixelMap* pixelMap);
