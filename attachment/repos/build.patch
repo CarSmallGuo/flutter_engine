@@ -102,16 +102,16 @@ index b8d0f47..a3d1ed9 100644
 @@ -313,7 +334,7 @@ if (!is_clang && using_sanitizer) {
    is_clang = true
  }
-
+ 
 -use_flutter_cxx = is_clang && (is_linux || is_android || is_mac || is_ios)
 +use_flutter_cxx = is_clang && (is_linux || is_android || is_mac || is_ios || is_ohos )
-
+ 
  if (is_msan && !is_linux) {
    assert(false, "Memory sanitizer is only available on Linux.")
 @@ -365,7 +386,9 @@ if (is_posix) {
    ]
  }
-
+ 
 -if (is_linux) {
 +if (is_ohos || (is_linux && host_os == "mac")) {
 +  _native_compiler_configs += [ "//build/config/ohos:sdk" ]
@@ -160,7 +160,7 @@ index b8d0f47..a3d1ed9 100644
    if (is_clang) {
      host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index ba20010..17e0487 100644
+index ba20010..5f27c8c 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -191,10 +191,16 @@ config("compiler") {
@@ -185,7 +185,7 @@ index ba20010..17e0487 100644
      } else if (current_cpu == "x86") {
        cflags += [ "-m32" ]
 @@ -315,7 +321,7 @@ config("compiler") {
-
+ 
    # Linux/Android common flags setup.
    # ---------------------------------
 -  if (is_linux || is_android) {
@@ -193,8 +193,8 @@ index ba20010..17e0487 100644
      cflags += [
        "-fPIC",
        "-pipe",  # Use pipes for communicating between sub-processes. Faster.
-@@ -334,7 +340,16 @@ config("compiler") {
-
+@@ -334,7 +340,28 @@ config("compiler") {
+ 
    # Linux-specific compiler flags setup.
    # ------------------------------------
 -  if (is_linux) {
@@ -202,7 +202,19 @@ index ba20010..17e0487 100644
 +    cflags += [ "-pthread" ]
 +    ldflags += [ "-pthread" ]
 +
-+    if (current_cpu == "arm64") {
++    if (current_cpu == "x86") {
++      cflags += [ "--target=x86-linux-ohos" ]
++      ldflags += [ "--target=x86-linux-ohos" ]
++      cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
++    } else if (current_cpu == "x64") {
++      cflags += [ "--target=x86_64-linux-ohos" ]
++      ldflags += [ "--target=x86_64-linux-ohos" ]
++      cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
++    } else if (current_cpu == "arm") {
++      cflags += [ "--target=aarch-linux-ohos" ]
++      ldflags += [ "--target=aarch-linux-ohos" ]
++      cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
++    } else if (current_cpu == "arm64") {
 +      cflags += [ "--target=aarch64-linux-ohos" ]
 +      ldflags += [ "--target=aarch64-linux-ohos" ]
 +      cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
@@ -210,8 +222,8 @@ index ba20010..17e0487 100644
 +  } else if (is_linux) {
      cflags += [ "-pthread" ]
      ldflags += [ "-pthread" ]
-
-@@ -521,9 +536,13 @@ config("runtime_library") {
+ 
+@@ -521,9 +548,13 @@ config("runtime_library") {
        ldflags += [ "-nostdlib++" ]
      }
      include_dirs = [
@@ -224,9 +236,9 @@ index ba20010..17e0487 100644
 +      include_dirs += [ "//third_party/libcxx/include" ]
 +    }
    }
-
+ 
    # Android standard library setup.
-@@ -860,17 +879,35 @@ config("optimize") {
+@@ -860,12 +891,14 @@ config("optimize") {
      cflags = [ "-Oz" ] + common_optimize_on_cflags  # Favor size over speed.
    } else if (is_wasm) {
      cflags = [ "-Oz" ]
@@ -235,34 +247,13 @@ index ba20010..17e0487 100644
    } else {
      cflags = [ "-O2" ] + common_optimize_on_cflags
    }
-
+ 
    lto_flags = []
 -  if (enable_lto && (is_ios || is_android || is_fuchsia || is_wasm)) {
 +  if (enable_lto && (is_ios || is_android || is_fuchsia || is_wasm || is_ohos)) {
      lto_flags += [ "-flto" ]
    }
-
-+  if (is_ohos) {
-+    cflags += [
-+      "-mcpu=tsv110",
-+      "-fwhole-program-vtables",
-+    ]
-+  }
-+
-   ldflags = common_optimize_on_ldflags + lto_flags
-   cflags += lto_flags
-+
-+  if (is_ohos) {
-+    ldflags += [
-+      "-Wl,--lto-O2",
-+      "-Wl,--plugin-opt=-mcpu=tsv110",
-+      "-Wl,-mllvm",
-+      "-Wl,-wholeprogramdevirt-check=fallback",
-+    ]
-+  }
- }
-
- # Turn off optimizations.
+ 
 diff --git a/build/config/ohos/BUILD.gn b/build/config/ohos/BUILD.gn
 new file mode 100644
 index 0000000..b2675d2
@@ -300,10 +291,10 @@ index 0000000..b2675d2
 +}
 diff --git a/build/config/ohos/config.gni b/build/config/ohos/config.gni
 new file mode 100644
-index 0000000..0022d70
+index 0000000..add7249
 --- /dev/null
 +++ b/build/config/ohos/config.gni
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,32 @@
 +# Copyright 2014 The Chromium Authors. All rights reserved.
 +# Use of this source code is governed by a BSD-style license that can be
 +# found in the LICENSE file.
@@ -311,7 +302,26 @@ index 0000000..0022d70
 +# This file contains common system config stuff for the Ohos build.
 +
 +if (is_ohos) {
-+  if (current_cpu == "arm64") {
++  # Defines host_os
++  if (host_os == "linux") {
++    ohos_host_os = "linux"
++  } else if (host_os == "mac") {
++    ohos_host_os = "darwin"
++  } else if (host_os == "win") {
++    ohos_host_os = "win"
++  } else {
++    assert(false, "Need Ohos toolchain support for your build OS.")
++  }
++
++
++  # ABI ------------------------------------------------------------------------
++  if (current_cpu == "x86") {
++    ohos_app_abi = "x86"
++  } else if (current_cpu == "x64") {
++    ohos_app_abi = "x86_64"
++  } else if (current_cpu == "arm") {
++    ohos_app_abi = "armeabi-v7a"
++  } else if (current_cpu == "arm64") {
 +    ohos_app_abi = "arm64-v8a"
 +  } else {
 +    assert(false, "Unknown Ohos ABI: " + current_cpu)
@@ -864,7 +874,7 @@ index cad6cbc..c17950b 100644
 +++ b/build/secondary/third_party/glfw/BUILD.gn
 @@ -47,6 +47,34 @@ source_set("glfw") {
      ]
-
+ 
      defines = [ "_GLFW_WIN32" ]
 +  } else if (is_ohos) {
 +    sources += [
@@ -914,6 +924,6 @@ index 65b1623..a89742a 100644
 +  readelf = "${toolchain_bin}/llvm-readelf"
 +  nm = "${toolchain_bin}/llvm-nm"
 +  strip = "${toolchain_bin}/llvm-strip"
-
+ 
    target_triple_flags = "--target=${custom_target_triple}"
    sysroot_flags = "--sysroot ${custom_sysroot}"
