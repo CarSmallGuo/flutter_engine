@@ -1,4 +1,4 @@
-diff --git a/pkg/dds/lib/dds.dart b/pkg/dds/lib/dds.dart 
+diff --git a/pkg/dds/lib/dds.dart b/pkg/dds/lib/dds.dart
 index 177a9265649..c7038c56ad7 100644
 --- a/pkg/dds/lib/dds.dart
 +++ b/pkg/dds/lib/dds.dart
@@ -5575,27 +5575,28 @@ index 66fa5a8d564..cc5eb834b3d 100644
  #if DART_TARGET_OS_MACOS_IOS
  #define DART_TARGET_OS_NAME IOS
 diff --git a/runtime/vm/compiler/ffi/abi.h b/runtime/vm/compiler/ffi/abi.h
-index b693ef85255..54b15f48890 100644
+index b693ef85255..6a3f42bd949 100644
 --- a/runtime/vm/compiler/ffi/abi.h
 +++ b/runtime/vm/compiler/ffi/abi.h
-@@ -24,6 +24,8 @@ enum class Abi {
+@@ -24,6 +24,9 @@ enum class Abi {
    kAndroidArm64,
    kAndroidIA32,
    kAndroidX64,
 +  kOhosArm,
 +  kOhosArm64,
++  kOhosX64,
    kFuchsiaArm64,
    kFuchsiaX64,
    kIOSArm,
-@@ -49,9 +51,9 @@ const int64_t num_abis = static_cast<int64_t>(Abi::kWindowsX64) + 1;
+@@ -49,9 +52,9 @@ const int64_t num_abis = static_cast<int64_t>(Abi::kWindowsX64) + 1;
  // - runtime/vm/compiler/frontend/kernel_to_il.cc
  static_assert(static_cast<int64_t>(Abi::kAndroidArm) == 0,
                "Enum value unexpected.");
 -static_assert(static_cast<int64_t>(Abi::kWindowsX64) == 19,
-+static_assert(static_cast<int64_t>(Abi::kWindowsX64) == 21,
++static_assert(static_cast<int64_t>(Abi::kWindowsX64) == 22,
                "Enum value unexpected.");
 -static_assert(num_abis == 20, "Enum value unexpected.");
-+static_assert(num_abis == 22, "Enum value unexpected.");
++static_assert(num_abis == 23, "Enum value unexpected.");
  
  // The target ABI. Defines sizes and alignment of native types.
  Abi TargetAbi();
