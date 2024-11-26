@@ -76,7 +76,7 @@ index 33be98fc0aa..eda146a0580 100644
    String? _authCode;
  
 diff --git a/pkg/vm/lib/transformations/ffi/abi.dart b/pkg/vm/lib/transformations/ffi/abi.dart
-index cc2d86bafd7..e703419eed7 100644
+index cc2d86bafd7..9674d4b42d6 100644
 --- a/pkg/vm/lib/transformations/ffi/abi.dart
 +++ b/pkg/vm/lib/transformations/ffi/abi.dart
 @@ -40,6 +40,7 @@ enum _OS {
@@ -109,7 +109,7 @@ index cc2d86bafd7..e703419eed7 100644
    static const _androidX64 = Abi._(_Architecture.x64, _OS.android);
    static const _fuchsiaArm64 = Abi._(_Architecture.arm64, _OS.fuchsia);
    static const _fuchsiaX64 = Abi._(_Architecture.x64, _OS.fuchsia);
-+  static const _ohosX64 = Abi._(_Architecture.x64, _OS.ohos);  
++  static const _ohosX64 = Abi._(_Architecture.x64, _OS.ohos);
    static const _iosArm = Abi._(_Architecture.arm, _OS.ios);
    static const _iosArm64 = Abi._(_Architecture.arm64, _OS.ios);
    static const _iosX64 = Abi._(_Architecture.x64, _OS.ios);
@@ -5409,6 +5409,19 @@ index d7296c98e0f..d1abac994ff 100644
    // Prepare builtin and its dependent libraries for use to resolve URIs.
    // Set up various closures, e.g: printing, timers etc.
    // Set up 'package root' for URI resolution.
+diff --git a/runtime/observatory/lib/src/service/object.dart b/runtime/observatory/lib/src/service/object.dart
+index 81d1cea8610..af4387649f8 100644
+--- a/runtime/observatory/lib/src/service/object.dart
++++ b/runtime/observatory/lib/src/service/object.dart
+@@ -2136,7 +2136,7 @@ class ServiceMap extends ServiceObject
+   int get length => _map.length;
+ 
+   // Suppress compile-time error about missing Map methods.
+-  noSuchMethod(_) => throw "Unimplemented ServiceMap method";
++  noSuchMethod(Invocation i) => super.noSuchMethod(i);
+ 
+   String toString() => "ServiceMap($_map)";
+ }
 diff --git a/runtime/platform/globals.h b/runtime/platform/globals.h
 index 9c8d00fc657..7122f9f7d08 100644
 --- a/runtime/platform/globals.h
