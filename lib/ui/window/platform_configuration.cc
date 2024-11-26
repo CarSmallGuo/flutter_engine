@@ -6,13 +6,13 @@
 
 #include <cstring>
 
+#include "flutter/fml/trace_event.h"
 #include "flutter/lib/ui/compositing/scene.h"
 #include "flutter/lib/ui/ui_dart_state.h"
 #include "flutter/lib/ui/window/platform_message_response_dart.h"
 #include "flutter/lib/ui/window/platform_message_response_dart_port.h"
 #include "flutter/lib/ui/window/viewport_metrics.h"
 #include "flutter/lib/ui/window/window.h"
-#include "flutter/fml/trace_event.h"
 #include "third_party/tonic/converter/dart_converter.h"
 #include "third_party/tonic/dart_args.h"
 #include "third_party/tonic/dart_library_natives.h"
@@ -145,9 +145,6 @@ void PlatformConfiguration::DispatchPlatformMessage(
   std::shared_ptr<tonic::DartState> dart_state =
       dispatch_platform_message_.dart_state().lock();
 
-    FML_DLOG(INFO)
-        << "DispatchPlatformMessage channel: "
-        << message->channel();
   if (!dart_state) {
     FML_DLOG(WARNING)
         << "Dropping platform message for lack of DartState on channel: "
@@ -181,9 +178,7 @@ void PlatformConfiguration::DispatchSemanticsAction(int32_t id,
                                                     fml::MallocMapping args) {
   std::shared_ptr<tonic::DartState> dart_state =
       dispatch_semantics_action_.dart_state().lock();
-    FML_DLOG(INFO)
-        << "DispatchSemanticsAction : "
-        << id ;
+
   if (!dart_state) {
     return;
   }
@@ -195,7 +190,6 @@ void PlatformConfiguration::DispatchSemanticsAction(int32_t id,
   if (Dart_IsError(args_handle)) {
     return;
   }
-
   tonic::CheckAndHandleError(tonic::DartInvoke(
       dispatch_semantics_action_.Get(),
       {tonic::ToDart(id), tonic::ToDart(static_cast<int32_t>(action)),
@@ -361,7 +355,6 @@ Dart_Handle PlatformConfigurationNativeApi::SendPortPlatformMessage(
 void PlatformConfigurationNativeApi::RespondToPlatformMessage(
     int response_id,
     const tonic::DartByteData& data) {
-  FML_DLOG(INFO)<<"PlatformConfigurationNativeApi::RespondToPlatformMessage:" << response_id;
   if (Dart_IsNull(data.dart_handle())) {
     UIDartState::Current()
         ->platform_configuration()

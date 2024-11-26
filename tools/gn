@@ -344,8 +344,6 @@ def to_gn_args(args):
     gn_args['target_os'] = args.target_os
     gn_args['target_cpu'] = get_target_cpu(args)
     gn_args['dart_target_arch'] = gn_args['target_cpu']
-    if (args.target_os == 'ohos'):
-      gn_args['host_cpu'] = get_host_cpu()
 
   print("ARGS.target_os:%s-%s" % (args.target_os,gn_args['target_os'] ) )
   # We cannot cross-compile for 32 bit arm on a Windows host. We work around
@@ -763,7 +761,7 @@ def parse_args(args):
       '--ohos-cpu', type=str, choices=['x64', 'x86', 'arm64', 'arm']
   )
   parser.add_argument(
-      '--ohos-api-int', type=int, choices=[11, 12], default=11
+      '--ohos-api-int', type=int, default=13
   )
   parser.add_argument(
       '--fuchsia-cpu', type=str, choices=['x64', 'arm64'], default='x64'

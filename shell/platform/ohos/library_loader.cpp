@@ -17,8 +17,8 @@
 #include "flutter/shell/platform/ohos/ohos_main.h"
 #include "napi/native_api.h"
 #include "napi_common.h"
-#include "ohos_xcomponent_adapter.h"
 #include "ohos_logging.h"
+#include "ohos_xcomponent_adapter.h"
 
 // namespace flutter {
 
@@ -142,18 +142,30 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeUpdateCustomAccessibilityActions",
           flutter::PlatformViewOHOSNapi::nativeUpdateCustomAccessibilityActions),
-
-    DECLARE_NAPI_FUNCTION(
+      DECLARE_NAPI_FUNCTION(
+          "nativeAccessibilityStateChange",
+          flutter::PlatformViewOHOSNapi::nativeAccessibilityStateChange),
+      DECLARE_NAPI_FUNCTION(
+          "nativeAnnounce",
+          flutter::PlatformViewOHOSNapi::nativeAnnounce),
+      DECLARE_NAPI_FUNCTION(
+          "nativeSetSemanticsEnabled",
+          flutter::PlatformViewOHOSNapi::nativeSetSemanticsEnabled),
+      DECLARE_NAPI_FUNCTION(
           "nativeSetFontWeightScale",
           flutter::PlatformViewOHOSNapi::nativeSetFontWeightScale),
-
+      DECLARE_NAPI_FUNCTION(
+          "nativeGetShellHolderId",
+          flutter::PlatformViewOHOSNapi::nativeGetShellHolderId),
       DECLARE_NAPI_FUNCTION(
           "nativeDecodeUtf8",
           flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),
-       DECLARE_NAPI_FUNCTION(
+      DECLARE_NAPI_FUNCTION(
           "nativeLookupCallbackInformation",
           flutter::PlatformViewOHOSNapi::nativeLookupCallbackInformation),
-
+      DECLARE_NAPI_FUNCTION(
+          "nativeGetFlutterNavigationAction",
+          flutter::PlatformViewOHOSNapi::nativeGetFlutterNavigationAction),
       DECLARE_NAPI_FUNCTION(
           "nativeUnicodeIsEmoji",
           flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmoji),

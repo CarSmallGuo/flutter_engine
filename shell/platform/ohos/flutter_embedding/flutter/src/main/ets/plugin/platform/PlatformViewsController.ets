@@ -113,11 +113,11 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
   }
 
   attachAccessibilityBridge(accessibilityBridge: AccessibilityBridge): void {
-    throw new Error('Method not implemented.');
+    this.accessibilityEventsDelegate.setAccessibilityBridge(accessibilityBridge);
   }
 
   detachAccessibilityBridge(): void {
-    throw new Error('Method not implemented.');
+    this.accessibilityEventsDelegate.setAccessibilityBridge(null);
   }
 
   createForPlatformViewLayer(request: PlatformViewCreationRequest): void {
@@ -142,20 +142,22 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       this.textureRegistry!.unregisterTexture(textureId);
     }
 
-    try {
-      platformView.dispose();
-    } catch (err) {
-      Log.e(TAG, "Disposing platform view threw an exception", err);
-    }
-
     let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
     if (viewWrapper != null) {
-      this.viewIdWithNodeController.get(viewId)?.setDestroy(true)
+      this.viewIdWithNodeController.get(viewId)?.removeBuilderNode()
+      this.viewIdWithNodeController.get(viewId)?.disposeFrameNode()
+      this.viewIdWithNodeController.delete(viewId);
       if (this.flutterView) {
         let index = this.flutterView.getDVModel().children.indexOf(viewWrapper.getDvModel()!);
         this.flutterView.getDVModel().children.splice(index, 1);
       }
       this.viewWrappers.delete(viewId);
+    }
+
+    try {
+      platformView.dispose();
+    } catch (err) {
+      Log.e(TAG, "Disposing platform view threw an exception", err);
     }
   }
 
@@ -177,7 +179,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
 
     let viewWrapper = this.viewWrappers.get(request.viewId)
     let params: DVModelParameters | undefined = viewWrapper?.getDvModel()!.params
-     
+
     this.setParams(params!, "width", physicalWidth);
     this.setParams(params!, "height", physicalHeight);
 
@@ -480,9 +482,21 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       return;
     }
   }
-  
+
   public render(surfaceId: number, platformView: PlatformView,
     width: number, height: number, left: number, top: number) {
+
+    let wrapper = this.viewWrappers.get(surfaceId);
+    if (wrapper != null) {
+      let params: DVModelParameters | undefined = wrapper?.getDvModel()!.params
+
+      this.setParams(params!, "width", width);
+      this.setParams(params!, "height", height);
+      this.setParams(params!, "left", left);
+      this.setParams(params!, "top", top);
+      return;
+    }
+
     this.flutterView!.setSurfaceId(surfaceId.toString());
     let wrappedBuilder: WrappedBuilder<[Params]> = platformView.getView();
     this.flutterView?.setWrappedBuilder(wrappedBuilder);
@@ -491,8 +505,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     let nodeController = new EmbeddingNodeController();
 
     nodeController.setRenderOption(platformView, surfaceId.toString(), NodeRenderType.RENDER_TYPE_TEXTURE, Direction.Auto);
-
-    this.nodeControllers.push(nodeController);
+    this.viewIdWithNodeController.set(surfaceId, nodeController);
 
     let dvModel = createDVModelFromJson(new DVModelJson("NodeContainer",
       [],
@@ -510,5 +523,6 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     viewWrapper.addDvModel(dvModel);
     this.viewWrappers.set(surfaceId, viewWrapper);
     this.flutterView?.getDVModel().children.push(viewWrapper.getDvModel());
+    this.platformViews.set(surfaceId, platformView!);
   }
 }

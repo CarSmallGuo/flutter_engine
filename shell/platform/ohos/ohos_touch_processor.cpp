@@ -14,8 +14,10 @@
  */
 
 #include "flutter/shell/platform/ohos/ohos_touch_processor.h"
+
 #include "flutter/lib/ui/window/pointer_data_packet.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
+#include "flutter/fml/trace_event.h"
 
 namespace flutter {
 
@@ -151,6 +153,7 @@ void OhosTouchProcessor::HandleTouchEvent(
     if (touchEvent == nullptr) {
         return;
     }
+    FML_TRACE_EVENT("flutter", "HandleTouchEvent", "timeStamp", touchEvent->timeStamp);
     const int numTouchPoints = 1;
     std::unique_ptr<flutter::PointerDataPacket> packet = std::make_unique<flutter::PointerDataPacket>(numTouchPoints);
     PointerData pointerData;
@@ -181,7 +184,6 @@ void OhosTouchProcessor::HandleTouchEvent(
           pointerData.change == PointerData::Change::kMove) {
         pointerData.buttons = kPointerButtonTouchContact;
       }
-    } else if (pointerData.kind == PointerData::DeviceKind::kMouse) {
     }
     pointerData.pan_x = 0.0;
     pointerData.pan_y = 0.0;
@@ -197,6 +199,21 @@ void OhosTouchProcessor::HandleTouchEvent(
     ohos_shell_holder->GetPlatformView()->DispatchPointerDataPacket(
         std::move(packet));
 
+    // For DFX
+    fml::closure task = [timeStampDFX = touchEvent->timeStamp](void) {
+        FML_TRACE_EVENT("flutter", "HandleTouchEventUI", "timeStamp", timeStampDFX);
+    };
+    ohos_shell_holder->GetPlatformView()->RunTask(OHOS_THREAD_TYPE::OHOS_THREAD_TYPE_UI, task);
+
+    PlatformViewOnTouchEvent(shell_holderID, toolType, component, touchEvent);
+}
+
+void OhosTouchProcessor::PlatformViewOnTouchEvent(
+    int64_t shellHolderID,
+    OH_NativeXComponent_TouchPointToolType toolType,
+    OH_NativeXComponent* component,
+    OH_NativeXComponent_TouchEvent* touchEvent)
+{
     int numPoints = touchEvent->numPoints;
     float tiltX = 0.0;
     float tiltY = 0.0;
@@ -211,8 +228,8 @@ void OhosTouchProcessor::HandleTouchEvent(
 
     std::shared_ptr<std::string[]> touchPacketString = packagePacketData(std::move(touchPacket));
     int size = CHANGES_POINTER_MEMBER + PER_POINTER_MEMBER * numPoints + TOUCH_EVENT_ADDITIONAL_ATTRIBUTES;
+    auto ohos_shell_holder = reinterpret_cast<OHOSShellHolder*>(shellHolderID);
     ohos_shell_holder->GetPlatformView()->OnTouchEvent(touchPacketString, size);
-    return;
 }
 
 void OhosTouchProcessor::HandleMouseEvent(

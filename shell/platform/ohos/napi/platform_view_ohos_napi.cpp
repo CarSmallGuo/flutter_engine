@@ -25,20 +25,21 @@
 
 #include "flutter/fml/make_copyable.h"
 #include "flutter/fml/platform/ohos/napi_util.h"
+#include "flutter/shell/platform/ohos/ohos_logging.h"
 #include "flutter/shell/platform/ohos/ohos_main.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
+#include "flutter/shell/platform/ohos/ohos_xcomponent_adapter.h"
 #include "flutter/shell/platform/ohos/surface/ohos_native_window.h"
 #include "flutter/shell/platform/ohos/types.h"
 #include "flutter/lib/ui/plugins/callback_cache.h"
 #include "unicode/uchar.h"
-#include "flutter/shell/platform/ohos/ohos_xcomponent_adapter.h"
-#include "flutter/shell/platform/ohos/ohos_logging.h"
 
 #define OHOS_SHELL_HOLDER (reinterpret_cast<OHOSShellHolder*>(shell_holder))
 namespace flutter {
 
 napi_env PlatformViewOHOSNapi::env_;
 std::vector<std::string> PlatformViewOHOSNapi::system_languages;
+int64_t PlatformViewOHOSNapi::napi_shell_holder_id_;
 
 /**
  * @brief send  empty PlatformMessage
@@ -354,6 +355,7 @@ std::vector<std::string> splitString(const std::string& input, char delimiter) {
 
   return result;
 }
+
 flutter::locale PlatformViewOHOSNapi::resolveNativeLocale(
     std::vector<flutter::locale> supportedLocales) {
   if (supportedLocales.empty()) {
@@ -416,9 +418,10 @@ void PlatformViewOHOSNapi::DecodeImage(int64_t imageGeneratorAddress,
                                        void* inputData,
                                        size_t dataSize) {
   FML_DLOG(INFO) << "start decodeImage";
-  platform_task_runner_->PostTask(fml::MakeCopyable(
-      [imageGeneratorAddress_ = imageGeneratorAddress,
-       inputData_ = std::move(inputData), dataSize_ = dataSize, this]() mutable {
+  platform_task_runner_->PostTask(
+      fml::MakeCopyable([imageGeneratorAddress_ = imageGeneratorAddress,
+                         inputData_ = std::move(inputData),
+                         dataSize_ = dataSize, this]() mutable {
         napi_value callbackParam[2];
 
         callbackParam[0] =
@@ -436,7 +439,9 @@ void PlatformViewOHOSNapi::DecodeImage(int64_t imageGeneratorAddress,
       }));
 }
 
-void PlatformViewOHOSNapi::FlutterViewOnTouchEvent(std::shared_ptr<std::string[]> touchPacketString, int size) {
+void PlatformViewOHOSNapi::FlutterViewOnTouchEvent(
+    std::shared_ptr<std::string[]> touchPacketString,
+    int size) {
   if (touchPacketString == nullptr) {
     FML_LOG(ERROR) << "Input parameter error";
     return;
@@ -446,11 +451,13 @@ void PlatformViewOHOSNapi::FlutterViewOnTouchEvent(std::shared_ptr<std::string[]
 
   for (int i = 0; i < size; ++i) {
     napi_value stringItem;
-    napi_create_string_utf8(env_, touchPacketString[i].c_str(), -1, &stringItem);
+    napi_create_string_utf8(env_, touchPacketString[i].c_str(), -1,
+                            &stringItem);
     napi_set_element(env_, arrayString, i, stringItem);
   }
 
-  napi_status status = fml::napi::InvokeJsMethod(env_, ref_napi_obj_, "onTouchEvent", 1, &arrayString);
+  napi_status status = fml::napi::InvokeJsMethod(
+      env_, ref_napi_obj_, "onTouchEvent", 1, &arrayString);
   if (status != napi_ok) {
     FML_LOG(ERROR) << "InvokeJsMethod onTouchEvent fail";
   }
@@ -486,8 +493,7 @@ napi_value PlatformViewOHOSNapi::nativeAttach(napi_env env,
   auto shell_holder = std::make_unique<OHOSShellHolder>(
       OhosMain::Get().GetSettings(), napi_facade, platform_loop);
   if (shell_holder->IsValid()) {
-    int64_t shell_holder_value =
-        reinterpret_cast<int64_t>(shell_holder.get());
+    int64_t shell_holder_value = reinterpret_cast<int64_t>(shell_holder.get());
     FML_DLOG(INFO) << "PlatformViewOHOSNapi shell_holder:"
                    << shell_holder_value;
     napi_value id;
@@ -499,6 +505,15 @@ napi_value PlatformViewOHOSNapi::nativeAttach(napi_env env,
     napi_value id;
     napi_create_int64(env, 0, &id);
     return id;
+  }
+}
+
+void PlatformViewOHOSNapi::GetShellHolderId() {
+  FML_DLOG(INFO) << "GetShellHolderId";
+  napi_status status = fml::napi::InvokeJsMethod(env_, ref_napi_obj_,
+                                                 "getShellHolderId", 0, nullptr);
+  if (status != napi_ok) {
+    FML_DLOG(ERROR) << "InvokeJsMethod getShellHolderId fail ";
   }
 }
 
@@ -579,7 +594,6 @@ napi_value PlatformViewOHOSNapi::nativeUpdateOhosAssetManager(
     napi_callback_info info) {
   LOGD("PlatformViewOHOSNapi::nativeUpdateOhosAssetManager");
 
-  // TODO:
   return nullptr;
 }
 
@@ -590,14 +604,14 @@ napi_value PlatformViewOHOSNapi::nativeGetPixelMap(napi_env env,
                                                    napi_callback_info info) {
   LOGD("PlatformViewOHOSNapi::nativeGetPixelMap");
 
-  // TODO:
   return nullptr;
 }
 
 /**
  * 从当前的flutterNapi复制一个新的实例
  */
-napi_value PlatformViewOHOSNapi::nativeSpawn(napi_env env, napi_callback_info info) {
+napi_value PlatformViewOHOSNapi::nativeSpawn(napi_env env,
+                                             napi_callback_info info) {
   napi_status ret;
   size_t argc = 6;
   napi_value args[6] = {nullptr};
@@ -637,12 +651,14 @@ napi_value PlatformViewOHOSNapi::nativeSpawn(napi_env env, napi_callback_info in
   LOGD(" initialRoute: %{public}s", initial_route.c_str());
 
   std::vector<std::string> entrypoint_args;
-  if (fml::napi::SUCCESS != fml::napi::GetArrayString(env, args[4], entrypoint_args)) {
+  if (fml::napi::SUCCESS !=
+      fml::napi::GetArrayString(env, args[4], entrypoint_args)) {
     LOGE("nativeRunBundleAndSnapshotFromLibrary GetArrayString error");
     return nullptr;
   }
 
-  std::shared_ptr<PlatformViewOHOSNapi> napi_facade = std::make_shared<PlatformViewOHOSNapi>(env);
+  std::shared_ptr<PlatformViewOHOSNapi> napi_facade =
+      std::make_shared<PlatformViewOHOSNapi>(env);
   napi_create_reference(env, args[5], 1, &(napi_facade->ref_napi_obj_));
 
   auto spawned_shell_holder = OHOS_SHELL_HOLDER->Spawn(
@@ -654,7 +670,9 @@ napi_value PlatformViewOHOSNapi::nativeSpawn(napi_env env, napi_callback_info in
   }
 
   napi_value shell_holder_id;
-  napi_create_int64(env, reinterpret_cast<int64_t>(spawned_shell_holder.release()), &shell_holder_id);
+  napi_create_int64(env,
+                    reinterpret_cast<int64_t>(spawned_shell_holder.release()),
+                    &shell_holder_id);
   return shell_holder_id;
 }
 
@@ -1448,9 +1466,8 @@ napi_value PlatformViewOHOSNapi::nativeGetSystemLanguages(
 
 napi_value PlatformViewOHOSNapi::nativeInitNativeImage(
     napi_env env,
-    napi_callback_info info)
-{
-  FML_DLOG(INFO)<<"PlatformViewOHOSNapi::nativeInitNativeImage";
+    napi_callback_info info) {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeInitNativeImage";
   size_t argc = 3;
   napi_value args[3] = {nullptr};
   int64_t shell_holder;
@@ -1458,17 +1475,17 @@ napi_value PlatformViewOHOSNapi::nativeInitNativeImage(
   NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
   NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
   NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
-  ImageNative *imageNative = OH_Image_InitImageNative(env, args[2]);
+  ImageNative* imageNative = OH_Image_InitImageNative(env, args[2]);
   // std::unique_ptr<ImageNative> uImage;
-  OHOS_SHELL_HOLDER->GetPlatformView()->RegisterExternalTextureByImage(textureId, imageNative);
+  OHOS_SHELL_HOLDER->GetPlatformView()->RegisterExternalTextureByImage(
+      textureId, imageNative);
   return nullptr;
 }
 
 napi_value PlatformViewOHOSNapi::nativeRegisterTexture(
     napi_env env,
-    napi_callback_info info)
-{
-  FML_DLOG(INFO)<<"PlatformViewOHOSNapi::nativeRegisterTexture";
+    napi_callback_info info) {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeRegisterTexture";
   size_t argc = 2;
   napi_value args[2] = {nullptr};
   int64_t shell_holder;
@@ -1476,7 +1493,8 @@ napi_value PlatformViewOHOSNapi::nativeRegisterTexture(
   NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
   NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
   NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
-  int64_t surfaceId = OHOS_SHELL_HOLDER->GetPlatformView()->RegisterExternalTexture(textureId);
+  int64_t surfaceId =
+      OHOS_SHELL_HOLDER->GetPlatformView()->RegisterExternalTexture(textureId);
   napi_value res;
   napi_create_int64(env, surfaceId, &res);
   return res;
@@ -1503,10 +1521,9 @@ napi_value PlatformViewOHOSNapi::nativeSetTextureBufferSize(
 }
 
 napi_value PlatformViewOHOSNapi::nativeUnregisterTexture(
-  napi_env env,
-  napi_callback_info info)
-{
-  FML_DLOG(INFO)<<"PlatformViewOHOSNapi::nativeUnregisterTexture";
+    napi_env env,
+    napi_callback_info info) {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeUnregisterTexture";
   size_t argc = 2;
   napi_value args[2] = {nullptr};
   int64_t shell_holder;
@@ -1519,9 +1536,8 @@ napi_value PlatformViewOHOSNapi::nativeUnregisterTexture(
 }
 
 napi_value PlatformViewOHOSNapi::nativeMarkTextureFrameAvailable(
-  napi_env env,
-  napi_callback_info info)
-{
+    napi_env env,
+    napi_callback_info info) {
   size_t argc = 2;
   napi_value args[2] = {nullptr};
   int64_t shell_holder;
@@ -1534,10 +1550,9 @@ napi_value PlatformViewOHOSNapi::nativeMarkTextureFrameAvailable(
 }
 
 napi_value PlatformViewOHOSNapi::nativeRegisterPixelMap(
-  napi_env env,
-  napi_callback_info info)
-{
-  FML_DLOG(INFO)<<"PlatformViewOHOSNapi::nativeRegisterPixelMap";
+    napi_env env,
+    napi_callback_info info) {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeRegisterPixelMap";
   size_t argc = 3;
   napi_value args[3] = {nullptr};
   int64_t shell_holder;
@@ -1545,16 +1560,16 @@ napi_value PlatformViewOHOSNapi::nativeRegisterPixelMap(
   NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
   NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
   NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
-  NativePixelMap *nativePixelMap = OH_PixelMap_InitNativePixelMap(env, args[2]);
-  OHOS_SHELL_HOLDER->GetPlatformView()->RegisterExternalTextureByPixelMap(textureId, nativePixelMap);
+  NativePixelMap* nativePixelMap = OH_PixelMap_InitNativePixelMap(env, args[2]);
+  OHOS_SHELL_HOLDER->GetPlatformView()->RegisterExternalTextureByPixelMap(
+      textureId, nativePixelMap);
   return nullptr;
 }
 
 napi_value PlatformViewOHOSNapi::nativeSetTextureBackGroundPixelMap(
-  napi_env env,
-  napi_callback_info info)
-{
-  FML_DLOG(INFO)<<"PlatformViewOHOSNapi::nativeSetTextureBackGroundPixelMap";
+    napi_env env,
+    napi_callback_info info) {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetTextureBackGroundPixelMap";
   size_t argc = 3;
   napi_value args[3] = {nullptr};
   int64_t shell_holder;
@@ -1562,8 +1577,9 @@ napi_value PlatformViewOHOSNapi::nativeSetTextureBackGroundPixelMap(
   NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
   NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
   NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
-  NativePixelMap *nativePixelMap = OH_PixelMap_InitNativePixelMap(env, args[2]);
-  OHOS_SHELL_HOLDER->GetPlatformView()->SetExternalTextureBackGroundPixelMap(textureId, nativePixelMap);
+  NativePixelMap* nativePixelMap = OH_PixelMap_InitNativePixelMap(env, args[2]);
+  OHOS_SHELL_HOLDER->GetPlatformView()->SetExternalTextureBackGroundPixelMap(
+      textureId, nativePixelMap);
   return nullptr;
 }
 
@@ -1598,36 +1614,41 @@ void PlatformViewOHOSNapi::SetPlatformTaskRunner(
  */
 napi_value PlatformViewOHOSNapi::nativeXComponentAttachFlutterEngine(
     napi_env env,
-    napi_callback_info info){
-    napi_status ret;
-    size_t argc = 2;
-    napi_value args[2] = {nullptr};
-    std::string xcomponent_id;
-    int64_t shell_holder;
-    ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    if (ret != napi_ok) {
-        FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine napi_get_cb_info error:"
-                        << ret;
-        return nullptr;
-    }
-
-    if (fml::napi::GetString(env, args[0], xcomponent_id) != 0) {
-        FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine xcomponent_id GetString error";
-        return nullptr;
-    }
-
-    ret = napi_get_value_int64(env, args[1], &shell_holder);
-    if (ret != napi_ok) {
-        FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine shell_holder napi_get_value_int64 error";
-        return nullptr;
-    }
-    std::string shell_holder_str = std::to_string(shell_holder);
-
-    LOGD("nativeXComponentAttachFlutterEngine xcomponent_id: %{public}s, shell_holder: %{public}ld ",
-         xcomponent_id.c_str(), shell_holder);
-
-    XComponentAdapter::GetInstance()->AttachFlutterEngine(xcomponent_id, shell_holder_str);
+    napi_callback_info info) {
+  napi_status ret;
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
+  std::string xcomponent_id;
+  int64_t shell_holder;
+  ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR)
+        << "nativeXComponentAttachFlutterEngine napi_get_cb_info error:" << ret;
     return nullptr;
+  }
+
+  if (fml::napi::GetString(env, args[0], xcomponent_id) != 0) {
+    FML_DLOG(ERROR)
+        << "nativeXComponentAttachFlutterEngine xcomponent_id GetString error";
+    return nullptr;
+  }
+
+  ret = napi_get_value_int64(env, args[1], &shell_holder);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine shell_holder "
+                       "napi_get_value_int64 error";
+    return nullptr;
+  }
+  std::string shell_holder_str = std::to_string(shell_holder);
+
+  LOGD(
+      "nativeXComponentAttachFlutterEngine xcomponent_id: %{public}s, "
+      "shell_holder: %{public}ld ",
+      xcomponent_id.c_str(), shell_holder);
+
+  XComponentAdapter::GetInstance()->AttachFlutterEngine(xcomponent_id,
+                                                        shell_holder_str);
+  return nullptr;
 }
 /**
  * @brief xcomponent解除flutter引擎绑定
@@ -1638,31 +1659,34 @@ napi_value PlatformViewOHOSNapi::nativeXComponentAttachFlutterEngine(
  */
 napi_value PlatformViewOHOSNapi::nativeXComponentDetachFlutterEngine(
     napi_env env,
-    napi_callback_info info){
-    napi_status ret;
-    size_t argc = 2;
-    napi_value args[2] = {nullptr};
-    std::string xcomponent_id;
-    int64_t shell_holder;
-    ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    if (ret != napi_ok) {
-        FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine napi_get_cb_info error:"
-                        << ret;
-        return nullptr;
-    }
-    if (fml::napi::GetString(env, args[0], xcomponent_id) != 0) {
-        FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine xcomponent_id GetString error";
-        return nullptr;
-    }
-    ret = napi_get_value_int64(env, args[1], &shell_holder);
-    if (ret != napi_ok) {
-        FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine shell_holder napi_get_value_int64 error";
-        return nullptr;
-    }
-
-    LOGD("nativeXComponentDetachFlutterEngine xcomponent_id: %{public}s", xcomponent_id.c_str());
-    XComponentAdapter::GetInstance()->DetachFlutterEngine(xcomponent_id);
+    napi_callback_info info) {
+  napi_status ret;
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
+  std::string xcomponent_id;
+  int64_t shell_holder;
+  ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR)
+        << "nativeXComponentAttachFlutterEngine napi_get_cb_info error:" << ret;
     return nullptr;
+  }
+  if (fml::napi::GetString(env, args[0], xcomponent_id) != 0) {
+    FML_DLOG(ERROR)
+        << "nativeXComponentAttachFlutterEngine xcomponent_id GetString error";
+    return nullptr;
+  }
+  ret = napi_get_value_int64(env, args[1], &shell_holder);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeXComponentAttachFlutterEngine shell_holder "
+                       "napi_get_value_int64 error";
+    return nullptr;
+  }
+
+  LOGD("nativeXComponentDetachFlutterEngine xcomponent_id: %{public}s",
+       xcomponent_id.c_str());
+  XComponentAdapter::GetInstance()->DetachFlutterEngine(xcomponent_id);
+  return nullptr;
 }
 
 /**
@@ -1678,74 +1702,82 @@ napi_value PlatformViewOHOSNapi::nativeXComponentDetachFlutterEngine(
  * @param  timestamp: number
  * @return napi_value
  */
-napi_value PlatformViewOHOSNapi::nativeXComponentDispatchMouseWheel(napi_env env, napi_callback_info info)
-{
-    napi_status ret;
-    size_t argc = 8;
-    napi_value args[8] = {nullptr};
-    int64_t shellHolder;
-    std::string xcomponentId;
-    std::string eventType;
-    int64_t fingerId;
-    double globalX;
-    double globalY;
-    double offsetY;
-    int64_t timestamp;
-    ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-    if (ret != napi_ok) {
-        FML_DLOG(ERROR) << "nativeXComponentDispatchMouseWheel napi_get_cb_info error:"
-                        << ret;
-        return nullptr;
-    }
-    ret = napi_get_value_int64(env, args[0], &shellHolder);
-    if (ret != napi_ok) {
-        LOGE("nativeXComponentDispatchMouseWheel shellHolder napi_get_value_int64 error");
-        return nullptr;
-    }
-    if (fml::napi::GetString(env, args[1], xcomponentId) != 0) {
-        FML_DLOG(ERROR) << "nativeXComponentDispatchMouseWheel xcomponentId GetString error";
-        return nullptr;
-    }
-    if (fml::napi::GetString(env, args[2], eventType) != 0) {
-        FML_DLOG(ERROR) << "nativeXComponentDispatchMouseWheel eventType GetString error";
-        return nullptr;
-    }
-    ret = napi_get_value_int64(env, args[3], &fingerId);
-    if (ret != napi_ok) {
-        LOGE("nativeXComponentDispatchMouseWheel fingerId napi_get_value_int64 error");
-        return nullptr;
-    }
-    ret = napi_get_value_double(env, args[4], &globalX);
-    if (ret != napi_ok) {
-        LOGE("nativeXComponentDispatchMouseWheel globalX napi_get_value_double error");
-        return nullptr;
-    }
-    ret = napi_get_value_double(env, args[5], &globalY);
-    if (ret != napi_ok) {
-        LOGE("nativeXComponentDispatchMouseWheel globalY napi_get_value_double error");
-        return nullptr;
-    }
-    ret = napi_get_value_double(env, args[6], &offsetY);
-    if (ret != napi_ok) {
-        LOGE("nativeXComponentDispatchMouseWheel offsetY napi_get_value_double error");
-        return nullptr;
-    }
-    ret = napi_get_value_int64(env, args[7], &timestamp);
-    if (ret != napi_ok) {
-        LOGE("nativeXComponentDispatchMouseWheel timestamp napi_get_value_int64 error");
-        return nullptr;
-    }
-    flutter::mouseWheelEvent event {
-        eventType,
-        shellHolder,
-        fingerId,
-        globalX,
-        globalY,
-        offsetY,
-        timestamp
-    };
-    XComponentAdapter::GetInstance()->OnMouseWheel(xcomponentId, event);
+napi_value PlatformViewOHOSNapi::nativeXComponentDispatchMouseWheel(
+    napi_env env,
+    napi_callback_info info) {
+  napi_status ret;
+  size_t argc = 8;
+  napi_value args[8] = {nullptr};
+  int64_t shellHolder;
+  std::string xcomponentId;
+  std::string eventType;
+  int64_t fingerId;
+  double globalX;
+  double globalY;
+  double offsetY;
+  int64_t timestamp;
+  ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR)
+        << "nativeXComponentDispatchMouseWheel napi_get_cb_info error:" << ret;
     return nullptr;
+  }
+  ret = napi_get_value_int64(env, args[0], &shellHolder);
+  if (ret != napi_ok) {
+    LOGE(
+        "nativeXComponentDispatchMouseWheel shellHolder napi_get_value_int64 "
+        "error");
+    return nullptr;
+  }
+  if (fml::napi::GetString(env, args[1], xcomponentId) != 0) {
+    FML_DLOG(ERROR)
+        << "nativeXComponentDispatchMouseWheel xcomponentId GetString error";
+    return nullptr;
+  }
+  if (fml::napi::GetString(env, args[2], eventType) != 0) {
+    FML_DLOG(ERROR)
+        << "nativeXComponentDispatchMouseWheel eventType GetString error";
+    return nullptr;
+  }
+  ret = napi_get_value_int64(env, args[3], &fingerId);
+  if (ret != napi_ok) {
+    LOGE(
+        "nativeXComponentDispatchMouseWheel fingerId napi_get_value_int64 "
+        "error");
+    return nullptr;
+  }
+  ret = napi_get_value_double(env, args[4], &globalX);
+  if (ret != napi_ok) {
+    LOGE(
+        "nativeXComponentDispatchMouseWheel globalX napi_get_value_double "
+        "error");
+    return nullptr;
+  }
+  ret = napi_get_value_double(env, args[5], &globalY);
+  if (ret != napi_ok) {
+    LOGE(
+        "nativeXComponentDispatchMouseWheel globalY napi_get_value_double "
+        "error");
+    return nullptr;
+  }
+  ret = napi_get_value_double(env, args[6], &offsetY);
+  if (ret != napi_ok) {
+    LOGE(
+        "nativeXComponentDispatchMouseWheel offsetY napi_get_value_double "
+        "error");
+    return nullptr;
+  }
+  ret = napi_get_value_int64(env, args[7], &timestamp);
+  if (ret != napi_ok) {
+    LOGE(
+        "nativeXComponentDispatchMouseWheel timestamp napi_get_value_int64 "
+        "error");
+    return nullptr;
+  }
+  flutter::mouseWheelEvent event{eventType, shellHolder, fingerId, globalX,
+                                 globalY,   offsetY,     timestamp};
+  XComponentAdapter::GetInstance()->OnMouseWheel(xcomponentId, event);
+  return nullptr;
 }
 
 /**
@@ -1754,27 +1786,29 @@ napi_value PlatformViewOHOSNapi::nativeXComponentDispatchMouseWheel(napi_env env
  * @param  str: string
  * @return napi_value
  */
-napi_value PlatformViewOHOSNapi::nativeEncodeUtf8(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value args[1] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+napi_value PlatformViewOHOSNapi::nativeEncodeUtf8(napi_env env,
+                                                  napi_callback_info info) {
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
 
-    size_t length = 0;
-    napi_get_value_string_utf8(env, args[0], nullptr, 0, &length);
+  size_t length = 0;
+  napi_get_value_string_utf8(env, args[0], nullptr, 0, &length);
 
-    auto null_terminated_length = length + 1;
-    auto char_array = std::make_unique<char[]>(null_terminated_length);
-    napi_get_value_string_utf8(env, args[0], char_array.get(), null_terminated_length, nullptr);
+  auto null_terminated_length = length + 1;
+  auto char_array = std::make_unique<char[]>(null_terminated_length);
+  napi_get_value_string_utf8(env, args[0], char_array.get(),
+                             null_terminated_length, nullptr);
 
-    void *data;
-    napi_value arraybuffer;
-    napi_create_arraybuffer(env, length, &data, &arraybuffer);
-    std::memcpy(data, char_array.get(), length);
+  void* data;
+  napi_value arraybuffer;
+  napi_create_arraybuffer(env, length, &data, &arraybuffer);
+  std::memcpy(data, char_array.get(), length);
 
-    napi_value uint8_array;
-    napi_create_typedarray(env, napi_uint8_array, length, arraybuffer, 0, &uint8_array);
-    return uint8_array;
+  napi_value uint8_array;
+  napi_create_typedarray(env, napi_uint8_array, length, arraybuffer, 0,
+                         &uint8_array);
+  return uint8_array;
 }
 
 /**
@@ -1783,32 +1817,130 @@ napi_value PlatformViewOHOSNapi::nativeEncodeUtf8(napi_env env, napi_callback_in
  * @param  array: Uint8Array
  * @return napi_value
  */
-napi_value PlatformViewOHOSNapi::nativeDecodeUtf8(napi_env env, napi_callback_info info)
-{
-    size_t argc = 1;
-    napi_value args[1] = {nullptr};
-    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+napi_value PlatformViewOHOSNapi::nativeDecodeUtf8(napi_env env,
+                                                  napi_callback_info info) {
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
 
-    size_t size = 0;
-    void *data = nullptr;
-    napi_get_typedarray_info(env, args[0], nullptr, &size, &data, nullptr, nullptr);
+  size_t size = 0;
+  void* data = nullptr;
+  napi_get_typedarray_info(env, args[0], nullptr, &size, &data, nullptr,
+                           nullptr);
 
-    napi_value result;
-    napi_create_string_utf8(env, static_cast<char *>(data), size, &result);
-    return result;
+  napi_value result;
+  napi_create_string_utf8(env, static_cast<char*>(data), size, &result);
+  return result;
 }
 
-napi_value PlatformViewOHOSNapi::nativeUpdateSemantics(
+/**
+ * 监听获取系统的无障碍服务是否开启
+ */
+napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
     napi_env env,
     napi_callback_info info) {
+  napi_status ret;
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
+  ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeAccessibilityStateChange "
+                       "napi_get_cb_info error:"
+                    << ret;
+    return nullptr;
+  }
+  int64_t shell_holder_id;
+  ret = napi_get_value_int64(env, args[0], &shell_holder_id);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeAccessibilityStateChange "
+                       "napi_get_value_int64 error:"
+                    << ret;
+    return nullptr;
+  }
+  bool state = false;
+  ret = napi_get_value_bool(env, args[1], &state);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeAccessibilityStateChange "
+                       "napi_get_value_bool error:"
+                    << ret;
+    return nullptr;
+  }
+  LOGD(
+      "PlatformViewOHOSNapi::nativeAccessibilityStateChange state is: "
+      "%{public}s",
+      (state ? "true" : "false"));
 
+  //send to accessibility bridge
+  auto a11y_bridge = OhosAccessibilityBridge::GetInstance();
+  a11y_bridge->OnOhosAccessibilityStateChange(shell_holder_id, state);
+  FML_DLOG(INFO) << "nativeAccessibilityStateChange: state=" << state
+                 << " shell_holder_id=" << shell_holder_id;
   return nullptr;
 }
 
-napi_value PlatformViewOHOSNapi::nativeUpdateCustomAccessibilityActions(
-    napi_env env,
-    napi_callback_info info) {
+napi_value PlatformViewOHOSNapi::nativeAnnounce(
+  napi_env env,
+  napi_callback_info info) {
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
 
+  size_t length = 0;
+  napi_get_value_string_utf8(env, args[0], nullptr, 0, &length);
+
+  auto null_terminated_length = length + 1;
+  auto char_array = std::make_unique<char[]>(null_terminated_length);
+  napi_get_value_string_utf8(env, args[0], char_array.get(),
+                             null_terminated_length, nullptr);
+  LOGD("PlatformViewOHOSNapi::nativeAnnounce message: %{public}s", char_array.get());
+  auto handler = std::make_shared<NativeAccessibilityChannel::AccessibilityMessageHandler>();
+  handler->Announce(char_array);
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeSetSemanticsEnabled(napi_env env, napi_callback_info info) {
+  napi_status ret;
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
+  ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
+                       "napi_get_cb_info error:"
+                    << ret;
+    return nullptr;
+  }
+
+  int64_t shell_holder;
+  ret = napi_get_value_int64(env, args[0], &shell_holder);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
+                       "napi_get_value_int64 error:"
+                    << ret;
+    return nullptr;
+  }
+  bool enabled = false;
+  ret = napi_get_value_bool(env, args[1], &enabled);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
+                       "napi_get_value_bool error:"
+                    << ret;
+    return nullptr;
+  }
+  OHOS_SHELL_HOLDER->GetPlatformView()->SetSemanticsEnabled(enabled);
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
+                       "OHOS_SHELL_HOLDER->GetPlatformView()->SetSemanticsEnabled= "<<enabled;
+
+  // when the system accessibility service is off
+  if(!enabled) {
+    auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+    ohosAccessibilityBridge->ClearFlutterSemanticsCaches();
+    FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled -> ClearFlutterSemanticsCaches()";
+  }
+  
+  //给无障碍bridge传递nativeShellHolderId
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->native_shell_holder_id_ = shell_holder;
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled -> shell_holder:"<<shell_holder;
   return nullptr;
 }
 
@@ -1838,14 +1970,70 @@ napi_value PlatformViewOHOSNapi::nativeSetFontWeightScale(napi_env env, napi_cal
                     << ret;
     return nullptr;
   }
-  // accessibility features get the params
-  auto ohosAccessibilityFeatures = OhosAccessibilityFeatures::GetInstance();
-  ohosAccessibilityFeatures->SetBoldText(fontWeightScale, shell_holder);
+  auto accessibilityFeatures = std::make_shared<OhosAccessibilityFeatures>();
+  accessibilityFeatures->SetBoldText(fontWeightScale, shell_holder);
   FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetFontWeightScale -> shell_holder: "
                  << shell_holder
                  << " fontWeightScale: "<< fontWeightScale;
   return nullptr;
 }
+
+napi_value PlatformViewOHOSNapi::nativeGetShellHolderId(napi_env env, napi_callback_info info) {
+  napi_status ret;
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  int64_t shell_holder;
+  ret = napi_get_value_int64(env, args[0], &shell_holder);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetSemanticsEnabled "
+                       "napi_get_value_int64 error:"
+                    << ret;
+    return nullptr;
+  }
+  napi_shell_holder_id_ = shell_holder;
+  FML_DLOG(INFO) << "nativeGetShellHolderId -> shell_holder:"<<shell_holder;
+  return nullptr;
+}
+
+/**
+ * accessibility-relevant interfaces
+ */
+void PlatformViewOHOSNapi::SetSemanticsEnabled(int64_t shell_holder, 
+                                               bool enabled)
+{
+  OHOS_SHELL_HOLDER->GetPlatformView()->SetSemanticsEnabled(enabled);
+}
+
+void PlatformViewOHOSNapi::DispatchSemanticsAction(
+    int64_t shell_holder,
+    int32_t id, 
+    flutter::SemanticsAction action, 
+    fml::MallocMapping args)
+{
+  OHOS_SHELL_HOLDER->GetPlatformView()->PlatformView::DispatchSemanticsAction(id, action, fml::MallocMapping());
+}
+
+void PlatformViewOHOSNapi::SetAccessibilityFeatures(int64_t shell_holder,
+                                                    int32_t flags)
+{
+  OHOS_SHELL_HOLDER->GetPlatformView()->SetAccessibilityFeatures(flags);
+}
+
+napi_value PlatformViewOHOSNapi::nativeUpdateSemantics(
+    napi_env env,
+    napi_callback_info info) {
+
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeUpdateCustomAccessibilityActions(
+    napi_env env,
+    napi_callback_info info) {
+
+  return nullptr;
+}
+
 
 napi_value PlatformViewOHOSNapi::nativeLookupCallbackInformation(napi_env env, napi_callback_info info)
 {
@@ -1898,6 +2086,27 @@ napi_value PlatformViewOHOSNapi::nativeLookupCallbackInformation(napi_env env, n
   napi_delete_reference(env, callbck_napi_obj); 
   napi_create_int32(env, 0, &result);
   return result;
+}
+ 
+napi_value PlatformViewOHOSNapi::nativeGetFlutterNavigationAction(napi_env env, napi_callback_info info) {
+  napi_status ret;
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  bool isNavigate;
+  ret = napi_get_value_bool(env, args[0], &isNavigate);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeGetFlutterNavigationAction "
+                       "napi_get_value_bool error:"
+                    << ret;
+    return nullptr;
+  }
+
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->IS_FLUTTER_NAVIGATE = isNavigate;
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeGetFlutterNavigationAction -> "<<isNavigate;
+  return nullptr;
 }
 
 napi_value PlatformViewOHOSNapi::nativeUnicodeIsEmoji(napi_env env, napi_callback_info info) 

@@ -1,7 +1,7 @@
 [
     {
         "Name": "engine",
-        "License": "BSD 3-Clause License",
+        "License": "BSD-3-Clause License",
         "License File": "LICENSE",
         "Version Number": "3.7.12",
         "Owner": "aibin@openvalley.net",

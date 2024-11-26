@@ -36,10 +36,10 @@ import appRecovery from '@ohos.app.ability.appRecovery';
 import FlutterManager from './FlutterManager';
 import { FlutterView } from '../../view/FlutterView';
 import ApplicationInfoLoader from '../engine/loader/ApplicationInfoLoader';
+import { accessibility } from '@kit.AccessibilityKit';
 import { AccessibilityManager } from '../../view/AccessibilityBridge';
 
 const TAG = "FlutterAbility";
-const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
 
 /**
  * flutter ohos基础ability，请在让主ability继承自该类。
@@ -72,6 +72,7 @@ export class FlutterAbility extends UIAbility implements Host {
   async onCreate(want: Want, launchParam: AbilityConstant.LaunchParam) {
     // 冷启动通过上下文环境获取到系统当前文字大小，并进行键值存储
     AppStorage.setOrCreate('fontSizeScale', this.context.config.fontSizeScale);
+    Log.i(TAG, "this.context.config.fontSizeScale = " + this.context.config.fontSizeScale);
 
     Log.i(TAG, "bundleCodeDir=" + this.context.bundleCodeDir);
     FlutterManager.getInstance().pushUIAbility(this)
@@ -92,10 +93,6 @@ export class FlutterAbility extends UIAbility implements Host {
 
     Log.i(TAG, 'MyAbility onCreate');
 
-    this.context.eventHub.on(EVENT_BACK_PRESS, () => {
-      this.delegate?.flutterEngine?.getNavigationChannel()?.popRoute();
-      this.delegate?.flutterEngine?.getPlatformViewsController()?.setBackNodeControllers();
-    });
     let observer:errorManager.ErrorObserver = {
       onUnhandledException(errorMsg) {
         Log.e(TAG, "onUnhandledException, errorMsg:", errorMsg);
@@ -110,11 +107,18 @@ export class FlutterAbility extends UIAbility implements Host {
     if (flutterApplicationInfo.isDebugMode) {
       this.delegate?.initWindow();
     }
+
+    //冷启动对os是否开启无障碍服务进行查询
+    let accessibilityState: boolean = accessibility.isOpenAccessibilitySync();
+    if(accessibilityState) {
+      this.delegate?.getFlutterNapi()?.accessibilityStateChange(accessibilityState);
+    }
+    Log.i(TAG, `accessibility isOpen state -> ${JSON.stringify(accessibilityState)}`);
   }
 
   onDestroy() {
     FlutterManager.getInstance().popUIAbility(this);
-    this.context.eventHub.off(EVENT_BACK_PRESS);
+
     errorManager.off('error', this.errorManagerId);
 
     if (this.flutterView != null) {
@@ -151,6 +155,7 @@ export class FlutterAbility extends UIAbility implements Host {
           case window.WindowStageEventType.ACTIVE: // 获焦状态
             Log.i(TAG, 'windowStage active.');
             if (this.stillAttachedForEvent("onWindowFocusChanged")) {
+              this.delegate?.getFlutterEngine()?.getTextInputChannel()?.textInputMethodHandler?.handleChangeFocus(true);
               this?.delegate?.onWindowFocusChanged(true);
             }
             break;
@@ -380,7 +385,7 @@ export class FlutterAbility extends UIAbility implements Host {
       .send(); //热启动生命周期内，实时监听系统设置环境改变并实时发送相应信息
 
     //实时获取系统字体加粗系数
-    this.delegate?.getFlutterNapi()?.setFontWeightScale(config.fontWeightScale == undefined? 0 : config.fontWeightScale);
+    this.delegate?.getFlutterNapi()?.setFontWeightScale(config.fontWeightScale == undefined? 1.0 : config.fontWeightScale);
     Log.i(TAG, 'fontWeightScale: ' + JSON.stringify(config.fontWeightScale));
 
     if (config.language != '') {

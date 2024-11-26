@@ -21,6 +21,7 @@
 
 namespace flutter {
 
+
 bool g_isMouseLeftActive = false;
 double g_scrollDistance = 0.0;
 double g_resizeRate = 0.8;
@@ -117,51 +118,15 @@ void XComponentAdapter::OnMouseWheel(std::string& id, mouseWheelEvent event)
 }
 
 #include <native_window/external_window.h>
-using OHOS_SurfaceBufferUsage = enum {
-  BUFFER_USAGE_CPU_READ = (1ULL << 0),  /**< CPU read buffer */
-  BUFFER_USAGE_CPU_WRITE = (1ULL << 1), /**< CPU write memory */
-  BUFFER_USAGE_MEM_MMZ = (1ULL << 2),   /**< Media memory zone (MMZ) */
-  BUFFER_USAGE_MEM_DMA = (1ULL << 3), /**< Direct memory access (DMA) buffer */
-  BUFFER_USAGE_MEM_SHARE = (1ULL << 4),     /**< Shared memory buffer*/
-  BUFFER_USAGE_MEM_MMZ_CACHE = (1ULL << 5), /**< MMZ with cache*/
-  BUFFER_USAGE_MEM_FB = (1ULL << 6),        /**< Framebuffer */
-  BUFFER_USAGE_ASSIGN_SIZE = (1ULL << 7),   /**< Memory assigned */
-  BUFFER_USAGE_HW_RENDER = (1ULL << 8),     /**< For GPU write case */
-  BUFFER_USAGE_HW_TEXTURE = (1ULL << 9),    /**< For GPU read case */
-  BUFFER_USAGE_HW_COMPOSER = (1ULL << 10),  /**< For hardware composer */
-  BUFFER_USAGE_PROTECTED =
-      (1ULL << 11), /**< For safe buffer case, such as DRM */
-  BUFFER_USAGE_CAMERA_READ = (1ULL << 12),   /**< For camera read case */
-  BUFFER_USAGE_CAMERA_WRITE = (1ULL << 13),  /**< For camera write case */
-  BUFFER_USAGE_VIDEO_ENCODER = (1ULL << 14), /**< For encode case */
-  BUFFER_USAGE_VIDEO_DECODER = (1ULL << 15), /**< For decode case */
-  BUFFER_USAGE_VENDOR_PRI0 = (1ULL << 44),   /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI1 = (1ULL << 45),   /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI2 = (1ULL << 46),   /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI3 = (1ULL << 47),   /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI4 = (1ULL << 48),   /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI5 = (1ULL << 49),   /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI6 = (1ULL << 50),   /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI7 = (1ULL << 51),   /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI8 = (1ULL << 52),   /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI9 = (1ULL << 53),   /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI10 = (1ULL << 54),  /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI11 = (1ULL << 55),  /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI12 = (1ULL << 56),  /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI13 = (1ULL << 57),  /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI14 = (1ULL << 58),  /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI15 = (1ULL << 59),  /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI16 = (1ULL << 60),  /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI17 = (1ULL << 61),  /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI18 = (1ULL << 62),  /**< Reserverd for vendor */
-  BUFFER_USAGE_VENDOR_PRI19 = (1ULL << 63),  /**< Reserverd for vendor */
-};
+
 static int32_t SetNativeWindowOpt(OHNativeWindow* nativeWindow,
                                   int32_t width,
                                   int height) {
   // Set the read and write scenarios of the native window buffer.
-  int code = SET_USAGE;
-  int32_t ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, BUFFER_USAGE_MEM_DMA);
+  uint64_t usage = 0;
+  int ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, GET_USAGE, &usage);
+  usage |= BUFFER_USAGE_MEM_DMA | (BUFFER_USAGE_HW_COMPOSER);
+  ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, SET_USAGE, usage);
   if (ret) {
     LOGE(
         "Set NativeWindow Usage Failed :window:%{public}p ,w:%{public}d x "
@@ -169,7 +134,7 @@ static int32_t SetNativeWindowOpt(OHNativeWindow* nativeWindow,
         nativeWindow, width, height, ret);
   }
   // Set the width and height of the native window buffer.
-  code = SET_BUFFER_GEOMETRY;
+  int code = SET_BUFFER_GEOMETRY;
   ret =
       OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, code, width, height);
   if (ret) {
@@ -214,6 +179,7 @@ void OnSurfaceCreatedCB(OH_NativeXComponent* component, void* window) {
   for(auto it: XComponentAdapter::GetInstance()->xcomponetMap_)
   {
     if(it.second->nativeXComponent_ == component) {
+      LOGD("OnSurfaceCreatedCB is called");
       it.second->OnSurfaceCreated(component, window);
     }
   }
@@ -274,6 +240,101 @@ void XComponentBase::BindXComponentCallback() {
   mouseCallback_.DispatchHoverEvent = DispatchHoverEventCB;
 }
 
+
+/** Called when need to get element infos based on a specified node. */
+int32_t FindAccessibilityNodeInfosById(
+    int64_t elementId,
+    ArkUI_AccessibilitySearchMode mode,
+    int32_t requestId,
+    ArkUI_AccessibilityElementInfoList* elementList)
+{
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->FindAccessibilityNodeInfosById(elementId, mode, requestId, elementList);
+  LOGD("accessibilityProviderCallback_.FindAccessibilityNodeInfosById");
+  return 0;
+}
+
+/** Called when need to get element infos based on a specified node and text content. */
+int32_t FindAccessibilityNodeInfosByText(
+    int64_t elementId,
+    const char* text,
+    int32_t requestId,
+    ArkUI_AccessibilityElementInfoList* elementList)
+{
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->FindAccessibilityNodeInfosByText(elementId, text, requestId, elementList);
+  LOGD("accessibilityProviderCallback_.FindAccessibilityNodeInfosByText");
+  return 0;
+}
+
+/** Called when need to get the focused element info based on a specified node. */
+int32_t FindFocusedAccessibilityNode(
+    int64_t elementId, 
+    ArkUI_AccessibilityFocusType focusType,
+    int32_t requestId, 
+    ArkUI_AccessibilityElementInfo* elementinfo)
+{
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->FindFocusedAccessibilityNode(elementId, focusType, requestId, elementinfo);
+  LOGD("accessibilityProviderCallback_.FindFocusedAccessibilityNode");
+  return 0;
+}
+
+/** Query the node that can be focused based on the reference node. Query the next node that can be focused based on the mode and direction. */
+int32_t FindNextFocusAccessibilityNode(
+    int64_t elementId,
+    ArkUI_AccessibilityFocusMoveDirection direction,
+    int32_t requestId,
+    ArkUI_AccessibilityElementInfo *elementList)
+{
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->FindNextFocusAccessibilityNode(elementId, direction, requestId, elementList);
+  LOGD("accessibilityProviderCallback_.FindNextFocusAccessibilityNode");
+  return 0;
+}
+
+/** Performing the Action operation on a specified node. */
+int32_t ExecuteAccessibilityAction(
+    int64_t elementId,
+    ArkUI_Accessibility_ActionType action,
+    ArkUI_AccessibilityActionArguments* actionArguments,
+    int32_t requestId)
+{
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->ExecuteAccessibilityAction(elementId, action, actionArguments, requestId);
+  LOGD("accessibilityProviderCallback_.ExecuteAccessibilityAction");
+  return 0;
+}
+
+/** Clears the focus status of the currently focused node */
+int32_t ClearFocusedFocusAccessibilityNode()
+{
+  LOGD("accessibilityProviderCallback_.ClearFocusedFocusAccessibilityNode");
+  return 0;
+}
+
+/** Queries the current cursor position of a specified node. */
+int32_t GetAccessibilityNodeCursorPosition(
+    int64_t elementId,
+    int32_t requestId,
+    int32_t* index)
+{
+  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+  ohosAccessibilityBridge->GetAccessibilityNodeCursorPosition(elementId, requestId, index);
+  LOGD("accessibilityProviderCallback_.GetAccessibilityNodeCursorPosition");
+  return 0;
+}
+
+void XComponentBase::BindAccessibilityProviderCallback() {
+  accessibilityProviderCallback_.findAccessibilityNodeInfosById = FindAccessibilityNodeInfosById;
+  accessibilityProviderCallback_.findAccessibilityNodeInfosByText = FindAccessibilityNodeInfosByText;
+  accessibilityProviderCallback_.findFocusedAccessibilityNode = FindFocusedAccessibilityNode;
+  accessibilityProviderCallback_.findNextFocusAccessibilityNode = FindNextFocusAccessibilityNode;
+  accessibilityProviderCallback_.executeAccessibilityAction = ExecuteAccessibilityAction;
+  accessibilityProviderCallback_.clearFocusedFocusAccessibilityNode = ClearFocusedFocusAccessibilityNode;
+  accessibilityProviderCallback_.getAccessibilityNodeCursorPosition = GetAccessibilityNodeCursorPosition;
+}
+
 XComponentBase::XComponentBase(std::string id){
   id_ = id;
   isEngineAttached_ = false;
@@ -315,6 +376,28 @@ void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
     BindXComponentCallback();
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
+    
+    BindAccessibilityProviderCallback();
+    ArkUI_AccessibilityProvider* accessibilityProvider = nullptr;
+    int32_t ret1 = OH_NativeXComponent_GetNativeAccessibilityProvider(
+      nativeXComponent_, &accessibilityProvider); 
+    if (ret1 != 0) {
+      LOGE("OH_NativeXComponent_GetNativeAccessibilityProvider is failed");
+      return;
+    }
+    int32_t ret2 = OH_ArkUI_AccessibilityProviderRegisterCallback(
+      accessibilityProvider, &accessibilityProviderCallback_);
+    if (ret2 != 0) {
+      LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is failed");
+      return;
+    }
+    LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is %{public}d", ret2);
+
+    //将ArkUI_AccessibilityProvider传到无障碍bridge类
+    auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
+    ohosAccessibilityBridge->provider_ = accessibilityProvider;
+
+    LOGI("XComponentBase::SetNativeXComponent OH_ArkUI_AccessibilityProviderRegisterCallback is succeed");
   }
 }
 

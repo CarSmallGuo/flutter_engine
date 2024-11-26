@@ -35,8 +35,17 @@
 #include "flutter/shell/platform/ohos/surface/ohos_snapshot_surface_producer.h"
 #include "flutter/shell/platform/ohos/surface/ohos_surface.h"
 #include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
+#include "flutter/shell/platform/ohos/platform_view_ohos_delegate.h"
+#include "flutter/shell/platform/ohos/accessibility/native_accessibility_channel.h"
 
 namespace flutter {
+
+enum class OHOS_THREAD_TYPE {
+    OHOS_THREAD_TYPE_PLATFORM,
+    OHOS_THREAD_TYPE_UI,
+    OHOS_THREAD_TYPE_RASTER,
+    OHOS_THREAD_TYPE_IO,
+};
 
 class OhosSurfaceFactoryImpl : public OhosSurfaceFactory {
  public:
@@ -128,11 +137,17 @@ class PlatformViewOHOS final : public PlatformView {
       const override {
     return platform_message_handler_;
   }
+
   void OnTouchEvent(std::shared_ptr<std::string[]> touchPacketString, int size);
+
+  void RunTask(OHOS_THREAD_TYPE type, const fml::closure& task);
 
  private:
   const std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;
   std::shared_ptr<OHOSContext> ohos_context_;
+
+  std::shared_ptr<PlatformViewOHOSDelegate> platform_view_ohos_delegate_;  
+  NativeAccessibilityChannel nativeAccessibilityChannel_;  
 
   std::shared_ptr<OHOSSurface> ohos_surface_;
   std::shared_ptr<PlatformMessageHandlerOHOS> platform_message_handler_;
