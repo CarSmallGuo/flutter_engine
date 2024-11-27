@@ -715,22 +715,22 @@ void OHOSExternalTextureGL::DispatchBackGroundPixelMap(NativePixelMap* pixelMap)
 
 OhosImageFrameData::OhosImageFrameData(
     OHOSExternalTextureGL *ohosExternalTextureGL,
-    int64_t texture_id)
+    int64_t textureId)
     : ohosExternalTextureGL(ohosExternalTextureGL),
-      texture_id_(texture_id)
+      textureId_(textureId)
 {}
 
 OhosImageFrameData::~OhosImageFrameData()
 {
   ohosExternalTextureGL = nullptr;
-  texture_id_ = 0;
+  textureId_ = 0;
 }
 
 void OhosImageFrameData::OnPlatformViewMarkTextureFrameAvailable()
 {
   if (ohosExternalTextureGL != nullptr) {
     PlatformView::Delegate& dalegate = ohosExternalTextureGL->delegate_;
-    dalegate.OnPlatformViewMarkTextureFrameAvailable(texture_id_);
+    dalegate.OnPlatformViewMarkTextureFrameAvailable(textureId_);
   }
 }
 

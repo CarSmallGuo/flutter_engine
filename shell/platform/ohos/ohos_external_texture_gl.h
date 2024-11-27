@@ -136,7 +136,7 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
 class OhosImageFrameData {
  public:
-  OhosImageFrameData(OHOSExternalTextureGL *ohosExternalTextureGL, int64_t texture_id);
+  OhosImageFrameData(OHOSExternalTextureGL *ohosExternalTextureGL, int64_t textureId);
 
   OhosImageFrameData() = delete;
 
@@ -148,7 +148,7 @@ class OhosImageFrameData {
 
   OHOSExternalTextureGL *ohosExternalTextureGL;
 
-  int64_t texture_id_;
+  int64_t textureId_;
 };
 
 }  // namespace flutter
