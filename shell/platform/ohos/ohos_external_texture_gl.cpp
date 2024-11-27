@@ -131,25 +131,21 @@ void OnNativeImageFrameAvailable(void *data)
   frameData->OnPlatformViewMarkTextureFrameAvailable();
 }
 
-void RegisterFrameAvailableListener(OH_NativeImage *nativeImage, OHOSExternalTextureGL *context)
+bool RegisterFrameAvailableListener(OH_NativeImage *nativeImage, OhosImageFrameData *frameData)
 {
-  auto frameData = reinterpret_cast<OhosImageFrameData *>(context->frameData_);
   if (frameData == nullptr) {
-    frameData = new OhosImageFrameData(context, context->Id());
+    FML_LOG(ERROR) << "Error with RegisterFrameAvailableListener, frameData is null";
+    return false;
   }
   OH_OnFrameAvailableListener listener;
   listener.context = frameData;
   listener.onFrameAvailable = OnNativeImageFrameAvailable;
   int64_t ret = OH_NativeImage_SetOnFrameAvailableListener(nativeImage, listener);
   if (ret != 0) {
-    FML_LOG(ERROR)
-        << "Error with OH_NativeImage_SetOnFrameAvailableListener";
-      if (frameData != nullptr) {
-        delete (OhosImageFrameData *)frameData;
-        frameData = nullptr;
-      }
-    return;
+    FML_LOG(ERROR) << "Error with OH_NativeImage_SetOnFrameAvailableListener";
+    return false;
   }
+  return true;
 }
 
 void OHOSExternalTextureGL::Attach()
@@ -187,8 +183,14 @@ void OHOSExternalTextureGL::Attach()
       FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeImage_AttachContext err code:" << ret;
     }
 
-    RegisterFrameAvailableListener(nativeImage_, this);
-
+    if (frameData_ == nullptr) {
+      frameData_ = new OhosImageFrameData(this, Id());
+    }
+    if (!RegisterFrameAvailableListener(nativeImage_, this)) {
+      delete (OhosImageFrameData *)frameData_;
+      frameData_ = nullptr;
+      return;
+    }
     state_ = AttachmentState::attached;
   } else {
     FML_LOG(ERROR) << "ResourceContextMakeCurrent failed";
