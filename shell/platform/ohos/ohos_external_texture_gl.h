@@ -102,10 +102,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   AttachmentState state_;
 
-  bool new_frame_ready_ = false;
-
-  std::atomic<int> newFrameCount = 0;
-
   GLuint texture_name_ = 0;
 
   GLuint backGroundTextureName_ = 0;
@@ -140,11 +136,17 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
 class OhosImageFrameData {
  public:
-  OhosImageFrameData(OHOSExternalTextureGL *t, int64_t texture_id);
+  OhosImageFrameData(OHOSExternalTextureGL *ohosExternalTextureGL, int64_t texture_id);
+
+  OhosImageFrameData() = delete;
 
   ~OhosImageFrameData();
 
-  OHOSExternalTextureGL *t;
+  void OnPlatformViewMarkTextureFrameAvailable();
+
+ private:
+
+  OHOSExternalTextureGL *ohosExternalTextureGL;
 
   int64_t texture_id_;
 };
