@@ -131,6 +131,27 @@ void OnNativeImageFrameAvailable(void *data)
   frameData->OnPlatformViewMarkTextureFrameAvailable();
 }
 
+void RegisterFrameAvailableListener(OH_NativeImage *nativeImage, OHOSExternalTextureGL *context)
+{
+  auto frameData = reinterpret_cast<OhosImageFrameData *>(context->frameData_);
+  if (frameData == nullptr) {
+    frameData = new OhosImageFrameData(context, context->Id());
+  }
+  OH_OnFrameAvailableListener listener;
+  listener.context = frameData;
+  listener.onFrameAvailable = OnNativeImageFrameAvailable;
+  int64_t ret = OH_NativeImage_SetOnFrameAvailableListener(nativeImage, listener);
+  if (ret != 0) {
+    FML_LOG(ERROR)
+        << "Error with OH_NativeImage_SetOnFrameAvailableListener";
+      if (frameData != nullptr) {
+        delete (OhosImageFrameData *)frameData;
+        frameData = nullptr;
+      }
+    return;
+  }
+}
+
 void OHOSExternalTextureGL::Attach()
 {
   FML_DLOG(INFO) << "Attach, texture_name_=" << texture_name_
@@ -166,22 +187,7 @@ void OHOSExternalTextureGL::Attach()
       FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeImage_AttachContext err code:" << ret;
     }
 
-    if (frameData_ == nullptr) {
-      frameData_ = new OhosImageFrameData(this, Id());
-    }
-    OH_OnFrameAvailableListener listener;
-    listener.context = frameData_;
-    listener.onFrameAvailable = OnNativeImageFrameAvailable;
-    ret = OH_NativeImage_SetOnFrameAvailableListener(nativeImage_, listener);
-    if (ret != 0) {
-      FML_LOG(ERROR)
-          << "Error with OH_NativeImage_SetOnFrameAvailableListener";
-        if (frameData_ != nullptr) {
-          delete (OhosImageFrameData *)frameData_;
-          frameData_ = nullptr;
-        }
-      return;
-    }
+    RegisterFrameAvailableListener(nativeImage_, this);
 
     state_ = AttachmentState::attached;
   } else {
@@ -720,7 +726,7 @@ OhosImageFrameData::~OhosImageFrameData()
 
 void OhosImageFrameData::OnPlatformViewMarkTextureFrameAvailable()
 {
-  if(ohosExternalTextureGL != nullptr) {
+  if (ohosExternalTextureGL != nullptr) {
     PlatformView::Delegate& dalegate = ohosExternalTextureGL->delegate_;
     dalegate.OnPlatformViewMarkTextureFrameAvailable(texture_id_);
   }

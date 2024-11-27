@@ -207,7 +207,6 @@ class PlatformViewOHOS final : public PlatformView {
   void FireFirstFrameCallback();
 
   FML_DISALLOW_COPY_AND_ASSIGN(PlatformViewOHOS);
-
 };
 
 }  // namespace flutter
