@@ -186,7 +186,7 @@ void OHOSExternalTextureGL::Attach()
     if (frameData_ == nullptr) {
       frameData_ = new OhosImageFrameData(this, Id());
     }
-    if (!RegisterFrameAvailableListener(nativeImage_, this)) {
+    if (!RegisterFrameAvailableListener(nativeImage_, (OhosImageFrameData *)frameData_)) {
       delete (OhosImageFrameData *)frameData_;
       frameData_ = nullptr;
       return;
