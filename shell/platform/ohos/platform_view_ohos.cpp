@@ -117,17 +117,6 @@ PlatformViewOHOS::PlatformViewOHOS(
 
 PlatformViewOHOS::~PlatformViewOHOS() {
   FML_LOG(INFO) << "PlatformViewOHOS::~PlatformViewOHOS";
-  for (std::map<int64_t, void*>::iterator it = contextDatas_.begin();
-       it != contextDatas_.end(); ++it) {
-    if (it->second != nullptr) {
-      OhosImageFrameData* data =
-          reinterpret_cast<OhosImageFrameData*>(it->second);
-      delete data;
-      data = nullptr;
-      it->second = nullptr;
-    }
-  }
-  contextDatas_.clear();
 }
 
 void PlatformViewOHOS::NotifyCreate(
@@ -435,7 +424,7 @@ void PlatformViewOHOS::RegisterExternalTextureByImage(int64_t texture_id,
       iter->second->DispatchImage(image);
     } else {
       std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl =
-          std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_);
+          std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_, delegate_);
       external_texture_gl_[texture_id] = ohos_external_gl;
       RegisterTexture(ohos_external_gl);
       ohos_external_gl->DispatchImage(image);
@@ -456,23 +445,11 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
   int ret = -1;
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
     std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl =
-        std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_);
+        std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_, delegate_);
     ohos_external_gl->nativeImage_ =
         OH_NativeImage_Create(texture_id, GL_TEXTURE_EXTERNAL_OES);
     if (ohos_external_gl->nativeImage_ == nullptr) {
       FML_DLOG(ERROR) << "Error with OH_NativeImage_Create";
-      return surface_id;
-    }
-    void* contextData = new OhosImageFrameData(this, texture_id);
-    contextDatas_.insert(std::pair<int64_t, void*>(texture_id, contextData));
-    OH_OnFrameAvailableListener listener;
-    listener.context = contextData;
-    listener.onFrameAvailable = &PlatformViewOHOS::OnNativeImageFrameAvailable;
-    ret = OH_NativeImage_SetOnFrameAvailableListener(
-        ohos_external_gl->nativeImage_, listener);
-    if (ret != 0) {
-      FML_DLOG(ERROR)
-          << "Error with OH_NativeImage_SetOnFrameAvailableListener";
       return surface_id;
     }
     ret = OH_NativeImage_GetSurfaceId(ohos_external_gl->nativeImage_,
@@ -501,54 +478,11 @@ void PlatformViewOHOS::SetTextureBufferSize(
   }
 }
 
-void PlatformViewOHOS::OnNativeImageFrameAvailable(void* data) {
-  auto frameData = reinterpret_cast<OhosImageFrameData*>(data);
-  if (frameData == nullptr || frameData->context_ == nullptr) {
-    FML_DLOG(ERROR)
-        << "OnNativeImageFrameAvailable, frameData or context_ is null.";
-    return;
-  }
-
-  if (frameData->context_->GetDestroyed()) {
-    FML_LOG(ERROR) << "OnNativeImageFrameAvailable NotifyDstroyed, will not "
-                      "MarkTextureFrameAvailable";
-    return;
-  }
-
-  std::shared_ptr<OHOSSurface> ohos_surface =
-      frameData->context_->ohos_surface_;
-  const TaskRunners task_runners = frameData->context_->task_runners_;
-  if (ohos_surface) {
-    fml::TaskRunner::RunNowOrPostTask(
-        task_runners.GetPlatformTaskRunner(), [frameData]() {
-          if (frameData->context_->GetDestroyed()) {
-            FML_LOG(ERROR) << "OnNativeImageFrameAvailable NotifyDstroyed, "
-                              "will not MarkTextureFrameAvailable";
-            return;
-          }
-          frameData->context_->MarkTextureFrameAvailable(
-              frameData->texture_id_);
-        });
-  }
-}
-
 void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id) {
   FML_DLOG(INFO) << "PlatformViewOHOS::UnRegisterExternalTexture, texture_id="
                  << texture_id;
   external_texture_gl_.erase(texture_id);
   UnregisterTexture(texture_id);
-  std::map<int64_t, void*>::iterator it = contextDatas_.find(texture_id);
-  if (it != contextDatas_.end()) {
-    if (it->second != nullptr) {
-      OhosImageFrameData* data =
-          reinterpret_cast<OhosImageFrameData*>(it->second);
-      task_runners_.GetPlatformTaskRunner()->PostDelayedTask(
-          [data_ = data]() { delete data_; }, fml::TimeDelta::FromSeconds(2));
-      data = nullptr;
-      it->second = nullptr;
-    }
-    contextDatas_.erase(texture_id);
-  }
 }
 
 void PlatformViewOHOS::RegisterExternalTextureByPixelMap(
@@ -560,7 +494,7 @@ void PlatformViewOHOS::RegisterExternalTextureByPixelMap(
       iter->second->DispatchPixelMap(pixelMap);
     } else {
       std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl =
-          std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_);
+          std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_, delegate_);
       external_texture_gl_[texture_id] = ohos_external_gl;
       RegisterTexture(ohos_external_gl);
       ohos_external_gl->DispatchPixelMap(pixelMap);
@@ -612,11 +546,5 @@ void PlatformViewOHOS::RunTask(OHOS_THREAD_TYPE type, const fml::closure& task)
 
   fml::TaskRunner::RunNowOrPostTask(TaskRunnerPtr, task);
 }
-
-OhosImageFrameData::OhosImageFrameData(PlatformViewOHOS* context,
-                                       int64_t texture_id)
-    : context_(context), texture_id_(texture_id) {}
-
-OhosImageFrameData::~OhosImageFrameData() = default;
 
 }  // namespace flutter
