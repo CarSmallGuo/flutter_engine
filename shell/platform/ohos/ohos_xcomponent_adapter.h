@@ -19,11 +19,11 @@
 #include <ace/xcomponent/native_interface_xcomponent.h>
 #include <arkui/native_interface_accessibility.h>
 #include <string>
+#include <map>
 #include "flutter/shell/platform/ohos/ohos_touch_processor.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "napi/native_api.h"
 #include "napi_common.h"
-#include <map>
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
 
 namespace flutter {

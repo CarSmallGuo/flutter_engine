@@ -14,17 +14,19 @@
  */
 #ifndef OHOS_ACCESSIBILITY_BRIDGE_H
 #define OHOS_ACCESSIBILITY_BRIDGE_H
-#include <arkui/native_interface_accessibility.h>
 #include <cstdint>
 #include <string>
 #include <map>
 #include <utility>
 #include <vector>
+#include <arkui/native_interface_accessibility.h>
 #include "flutter/fml/mapping.h"
 #include "flutter/lib/ui/semantics/custom_accessibility_action.h"
 #include "flutter/lib/ui/semantics/semantics_node.h"
 #include "native_accessibility_channel.h"
 #include "ohos_accessibility_features.h"
+#include "ohos_accessibility_ddl.h"
+
 namespace flutter {
 typedef flutter::SemanticsFlags FLAGS_;
 typedef flutter::SemanticsAction ACTIONS_;

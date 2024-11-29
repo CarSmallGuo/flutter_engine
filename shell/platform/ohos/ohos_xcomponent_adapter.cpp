@@ -379,15 +379,25 @@ void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
     if (OH_GetSdkApiVersion() >= 13) {
         LOGD("api version: %{public}d", OH_GetSdkApiVersion());
         BindAccessibilityProviderCallback();
+
+        int32_t (*OH_NativeXComponent_GetNativeAccessibilityProvider)(OH_NativeXComponent*, ArkUI_AccessibilityProvider**) = 
+            OhosAccessibilityDDL::DLLoadGetNativeA11yProvider("OH_NativeXComponent_GetNativeAccessibilityProvider");
+        if (OH_NativeXComponent_GetNativeAccessibilityProvider == nullptr) {
+            LOGE("OH_NativeXComponent_GetNativeAccessibilityProvider is null, %{public}s", dlerror());
+        }
         ArkUI_AccessibilityProvider* accessibilityProvider = nullptr;
-        int32_t ret1 = OH_NativeXComponent_GetNativeAccessibilityProvider(
-          nativeXComponent_, &accessibilityProvider); 
+        int32_t ret1 = OH_NativeXComponent_GetNativeAccessibilityProvider(nativeXComponent_, &accessibilityProvider); 
         if (ret1 != 0) {
           LOGE("OH_NativeXComponent_GetNativeAccessibilityProvider is failed");
           return;
         }
-        int32_t ret2 = OH_ArkUI_AccessibilityProviderRegisterCallback(
-          accessibilityProvider, &accessibilityProviderCallback_);
+
+        int32_t (*OH_ArkUI_AccessibilityProviderRegisterCallback)(ArkUI_AccessibilityProvider*, ArkUI_AccessibilityProviderCallbacks*) = 
+            OhosAccessibilityDDL::DLLoadRegisterFunc("OH_ArkUI_AccessibilityProviderRegisterCallback");
+        if (OH_ArkUI_AccessibilityProviderRegisterCallback == nullptr) {
+            LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is null, %{public}s", dlerror());
+        }
+        int32_t ret2 = OH_ArkUI_AccessibilityProviderRegisterCallback(accessibilityProvider, &accessibilityProviderCallback_);
         if (ret2 != 0) {
           LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is failed");
           return;
