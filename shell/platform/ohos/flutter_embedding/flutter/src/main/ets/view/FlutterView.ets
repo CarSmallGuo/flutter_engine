@@ -92,35 +92,18 @@ export class ViewportMetrics {
   }
 }
 
-export class DisplayFeature {
-  bounds: display.Rect[];
-  type: DisplayFeatureType;
-  state: DisplayFeatureState;
+export class PlatformViewParas {
+  width: number = 0.0;
+  height: number = 0.0;
+  top: number = 0.0;
+  left: number = 0.0;
+  direction: Direction = Direction.Auto;
 
-  constructor(bounds: display.Rect[], type: DisplayFeatureType, state: DisplayFeatureState) {
-    this.bounds = bounds;
-    this.type = type;
-    this.state = state;
-  }
-
-  getBounds(): display.Rect[] {
-    return this.bounds;
-  }
-
-  getType(): DisplayFeatureType {
-    return this.type;
-  }
-
-  getState(): DisplayFeatureState {
-    return this.state
-  }
-
-  setBounds(bounds: display.Rect[]): void {
-    this.bounds = bounds;
-  }
-
-  setType(type: DisplayFeatureType): void {
-    this.type = type;
+  setValue(width: number, height: number, top: number, left: number): void {
+    this.width = width;
+    this.height = height;
+    this.top = top;
+    this.left = left;
   }
 
   setState(state: DisplayFeatureState): void {
@@ -147,6 +130,72 @@ export enum DisplayFoldStatus {
   FOLD_STATUS_FOLDED = 2,
   FOLD_STATUS_HALF_FOLDED = 3
 }
+
+export class DisplayFeature {
+  bounds: Rect ;
+  type: DisplayFeatureType;
+  state: DisplayFeatureState;
+
+  constructor(bounds: Rect, type: DisplayFeatureType, state: DisplayFeatureState) {
+    this.bounds = bounds;
+    this.type = type;
+    this.state = state;
+  }
+
+  getBounds(): Rect {
+    return this.bounds;
+  }
+  getType(): DisplayFeatureType {
+    return this.type;
+  }
+  getState(): DisplayFeatureState {
+    return this.state;
+  }
+
+  setBounds(bounds: Rect): void {
+    this.bounds = bounds;
+  }
+  setType(type: DisplayFeatureType): void {
+    this.type = type;
+  }
+  setState(state: DisplayFeatureState): void {
+    this.state = state;
+  }
+}
+
+export class Rect {
+  left: number = 0.0;
+  top: number = 0.0;
+  width: number = 0.0;
+  height: number = 0.0;
+
+  constructor(left: number, top: number, width: number, height: number) {
+    this.left = left;
+    this.top = top;
+    this.width = width;
+    this.height = height;
+  }
+}
+
+export enum DisplayFeatureType {
+  UNKNOWN = 0,
+  FOLD = 1,
+  HINGE = 2,
+  CUTOUT = 3,
+};
+
+export enum DisplayFoldStatus {
+  FOLD_STATUS_UNKNOWN = 0,
+  FOLD_STATUS_EXPANDED = 1,
+  FOLD_STATUS_FOLDED = 2,
+  FOLD_STATUS_HALF_FOLDED = 3,
+};
+
+export enum DisplayFeatureState {
+  UNKNOWN = 0,
+  POSTURE_FLAT = 1,
+  POSTURE_HALF_OPENED = 2,
+};
 
 export class FlutterView {
   private flutterEngine: FlutterEngine | null = null
@@ -577,6 +626,7 @@ export class FlutterView {
   }
 
   private updateViewportMetrics(): boolean {
+    Log.i(TAG, 'isAttachedToFlutterEngine is:' + this.isAttachedToFlutterEngine);
     if (this.isAttachedToFlutterEngine()) {
 
       const displayFeatures = this.viewportMetrics.displayFeatures;
