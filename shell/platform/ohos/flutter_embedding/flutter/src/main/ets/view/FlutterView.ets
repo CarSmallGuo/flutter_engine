@@ -27,6 +27,7 @@ import PlatformView, { Params } from '../plugin/platform/PlatformView';
 import { JSON } from '@kit.ArkTS';
 import { accessibility } from '@kit.AccessibilityKit';
 import TextInputPlugin from '../plugin/editing/TextInputPlugin';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 const TAG = "FlutterViewTag";
 
@@ -47,6 +48,7 @@ export class ViewportMetrics {
   systemGestureInsetBottom: number = 0;
   systemGestureInsetLeft: number = 0;
   physicalTouchSlop: number = -1;
+  displayFeatures: ArrayList<DisplayFeature> = new ArrayList();
 
   clone(): ViewportMetrics {
     const copy = new ViewportMetrics();
@@ -66,6 +68,7 @@ export class ViewportMetrics {
     copy.systemGestureInsetBottom = this.systemGestureInsetBottom;
     copy.systemGestureInsetLeft = this.systemGestureInsetLeft;
     copy.physicalTouchSlop = this.physicalTouchSlop;
+    copy.displayFeatures = this.displayFeatures;
     return copy;
   }
 
@@ -109,6 +112,72 @@ export class PlatformViewParas {
   }
 }
 
+export class DisplayFeature {
+  bounds: Rect ;
+  type: DisplayFeatureType;
+  state: DisplayFeatureState;
+
+  constructor(bounds: Rect, type: DisplayFeatureType, state: DisplayFeatureState) {
+    this.bounds = bounds;
+    this.type = type;
+    this.state = state;
+  }
+
+  getBounds(): Rect {
+    return this.bounds;
+  }
+  getType(): DisplayFeatureType {
+    return this.type;
+  }
+  getState(): DisplayFeatureState {
+    return this.state;
+  }
+
+  setBounds(bounds: Rect): void {
+    this.bounds = bounds;
+  }
+  setType(type: DisplayFeatureType): void {
+    this.type = type;
+  }
+  setState(state: DisplayFeatureState): void {
+    this.state = state;
+  }
+}
+
+export class Rect {
+  left: number = 0.0;
+  top: number = 0.0;
+  width: number = 0.0;
+  height: number = 0.0;
+
+  constructor(left: number, top: number, width: number, height: number) {
+    this.left = left;
+    this.top = top;
+    this.width = width;
+    this.height = height;
+  }
+}
+
+export enum DisplayFeatureType {
+  UNKNOWN = 0,
+  FOLD = 1,
+  HINGE = 2,
+  CUTOUT = 3,
+};
+
+export enum DisplayFoldStatus {
+  FOLD_STATUS_UNKNOWN = 0,
+  FOLD_STATUS_EXPANDED = 1,
+  FOLD_STATUS_FOLDED = 2,
+  FOLD_STATUS_HALF_FOLDED = 3,
+};
+
+export enum DisplayFeatureState {
+  UNKNOWN = 0,
+  POSTURE_FLAT = 1,
+  POSTURE_HALF_OPENED = 2,
+};
+
 export class FlutterView {
 
   private flutterEngine: FlutterEngine | null = null
@@ -144,6 +213,49 @@ export class FlutterView {
     this.id = viewId
     this.displayInfo = display.getDefaultDisplaySync();
     this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
+    this.viewportMetrics.physicalTouchSlop = 1.0 * this.displayInfo?.densityPixels;
+    let displayClass: Array<display.Display> = [];
+    let displayFeatures: ArrayList<DisplayFeature> = new ArrayList();
+    let state = 0;
+    let type = 0;
+    if (display.isFoldable()) {
+      if (display.getFoldStatus() == 2) {
+        type = DisplayFeatureType.HINGE
+        state = DisplayFeatureState.UNKNOWN;
+      } else if (display.getFoldStatus() == 1) {
+        type = DisplayFeatureType.FOLD;
+        state = DisplayFeatureState.POSTURE_FLAT;
+      } else if (display.getFoldStatus() == 3) {
+        type = DisplayFeatureType.FOLD;
+        state = DisplayFeatureState.POSTURE_HALF_OPENED;
+      } else {
+        type = DisplayFeatureType.UNKNOWN;
+        state = DisplayFeatureState.UNKNOWN;
+      }
+      display.getAllDisplays((err: BusinessError, data: Array<display.Display>) => {
+        displayClass = data;
+        const errCode: number = err.code;
+        if (errCode) {
+          console.error(`Failed to obtain all the display objects. Code: ${err.code}, message: ${err.message}`);
+          return;
+        }
+        displayClass.forEach(async feature => {
+          let bounds = await feature.getAvailableArea();
+          Log.i(TAG, `bounds is : ${JSON.stringify(bounds)}`);
+          displayFeatures.add(new DisplayFeature(bounds, type, state));
+        })
+        this.viewportMetrics.displayFeatures = displayFeatures;
+      });
+    } else {
+      type = DisplayFeatureType.CUTOUT;
+      state = DisplayFeatureState.UNKNOWN;
+      let promise = this.displayInfo.getAvailableArea();
+      promise.then((data) =>{
+        Log.i(TAG, `bounds is : ${JSON.stringify(data)}`);
+        displayFeatures.add(new DisplayFeature(data, type, state));
+      })
+      this.viewportMetrics.displayFeatures = displayFeatures;
+    }
 
     this.mainWindow = FlutterManager.getInstance()
       .getWindowStage(FlutterManager.getInstance().getUIAbility(context))
@@ -442,8 +554,23 @@ export class FlutterView {
   }
 
   private updateViewportMetrics(): boolean {
+    Log.i(TAG, 'isAttachedToFlutterEngine is:' + this.isAttachedToFlutterEngine);
     if (this.isAttachedToFlutterEngine()) {
       Log.i(TAG, 'updateViewportMetrics devicePixelRatio:' + this.viewportMetrics.devicePixelRatio)
+      const displayFeature = this.viewportMetrics.displayFeatures;
+      let displayFeaturesBounds: number[] = new Array(displayFeature.length * 4);
+      let displayFeaturesType: number[] = new Array(displayFeature.length);
+      let displayFeaturesState: number[] = new Array(displayFeature.length);
+
+      for (let i = 0; i < displayFeature.length; i++) {
+        displayFeaturesBounds[4*i] = displayFeature[i].getBounds().left;
+        displayFeaturesBounds[4*i + 1] = displayFeature[i].getBounds().top;
+        displayFeaturesBounds[4*i + 2] = displayFeature[i].getBounds().width;
+        displayFeaturesBounds[4*i + 3] = displayFeature[i].getBounds().height;
+        displayFeaturesType[i] = displayFeature[i].getType();
+        displayFeaturesState[i] = displayFeature[i].getState();
+      }
+
       this?.flutterEngine?.getFlutterNapi()?.setViewportMetrics(this.viewportMetrics.devicePixelRatio,
         this.viewportMetrics.physicalWidth,
         this.viewportMetrics.physicalHeight,
@@ -460,10 +587,10 @@ export class FlutterView {
         this.viewportMetrics.systemGestureInsetBottom,
         this.viewportMetrics.systemGestureInsetLeft,
         this.viewportMetrics.physicalTouchSlop,
-        new Array(0),
-        new Array(0),
-        new Array(0))
-        return true;
+        displayFeaturesBounds,
+        displayFeaturesState,
+        displayFeaturesType)
+      return true;
     }
     return false;
   }
