@@ -115,6 +115,10 @@ void OhosAccessibilityBridge::updateSemantics(
        */
       g_flutterSemanticsTree[node.id] = node;
 
+      if(!IsNodeVisible(node)) {
+          continue;
+      }
+
       // 获取当前flutter节点的全部子节点数量，并构建父子节点id映射关系
       int32_t childNodeCount = node.childrenInTraversalOrder.size();
       for (int32_t i = 0; i < childNodeCount; i++) {
