@@ -14,20 +14,20 @@
  */
 #ifndef OHOS_ACCESSIBILITY_BRIDGE_H
 #define OHOS_ACCESSIBILITY_BRIDGE_H
-#include <arkui/native_interface_accessibility.h>
 #include <cstdint>
 #include <string>
 #include <map>
 #include <utility>
 #include <vector>
+#include <arkui/native_interface_accessibility.h>
 #include "flutter/fml/mapping.h"
 #include "flutter/lib/ui/semantics/custom_accessibility_action.h"
 #include "flutter/lib/ui/semantics/semantics_node.h"
 #include "native_accessibility_channel.h"
 #include "ohos_accessibility_features.h"
+#include "ohos_accessibility_ddl.h"
 
 namespace flutter {
-
 typedef flutter::SemanticsFlags FLAGS_;
 typedef flutter::SemanticsAction ACTIONS_;
 
@@ -159,14 +159,14 @@ class OhosAccessibilityBridge {
   flutter::SemanticsNode lastInputFocusedNode;
   flutter::SemanticsNode accessibilityFocusedNode;
 
-  std::vector<std::pair<int32_t, int32_t>> parentChildIdVec;
-  std::map<int32_t, flutter::SemanticsNode> flutterSemanticsTree_;
+  std::vector<std::pair<int32_t, int32_t>> g_parentChildIdVec;
+  std::map<int32_t, flutter::SemanticsNode> g_flutterSemanticsTree;
   std::unordered_map<
       int32_t,
       std::pair<std::pair<float, float>, std::pair<float, float>>>
-      screenRectMap_;
-  std::unordered_map<int32_t, flutter::CustomAccessibilityAction> actions_mp_;
-  std::vector<int32_t> flutterNavigationVec_;
+      g_screenRectMap;
+  std::unordered_map<int32_t, flutter::CustomAccessibilityAction> g_actions_mp;
+  std::vector<int32_t> g_flutterNavigationVec;
 
   const std::map<std::string, ArkUI_Accessibility_ActionType>
       ArkUI_ACTION_TYPE_MAP_ = {
