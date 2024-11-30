@@ -125,7 +125,7 @@ void OhosAccessibilityBridge::updateSemantics(
       }
 
       // 当滑动节点产生滑动，并执行滑动处理
-      if (HasScrolled(node) && IsNodeVisible(node)) {
+      if (HasScrolled(node)) {
           LOGD("UpdateSemantics -> has scrolled");
           if (OH_GetSdkApiVersion() >= 13) {
               ArkUI_AccessibilityElementInfo* (*OH_ArkUI_CreateAccessibilityElementInfo)(void) = 
@@ -133,8 +133,7 @@ void OhosAccessibilityBridge::updateSemantics(
               if (OH_ArkUI_CreateAccessibilityElementInfo == nullptr) {
                   LOGE("OH_ArkUI_CreateAccessibilityElementInfo is null, %{public}s", dlerror());
               }
-              ArkUI_AccessibilityElementInfo* _elementInfo =
-                  OH_ArkUI_CreateAccessibilityElementInfo();
+              ArkUI_AccessibilityElementInfo* _elementInfo = OH_ArkUI_CreateAccessibilityElementInfo();
 
               FlutterNodeToElementInfoById(_elementInfo, static_cast<int64_t>(node.id));
               FlutterScrollExecution(node, _elementInfo);
@@ -268,7 +267,6 @@ void OhosAccessibilityBridge::FlutterScrollExecution(
             );
         }
     }
-   
 }
 
 /**
@@ -596,6 +594,19 @@ void OhosAccessibilityBridge::FlutterTreeToArkuiTree(
           );
           
           // 配置常用属性
+          int32_t (*OH_ArkUI_AccessibilityElementInfoSetEnabled)(ArkUI_AccessibilityElementInfo*, bool) = 
+              OhosAccessibilityDDL::DLLoadSetElemBoolFunc("OH_ArkUI_AccessibilityElementInfoSetEnabled");
+          if (OH_ArkUI_AccessibilityElementInfoSetEnabled == nullptr) {
+              LOGE("OH_ArkUI_AccessibilityElementInfoSetEnabled is null, %{public}s", dlerror());
+          }
+          ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfo, true));
+
+          int32_t (*OH_ArkUI_AccessibilityElementInfoSetClickable)(ArkUI_AccessibilityElementInfo*, bool) = 
+              OhosAccessibilityDDL::DLLoadSetElemBoolFunc("OH_ArkUI_AccessibilityElementInfoSetClickable");
+          if (OH_ArkUI_AccessibilityElementInfoSetClickable == nullptr) {
+              LOGE("OH_ArkUI_AccessibilityElementInfoSetClickable is null, %{public}s", dlerror());
+          }
+          ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfo, true));
           int32_t (*OH_ArkUI_AccessibilityElementInfoSetCheckable)(ArkUI_AccessibilityElementInfo*, bool) = 
               OhosAccessibilityDDL::DLLoadSetElemBoolFunc("OH_ArkUI_AccessibilityElementInfoSetCheckable");
           if (OH_ArkUI_AccessibilityElementInfoSetCheckable == nullptr) {
@@ -616,20 +627,6 @@ void OhosAccessibilityBridge::FlutterTreeToArkuiTree(
               LOGE("OH_ArkUI_AccessibilityElementInfoSetVisible is null, %{public}s", dlerror());
           }
           ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetVisible(elementInfo, true));
-
-          int32_t (*OH_ArkUI_AccessibilityElementInfoSetEnabled)(ArkUI_AccessibilityElementInfo*, bool) = 
-              OhosAccessibilityDDL::DLLoadSetElemBoolFunc("OH_ArkUI_AccessibilityElementInfoSetEnabled");
-          if (OH_ArkUI_AccessibilityElementInfoSetEnabled == nullptr) {
-              LOGE("OH_ArkUI_AccessibilityElementInfoSetEnabled is null, %{public}s", dlerror());
-          }
-          ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfo, true));
-
-          int32_t (*OH_ArkUI_AccessibilityElementInfoSetClickable)(ArkUI_AccessibilityElementInfo*, bool) = 
-              OhosAccessibilityDDL::DLLoadSetElemBoolFunc("OH_ArkUI_AccessibilityElementInfoSetClickable");
-          if (OH_ArkUI_AccessibilityElementInfoSetClickable == nullptr) {
-              LOGE("OH_ArkUI_AccessibilityElementInfoSetClickable is null, %{public}s", dlerror());
-          }
-          ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfo, true));
           
           // 设置组件类型
           std::string componentTypeName = GetNodeComponentType(flutterNode);
@@ -813,9 +810,8 @@ void OhosAccessibilityBridge::ConvertChildRelativeRectToScreenRect(
                           << ", " << newRight << ", " << newBottom << ")}";
           // 防止滑动场景下绿框坐标超出屏幕范围，进行正则化处理
           // newLeft = static_cast<int32_t>(newLeft) % static_cast<int32_t>(rootWidth);
-          newTop  = static_cast<int32_t>(newTop) % static_cast<int32_t>(rootHeight);
-          // newRight  = static_cast<int32_t>(newRight) % static_cast<int32_t>(rootWidth);
-          newBottom = static_cast<int32_t>(newBottom) % static_cast<int32_t>(rootHeight);  
+          newTop -= rootHeight;
+          newBottom -= rootHeight;  
           SetAbsoluteScreenRect(currNode.id, newLeft, newTop, newRight, newBottom);
       } else {
           SetAbsoluteScreenRect(currNode.id, newLeft, newTop, newRight, newBottom);
@@ -936,12 +932,20 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
             );
             
             // 配置root节点常用属性
+            int32_t (*OH_ArkUI_AccessibilityElementInfoSetEnabled)(ArkUI_AccessibilityElementInfo*, bool) = 
+                OhosAccessibilityDDL::DLLoadSetElemBoolFunc("OH_ArkUI_AccessibilityElementInfoSetEnabled");
+            if (OH_ArkUI_AccessibilityElementInfoSetEnabled == nullptr) {
+                LOGE("OH_ArkUI_AccessibilityElementInfoSetEnabled is null, %{public}s", dlerror());
+            }
+            ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfoFromList, true));
+
             int32_t (*OH_ArkUI_AccessibilityElementInfoSetClickable)(ArkUI_AccessibilityElementInfo*, bool) = 
                 OhosAccessibilityDDL::DLLoadSetElemBoolFunc("OH_ArkUI_AccessibilityElementInfoSetClickable");
             if (OH_ArkUI_AccessibilityElementInfoSetClickable == nullptr) {
                 LOGE("OH_ArkUI_AccessibilityElementInfoSetClickable is null, %{public}s", dlerror());
             }
             ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfoFromList, true));
+
             int32_t (*OH_ArkUI_AccessibilityElementInfoSetFocusable)(ArkUI_AccessibilityElementInfo*, bool) = 
                 OhosAccessibilityDDL::DLLoadSetElemBoolFunc("OH_ArkUI_AccessibilityElementInfoSetFocusable");
             if (OH_ArkUI_AccessibilityElementInfoSetFocusable == nullptr) {
@@ -955,13 +959,6 @@ void OhosAccessibilityBridge::FlutterNodeToElementInfoById(
                 LOGE("OH_ArkUI_AccessibilityElementInfoSetVisible is null, %{public}s", dlerror());
             }
             ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetVisible(elementInfoFromList, true));
-
-            int32_t (*OH_ArkUI_AccessibilityElementInfoSetEnabled)(ArkUI_AccessibilityElementInfo*, bool) = 
-                OhosAccessibilityDDL::DLLoadSetElemBoolFunc("OH_ArkUI_AccessibilityElementInfoSetEnabled");
-            if (OH_ArkUI_AccessibilityElementInfoSetEnabled == nullptr) {
-                LOGE("OH_ArkUI_AccessibilityElementInfoSetEnabled is null, %{public}s", dlerror());
-            }
-            ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfoFromList, true));
 
             int32_t (*OH_ArkUI_AccessibilityElementInfoSetComponentType)(ArkUI_AccessibilityElementInfo*, const char*) = 
                 OhosAccessibilityDDL::DLLoadSetElemStringFunc("OH_ArkUI_AccessibilityElementInfoSetComponentType");
@@ -1230,6 +1227,19 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
         /**
          * 根据当前flutter节点的SemanticsFlags特性，配置对应的elmentinfo属性
          */
+        // 判断当前节点组件是否enabled
+        if (IsNodeEnabled(flutterNode)) {
+          int32_t (*OH_ArkUI_AccessibilityElementInfoSetEnabled)(ArkUI_AccessibilityElementInfo*, bool) = 
+              OhosAccessibilityDDL::DLLoadSetElemBoolFunc("OH_ArkUI_AccessibilityElementInfoSetEnabled");
+          if (OH_ArkUI_AccessibilityElementInfoSetEnabled == nullptr) {
+              LOGE("OH_ArkUI_AccessibilityElementInfoSetEnabled is null, %{public}s", dlerror());
+          }
+          ARKUI_ACCESSIBILITY_CALL_CHECK(
+              OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfoFromList, true)
+          );
+          FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
+                         << " OH_ArkUI_AccessibilityElementInfoSetEnabled -> true";
+        }
         // 判断当前节点是否可点击
         if (IsNodeClickable(flutterNode)) {
           int32_t (*OH_ArkUI_AccessibilityElementInfoSetClickable)(ArkUI_AccessibilityElementInfo*, bool) = 
@@ -1363,19 +1373,6 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
           FML_DLOG(INFO)
               << "flutterNode.id=" << flutterNode.id
               << " OH_ArkUI_AccessibilityElementInfoSetLongClickable -> true";
-        }
-        // 判断当前节点组件是否enabled
-        if (IsNodeEnabled(flutterNode)) {
-          int32_t (*OH_ArkUI_AccessibilityElementInfoSetEnabled)(ArkUI_AccessibilityElementInfo*, bool) = 
-              OhosAccessibilityDDL::DLLoadSetElemBoolFunc("OH_ArkUI_AccessibilityElementInfoSetEnabled");
-          if (OH_ArkUI_AccessibilityElementInfoSetEnabled == nullptr) {
-              LOGE("OH_ArkUI_AccessibilityElementInfoSetEnabled is null, %{public}s", dlerror());
-          }
-          ARKUI_ACCESSIBILITY_CALL_CHECK(
-              OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfoFromList, true)
-          );
-          FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
-                         << " OH_ArkUI_AccessibilityElementInfoSetEnabled -> true";
         }
 
         // 获取当前节点的组件类型
