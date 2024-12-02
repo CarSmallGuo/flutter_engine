@@ -72,11 +72,7 @@ public:
     static SetReqFocusFunc DLLoadSetReqFocusFunc(const char* symbolName);
 
     static GetNativeA11yProvider DLLoadGetNativeA11yProvider(const char* symbolName);
-
-
 };
 
-
 }  // namespace flutter
-
 #endif

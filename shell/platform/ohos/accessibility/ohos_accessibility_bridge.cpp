@@ -25,18 +25,19 @@
 #include "third_party/skia/include/core/SkMatrix.h"
 #include "third_party/skia/include/core/SkScalar.h"
 
-#define OHOS_API_VERSION 13
 #define ARKUI_SUCCEED_CODE 0
 #define ARKUI_FAILED_CODE -1
 #define ARKUI_BAD_PARAM_CODE -2
 #define ARKUI_OOM_CODE  -3
-#define ARKUI_ACCESSIBILITY_CALL_CHECK(X)                                      \
-    do {                                                                       \
-        int32_t RET = X;                                                       \
-        if (RET != ARKUI_SUCCEED_CODE) {                                       \
-          LOGE("Failed arkui a11y function call, error code:%{public}d", RET); \
-        }                                                                      \
-    }  while (false)                                                           \
+#define FUNCTION_NAME_STR(n) #n
+#define ARKUI_ACCESSIBILITY_CALL_CHECK(X)                                \
+    do {                                                                 \
+        int32_t RET = X;                                                 \
+        if (RET != ARKUI_SUCCEED_CODE) {                                 \
+          LOGE("Failed function %{public}s call, error code:%{public}d", \
+              FUNCTION_NAME_STR(X), RET);                                \
+        }                                                                \
+    }  while (false)                                                     \
 
 namespace flutter {
 
@@ -1930,7 +1931,7 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
         ArkUI_AccessibilityEventInfo* eventInfo = OH_ArkUI_CreateAccessibilityEventInfo();
         if (eventInfo == nullptr) {
           FML_DLOG(ERROR) << "Flutter_SendAccessibilityAsyncEvent "
-                            "OH_ArkUI_CreateAccessibilityEventInfo eventInfo = null";
+                             "OH_ArkUI_CreateAccessibilityEventInfo eventInfo = null";
           return;
         }
 
