@@ -216,17 +216,16 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
                                   bool freeze,
                                   const SkSamplingOptions& sampling)
 {
+  context_ = eglGetCurrentContext();
+  display_ = eglGetCurrentDisplay();
+  draw_surface_ = eglGetCurrentSurface(EGL_DRAW);
+  read_surface_ = eglGetCurrentSurface(EGL_READ);
   if (state_ == AttachmentState::detached) {
     FML_LOG(ERROR) << "Paint, the current status is detached";
     return;
   }
   if (state_ == AttachmentState::uninitialized) {
-    Attach();
-    if (pixelMap_ != nullptr) {
-      // 外接纹理图片场景
-      ProducePixelMapToNativeImage();
-      Update();
-    }
+    delegate_.OnPlatformViewMarkTextureFrameAvailable(Id());
   }
 
   GrGLTextureInfo textureInfo;
@@ -288,6 +287,9 @@ void OHOSExternalTextureGL::OnGrContextDestroyed()
 void OHOSExternalTextureGL::MarkNewFrameAvailable()
 {
   FML_DLOG(INFO) << " OHOSExternalTextureGL::MarkNewFrameAvailable";
+  if (state_ == AttachmentState::uninitialized) {
+    Attach();
+  }
   if (state_ == AttachmentState::attached) {
     Update();
   }
@@ -306,9 +308,36 @@ void OHOSExternalTextureGL::OnTextureUnregistered()
   }
 }
 
+bool OHOSExternalTextureGL::IsContextCurrent()
+{
+  EGLContext current_egl_context = eglGetCurrentContext();
+  if (context_ != current_egl_context) {
+    return false;
+  }
+  EGLDisplay current_egl_display = eglGetCurrentDisplay();
+  if (display_ != current_egl_display) {
+    return false;
+  }
+  EGLSurface draw_surface = eglGetCurrentSurface(EGL_DRAW);
+  if (draw_surface != draw_surface_) {
+    return false;
+  }
+  EGLSurface read_surface = eglGetCurrentSurface(EGL_READ);
+  if (read_surface != read_surface_) {
+    return false;
+  }
+  return true;
+}
+
 void OHOSExternalTextureGL::Update()
 {
   FML_DLOG(INFO) << "OHOSExternalTextureGL::Update, texture_name_=" << texture_name_;
+  if (!IsContextCurrent() && context_) {
+      if (eglMakeCurrent(display_, draw_surface_, read_surface_, context_) != EGL_TRUE) {
+        FML_LOG(WARNING) << "eglMakeCurrent in update failed";
+      }
+  }
+
   if (nativeImage_ == nullptr) {
     FML_LOG(ERROR) << "Update, nativeImage_ is nullptr, texture_name_=" << texture_name_;
     return;
