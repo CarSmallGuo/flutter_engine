@@ -132,17 +132,17 @@ export enum DisplayFoldStatus {
 }
 
 export class DisplayFeature {
-  bounds: Rect ;
+  bounds: display.Rect ;
   type: DisplayFeatureType;
   state: DisplayFeatureState;
 
-  constructor(bounds: Rect, type: DisplayFeatureType, state: DisplayFeatureState) {
+  constructor(bounds: display.Rect, type: DisplayFeatureType, state: DisplayFeatureState) {
     this.bounds = bounds;
     this.type = type;
     this.state = state;
   }
 
-  getBounds(): Rect {
+  getBounds(): display.Rect {
     return this.bounds;
   }
   getType(): DisplayFeatureType {
@@ -152,7 +152,7 @@ export class DisplayFeature {
     return this.state;
   }
 
-  setBounds(bounds: Rect): void {
+  setBounds(bounds: display.Rect): void {
     this.bounds = bounds;
   }
   setType(type: DisplayFeatureType): void {
@@ -237,6 +237,8 @@ export class FlutterView {
     this.buildDisplayFeatures(display.getFoldStatus());
     this.viewportMetrics.physicalTouchSlop = 1.0 * this.displayInfo?.densityPixels;
 
+    this.buildDisplayFeatures(display.getFoldStatus());
+
     this.mainWindow = FlutterManager.getInstance()
       .getWindowStage(FlutterManager.getInstance().getUIAbility(context))
       .getMainWindowSync();
@@ -246,6 +248,18 @@ export class FlutterView {
     this.mainWindow?.on('windowSizeChange', this.windowSizeChangeCallback);
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
     this.mainWindow?.on('windowStatusChange', this.windowStatusChangeCallback);
+
+    //监听折叠屏折叠状态
+    display?.on('foldStatusChange', (data: display.FoldStatus)=>{
+      Log.i(TAG, `fold is : ${JSON.stringify(data)}`);
+      this.buildDisplayFeatures(data);
+    });
+
+    //监听系统无障碍服务状态改变
+    accessibility.on('accessibilityStateChange', (data: boolean) => {
+      Log.i(TAG, `subscribe accessibility state change, result: ${JSON.stringify(data)}`);
+      this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(data);
+    });
     this.mainWindow?.on('keyboardHeightChange', this.keyboardHeightChangeCallback);
     this.mainWindow?.on('windowRectChange', this.windowRectChangeCallback);
     //监听系统无障碍服务状态改变
@@ -268,48 +282,11 @@ export class FlutterView {
 
   }
 
-  private async buildDisplayFeatures(foldStatus: display.FoldStatus) {
-    let displayFeatures: ArrayList<DisplayFeature> = new ArrayList();
-    let bound: display.Rect[];
-    let state: DisplayFeatureState = DisplayFeatureState.UNKNOWN;
-    let type: DisplayFeatureType = DisplayFeatureType.FOLD;
-    const displayInfos = display.getDefaultDisplaySync();
-    if (display.isFoldable()) {
-      switch (foldStatus) {
-        case display.FoldStatus.FOLD_STATUS_EXPANDED:
-          type = DisplayFeatureType.FOLD;
-          state = DisplayFeatureState.POSTURE_FLAT;
-          break;
-        case display.FoldStatus.FOLD_STATUS_HALF_FOLDED:
-          type = DisplayFeatureType.FOLD;
-          state = DisplayFeatureState.POSTURE_HALF_OPENED;
-          break;
-        case display.FoldStatus.FOLD_STATUS_UNKNOWN:
-          type = DisplayFeatureType.UNKNOWN;
-          state = DisplayFeatureState.UNKNOWN;
-          break;
-        default:
-          state = DisplayFeatureState.UNKNOWN;
-          type = DisplayFeatureType.FOLD;
-          break;
-      }
-      const displays = await display.getAllDisplays();
-      for (let i = 0; i < displays.length; i++) {
-        let cutoutInfo = await displays[i].getCutoutInfo();
-        bound = cutoutInfo.boundingRects;
-        displayFeatures.add(new DisplayFeature(bound, type, state));
-      }
-      Log.d(TAG, `FOLD device displayFeatures is : ${JSON.stringify(displayFeatures)}`)
-    } else {
-      type = DisplayFeatureType.CUTOUT;
-      state = DisplayFeatureState.UNKNOWN;
-      let infos = await displayInfos?.getCutoutInfo();
-      bound = infos.boundingRects;
-      displayFeatures.add(new DisplayFeature(bound, type, state));
-      Log.d(TAG, `UNFold device displayFeatures is : ${JSON.stringify(displayFeatures)}`)
+  private  windowSizeChangeCallback = (data: window.Size) => {
+    Log.i(TAG, "windowSizeChangeCallback w:" + data.width + ", h:" + data.height);
+    if (this.isAttachedToFlutterEngine()) {
+      this.onAreaChange(null);
     }
-    this.viewportMetrics.displayFeatures = displayFeatures;
-    this.updateViewportMetrics();
   }
 
   private avoidAreaChangeCallback = (data: window.AvoidAreaOptions) => {
