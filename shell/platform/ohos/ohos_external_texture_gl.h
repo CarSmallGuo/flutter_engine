@@ -100,7 +100,7 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   void ProducePixelMapToBackGroundImage();
 
-  enum class AttachmentState { uninitialized, attached, detached };
+  enum class AttachmentState { uninitialized, attached, detached, };
 
   AttachmentState state_;
 
@@ -134,6 +134,13 @@ class OHOSExternalTextureGL : public flutter::Texture {
   EGLDisplay eglDisplay_;
 
   FML_DISALLOW_COPY_AND_ASSIGN(OHOSExternalTextureGL);
+
+  void* display_;
+  void* draw_surface_;
+  void* read_surface_;
+  void* context_;
+
+  bool IsContextCurrent();
 };
 
 class OhosImageFrameData {
