@@ -117,6 +117,15 @@ PlatformViewOHOS::PlatformViewOHOS(
 
 PlatformViewOHOS::~PlatformViewOHOS() {
   FML_LOG(INFO) << "PlatformViewOHOS::~PlatformViewOHOS";
+  for (std::map<int64_t, std::shared_ptr<OHOSExternalTextureGL>>::iterator it = external_texture_gl_.begin();
+      it != external_texture_gl_.end(); ++it) {
+    if (it->second != nullptr) {
+      OH_NativeImage_Destroy(&(it->second->nativeImage_));
+      it->second->nativeImage_ = nullptr;
+    }
+  }
+  external_texture_gl_.clear();
+  FML_LOG(INFO) << "PlatformViewOHOS::~PlatformViewOHOS finish";
 }
 
 void PlatformViewOHOS::NotifyCreate(
@@ -461,6 +470,7 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
     }
     external_texture_gl_[texture_id] = ohos_external_gl;
     RegisterTexture(ohos_external_gl);
+    MarkTextureFrameAvailable(texture_id);
   }
   return surface_id;
 }
