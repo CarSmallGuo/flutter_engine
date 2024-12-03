@@ -308,7 +308,8 @@ void OHOSExternalTextureGL::OnTextureUnregistered()
   }
 }
 
-bool OHOSExternalTextureGL::IsContextCurrent() {
+bool OHOSExternalTextureGL::IsContextCurrent()
+{
   EGLContext current_egl_context = eglGetCurrentContext();
   if (context_ != current_egl_context) {
     return false;

@@ -54,7 +54,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   bool first_update_ = false;
 
-
   void Paint(PaintContext& context,
              const SkRect& bounds,
              bool freeze,
@@ -101,7 +100,7 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   void ProducePixelMapToBackGroundImage();
 
-  enum class AttachmentState { uninitialized, attached, detached, todetach };
+  enum class AttachmentState { uninitialized, attached, detached, };
 
   AttachmentState state_;
 
