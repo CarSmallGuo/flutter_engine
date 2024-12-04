@@ -160,6 +160,10 @@ void OHOSExternalTextureGL::Attach()
   }
   OHOSSurface* ohos_surface_ptr = ohos_surface_.get();
   OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
+  if (ohosSurfaceGLSkia_->GetOnscreenSurface() == nullptr) {
+    FML_LOG(WARNING) << "onscreen_surface_ is null, Attach failed";
+    return;
+  }
   auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
   if (result->GetResult()) {
     FML_DLOG(INFO) << "ResourceContextMakeCurrent successed";
