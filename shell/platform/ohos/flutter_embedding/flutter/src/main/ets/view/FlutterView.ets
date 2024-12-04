@@ -603,7 +603,6 @@ export class FlutterView {
   }
 
   private updateViewportMetrics(): boolean {
-    Log.i(TAG, 'isAttachedToFlutterEngine is:' + this.isAttachedToFlutterEngine);
     if (this.isAttachedToFlutterEngine()) {
 
       const displayFeatures = this.viewportMetrics.displayFeatures;
