@@ -558,7 +558,6 @@ export class FlutterView {
   }
 
   private updateViewportMetrics(): boolean {
-    Log.i(TAG, 'isAttachedToFlutterEngine is:' + this.isAttachedToFlutterEngine);
     if (this.isAttachedToFlutterEngine()) {
       Log.i(TAG, 'updateViewportMetrics devicePixelRatio:' + this.viewportMetrics.devicePixelRatio);
       const displayFeature = this.viewportMetrics.displayFeatures;
@@ -592,8 +591,8 @@ export class FlutterView {
         this.viewportMetrics.systemGestureInsetLeft,
         this.viewportMetrics.physicalTouchSlop,
         displayFeaturesBounds,
-        displayFeaturesState,
-        displayFeaturesType)
+        displayFeaturesType,
+        displayFeaturesState)
       return true;
     }
     return false;
