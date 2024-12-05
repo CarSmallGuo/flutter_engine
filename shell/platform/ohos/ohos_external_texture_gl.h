@@ -40,11 +40,13 @@ class OHOSExternalTextureGL : public flutter::Texture {
  public:
   explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface);
   explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface,
-    PlatformView::Delegate& delegate);
+    PlatformView::Delegate& delegate, const TaskRunners& task_runners);
 
   ~OHOSExternalTextureGL() override;
 
   PlatformView::Delegate& delegate_;
+
+  const TaskRunners& task_runners_;
 
   OH_NativeImage *nativeImage_;
 
