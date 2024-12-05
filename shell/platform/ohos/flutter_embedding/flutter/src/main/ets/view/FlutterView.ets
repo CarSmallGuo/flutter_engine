@@ -47,7 +47,6 @@ export class ViewportMetrics {
   systemGestureInsetBottom: number = 0;
   systemGestureInsetLeft: number = 0;
   physicalTouchSlop: number = -1;
-  displayFeatures: ArrayList<DisplayFeature> = new ArrayList();
 
   clone(): ViewportMetrics {
     const copy = new ViewportMetrics();
@@ -67,7 +66,6 @@ export class ViewportMetrics {
     copy.systemGestureInsetBottom = this.systemGestureInsetBottom;
     copy.systemGestureInsetLeft = this.systemGestureInsetLeft;
     copy.physicalTouchSlop = this.physicalTouchSlop;
-    copy.displayFeatures = this.displayFeatures;
     return copy;
   }
 
@@ -106,29 +104,10 @@ export class PlatformViewParas {
     this.left = left;
   }
 
-  setState(state: DisplayFeatureState): void {
-    this.state = state;
+  setOffset(top: number, left: number): void {
+    this.top = top;
+    this.left = left;
   }
-}
-
-export enum DisplayFeatureType {
-  UNKNOWN = 0,
-  FOLD = 1,
-  HINGE = 2,
-  CUTOUT = 3
-}
-
-export enum DisplayFeatureState {
-  UNKNOWN = 0,
-  POSTURE_FLAT = 1,
-  POSTURE_HALF_OPENED = 2,
-}
-
-export enum DisplayFoldStatus {
-  FOLD_STATUS_UNKNOWN = 0,
-  FOLD_STATUS_EXPANDED = 1,
-  FOLD_STATUS_FOLDED = 2,
-  FOLD_STATUS_HALF_FOLDED = 3
 }
 
 export class DisplayFeature {
@@ -237,8 +216,6 @@ export class FlutterView {
     this.buildDisplayFeatures(display.getFoldStatus());
     this.viewportMetrics.physicalTouchSlop = 1.0 * this.displayInfo?.densityPixels;
 
-    this.buildDisplayFeatures(display.getFoldStatus());
-
     this.mainWindow = FlutterManager.getInstance()
       .getWindowStage(FlutterManager.getInstance().getUIAbility(context))
       .getMainWindowSync();
@@ -248,12 +225,6 @@ export class FlutterView {
     this.mainWindow?.on('windowSizeChange', this.windowSizeChangeCallback);
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
     this.mainWindow?.on('windowStatusChange', this.windowStatusChangeCallback);
-
-    //监听折叠屏折叠状态
-    display?.on('foldStatusChange', (data: display.FoldStatus)=>{
-      Log.i(TAG, `fold is : ${JSON.stringify(data)}`);
-      this.buildDisplayFeatures(data);
-    });
 
     //监听系统无障碍服务状态改变
     accessibility.on('accessibilityStateChange', (data: boolean) => {
@@ -279,7 +250,6 @@ export class FlutterView {
     } catch (e) {
       Log.e(TAG, "displayInfo error" + JSON.stringify(e));
     }
-
   }
 
   private  windowSizeChangeCallback = (data: window.Size) => {
@@ -604,26 +574,7 @@ export class FlutterView {
 
   private updateViewportMetrics(): boolean {
     if (this.isAttachedToFlutterEngine()) {
-
-      const displayFeatures = this.viewportMetrics.displayFeatures;
-      let boundCount = 0;
-      for (let i = 0; i < displayFeatures.length; i++) {
-        boundCount = boundCount + displayFeatures[i].getBounds().length;
-      }
-      let displayFeatureBound: number[] = new Array(boundCount * 4);
-      let displayFeatureType: number[] = new Array(displayFeatures.length);
-      let displayFeatureStatus: number[] = new Array(displayFeatures.length);
-      for (let i = 0; i < displayFeatures.length; i++) {
-        let singleFeatureBound = displayFeatures[i].getBounds();
-        for (let j = 0; j < singleFeatureBound.length; j++) {
-          displayFeatureBound[4 * i + 4 * j] = singleFeatureBound[j].left;
-          displayFeatureBound[4 * i + 4 * j + 1] = singleFeatureBound[j].top
-          displayFeatureBound[4 * i + 4 * j + 2] = singleFeatureBound[j].width;
-          displayFeatureBound[4 * i + 4 * j + 3] = singleFeatureBound[j].height;
-        }
-        displayFeatureType[i] = displayFeatures[i].getType();
-        displayFeatureStatus[i] = displayFeatures[i].getState();
-      }
+      Log.i(TAG, 'updateViewportMetrics devicePixelRatio:' + this.viewportMetrics.devicePixelRatio);
 
       this?.flutterEngine?.getFlutterNapi()?.setViewportMetrics(this.viewportMetrics.devicePixelRatio,
         this.viewportMetrics.physicalWidth,
