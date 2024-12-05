@@ -11,6 +11,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Based on apk_asset_provider_unittests.cc originally written by
+ * Copyright (C) 2022  ColdPaleLight <zhangzhijian.123@bytedance.com>
+ *
  */
 #include <csignal>
 #include <cstdio>

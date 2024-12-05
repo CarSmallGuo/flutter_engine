@@ -11,6 +11,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Based on vsync_waiter_android.h originally written by
+ * Copyright (C) 2016  Adam Barth <github@adambarth.com>
+ *
  */
 
 #ifndef VSYNC_WAITER_OHOS_H

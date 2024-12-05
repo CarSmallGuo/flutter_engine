@@ -11,6 +11,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Based on android_environment_gl.h originally written by
+ * Copyright (C) 2016  Chinmay Garde <chinmaygarde@gmail.com>
+ *
  */
 
 #ifndef FLUTTER_SHELL_PLATFORM_OHOS_ENVIRONMENT_GL_H_

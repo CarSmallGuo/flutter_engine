@@ -11,6 +11,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Based on platform_view_android_delegate.h originally written by
+ * Copyright (C) 2020  chunhtai <47866232+chunhtai@users.noreply.github.com>
+ *
  */
 
 #ifndef SHELL_PLATFORM_OHOS_PLATFORM_VIEW_OHOS_DELEGATE

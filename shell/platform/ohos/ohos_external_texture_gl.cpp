@@ -11,6 +11,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Based on android_external_texture_gl.cc originally written by
+ * Copyright (C) 2017  Chinmay Garde <chinmaygarde@gmail.com>
+ *
  */
 
 #include "ohos_external_texture_gl.h"

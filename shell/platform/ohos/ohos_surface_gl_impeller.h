@@ -11,6 +11,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Based on android_surface_gl_impeller.h originally written by
+ * Copyright (C) 2016  Chinmay Garde <chinmaygarde@gmail.com>
+ *
  */
 
 #ifndef OHOS_SURFACE_GL_IMPELLER_H

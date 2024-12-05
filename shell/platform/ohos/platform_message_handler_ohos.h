@@ -11,6 +11,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Based on platform_message_handler_android.h originally written by
+ * Copyright (C) 2021  gaaclarke <30870216+gaaclarke@users.noreply.github.com>
+ *
  */
 
 #ifndef PLATFORM_MESSAGE_HANDLER_OHOS_H

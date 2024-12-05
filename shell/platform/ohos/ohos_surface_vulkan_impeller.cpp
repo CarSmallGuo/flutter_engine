@@ -11,6 +11,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Based on android_surface_vulkan_impeller.cc originally written by
+ * Copyright (C) 2022  Kaushik Iska <iska.kaushik@gmail.com>
+ *
  */
 
 #include "ohos_surface_vulkan_impeller.h"
