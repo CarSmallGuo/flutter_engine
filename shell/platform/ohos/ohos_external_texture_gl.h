@@ -100,7 +100,7 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   void ProducePixelMapToBackGroundImage();
 
-  enum class AttachmentState { uninitialized, attached, detached, };
+  enum class AttachmentState { uninitialized, attached, detached };
 
   AttachmentState state_;
 
