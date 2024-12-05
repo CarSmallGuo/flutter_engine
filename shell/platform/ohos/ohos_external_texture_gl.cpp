@@ -291,11 +291,16 @@ void OHOSExternalTextureGL::OnGrContextDestroyed()
 void OHOSExternalTextureGL::MarkNewFrameAvailable()
 {
   FML_DLOG(INFO) << " OHOSExternalTextureGL::MarkNewFrameAvailable";
-  if (state_ == AttachmentState::uninitialized) {
-    Attach();
-  }
   if (state_ == AttachmentState::attached) {
     Update();
+  }
+  if (state_ == AttachmentState::uninitialized) {
+    Attach();
+    if (pixelMap_ != nullptr) {
+      // 外接纹理图片场景
+      ProducePixelMapToNativeImage();
+      Update();
+    }
   }
 }
 
