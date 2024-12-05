@@ -85,9 +85,11 @@ static bool IsPixelMapYUVFormat(PIXEL_FORMAT format)
 OHOSExternalTextureGL::OHOSExternalTextureGL(
     int64_t id,
     const std::shared_ptr<OHOSSurface>& ohos_surface,
-    PlatformView::Delegate& delegate)
+    PlatformView::Delegate& delegate,
+    const TaskRunners& task_runners)
     : Texture(id),
       delegate_(delegate),
+      task_runners_(task_runners),
       ohos_surface_(std::move(ohos_surface)),
       transform(SkMatrix::I())
 {
@@ -291,10 +293,15 @@ void OHOSExternalTextureGL::OnGrContextDestroyed()
 void OHOSExternalTextureGL::MarkNewFrameAvailable()
 {
   FML_DLOG(INFO) << " OHOSExternalTextureGL::MarkNewFrameAvailable";
+  if (state_ == AttachmentState::attached) {
+    Update();
+  }
   if (state_ == AttachmentState::uninitialized) {
     Attach();
-  }
-  if (state_ == AttachmentState::attached) {
+    if (pixelMap_ != nullptr) {
+      // 外接纹理图片场景
+      ProducePixelMapToNativeImage();
+    }
     Update();
   }
 }
@@ -779,8 +786,11 @@ OhosImageFrameData::~OhosImageFrameData()
 void OhosImageFrameData::OnPlatformViewMarkTextureFrameAvailable()
 {
   if (ohosExternalTextureGL != nullptr) {
-    PlatformView::Delegate& dalegate = ohosExternalTextureGL->delegate_;
-    dalegate.OnPlatformViewMarkTextureFrameAvailable(textureId_);
+    fml::TaskRunner::RunNowOrPostTask(
+        ohosExternalTextureGL->task_runners_.GetPlatformTaskRunner(), [textureId = textureId_, this]() {
+          PlatformView::Delegate& dalegate = this->ohosExternalTextureGL->delegate_;
+          dalegate.OnPlatformViewMarkTextureFrameAvailable(textureId);
+        });
   }
 }
 
