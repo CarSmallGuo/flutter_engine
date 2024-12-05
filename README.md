@@ -96,6 +96,8 @@
 
 5. 由于Windows和MacOS、Linux对换行符处理方式不同，在应用dart补丁时会造成dart vm snapshot hash结果不同，可通过以下方法获取当前snapshot hash值
 
+6. MediaQuery组件暂不支持displayFeatureType和displayFeatureState信息
+
    ```shell
    python engine/src/third_party/dart/tools/make_version.py --format='{{SNAPSHOT_HASH}}'
    ```
