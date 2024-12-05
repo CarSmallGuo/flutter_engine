@@ -301,8 +301,8 @@ void OHOSExternalTextureGL::MarkNewFrameAvailable()
     if (pixelMap_ != nullptr) {
       // 外接纹理图片场景
       ProducePixelMapToNativeImage();
-      Update();
     }
+    Update();
   }
 }
 
