@@ -266,7 +266,7 @@ void OhosTouchProcessor::HandleMouseEvent(
   pointerData.pressure = 0.0;
   pointerData.pressure_max = 1.0;
   pointerData.pressure_min = 0.0;
-  pointerData.kind = PointerData::DeviceKind::kTouch;
+  pointerData.kind = PointerData::DeviceKind::kMouse; // kMouse支持鼠标框选文字
   pointerData.buttons = getPointerButtonFromMouse(mouseEvent.button);
   // hover support
   if (mouseEvent.button == OH_NATIVEXCOMPONENT_NONE_BUTTON &&
