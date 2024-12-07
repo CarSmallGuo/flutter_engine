@@ -532,7 +532,7 @@ void XComponentBase::OnDispatchMouseWheelEvent(mouseWheelEvent event)
         }
         if (event.eventType == "actionUpdate") {
             OH_NativeXComponent_MouseEvent mouseEvent;
-            double scrollY = event.offsetY - g_scrollDistance;
+            double scrollY = -(event.offsetY - g_scrollDistance);
             g_scrollDistance = event.offsetY;
             // fix resize ratio
             mouseEvent.x = event.globalX / g_resizeRate;

@@ -21,11 +21,17 @@ import { KeyCode } from "@kit.InputKit";
 
 const TAG = "KeyEventHandler";
 
+const CONTROL_KEYS = [
+  KeyCode.KEYCODE_CTRL_LEFT, KeyCode.KEYCODE_CTRL_RIGHT,
+  KeyCode.KEYCODE_ALT_LEFT, KeyCode.KEYCODE_ALT_RIGHT
+];
+
 export class KeyEventHandler {
   private textInputPlugin?: TextInputPlugin;
   private charMap : HashMap<number, string> = new HashMap();
   private shiftMap : HashMap<number, string> = new HashMap();
   private isShiftMode: boolean = false;
+  private isControlMode: boolean = false;
 
   constructor(textInputPlugin?: TextInputPlugin) {
     this.textInputPlugin = textInputPlugin;
@@ -147,9 +153,20 @@ export class KeyEventHandler {
   handleKeyEvent(event: KeyEvent) {
     Log.i(TAG, JSON.stringify({
       "name": "handleKeyEvent",
-      "event": event
+      "event": event,
     }));
+    if (event.type == KeyType.Down) {
+      if (!this.isControlMode) {
+        this.isControlMode = CONTROL_KEYS.findIndex((it) => it == event.keyCode) >= 0;
+      }
+    }
+    Log.i(TAG, "isControlMode=" + this.isControlMode)
     if (event.type == KeyType.Up) {
+      if (!this.isControlMode) {
+        this.isControlMode = CONTROL_KEYS.findIndex((it) => it == event.keyCode) >= 0;
+      } else {
+        return;
+      }
       // 处理字符按键相关逻辑
       if (this.charMap.hasKey(event.keyCode)) {
         this.textInputPlugin?.getEditingState().handleInsertTextEvent(this.getCharByEvent(event))
@@ -160,5 +177,6 @@ export class KeyEventHandler {
       }
     }
     this.isShiftMode = event.keyCode == KeyCode.KEYCODE_SHIFT_LEFT
+        || event.keyCode == KeyCode.KEYCODE_SHIFT_RIGHT
   }
 }
