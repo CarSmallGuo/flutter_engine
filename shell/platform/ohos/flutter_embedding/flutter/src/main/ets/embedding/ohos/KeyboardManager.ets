@@ -12,21 +12,31 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+import TextInputPlugin from '../../plugin/editing/TextInputPlugin';
 import FlutterEngine from '../engine/FlutterEngine';
 import KeyEventChannel, { FlutterKeyEvent } from '../engine/systemchannels/KeyEventChannel';
+import { KeyEventHandler } from './KeyEventHandler';
 
 export default class KeyboardManager {
   private keyEventChannel: KeyEventChannel | null = null
+  private keyEventHandler: KeyEventHandler;
 
-  constructor(engine: FlutterEngine) {
+  constructor(engine: FlutterEngine, textInputPlugin: TextInputPlugin) {
     this.keyEventChannel = new KeyEventChannel(engine.dartExecutor)
+    this.keyEventHandler = new KeyEventHandler(textInputPlugin);
   }
 
-  handleKeyEvent(event: KeyEvent) {
+  onKeyPreIme(event: KeyEvent) : boolean {
     this.keyEventChannel?.sendFlutterKeyEvent(new FlutterKeyEvent(event), event.type == KeyType.Up, {
       onFrameworkResponse: (isEventHandled: boolean): void => {
 
       }
     })
+    return false;
+  }
+
+  onKeyEvent(event: KeyEvent) : boolean {
+    this.keyEventHandler.handleKeyEvent(event);
+    return false;
   }
 }

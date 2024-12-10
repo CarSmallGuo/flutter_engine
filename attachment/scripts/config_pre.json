@@ -70,5 +70,11 @@
         "target": "third_party/boringssl",
         "type": "patch",
         "file_path": "flutter/attachment/repos/boringssl.patch"
+    },
+    {
+        "name": "swiftshader",
+        "target": "third_party/swiftshader",
+        "type": "patch",
+        "file_path": "flutter/attachment/repos/swiftshader.patch"
     }
 ]

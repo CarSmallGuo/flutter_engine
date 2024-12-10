@@ -364,6 +364,9 @@ if (enable_unittests) {
       "time/time_delta_unittest.cc",
       "time/time_point_unittest.cc",
       "time/time_unittest.cc",
+      "platform/ohos/timerfd_unittests.cpp",
+      "platform/ohos/paths_ohos_unittests.cpp",
+      "platform/ohos/napi_util_unittests.cpp",
     ]
 
     if (is_mac) {
