@@ -117,15 +117,13 @@ PlatformViewOHOS::PlatformViewOHOS(
 
 PlatformViewOHOS::~PlatformViewOHOS() {
   FML_LOG(INFO) << "PlatformViewOHOS::~PlatformViewOHOS";
-  for (std::map<int64_t, std::shared_ptr<OHOSExternalTextureGL>>::iterator it = external_texture_gl_.begin();
-      it != external_texture_gl_.end(); ++it) {
-    if (it->second != nullptr) {
-      OH_NativeImage_Destroy(&(it->second->nativeImage_));
-      it->second->nativeImage_ = nullptr;
+  for (auto const &it : external_texture_gl_) {
+    if (it.second != nullptr) {
+      OH_NativeImage_Destroy(&(it.second->nativeImage_));
+      it.second->nativeImage_ = nullptr;
     }
   }
   external_texture_gl_.clear();
-  FML_LOG(INFO) << "PlatformViewOHOS::~PlatformViewOHOS finish";
 }
 
 void PlatformViewOHOS::NotifyCreate(
