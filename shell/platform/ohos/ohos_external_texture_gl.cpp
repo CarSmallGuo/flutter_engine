@@ -343,7 +343,7 @@ bool OHOSExternalTextureGL::IsContextCurrent()
 void OHOSExternalTextureGL::Update()
 {
   FML_DLOG(INFO) << "OHOSExternalTextureGL::Update, texture_name_=" << texture_name_;
-  if (!IsContextCurrent() && context_) {
+  if (!IsContextCurrent() && context_ && display_ && draw_surface_ && read_surface_) {
       if (eglMakeCurrent(display_, draw_surface_, read_surface_, context_) != EGL_TRUE) {
         FML_LOG(WARNING) << "eglMakeCurrent in update failed";
       }
