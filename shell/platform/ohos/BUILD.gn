@@ -84,7 +84,13 @@ source_set("flutter_ohos_sources") {
              "ohos_surface_gl_skia.h",
              "types.h",
              "ohos_logging.h",
+             "platform_view_ohos_delegate.h",
+             "./accessibility/ohos_accessibility_bridge.h",
              "./accessibility/ohos_accessibility_features.h",
+             "./accessibility/ohos_accessibility_manager.h",
+             "./accessibility/native_accessibility_channel.h",
+             "./accessibility/ohos_accessibility_ddl.h",
+             "./utils/ddl_utils.h"
            ]
 
   #configs += [ "//flutter/shell/platform/ohos/config:gtk" ]
@@ -115,7 +121,12 @@ source_set("flutter_ohos_sources") {
       "ohos_image_generator.cpp",
       "ohos_external_texture_gl.cpp",
       "./surface/ohos_snapshot_surface_producer.cpp",
+      "platform_view_ohos_delegate.cpp",
+      "./accessibility/ohos_accessibility_bridge.cpp",
       "./accessibility/ohos_accessibility_features.cpp",
+      "./accessibility/ohos_accessibility_manager.cpp",
+      "./accessibility/native_accessibility_channel.cpp",
+      "./accessibility/ohos_accessibility_ddl.cpp"
   ]
 
   # Set flag to stop headers being directly included (library users should not do this)
@@ -153,6 +164,28 @@ source_set("flutter_ohos_sources") {
 
 }
 
+# accessibility-relevant source set
+source_set("flutter_ohos_accessibility_sources") {
+  public = _public_headers + [
+             "./compatibility/ohos_accessibility_interface.h"
+           ]
+
+  sources = []
+
+  # Set flag to stop headers being directly included (library users should not do this)
+  defines = [
+    "FLUTTER_LINUX_COMPILATION",
+    "FLUTTER_ENGINE_NO_PROTOTYPES",
+    "OHOS_PLATFORM" ,
+    "__MUSL__",
+  ]
+
+  deps = []
+
+  public_deps = []
+  ldflags = ["-lace_ndk.z"]
+}
+
 source_set("flutter_ohos_src") {
   configs += [
     #"//flutter/shell/platform/ohos/config:gtk",
@@ -176,10 +209,22 @@ executable("flutter_ohos_unittests") {
 
   sources = [
     #"testing/mock_texture_registrar.cc",
+    "testing/ohos_assert_provider_unittests.cpp",
+    "testing/ohos_context_gl_skia_uinttests.cpp",
+    "testing/ohos_display_uinttests.cpp",
+    "testing/ohos_egl_surface_unittests.cpp",
+    "testing/ohos_environment_gl_unittests.cpp",
+    "testing/ohos_external_texture_gl_unittests.cpp",
+    "testing/ohos_surface_gl_skia_unittests.cpp",
+    "testing/ohos_surface_software_unittests.cpp",
+    "testing/ohos_touch_processor_unittests.cpp",
+    "testing/ohos_xcomponent_adapter_unittests.cpp",
+    "testing/vsync_waiter_ohos_unittests.cpp",
   ]
 
   public_configs = [ "//flutter:config" ]
 
+  cflags = ["-Wno-deprecated-declarations"]
 
   defines = [
     "FLUTTER_ENGINE_NO_PROTOTYPES",
@@ -197,6 +242,15 @@ executable("flutter_ohos_unittests") {
     "//flutter/shell/platform/embedder:embedder_test_utils",
     "//flutter/testing",
   ]
+
+  ldflags = ["-lace_ndk.z"]
+  ldflags += ["-lnative_window"]
+  ldflags += ["-lnative_vsync"]
+  ldflags += ["-limage_ndk.z"]
+  ldflags += ["-lrawfile.z"]
+  ldflags += ["-lnative_image"]
+  ldflags += ["-lpixelmap_ndk.z"]
+  ldflags += ["-lqos"]
 }
 
 shared_library("flutter_shell_native") {
@@ -205,26 +259,18 @@ shared_library("flutter_shell_native") {
 
   ldflags = ["--rtlib=compiler-rt",
   "-fuse-ld=lld",
-#  "-static-libstdc++",
-#  "-Wl", "--build-id=sha1",
-#  "-Wl,","--warn-shared-textrel",
-#  "-Wl,","--fatal-warnings -lunwind",
-#  "-Wl,","--no-undefined -Qunused-arguments",
-#  "-Wl,","-z,noexecstack"
   ]
 
-  #ldflags = [ "-Wl,-rpath,\$ORIGIN" ]
-  #ldflags += ["-L{$OHOS_NDK_LIB}","-lnative_window"]
   ldflags += ["-lnative_window"]
   ldflags += ["-lnative_vsync"]
   ldflags += ["-lace_napi.z"]
   ldflags += ["-lace_ndk.z"]
   ldflags += ["-lhilog_ndk.z"]
+  ldflags += ["-ldeviceinfo_ndk.z"]
   ldflags += ["-luv"]
   ldflags += ["-lrawfile.z"]
   ldflags += ["-lEGL"]
   ldflags += ["-lGLESv3"]
-  # ldflags += ["-lGLESv2"]
   ldflags += ["-limage_ndk.z"]
   ldflags += ["-lnative_image"]
 
@@ -236,45 +282,19 @@ shared_library("flutter_shell_native") {
   public_configs = [ "//flutter:config" ]
 }
 
-#copy("publish_headers_ohos") {
-#  sources = _public_headers
-#  outputs = [ "$root_out_dir/flutter_ohos/{{source_file_part}}" ]
-#}
+# accessibility-relevant .so
+shared_library("flutter_shell_native_accessibility") {
+  output_name = "flutter_accessibility"
+  deps = [ ":flutter_ohos_accessibility_sources" ]
 
-#zip_bundle("flutter_gtk") {
-#  prefix = "$full_target_platform_name/"
-#  if (flutter_runtime_mode != "debug" ||
-#      (flutter_runtime_mode == "debug" && target_cpu != "x64")) {
-#    prefix = "$full_target_platform_name-$flutter_runtime_mode/"
-#  }
-#  output = "${prefix}${full_target_platform_name}-flutter-gtk.zip"
-#  deps = [
-#    ":flutter_ohos_gtk",
-#    ":publish_headers_ohos",
-#    "//third_party/dart/runtime/bin:gen_snapshot",
-#  ]
-#  sources = get_target_outputs(":publish_headers_ohos")
-#  tmp_files = []
-#  foreach(source, sources) {
-#    tmp_files += [
-#      {
-#        source = source
-#        destination = rebase_path(source, "$root_build_dir")
-#      },
-#    ]
-#  }
-#  tmp_files += [
-#    {
-#      source = "$root_build_dir/libflutter_${host_os}_gtk.so"
-#      destination = "libflutter_${host_os}_gtk.so"
-#    },
-#    {
-#      source = "$root_build_dir/gen_snapshot"
-#      destination = "gen_snapshot"
-#    },
-#  ]
-#  files = tmp_files
-#}
+  ldflags = ["--rtlib=compiler-rt",
+  "-fuse-ld=lld",
+  ]
+
+  ldflags += ["-lace_ndk.z"]
+
+  public_configs = [ "//flutter:config" ]
+}
 
 declare_args() {
   embedding_artifact_id = "flutter_embedding_$flutter_runtime_mode"
@@ -296,8 +316,10 @@ action("ohos_har") {
 
   if (stripped_symbols) {
     engine_library = "libflutter.so"
+    accessibility_library = "libflutter_accessibility.so"
   } else {
     engine_library = "so.unstripped/libflutter.so"
+    accessibility_library = "libflutter_accessibility.so"
   }
 
   inputs = [
@@ -321,6 +343,8 @@ action("ohos_har") {
     rebase_path("flutter.har", root_build_dir, root_build_dir),
     "--native_lib",
     rebase_path("$engine_library", root_build_dir, root_build_dir),
+    "--native_lib",
+    rebase_path("$accessibility_library", root_build_dir, root_build_dir),
     "--ohos_abi",
     ohos_app_abi,
     "--ohos_api_int",
@@ -328,7 +352,8 @@ action("ohos_har") {
   ]
 
   deps = [
-    ":flutter_shell_native"
+    ":flutter_shell_native",
+    ":flutter_shell_native_accessibility"
   ]
 
   if (flutter_runtime_mode == "profile") {

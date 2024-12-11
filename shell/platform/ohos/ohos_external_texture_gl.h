@@ -31,6 +31,7 @@
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "flutter/shell/platform/ohos/ohos_surface_gl_skia.h"
 #include "flutter/shell/platform/ohos/surface/ohos_surface.h"
+#include "flutter/shell/common/platform_view.h"
 
 // maybe now unused
 namespace flutter {
@@ -38,12 +39,20 @@ namespace flutter {
 class OHOSExternalTextureGL : public flutter::Texture {
  public:
   explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface);
+  explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface,
+    PlatformView::Delegate& delegate, const TaskRunners& task_runners);
 
   ~OHOSExternalTextureGL() override;
+
+  PlatformView::Delegate& delegate_;
+
+  const TaskRunners& task_runners_;
 
   OH_NativeImage *nativeImage_;
 
   OH_NativeImage *backGroundNativeImage_;
+
+  void *frameData_;
 
   bool first_update_ = false;
 
@@ -63,6 +72,8 @@ class OHOSExternalTextureGL : public flutter::Texture {
   void DispatchImage(ImageNative* image);
 
   void setBackground(int32_t width, int32_t height);
+
+  GrGLTextureInfo GetGrGLTextureInfo();
 
   void setTextureBufferSize(int32_t width, int32_t height);
 
@@ -95,10 +106,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   AttachmentState state_;
 
-  bool new_frame_ready_ = false;
-
-  bool texture_update_ = false;
-
   GLuint texture_name_ = 0;
 
   GLuint backGroundTextureName_ = 0;
@@ -110,10 +117,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
   OHNativeWindow *nativeWindow_;
 
   OHNativeWindow *backGroundNativeWindow_;
-
-  OHNativeWindowBuffer *buffer_;
-
-  OHNativeWindowBuffer *backGroundBuffer_;
 
   NativePixelMap* backGroundPixelMap_;
 
@@ -133,6 +136,31 @@ class OHOSExternalTextureGL : public flutter::Texture {
   EGLDisplay eglDisplay_;
 
   FML_DISALLOW_COPY_AND_ASSIGN(OHOSExternalTextureGL);
+
+  void* display_;
+  void* draw_surface_;
+  void* read_surface_;
+  void* context_;
+
+  bool IsContextCurrent();
 };
+
+class OhosImageFrameData {
+ public:
+  OhosImageFrameData(OHOSExternalTextureGL *ohosExternalTextureGL, int64_t textureId);
+
+  OhosImageFrameData() = delete;
+
+  ~OhosImageFrameData();
+
+  void OnPlatformViewMarkTextureFrameAvailable();
+
+ private:
+
+  OHOSExternalTextureGL *ohosExternalTextureGL;
+
+  int64_t textureId_;
+};
+
 }  // namespace flutter
 #endif

@@ -137,8 +137,12 @@ used to filter file path.
                     desc="Apache-2.0 文档类文件" />
                 <filteritem type="filepath" name="third_party/web_unicode/LICENSE"
                     desc="UNICODE LICENSE V3，不影响兼容性" />
+				<filteritem type="filename" name="*.json5"
+                    desc="源文件无许可证头，不做侵入式修改" />
             </filefilter>
             <filefilter name="copyrightPolicyFilter" desc="Filters for copyright header policies">
+				<filteritem type="filename" name="*.json5"
+                    desc="源文件无版权头，不做侵入式修改" />
             </filefilter>
             <filefilter name="licenseFileNamePolicyFilter" desc="Filters for LICENSE file policies">
             </filefilter>

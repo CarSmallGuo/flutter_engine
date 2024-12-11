@@ -16,10 +16,12 @@
 #include "flutter/shell/platform/ohos/ohos_surface_gl_skia.h"
 
 #include <GLES2/gl2.h>
+#include <native_window/external_window.h>
 
 #include "flutter/fml/logging.h"
 #include "flutter/fml/memory/ref_ptr.h"
 #include "flutter/shell/platform/ohos/ohos_egl_surface.h"
+#include "flutter/shell/platform/ohos/ohos_logging.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
 
 namespace flutter {
@@ -89,17 +91,20 @@ bool OhosSurfaceGLSkia::OnScreenSurfaceResize(const SkISize& size) {
     return true;
   }
 
-  GLContextPtr()->ClearCurrent();
-
-  // Ensure the destructor is called since it destroys the `EGLSurface` before
-  // creating a new onscreen surface.
-  onscreen_surface_ = nullptr;
-  onscreen_surface_ = GLContextPtr()->CreateOnscreenSurface(native_window_);
-  if (!onscreen_surface_->IsValid()) {
-    FML_LOG(ERROR) << "Unable to create EGL window surface on resize.";
+  int code = SET_BUFFER_GEOMETRY;
+  int32_t width = size.fWidth;
+  int32_t height = size.fHeight;
+  int32_t ret = OH_NativeWindow_NativeWindowHandleOpt(native_window_->handle(),
+                                                      code, width, height);
+  if (ret != 0) {
+    LOGE(
+        "OhosSurfaceGLSkia::OnScreenSurfaceResize, window resize failed, "
+        "ret=%{public}d, "
+        "width:%{public}d, "
+        "height:%{public}d",
+        ret, width, height);
     return false;
   }
-  onscreen_surface_->MakeCurrent();
   return true;
 }
 

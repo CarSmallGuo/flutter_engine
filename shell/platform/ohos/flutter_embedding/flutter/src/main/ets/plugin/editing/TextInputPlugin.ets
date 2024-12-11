@@ -22,6 +22,7 @@ import inputMethod from '@ohos.inputMethod';
 import Log from '../../util/Log';
 import { EditingStateWatcher, ListenableEditingState } from './ListenableEditingState';
 import Any from '../common/Any';
+import { inputDevice } from '@kit.InputKit';
 
 /// 临时规避缺少newline对应枚举问题
 const NEWLINE_KEY_TYPE: number = 8;
@@ -43,6 +44,10 @@ export default class TextInputPlugin implements EditingStateWatcher {
 
   setTextInputEditingState(state: TextEditState) {
 
+  }
+
+  getEditingState() {
+    return this.mTextInputHandler.mEditable;
   }
 
   didChangeEditingState(textChanged: boolean, selectionChanged: boolean, composingRegionChanged: boolean): void {
@@ -67,6 +72,10 @@ export default class TextInputPlugin implements EditingStateWatcher {
       }
     })
   }
+
+  destroy() {
+    this.textInputChannel.setTextInputMethodHandler(null);
+  }
 }
 
 class TextInputMethodHandlerImpl implements TextInputMethodHandler {
@@ -82,6 +91,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private inputTypeNone: string = 'NONE';
   private keyboardStatus: inputMethod.KeyboardStatus = inputMethod.KeyboardStatus.HIDE;
   private inputAttribute: inputMethod.InputAttribute = { textInputType: 0, enterKeyType: 1 };
+  private keyboardFocusState: boolean = false
 
   constructor(plugin: TextInputPlugin | Any) {
     this.textConfig = {
@@ -96,6 +106,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   /// 通过判断是否是TextInputType.none来决定是否弹出键盘
   show(): void {
     if (this.canShowTextInput()) {
+      this.keyboardFocusState = true;
       this.showTextInput();
     } else {
       this.hide();
@@ -103,6 +114,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   hide(): void {
+    this.keyboardFocusState = false;
     this.hideTextInput();
   }
 
@@ -125,6 +137,10 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   setEditableSizeAndTransform(width: number, height: number, transform: number[]): void {
 
+  }
+
+  setCursorSizeAndPosition(cursorInfo: inputMethod.CursorInfo) {
+    this.inputMethodController.updateCursor(cursorInfo)
   }
 
   setEditingState(editingState: TextEditState): void {
@@ -160,6 +176,31 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       await this.inputMethodController.attach(showKeyboard, this.textConfig);
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to attach:" + JSON.stringify(err));
+    }
+  }
+
+  handleChangeFocus(focusState: boolean) {
+    try {
+      inputDevice.getDeviceList((Error: Error, ids: Array<number>) => {
+        let isPhysicalKeyboard = false;
+        for (let i = 0; i < ids.length; i++) {
+          const type = inputDevice.getKeyboardTypeSync(ids[i]);
+          if (type == inputDevice.KeyboardType.ALPHABETIC_KEYBOARD || type == inputDevice.KeyboardType.DIGITAL_KEYBOARD) {
+            isPhysicalKeyboard = true;
+            break;
+          }
+        }
+
+        if(focusState && isPhysicalKeyboard && this.keyboardFocusState) {
+          this.cancelListenKeyBoardEvent();
+          this.inputMethodController.detach().then(async () =>{
+            await this.attach(true);
+            this.listenKeyBoardEvent();
+          })
+        }
+      })
+    } catch (error) {
+      Log.e(TextInputMethodHandlerImpl.TAG, `Failed to query device. Code is ${error.code}, message is ${error.message}`)
     }
   }
 

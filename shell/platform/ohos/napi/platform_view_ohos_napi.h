@@ -28,7 +28,6 @@
 #include "flutter/shell/common/run_configuration.h"
 #include "flutter/shell/platform/ohos/napi_common.h"
 #include "napi/native_api.h"
-
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_features.h"
 
 // class for all c++ to call js function
@@ -41,13 +40,13 @@ struct locale {
 };
 
 struct mouseWheelEvent {
-    std::string eventType;
-    int64_t shellHolder;
-    int64_t fingerId;
-    double globalX;
-    double globalY;
-    double offsetY;
-    int64_t timestamp;
+  std::string eventType;
+  int64_t shellHolder;
+  int64_t fingerId;
+  double globalX;
+  double globalY;
+  double offsetY;
+  int64_t timestamp;
 };
 
 class PlatformViewOHOSNapi {
@@ -85,7 +84,18 @@ class PlatformViewOHOSNapi {
                    void* inputData,
                    size_t dataSize);
 
-  void FlutterViewOnTouchEvent(std::shared_ptr<std::string[]> touchPacketString, int size);
+  void FlutterViewOnTouchEvent(std::shared_ptr<std::string[]> touchPacketString,
+                               int size);
+  /**
+   * accessibility-relevant interfaces
+   */
+  void GetShellHolderId();
+  void SetSemanticsEnabled(int64_t shell_hoder, bool enabled);
+  void SetAccessibilityFeatures(int64_t shell_hoder, int32_t flags);
+  void DispatchSemanticsAction(int64_t shell_hoder,
+                               int32_t id, 
+                               flutter::SemanticsAction action, 
+                               fml::MallocMapping args);
 
   static napi_value nativeUpdateRefreshRate(
       napi_env env,
@@ -158,29 +168,23 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);  // 应用下发系统语言设置
 
-  static napi_value nativeInitNativeImage(
-      napi_env env,
-      napi_callback_info info);
+  static napi_value nativeInitNativeImage(napi_env env,
+                                          napi_callback_info info);
 
-  static napi_value nativeUnregisterTexture(
-      napi_env env,
-      napi_callback_info info);
+  static napi_value nativeUnregisterTexture(napi_env env,
+                                            napi_callback_info info);
 
-  static napi_value nativeMarkTextureFrameAvailable(
-      napi_env env,
-      napi_callback_info info);
+  static napi_value nativeMarkTextureFrameAvailable(napi_env env,
+                                                    napi_callback_info info);
 
-  static napi_value nativeRegisterPixelMap(
-      napi_env env,
-      napi_callback_info info);
+  static napi_value nativeRegisterPixelMap(napi_env env,
+                                           napi_callback_info info);
 
-  static napi_value nativeSetTextureBackGroundPixelMap(
-      napi_env env,
-      napi_callback_info info);
+  static napi_value nativeSetTextureBackGroundPixelMap(napi_env env,
+                                                       napi_callback_info info);
 
-  static napi_value nativeRegisterTexture(
-      napi_env env,
-      napi_callback_info info);
+  static napi_value nativeRegisterTexture(napi_env env,
+                                          napi_callback_info info);
 
   static napi_value nativeSetTextureBufferSize(
     napi_env env,
@@ -189,13 +193,12 @@ class PlatformViewOHOSNapi {
   // Surface相关，XComponent调用
   static void SurfaceCreated(int64_t shell_holder, void* window);
 
-  static void SurfaceChanged(
-      int64_t shell_holder,
-      int32_t width,
-      int32_t height);
+  static void SurfaceChanged(int64_t shell_holder,
+                             int32_t width,
+                             int32_t height);
 
   static void SurfaceDestroyed(int64_t shell_holder);
-  static int64_t GetShellHolder();
+
   static napi_value nativeXComponentAttachFlutterEngine(
       napi_env env,
       napi_callback_info info);
@@ -204,9 +207,6 @@ class PlatformViewOHOSNapi {
       napi_callback_info info);
   static napi_value nativeXComponentDispatchMouseWheel(napi_env env,
                                                        napi_callback_info info);
-  static napi_value nativeEncodeUtf8(napi_env env, napi_callback_info info);
-  static napi_value nativeDecodeUtf8(napi_env env, napi_callback_info info);
-
   /**
    * ets call c++
    */
@@ -215,8 +215,20 @@ class PlatformViewOHOSNapi {
   static napi_value nativeUpdateCustomAccessibilityActions(
       napi_env env,
       napi_callback_info info);
+  static napi_value nativeAccessibilityStateChange(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeAnnounce(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeSetSemanticsEnabled(napi_env env, napi_callback_info info);
+  static napi_value nativeEncodeUtf8(napi_env env, napi_callback_info info);
+  static napi_value nativeDecodeUtf8(napi_env env, napi_callback_info info);
 
   static napi_value nativeSetFontWeightScale(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeGetFlutterNavigationAction(
       napi_env env,
       napi_callback_info info);
 
@@ -235,6 +247,9 @@ class PlatformViewOHOSNapi {
   static napi_value nativeUnicodeIsEmojiModifierBase(
       napi_env env,
       napi_callback_info info);
+  static napi_value nativeGetShellHolderId(
+      napi_env env,
+      napi_callback_info info);
 
   static napi_value nativeUnicodeIsVariationSelector(
       napi_env env,
@@ -249,6 +264,7 @@ class PlatformViewOHOSNapi {
   napi_ref ref_napi_obj_;
   static std::vector<std::string> system_languages;
   fml::RefPtr<fml::TaskRunner> platform_task_runner_;
+  static int64_t napi_shell_holder_id_;
 };
 
 }  // namespace flutter
