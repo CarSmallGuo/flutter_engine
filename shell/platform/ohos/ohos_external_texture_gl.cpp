@@ -104,7 +104,6 @@ OHOSExternalTextureGL::OHOSExternalTextureGL(
     backGroundPixelMap_ = nullptr;
     lastImage_ = nullptr;
     isEmulator_ = OhosMain::IsEmulator();
-    frameData_ = nullptr;
 }
 
 OHOSExternalTextureGL::~OHOSExternalTextureGL()
@@ -125,24 +124,37 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
   lastImage_ = nullptr;
 }
 
-void OnNativeImageFrameAvailable(void *data)
+void OnNativeImageFrameAvailable(void *context)
 {
-  auto frameData = reinterpret_cast<OhosImageFrameData *>(data);
-  if (frameData == nullptr) {
-    FML_LOG(ERROR) << "OnNativeImageFrameAvailable, frameData is null.";
+  auto ohosExternalTextureGL = reinterpret_cast<OHOSExternalTextureGL *>(context);
+  if (ohosExternalTextureGL == nullptr) {
+    FML_LOG(ERROR) << "OnNativeImageFrameAvailable, ohosExternalTextureGL is null.";
     return;
   }
-  frameData->OnPlatformViewMarkTextureFrameAvailable();
+
+  if (ohosExternalTextureGL != nullptr) {
+    auto wp_ohosExternalTextureGL = std::weak_ptr<OHOSExternalTextureGL>(
+        ohosExternalTextureGL->shared_from_this());
+    fml::TaskRunner::RunNowOrPostTask(
+        ohosExternalTextureGL->task_runners_.GetPlatformTaskRunner(),
+        [wp_ohosExternalTextureGL]() {
+            if (auto sp_ohosExternalTextureGL = wp_ohosExternalTextureGL.lock()) {
+                PlatformView::Delegate& delegate =
+                    sp_ohosExternalTextureGL->delegate_;
+                delegate.OnPlatformViewMarkTextureFrameAvailable(sp_ohosExternalTextureGL->Id());
+            }
+        });
+  }  
 }
 
-bool RegisterFrameAvailableListener(OH_NativeImage *nativeImage, OhosImageFrameData *frameData)
+bool RegisterFrameAvailableListener(OH_NativeImage *nativeImage, void *context)
 {
-  if (frameData == nullptr) {
-    FML_LOG(ERROR) << "Error with RegisterFrameAvailableListener, frameData is null";
+  if (context == nullptr) {
+    FML_LOG(ERROR) << "Error with RegisterFrameAvailableListener, context is null";
     return false;
   }
   OH_OnFrameAvailableListener listener;
-  listener.context = frameData;
+  listener.context = context;
   listener.onFrameAvailable = OnNativeImageFrameAvailable;
   int64_t ret = OH_NativeImage_SetOnFrameAvailableListener(nativeImage, listener);
   if (ret != 0) {
@@ -191,12 +203,7 @@ void OHOSExternalTextureGL::Attach()
       FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeImage_AttachContext err code:" << ret;
     }
 
-    if (frameData_ == nullptr) {
-      frameData_ = new OhosImageFrameData(this, Id());
-    }
-    if (!RegisterFrameAvailableListener(nativeImage_, (OhosImageFrameData *)frameData_)) {
-      delete (OhosImageFrameData *)frameData_;
-      frameData_ = nullptr;
+    if (!RegisterFrameAvailableListener(nativeImage_, this)) {
       return;
     }
     state_ = AttachmentState::attached;
@@ -374,10 +381,6 @@ void OHOSExternalTextureGL::Detach()
     OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);
     OH_NativeImage_Destroy(&nativeImage_);
     nativeImage_ = nullptr;
-  }
-  if (frameData_ != nullptr) {
-    delete (OhosImageFrameData *)frameData_;
-    frameData_ = nullptr;
   }
   if (nativeWindow_ != nullptr) {
     OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
@@ -767,30 +770,6 @@ void OHOSExternalTextureGL::DispatchBackGroundPixelMap(NativePixelMap* pixelMap)
 {
   if (pixelMap != nullptr) {
     backGroundPixelMap_ = pixelMap;
-  }
-}
-
-OhosImageFrameData::OhosImageFrameData(
-    OHOSExternalTextureGL *ohosExternalTextureGL,
-    int64_t textureId)
-    : ohosExternalTextureGL(ohosExternalTextureGL),
-      textureId_(textureId)
-{}
-
-OhosImageFrameData::~OhosImageFrameData()
-{
-  ohosExternalTextureGL = nullptr;
-  textureId_ = 0;
-}
-
-void OhosImageFrameData::OnPlatformViewMarkTextureFrameAvailable()
-{
-  if (ohosExternalTextureGL != nullptr) {
-    fml::TaskRunner::RunNowOrPostTask(
-        ohosExternalTextureGL->task_runners_.GetPlatformTaskRunner(), [textureId = textureId_, this]() {
-          PlatformView::Delegate& dalegate = this->ohosExternalTextureGL->delegate_;
-          dalegate.OnPlatformViewMarkTextureFrameAvailable(textureId);
-        });
   }
 }
 
