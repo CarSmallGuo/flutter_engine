@@ -171,10 +171,6 @@ export class KeyEventHandler {
       if (this.charMap.hasKey(event.keyCode)) {
         this.textInputPlugin?.getEditingState().handleInsertTextEvent(this.getCharByEvent(event))
       }
-      // 处理非字符按键
-      if (event.keyCode == KeyCode.KEYCODE_DEL) {
-        this.textInputPlugin?.getEditingState().handleDeleteEvent(false, 0)
-      }
     }
     this.isShiftMode = event.keyCode == KeyCode.KEYCODE_SHIFT_LEFT
         || event.keyCode == KeyCode.KEYCODE_SHIFT_RIGHT
