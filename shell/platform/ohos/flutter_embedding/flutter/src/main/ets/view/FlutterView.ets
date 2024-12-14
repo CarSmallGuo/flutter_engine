@@ -492,20 +492,21 @@ export class FlutterView {
       this.viewportMetrics.physicalWidth = vp2px(newArea.width as number);
       this.viewportMetrics.physicalHeight = vp2px(newArea.height as number);
     }
-    let fullScreen = false
-    // 根据是否全屏显示，设置标题栏高度
-    if (this.checkFullScreen &&
-      (setFullScreen || FlutterManager.getInstance().getFullScreenListener().useFullScreen())) { // 全屏显示
-      fullScreen = true
-      this.viewportMetrics.physicalViewPaddingTop = this.systemAvoidArea!.topRect.height
-      this.viewportMetrics.physicalViewPaddingBottom = this.systemAvoidArea!.bottomRect.height
-    } else { // 非全屏显示
+
+    // 根据是否全屏显示，设置标题栏高度（若全屏，则及时规避）
+    if (this.checkFullScreen && (setFullScreen || this.mainWindow?.getWindowProperties().isLayoutFullScreen)) { // 全屏显示
+      this.viewportMetrics.physicalViewPaddingTop =
+        this.systemAvoidArea?.topRect.height ?? this.viewportMetrics.physicalViewPaddingTop;
+      this.viewportMetrics.physicalViewPaddingBottom =
+        this.navigationAvoidArea?.bottomRect.height ?? this.viewportMetrics.physicalViewPaddingBottom;
+    } else { // 非全屏显示（保持规避效果）
+      // 顶部状态栏和底部导航栏规避为0，无平滑过渡效果
       this.viewportMetrics.physicalViewPaddingTop = 0;
       this.viewportMetrics.physicalViewPaddingBottom = 0;
     }
 
-    this.viewportMetrics.physicalViewPaddingLeft = this.systemAvoidArea!.leftRect.width
-    this.viewportMetrics.physicalViewPaddingRight = this.systemAvoidArea!.rightRect.width
+    this.viewportMetrics.physicalViewPaddingLeft = this.systemAvoidArea?.leftRect.width ?? 0;
+    this.viewportMetrics.physicalViewPaddingRight = this.systemAvoidArea?.rightRect.width ?? 0;
 
     this.onKeyboardAreaChange(fullScreen)
     this.onAiBarAreaChange(fullScreen)
@@ -543,13 +544,16 @@ export class FlutterView {
     }
   }
 
-  private onGestureAreaChange(fullScreen: boolean = false) {
-    if (this.checkGesture && fullScreen) {
-      this.viewportMetrics.systemGestureInsetTop = this.gestureAvoidArea!.topRect.height
-      this.viewportMetrics.systemGestureInsetLeft = this.gestureAvoidArea!.leftRect.width
+  private onGestureAreaChange() {
+    if (this.checkGesture) {
+      this.viewportMetrics.systemGestureInsetTop =
+        this.gestureAvoidArea?.topRect.height ?? this.viewportMetrics.systemGestureInsetTop
+      this.viewportMetrics.systemGestureInsetLeft =
+        this.gestureAvoidArea?.leftRect.width ?? this.viewportMetrics.systemGestureInsetLeft
       this.viewportMetrics.systemGestureInsetBottom =
-        Math.max(this.navigationAvoidArea.bottomRect.height, this.gestureAvoidArea!.bottomRect.height)
-      this.viewportMetrics.systemGestureInsetRight = this.gestureAvoidArea!.rightRect.width
+        this.gestureAvoidArea?.bottomRect.height ?? this.viewportMetrics.systemGestureInsetBottom
+      this.viewportMetrics.systemGestureInsetRight =
+        this.gestureAvoidArea?.rightRect.width ?? this.viewportMetrics.systemGestureInsetRight
     } else {
       this.viewportMetrics.systemGestureInsetTop = 0
       this.viewportMetrics.systemGestureInsetLeft = 0
