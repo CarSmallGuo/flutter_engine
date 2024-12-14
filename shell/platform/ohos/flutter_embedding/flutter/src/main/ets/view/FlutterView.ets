@@ -388,16 +388,20 @@ export class FlutterView {
 
     // 根据是否全屏显示，设置标题栏高度（若全屏，则及时规避）
     if (this.checkFullScreen && (setFullScreen || this.mainWindow?.getWindowProperties().isLayoutFullScreen)) { // 全屏显示
-      this.viewportMetrics.physicalViewPaddingTop = this.systemAvoidArea?.topRect.height ?? 0;
-      this.viewportMetrics.physicalViewPaddingBottom = this.navigationAvoidArea?.bottomRect.height ?? 0;
+      this.viewportMetrics.physicalViewPaddingTop =
+        this.systemAvoidArea?.topRect.height ?? this.viewportMetrics.physicalViewPaddingTop;
+      this.viewportMetrics.physicalViewPaddingBottom =
+        this.navigationAvoidArea?.bottomRect.height ?? this.viewportMetrics.physicalViewPaddingBottom;
     } else { // 非全屏显示（保持规避效果）
       // 顶部状态栏和底部导航栏规避为0，无平滑过渡效果
       this.viewportMetrics.physicalViewPaddingTop = 0;
       this.viewportMetrics.physicalViewPaddingBottom = 0;
     }
 
-    this.viewportMetrics.physicalViewPaddingLeft = this.systemAvoidArea?.leftRect.width ?? 0;
-    this.viewportMetrics.physicalViewPaddingRight = this.systemAvoidArea?.rightRect.width ?? 0;
+    this.viewportMetrics.physicalViewPaddingLeft =
+      this.systemAvoidArea?.leftRect.width ?? this.viewportMetrics.physicalViewPaddingLeft;
+    this.viewportMetrics.physicalViewPaddingRight =
+      this.systemAvoidArea?.rightRect.width ?? this.viewportMetrics.physicalViewPaddingRight;
 
     this.onKeyboardAreaChange()
     this.onGestureAreaChange()
@@ -410,10 +414,14 @@ export class FlutterView {
 
   private onKeyboardAreaChange() {
     if (this.checkKeyboard) {
-      this.viewportMetrics.physicalViewInsetTop = this.keyboardAvoidArea?.topRect.height ?? 0
-      this.viewportMetrics.physicalViewInsetLeft = this.keyboardAvoidArea?.leftRect.width ?? 0
-      this.viewportMetrics.physicalViewInsetBottom = this.keyboardAvoidArea?.bottomRect.height ?? 0
-      this.viewportMetrics.physicalViewInsetRight = this.keyboardAvoidArea?.rightRect.width ?? 0
+      this.viewportMetrics.physicalViewInsetTop =
+        this.keyboardAvoidArea?.topRect.height ?? this.viewportMetrics.physicalViewInsetTop
+      this.viewportMetrics.physicalViewInsetLeft =
+        this.keyboardAvoidArea?.leftRect.width ?? this.viewportMetrics.physicalViewInsetLeft
+      this.viewportMetrics.physicalViewInsetBottom =
+        this.keyboardAvoidArea?.bottomRect.height ?? this.viewportMetrics.physicalViewInsetBottom
+      this.viewportMetrics.physicalViewInsetRight =
+        this.keyboardAvoidArea?.rightRect.width ?? this.viewportMetrics.physicalViewInsetRight
     } else {
       this.viewportMetrics.physicalViewInsetTop = 0
       this.viewportMetrics.physicalViewInsetLeft = 0
@@ -424,10 +432,14 @@ export class FlutterView {
 
   private onGestureAreaChange() {
     if (this.checkGesture) {
-      this.viewportMetrics.systemGestureInsetTop = this.gestureAvoidArea?.topRect.height ?? 0
-      this.viewportMetrics.systemGestureInsetLeft = this.gestureAvoidArea?.leftRect.width ?? 0
-      this.viewportMetrics.systemGestureInsetBottom = this.gestureAvoidArea?.bottomRect.height ?? 0
-      this.viewportMetrics.systemGestureInsetRight = this.gestureAvoidArea?.rightRect.width ?? 0
+      this.viewportMetrics.systemGestureInsetTop =
+        this.gestureAvoidArea?.topRect.height ?? this.viewportMetrics.systemGestureInsetTop
+      this.viewportMetrics.systemGestureInsetLeft =
+        this.gestureAvoidArea?.leftRect.width ?? this.viewportMetrics.systemGestureInsetLeft
+      this.viewportMetrics.systemGestureInsetBottom =
+        this.gestureAvoidArea?.bottomRect.height ?? this.viewportMetrics.systemGestureInsetBottom
+      this.viewportMetrics.systemGestureInsetRight =
+        this.gestureAvoidArea?.rightRect.width ?? this.viewportMetrics.systemGestureInsetRight
     } else {
       this.viewportMetrics.systemGestureInsetTop = 0
       this.viewportMetrics.systemGestureInsetLeft = 0
