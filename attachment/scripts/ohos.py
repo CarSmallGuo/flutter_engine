@@ -268,6 +268,7 @@ def zipFileDir(
 
 
 def zipFiles(buildInfo, useZip2=False, args=any):
+<<<<<<< HEAD
   logging.info("zipFiles buildInfo=%s" % buildInfo)
   outputName = getOutput(buildInfo)
   fileIn = os.path.abspath("%s/src/out/%s" % (DIR_ROOT, outputName))
@@ -283,6 +284,23 @@ def zipFiles(buildInfo, useZip2=False, args=any):
   if IS_WINDOWS:
     excludes.extend([".*\.ilk", ".*\.pdb"])
   zipFileDir(fileIn, fileName, prefixInZip, excludes=excludes, useZip2=useZip2)
+=======
+    logging.info("zipFiles buildInfo=%s" % buildInfo)
+    outputName = getOutput(buildInfo)
+    fileIn = os.path.abspath("%s/src/out/%s" % (DIR_ROOT, outputName))
+    fileName = "ohos_%s_%s-%s-%s-%s" % (
+        args.ohos_api_int,
+        buildInfo.buildType,
+        OS_NAME,
+        platform.machine(),
+        TIME_STR,
+    )
+    prefixInZip = os.path.join("src", "out", outputName)
+    excludes = ["obj", "exe.unstripped", "so.unstripped"]
+    if IS_WINDOWS:
+        excludes.extend([r".*\.ilk", r".*\.pdb"])
+    zipFileDir(fileIn, fileName, prefixInZip, excludes=excludes, useZip2=useZip2)
+>>>>>>> de93413fbc (修改ohos.py中的格式问题)
 
 
 def addParseParam(parser):
