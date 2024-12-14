@@ -268,21 +268,21 @@ def zipFileDir(
 
 
 def zipFiles(buildInfo, useZip2=False, args=any):
-  logging.info("zipFiles buildInfo=%s" % buildInfo)
-  outputName = getOutput(buildInfo)
-  fileIn = os.path.abspath("%s/src/out/%s" % (DIR_ROOT, outputName))
-  fileName = "ohos_%s_%s-%s-%s-%s" % (
-      args.ohos_api_int,
-      buildInfo.buildType,
-      OS_NAME,
-      platform.machine(),
-      TIME_STR,
-  )
-  prefixInZip = os.path.join("src", "out", outputName)
-  excludes = ["obj", "exe.unstripped", "so.unstripped"]
-  if IS_WINDOWS:
-    excludes.extend([".*\.ilk", ".*\.pdb"])
-  zipFileDir(fileIn, fileName, prefixInZip, excludes=excludes, useZip2=useZip2)
+    logging.info("zipFiles buildInfo=%s" % buildInfo)
+    outputName = getOutput(buildInfo)
+    fileIn = os.path.abspath("%s/src/out/%s" % (DIR_ROOT, outputName))
+    fileName = "ohos_%s_%s-%s-%s-%s" % (
+        args.ohos_api_int,
+        buildInfo.buildType,
+        OS_NAME,
+        platform.machine(),
+        TIME_STR,
+    )
+    prefixInZip = os.path.join("src", "out", outputName)
+    excludes = ["obj", "exe.unstripped", "so.unstripped"]
+    if IS_WINDOWS:
+        excludes.extend([r".*\.ilk", r".*\.pdb"])
+    zipFileDir(fileIn, fileName, prefixInZip, excludes=excludes, useZip2=useZip2)
 
 
 def addParseParam(parser):
