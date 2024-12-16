@@ -36,7 +36,8 @@
 // maybe now unused
 namespace flutter {
 
-class OHOSExternalTextureGL : public flutter::Texture {
+// Represents an external texture for OHOS platform, using std::weak_ptr to avoid circular reference.
+class OHOSExternalTextureGL : public flutter::Texture, public std::enable_shared_from_this<OHOSExternalTextureGL> {
  public:
   explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface);
   explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface,
@@ -51,8 +52,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
   OH_NativeImage *nativeImage_;
 
   OH_NativeImage *backGroundNativeImage_;
-
-  void *frameData_;
 
   bool first_update_ = false;
 
@@ -143,23 +142,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
   void* context_;
 
   bool IsContextCurrent();
-};
-
-class OhosImageFrameData {
- public:
-  OhosImageFrameData(OHOSExternalTextureGL *ohosExternalTextureGL, int64_t textureId);
-
-  OhosImageFrameData() = delete;
-
-  ~OhosImageFrameData();
-
-  void OnPlatformViewMarkTextureFrameAvailable();
-
- private:
-
-  OHOSExternalTextureGL *ohosExternalTextureGL;
-
-  int64_t textureId_;
 };
 
 }  // namespace flutter
