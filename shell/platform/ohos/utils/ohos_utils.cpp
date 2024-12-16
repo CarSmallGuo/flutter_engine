@@ -13,11 +13,18 @@
  * limitations under the License.
  */
 #include "ohos_utils.h"
-
 namespace flutter {
 
 OHOSUtils::OHOSUtils() {};
 OHOSUtils::~OHOSUtils() {};
 
+/**
+ * 判断源字符串是否包含目标字符串
+ */
+bool OHOSUtils::Contains(const std::string source,
+                                       const std::string target)
+{
+    return source.find(target) != std::string::npos;
+}
 
 }

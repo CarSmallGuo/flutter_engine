@@ -15,6 +15,7 @@
 
 #ifndef OHOS_UTILS_H
 #define OHOS_UTILS_H
+#include <string>
 
 namespace flutter {
 
@@ -22,7 +23,8 @@ class OHOSUtils {
 public:
     OHOSUtils();
     ~OHOSUtils();
-
+    
+    static bool Contains(const std::string source, const std::string target);
 };
 
 }
