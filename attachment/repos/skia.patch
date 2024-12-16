@@ -1,5 +1,5 @@
 diff --git a/BUILD.gn b/BUILD.gn
-index ebbd898ec9..2d4257e8d7 100644
+index ebbd898ec9..015bb75414 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
 @@ -26,16 +26,21 @@ import("gn/ios.gni")
@@ -7,7 +7,7 @@ index ebbd898ec9..2d4257e8d7 100644
  # Skia public API, generally provided by :skia.
  config("skia_public") {
 -  include_dirs = [ "." ]
-+  include_dirs = [ ".", 
++  include_dirs = [ ".",
 +    "//third_part/khronos/", ]
  
    defines = []
@@ -142,16 +142,22 @@ index ebbd898ec9..2d4257e8d7 100644
      ]
  
      if (!skia_enable_winuwp) {
-@@ -1559,7 +1612,7 @@ skia_component("skia") {
-     ]
+@@ -1566,6 +1619,14 @@ skia_component("skia") {
+     }
    }
  
--  if (is_linux || is_wasm) {
-+  if (is_linux || is_wasm || is_ohos) {
-     sources += [ "src/ports/SkDebug_stdio.cpp" ]
-     if (skia_use_egl) {
-       libs += [ "GLESv2" ]
-@@ -1962,7 +2015,7 @@ if (skia_enable_tools) {
++  if (is_ohos) {
++    sources += [ "src/ports/SkDebug_ohos.cpp" ]
++    if (skia_use_egl) {
++      libs += [ "GLESv2" ]
++    }
++    libs += [ "hilog_ndk.z" ]
++  }
++
+   if (is_mac) {
+     public += [ "include/ports/SkCFObject.h" ]
+     sources += [
+@@ -1962,7 +2023,7 @@ if (skia_enable_tools) {
        if (is_android || skia_use_egl) {
          sources += [ "tools/gpu/gl/egl/CreatePlatformGLTestContext_egl.cpp" ]
          libs += [ "EGL" ]
@@ -160,7 +166,7 @@ index ebbd898ec9..2d4257e8d7 100644
          sources += [ "tools/gpu/gl/glx/CreatePlatformGLTestContext_glx.cpp" ]
          libs += [
            "GLU",
-@@ -2281,7 +2334,7 @@ if (skia_enable_tools) {
+@@ -2281,7 +2342,7 @@ if (skia_enable_tools) {
      ]
    }
  
@@ -169,7 +175,7 @@ index ebbd898ec9..2d4257e8d7 100644
      if (skia_enable_skottie) {
        test_app("skottie_tool") {
          deps = [ "modules/skottie:tool" ]
-@@ -2777,7 +2830,7 @@ if (skia_enable_tools) {
+@@ -2777,7 +2838,7 @@ if (skia_enable_tools) {
          "tools/sk_app/android/surface_glue_android.h",
        ]
        libs += [ "android" ]
@@ -178,7 +184,7 @@ index ebbd898ec9..2d4257e8d7 100644
        sources += [
          "tools/SkGetExecutablePath_linux.cpp",
          "tools/sk_app/unix/RasterWindowContext_unix.cpp",
-@@ -2830,7 +2883,7 @@ if (skia_enable_tools) {
+@@ -2830,7 +2891,7 @@ if (skia_enable_tools) {
        sources += [ "tools/sk_app/GLWindowContext.h" ]
        if (is_android) {
          sources += [ "tools/sk_app/android/GLWindowContext_android.cpp" ]
@@ -187,7 +193,7 @@ index ebbd898ec9..2d4257e8d7 100644
          sources += [ "tools/sk_app/unix/GLWindowContext_unix.cpp" ]
        } else if (is_win) {
          sources += [ "tools/sk_app/win/GLWindowContext_win.cpp" ]
-@@ -2855,7 +2908,7 @@ if (skia_enable_tools) {
+@@ -2855,7 +2916,7 @@ if (skia_enable_tools) {
        sources += [ "tools/sk_app/VulkanWindowContext.h" ]
        if (is_android) {
          sources += [ "tools/sk_app/android/VulkanWindowContext_android.cpp" ]
@@ -196,7 +202,7 @@ index ebbd898ec9..2d4257e8d7 100644
          sources += [ "tools/sk_app/unix/VulkanWindowContext_unix.cpp" ]
          libs += [ "X11-xcb" ]
        } else if (is_win) {
-@@ -2887,7 +2940,7 @@ if (skia_enable_tools) {
+@@ -2887,7 +2948,7 @@ if (skia_enable_tools) {
      if (skia_use_dawn) {
        sources += [ "tools/sk_app/DawnWindowContext.cpp" ]
        sources += [ "tools/sk_app/DawnWindowContext.h" ]
@@ -205,7 +211,7 @@ index ebbd898ec9..2d4257e8d7 100644
          if (dawn_enable_vulkan) {
            sources += [ "tools/sk_app/unix/DawnVulkanWindowContext_unix.cpp" ]
            defines = [ "VK_USE_PLATFORM_XCB_KHR" ]
-@@ -2931,7 +2984,7 @@ if (skia_enable_tools) {
+@@ -2931,7 +2992,7 @@ if (skia_enable_tools) {
      }
    }
  
@@ -214,7 +220,7 @@ index ebbd898ec9..2d4257e8d7 100644
      test_app("fiddle_examples") {
        sources = [
          "tools/fiddle/all_examples.cpp",
-@@ -3088,7 +3141,7 @@ if (skia_enable_tools) {
+@@ -3088,7 +3149,7 @@ if (skia_enable_tools) {
      }
    }
  
@@ -327,6 +333,21 @@ index b43526fe1f..fb34289da7 100644
      ldflags = [
        "-rdynamic",
        "-Wl,-rpath,\$ORIGIN",
+diff --git a/src/core/SkRRect.cpp b/src/core/SkRRect.cpp
+index bdcf607d04..2e92ed05f3 100644
+--- a/src/core/SkRRect.cpp
++++ b/src/core/SkRRect.cpp
+@@ -231,8 +231,8 @@ bool SkRRect::scaleRadii() {
+     double scale = 1.0;
+ 
+     // The sides of the rectangle may be larger than a float.
+-    double width = (double)fRect.fRight - (double)fRect.fLeft;
+-    double height = (double)fRect.fBottom - (double)fRect.fTop;
++    double width = (double)(fRect.fRight - fRect.fLeft);
++    double height = (double)(fRect.fBottom - fRect.fTop);
+     scale = compute_min_scale(fRadii[0].fX, fRadii[1].fX, width,  scale);
+     scale = compute_min_scale(fRadii[1].fY, fRadii[2].fY, height, scale);
+     scale = compute_min_scale(fRadii[2].fX, fRadii[3].fX, width,  scale);
 diff --git a/src/gpu/ganesh/gl/egl/GrGLMakeEGLInterface.cpp b/src/gpu/ganesh/gl/egl/GrGLMakeEGLInterface.cpp
 index 78225b4610..c2105852b1 100644
 --- a/src/gpu/ganesh/gl/egl/GrGLMakeEGLInterface.cpp
@@ -1070,12 +1091,50 @@ index 0000000000..eb318dc3a3
 +#endif
 +
 +#endif /* __gl2platform_h_ */
+diff --git a/src/ports/SkDebug_ohos.cpp b/src/ports/SkDebug_ohos.cpp
+new file mode 100644
+index 0000000000..0e5e0829b6
+--- /dev/null
++++ b/src/ports/SkDebug_ohos.cpp
+@@ -0,0 +1,32 @@
++// Copyright (c) 2024 Huawei Device Co., Ltd. All rights reserved
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#include "include/core/SkTypes.h"
++
++#include <hilog/log.h>
++#include <stdio.h>
++
++
++#ifdef HILOG_LOG_DOMAIN
++    #undef HILOG_LOG_DOMAIN
++#endif
++
++#ifdef HILOG_LOG_TAG
++    #undef HILOG_LOG_DOMAIN
++#endif
++
++
++#define HILOG_LOG_DOMAIN 0x0000
++#define HILOG_LOG_TAG "Skia"
++
++void SkDebugf(const char format[], ...) {
++    char outStr[1024] = { 0 };
++    va_list args;
++    va_start(args, format);
++    (void)vsnprintf(outStr,sizeof(outStr), format, args);
++    va_end(args);
++
++    (void)OH_LOG_Print(LOG_APP, LOG_INFO, HILOG_LOG_DOMAIN,\
++        HILOG_LOG_TAG, "%{public}s", outStr);
++}
 diff --git a/src/ports/skia_ohos/FontConfig_ohos.cpp b/src/ports/skia_ohos/FontConfig_ohos.cpp
 new file mode 100644
-index 0000000000..c502ed853e
+index 0000000000..ea5c8ecf84
 --- /dev/null
 +++ b/src/ports/skia_ohos/FontConfig_ohos.cpp
-@@ -0,0 +1,1308 @@
+@@ -0,0 +1,1312 @@
 +// Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
@@ -1138,6 +1197,10 @@ index 0000000000..c502ed853e
 + */
 +int FontConfig_OHOS::getFamilyCount() const
 +{
++#if ENABLE_DEBUG
++    dumpGeneric();
++    dumpFallback();
++#endif
 +    return genericFamilySet.size();
 +}
 +
@@ -1490,7 +1553,7 @@ index 0000000000..c502ed853e
 + */
 +void FontConfig_OHOS::dumpFont(const FontInfo& font) const
 +{
-+    LOGI("name=%s, family=%s, weight=%d, width=%d, slant=%d, index=%d",
++    SkDEBUGF("name=%s, family=%s, weight=%d, width=%d, slant=%d, index=%d",
 +        font.fname.c_str(), font.familyName.c_str(), font.style.weight(), font.style.width(), font.style.slant(),
 +        font.index);
 +    int count = font.axisSet.axis.size();
@@ -1502,7 +1565,7 @@ index 0000000000..c502ed853e
 +                str.append(",");
 +            }
 +        }
-+        LOGI("axis={%s}\n", str.c_str());
++        SkDEBUGF("axis={%s}\n", str.c_str());
 +    }
 +}
 +
@@ -1510,9 +1573,9 @@ index 0000000000..c502ed853e
 + */
 +void FontConfig_OHOS::dumpGeneric() const
 +{
-+    LOGI("\n");
++    SkDEBUGF("\n");
 +    for (unsigned int i = 0; i < genericFamilySet.size(); i++) {
-+        LOGI("[%d] familyName : %s - %d\n", i, genericFamilySet[i]->familyName.c_str(),
++        SkDEBUGF("[%d] familyName : %s - %d\n", i, genericFamilySet[i]->familyName.c_str(),
 +            static_cast<int>(genericFamilySet[i]->typefaceSet->size()));
 +        for (int j = 0; j < genericFamilySet[i]->typefaceSet->size(); j++) {
 +            if ((*(genericFamilySet[i]->typefaceSet))[j].get()) {
@@ -1520,10 +1583,10 @@ index 0000000000..c502ed853e
 +                if (font) {
 +                    dumpFont(*font);
 +                } else {
-+                    LOGE("font [%d] is null\n", j);
++                    SkDEBUGF("font [%d] is null\n", j);
 +                }
 +            } else {
-+                LOGE("typefeace [%d] is null\n", j);
++                SkDEBUGF("typefeace [%d] is null\n", j);
 +            }
 +        }
 +    }
@@ -1533,21 +1596,21 @@ index 0000000000..c502ed853e
 + */
 +void FontConfig_OHOS::dumpFallback() const
 +{
-+    LOGI("\n");
++    SkDEBUGF("\n");
 +    int count = 0;
 +    fallbackForMap.foreach([this, &count](const SkString& key,
 +        const FallbackSetPos& setIndex) {
-+        LOGI("[%d] family : %s - %d\n", count++, key.c_str(), setIndex.count);
++        SkDEBUGF("[%d] family : %s - %d\n", count++, key.c_str(), setIndex.count);
 +        for (unsigned int i = setIndex.index; i < setIndex.index + setIndex.count; i++) {
 +            const TypefaceSet& tpSet = *(fallbackSet[i]->typefaceSet.get());
-+            LOGI("[%s] - %d\n", fallbackSet[i]->familyName.c_str(), static_cast<int>(tpSet.size()));
++            SkDEBUGF("[%s] - %d\n", fallbackSet[i]->familyName.c_str(), static_cast<int>(tpSet.size()));
 +
 +            for (unsigned int j = 0; j < tpSet.size(); j++) {
 +                const FontInfo* font = tpSet[j]->getFontInfo();
 +                if (font) {
 +                    this->dumpFont(*font);
 +                } else {
-+                    LOGE("font [%d] is null\n", j);
++                    SkDEBUGF("font [%d] is null\n", j);
 +                }
 +            }
 +        }
@@ -1897,7 +1960,7 @@ index 0000000000..c502ed853e
 +        if (root.size() != keyCount) {
 +            text.appendf("%s#0", key);
 +            errSet.emplace_back(ret, text.c_str());
-+            LOGE("%s : '%s' size should be 2, but here it's %d\n", errToString(ret), key, root.size());
++            SkDEBUGF("%s : '%s' size should be 2, but here it's %d\n", errToString(ret), key, root.size());
 +            return ret;
 +        } else if (!root[0].isString()) {
 +            text.appendf("%s#1", key);
@@ -2043,7 +2106,7 @@ index 0000000000..c502ed853e
 +        } else {
 +            err = ERROR_FONT_INVALID_STREAM;
 +        }
-+        LOGE("%s : %s\n", errToString(err), fname);
++        SkDEBUGF("%s : %s\n", errToString(err), fname);
 +        char* fnameCopy = strdup(fname);
 +        errSet.emplace_back(err, basename(fnameCopy));
 +        free(fnameCopy);
@@ -2295,7 +2358,7 @@ index 0000000000..c502ed853e
 +{
 +    errSet.emplace_back(err, key);
 +    if (err != ERROR_CONFIG_INVALID_VALUE_TYPE) {
-+        LOGE("%s : %s\n", errToString(err), key);
++        SkDEBUGF("%s : %s\n", errToString(err), key);
 +    } else {
 +        const char* types[] = {
 +            "null",
@@ -2310,10 +2373,10 @@ index 0000000000..c502ed853e
 +        int size = sizeof(types) / sizeof(char*);
 +        if ((expected >= 0 && expected < size) &&
 +            (actual >= 0 && actual < size)) {
-+            LOGE("%s : '%s' should be '%s', but here it's '%s'\n",
++            SkDEBUGF("%s : '%s' should be '%s', but here it's '%s'\n",
 +                errToString(err), key, types[expected], types[actual]);
 +        } else {
-+            LOGE("%s : %s\n", errToString(err), key);
++            SkDEBUGF("%s : %s\n", errToString(err), key);
 +        }
 +    }
 +    return err;
@@ -2386,10 +2449,10 @@ index 0000000000..c502ed853e
 +}
 diff --git a/src/ports/skia_ohos/FontConfig_ohos.h b/src/ports/skia_ohos/FontConfig_ohos.h
 new file mode 100644
-index 0000000000..d23dc47c44
+index 0000000000..edd2c51495
 --- /dev/null
 +++ b/src/ports/skia_ohos/FontConfig_ohos.h
-@@ -0,0 +1,234 @@
+@@ -0,0 +1,217 @@
 +// Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
@@ -2409,23 +2472,6 @@ index 0000000000..d23dc47c44
 +
 +#include "FontInfo_ohos.h"
 +#include "SkTypeface_ohos.h"
-+
-+#ifdef ENABLE_DEBUG
-+
-+#define LOGE(fmt, args...)        \
-+    printf("E %s:%d  %s - " fmt, basename(__FILE__), __LINE__, __FUNCTION__, ##args)
-+#define LOGI(fmt, args...)        \
-+    printf("I %s:%d - " fmt,  __FUNCTION__, __LINE__, ##args)
-+#define LOGW(fmt, args...)        \
-+    printf("W %s:%d  %s - " fmt, basename(__FILE__), __LINE__, __FUNCTION__, ##args)
-+
-+#else
-+
-+#define LOGE        SkDEBUGF
-+#define LOGI        SkDEBUGF
-+#define LOGW        SkDEBUGF
-+
-+#endif
 +
 +struct FontInfo;
 +struct FallbackInfo;
@@ -2775,15 +2821,9 @@ index 0000000000..0b851ae3fa
 +};
 +
 +#endif /* FONTINFO_OHOS_H */
-diff --git a/src/ports/skia_ohos/HmSymbolConfig_ohos.cpp b/src/ports/skia_ohos/HmSymbolConfig_ohos.cpp
-new file mode 100644
-index 0000000000..e69de29bb2
-diff --git a/src/ports/skia_ohos/HmSymbolConfig_ohos.h b/src/ports/skia_ohos/HmSymbolConfig_ohos.h
-new file mode 100644
-index 0000000000..e69de29bb2
 diff --git a/src/ports/skia_ohos/SkFontMgr_ohos.cpp b/src/ports/skia_ohos/SkFontMgr_ohos.cpp
 new file mode 100644
-index 0000000000..029d105ebc
+index 0000000000..a18757d5d5
 --- /dev/null
 +++ b/src/ports/skia_ohos/SkFontMgr_ohos.cpp
 @@ -0,0 +1,437 @@
@@ -2924,7 +2964,7 @@ index 0000000000..029d105ebc
 +        }
 +    }
 +    if (item == nullptr) {
-+        LOGE("%s : '%s' must be a fallback key in the config file\n",
++        SkDEBUGF("%s : '%s' must be a fallback key in the config file\n",
 +            FontConfig_OHOS::errToString(ERROR_FAMILY_NOT_FOUND), defaultFamily.c_str());
 +        return nullptr;
 +    }
@@ -3142,7 +3182,7 @@ index 0000000000..029d105ebc
 +
 +    std::unique_ptr<SkStreamAsset> stream = SkStreamAsset::MakeFromFile(path);
 +    if (stream == nullptr) {
-+        LOGE("%s : %s\n", FontConfig_OHOS::errToString(ERROR_FONT_NOT_EXIST), path);
++        SkDEBUGF("%s : %s\n", FontConfig_OHOS::errToString(ERROR_FONT_NOT_EXIST), path);
 +        return nullptr;
 +    }
 +    SkFontArguments args;
@@ -3169,7 +3209,7 @@ index 0000000000..029d105ebc
 +    if (typeface) {
 +        return sk_sp<SkTypeface>(typeface);
 +    }
-+    LOGE("%s\n", FontConfig_OHOS::errToString(ERROR_NO_AVAILABLE_FAMILY));
++    SkDEBUGF("%s\n", FontConfig_OHOS::errToString(ERROR_NO_AVAILABLE_FAMILY));
 +    return nullptr;
 +}
 +
@@ -3193,14 +3233,14 @@ index 0000000000..029d105ebc
 +    if (axisCount == 0) {
 +        if (!fontScanner.scanFont(stream.get(), ttcIndex, &fontInfo.familyName, &fontInfo.style,
 +            &fontInfo.isFixedWidth, nullptr)) {
-+            LOGE("%s\n", FontConfig_OHOS::errToString(ERROR_FONT_INVALID_STREAM));
++            SkDEBUGF("%s\n", FontConfig_OHOS::errToString(ERROR_FONT_INVALID_STREAM));
 +            return nullptr;
 +        }
 +    } else {
 +        AxisDefinitions axisDef;
 +        if (!fontScanner.scanFont(stream.get(), ttcIndex, &fontInfo.familyName, &fontInfo.style,
 +            &fontInfo.isFixedWidth, &axisDef)) {
-+            LOGE("%s\n", FontConfig_OHOS::errToString(ERROR_FONT_INVALID_STREAM));
++            SkDEBUGF("%s\n", FontConfig_OHOS::errToString(ERROR_FONT_INVALID_STREAM));
 +            return nullptr;
 +        }
 +        if (axisDef.size() > 0) {
@@ -3467,10 +3507,10 @@ index 0000000000..b9fb40cf1e
 +#endif /* SKFONTSTYLESET_OHOS_H */
 diff --git a/src/ports/skia_ohos/SkTypeface_ohos.cpp b/src/ports/skia_ohos/SkTypeface_ohos.cpp
 new file mode 100644
-index 0000000000..3141944c32
+index 0000000000..05d3d56d1b
 --- /dev/null
 +++ b/src/ports/skia_ohos/SkTypeface_ohos.cpp
-@@ -0,0 +1,139 @@
+@@ -0,0 +1,165 @@
 +// Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved
 +// Use of this source code is governed by a BSD-style license that can be
 +// found in the LICENSE file.
@@ -3480,6 +3520,29 @@ index 0000000000..3141944c32
 +#include "SkFontDescriptor.h"
 +#include "SkFontHost_FreeType_common.h"
 +#include "SkTArray.h"
++
++#if ENABLE_DEBUG
++/*! To print out the font information
++ * \param font the font object to be printed
++ */
++void DumpFont(const FontInfo& font) const
++{
++    SkDEBUGF("name=%s, family=%s, weight=%d, width=%d, slant=%d, index=%d",
++        font.fname.c_str(), font.familyName.c_str(), font.style.weight(), font.style.width(), font.style.slant(),
++        font.index);
++    int count = font.axisSet.axis.size();
++    if (count > 0) {
++        SkString str;
++        for (unsigned int i = 0; i < count; i++) {
++            str.appendU32(SkFixedFloorToInt(font.axisSet.axis[i]));
++            if (i < count - 1) {
++                str.append(",");
++            }
++        }
++        SkDEBUGF("axis={%s}\n", str.c_str());
++    }
++}
++#endif
 +
 +/*! Constructor
 + * \param familyName the specified family name for the typeface
@@ -3537,6 +3600,9 @@ index 0000000000..3141944c32
 +    if (fontInfo->stream.get() == nullptr) {
 +        return nullptr;
 +    }
++#if ENABLE_DEBUG
++    DumpFont(*fontInfo);
++#endif
 +    return std::make_unique<SkFontData>(fontInfo->stream->duplicate(), fontInfo->index, 0,
 +               fontInfo->axisSet.axis.data(), fontInfo->axisSet.axis.size(), nullptr, 0);
 +}
