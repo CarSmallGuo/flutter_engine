@@ -249,6 +249,7 @@ executable("flutter_ohos_unittests") {
   ldflags += ["-lnative_window"]
   ldflags += ["-lnative_vsync"]
   ldflags += ["-limage_ndk.z"]
+  ldflags += ["-ldeviceinfo_ndk.z"]
   ldflags += ["-lrawfile.z"]
   ldflags += ["-lnative_image"]
   ldflags += ["-lpixelmap_ndk.z"]
