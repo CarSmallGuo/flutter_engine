@@ -1871,8 +1871,11 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
       (state ? "true" : "false"));
 
   //send to accessibility bridge
-  auto a11y_bridge = OhosAccessibilityBridge::GetInstance();
-  a11y_bridge->OnOhosAccessibilityStateChange(shell_holder_id, state);
+  const int32_t OHOS_API_VERSION = OH_GetSdkApiVersion();
+  if (OHOS_API_VERSION >= 13) {
+      auto a11y_bridge = OhosAccessibilityBridge::GetInstance();
+      a11y_bridge->OnOhosAccessibilityStateChange(shell_holder_id, state);
+  }
   FML_DLOG(INFO) << "nativeAccessibilityStateChange: state=" << state
                  << " shell_holder_id=" << shell_holder_id;
   return nullptr;
@@ -1893,8 +1896,11 @@ napi_value PlatformViewOHOSNapi::nativeAnnounce(
   napi_get_value_string_utf8(env, args[0], char_array.get(),
                              null_terminated_length, nullptr);
   LOGD("PlatformViewOHOSNapi::nativeAnnounce message: %{public}s", char_array.get());
-  auto handler = std::make_shared<NativeAccessibilityChannel::AccessibilityMessageHandler>();
-  handler->Announce(char_array);
+  const int32_t OHOS_API_VERSION = OH_GetSdkApiVersion();
+  if (OHOS_API_VERSION >= 13) {
+      auto handler = std::make_shared<NativeAccessibilityChannel::AccessibilityMessageHandler>();
+      handler->Announce(char_array);
+  }
   return nullptr;
 }
 

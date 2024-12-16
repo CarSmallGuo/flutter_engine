@@ -56,10 +56,12 @@ struct SemanticsNodeExtent : flutter::SemanticsNode {
     double previousScrollExtentMin = std::nan("");
     std::string previousValue;
     std::string previousLabel;
-    bool HasPrevAction(SemanticsAction action) const {
+    bool HasPrevAction(SemanticsAction action) const
+    {
         return (previousActions & this->actions) != 0;
     }
-    bool HasPrevFlag(SemanticsFlags flag) const {
+    bool HasPrevFlag(SemanticsFlags flag) const
+    {
         return (previousFlags & this->flags) != 0;
     }
 };
@@ -166,7 +168,7 @@ private:
     SemanticsNodeExtent lastInputFocusedNode;
     SemanticsNodeExtent accessibilityFocusedNode;
 
-    // arkui的root节点的父节点id
+    static const int32_t OHOS_API_VERSION; 
     static const int32_t ARKUI_ACCESSIBILITY_ROOT_PARENT_ID = -2100000;
     static const int32_t RET_ERROR_STATE_CODE = -1;
     static const int32_t ROOT_NODE_ID = 0;

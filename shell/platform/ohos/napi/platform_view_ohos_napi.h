@@ -16,6 +16,7 @@
 #ifndef PLATFORM_VIEW_OHOS_NAPI_H
 #define PLATFORM_VIEW_OHOS_NAPI_H
 #include <memory>
+#include <deviceinfo.h>
 #include "flutter/assets/directory_asset_bundle.h"
 #include "flutter/common/settings.h"
 #include "flutter/fml/file.h"

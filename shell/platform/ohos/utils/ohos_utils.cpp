@@ -22,7 +22,7 @@ OHOSUtils::~OHOSUtils() {};
  * 判断源字符串是否包含目标字符串
  */
 bool OHOSUtils::Contains(const std::string source,
-                                       const std::string target)
+                         const std::string target)
 {
     return source.find(target) != std::string::npos;
 }

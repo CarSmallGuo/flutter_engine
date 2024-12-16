@@ -15,7 +15,21 @@
 
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "/Users/zijunxi/.ohos/config/default_flutter_embedding_rLTIk1jnFi1EHzVwrHLRwd24RS6fY4RPUwPq20ZOPzE=.cer",
+          "storePassword": "0000001B08FA11B2A4DAA98102847DAFB98304F1AC13B13A6B8F79579BEAF52F6A1D5D4DB74E2647047F9B",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001BF3FB1B423C45C8C2E02B8384FCD4271C32DC52C9B957E68D247C420B785F45D26558EB30EBD53D",
+          "profile": "/Users/zijunxi/.ohos/config/default_flutter_embedding_rLTIk1jnFi1EHzVwrHLRwd24RS6fY4RPUwPq20ZOPzE=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "/Users/zijunxi/.ohos/config/default_flutter_embedding_rLTIk1jnFi1EHzVwrHLRwd24RS6fY4RPUwPq20ZOPzE=.p12"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",
