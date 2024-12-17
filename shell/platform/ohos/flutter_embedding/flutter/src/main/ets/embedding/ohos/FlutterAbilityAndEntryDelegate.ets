@@ -57,7 +57,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
   private engineGroup?: FlutterEngineGroup;
   private isHost: boolean = false;
   private flutterView?: FlutterView;
-  private inputMethodController: inputMethod.InputMethodController = inputMethod.getController();
 
   constructor(host?: Host) {
     this.host = host;

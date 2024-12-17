@@ -352,9 +352,6 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   private sendKeyboardStatusCallback = (state: inputMethod.KeyboardStatus) => {
     this.keyboardStatus = state;
-    if (state == inputMethod.KeyboardStatus.HIDE) {
-      this.plugin.textInputChannel.onConnectionClosed(this.inputTarget.id);
-    }
   }
 
   private selectByRangeCallback = (range: inputMethod.Range) => {
