@@ -1498,13 +1498,15 @@ void OhosAccessibilityBridge::PerformSelectText(
 
     char* textSelectBase;
     ARKUI_ACCESSIBILITY_CALL_CHECK(
-        OH_ArkUI_FindAccessibilityActionArgumentByKey(actionArguments, ARKUI_ACTION_ARG_SELECT_TEXT_START, &textSelectBase)
+        OH_ArkUI_FindAccessibilityActionArgumentByKey(
+            actionArguments, ARKUI_ACTION_ARG_SELECT_TEXT_START, &textSelectBase)
     );
     CHECK_NULL_PTR(textSelectBase, PerformSelectText);
 
     char* textSelectExtent;
     ARKUI_ACCESSIBILITY_CALL_CHECK(
-        OH_ArkUI_FindAccessibilityActionArgumentByKey(actionArguments, ARKUI_ACTION_ARG_SELECT_TEXT_END, &textSelectExtent)
+        OH_ArkUI_FindAccessibilityActionArgumentByKey(
+            actionArguments, ARKUI_ACTION_ARG_SELECT_TEXT_END, &textSelectExtent)
     );
     CHECK_NULL_PTR(textSelectExtent, PerformSelectText);
 
@@ -1515,8 +1517,8 @@ void OhosAccessibilityBridge::PerformSelectText(
     if (hasSelected) {
         int32_t base;
         int32_t extent;
-        std::memcpy(&base, textSelectBase, sizeof(base));
-        std::memcpy(&extent, textSelectExtent, sizeof(extent));  
+        OHOSUtils::CharArrayToInt32(textSelectBase, base);
+        OHOSUtils::CharArrayToInt32(textSelectBase, extent);
         selectionMap.insert({ARKUI_ACTION_ARG_SELECT_TEXT_START, base});
         selectionMap.insert({ARKUI_ACTION_ARG_SELECT_TEXT_END, extent});
     } else {
