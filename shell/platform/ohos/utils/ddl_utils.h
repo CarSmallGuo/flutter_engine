@@ -21,5 +21,6 @@ using LIBHANDLE = void*;
 #define LOAD_LIB(libPath) dlopen(libPath, RTLD_LAZY|RTLD_LOCAL)
 #define CLOSE_LIB(libHandle) dlclose(libHandle)
 #define LOAD_SYM(libHandle, symbol) dlsym(libHandle, symbol)
+#define LOAD_ERROR() dlerror()
 
 #endif // FOUNDATION_ACE_INTERFACE_INNERKITS_ACE_UTILS_H
