@@ -32,6 +32,8 @@ export class KeyEventHandler {
   private shiftMap : HashMap<number, string> = new HashMap();
   private isShiftMode: boolean = false;
   private isControlMode: boolean = false;
+  // 记录输入的keyCode，确保有down和up事件才输入字符
+  private inputMap: HashMap<number, string> = new HashMap();
 
   constructor(textInputPlugin?: TextInputPlugin) {
     this.textInputPlugin = textInputPlugin;
@@ -155,21 +157,25 @@ export class KeyEventHandler {
       "name": "handleKeyEvent",
       "event": event,
     }));
+    let text = this.getCharByEvent(event);
     if (event.type == KeyType.Down) {
       if (!this.isControlMode) {
         this.isControlMode = CONTROL_KEYS.findIndex((it) => it == event.keyCode) >= 0;
       }
-    }
-    Log.i(TAG, "isControlMode=" + this.isControlMode)
-    if (event.type == KeyType.Up) {
-      if (!this.isControlMode) {
-        this.isControlMode = CONTROL_KEYS.findIndex((it) => it == event.keyCode) >= 0;
-      } else {
+      this.inputMap.set(event.keyCode, text);
+    } else if (event.type == KeyType.Up) {
+      if (CONTROL_KEYS.findIndex((it) => it == event.keyCode) >= 0) {
+        // Ctrl/Alt 键抬起，重置状态
+        this.isControlMode = false;
+        return;
+      } else if (this.isControlMode) {
+        // Ctrl/Alt 键按下的状态，不输入字符（字母/数字/符号）
         return;
       }
       // 处理字符按键相关逻辑
-      if (this.charMap.hasKey(event.keyCode)) {
-        this.textInputPlugin?.getEditingState().handleInsertTextEvent(this.getCharByEvent(event))
+      if (this.inputMap.hasKey(event.keyCode) && this.charMap.hasKey(event.keyCode)) {
+        this.inputMap.remove(event.keyCode)
+        this.textInputPlugin?.getEditingState().handleInsertTextEvent(text)
       }
     }
     this.isShiftMode = event.keyCode == KeyCode.KEYCODE_SHIFT_LEFT
