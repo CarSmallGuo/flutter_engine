@@ -27,7 +27,6 @@ import PlatformView, { Params } from '../plugin/platform/PlatformView';
 import { JSON } from '@kit.ArkTS';
 import { accessibility } from '@kit.AccessibilityKit';
 import TextInputPlugin from '../plugin/editing/TextInputPlugin';
-import { browser } from '@kit.MDMKit';
 
 const TAG = "FlutterViewTag";
 
