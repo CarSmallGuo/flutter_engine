@@ -132,9 +132,6 @@ public:
     void Flutter_SendAccessibilityAsyncEvent(
         int64_t elementId,
         ArkUI_AccessibilityEventType eventType);
-    void FlutterNodeToElementInfoById(
-        ArkUI_AccessibilityElementInfo* elementInfoFromList,
-        int64_t elementId);
     int32_t GetParentId(int64_t elementId);
 
     void FlutterRelativeRectToScreenRect(SemanticsNodeExtent node);
