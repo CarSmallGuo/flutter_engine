@@ -93,14 +93,14 @@ void VsyncWaiterOHOS::OnUpdateRefreshRate(long long refresh_rate) {
 }
 
 void VsyncWaiterOHOS::DisableDVsync() {
-  if (dvsyncEnabled.load()) {
+  if (dvsyncEnabled.load() && OH_GetSdkApiVersion() > 13) {
     OH_NativeVSync_DVSyncSwitch(vsyncHandle, false);
     dvsyncEnabled.store(false);
   }
 }
 
 void VsyncWaiterOHOS::EnableDVsync() {
-  if (!dvsyncEnabled.load()) {
+  if (!dvsyncEnabled.load() && OH_GetSdkApiVersion() > 13) {
     OH_NativeVSync_DVSyncSwitch(vsyncHandle, true);
     dvsyncEnabled.store(true);
   }

@@ -15,9 +15,10 @@
 
 #ifndef VSYNC_WAITER_OHOS_H
 #define VSYNC_WAITER_OHOS_H
-#include <memory>
 #include <atomic>
+#include <memory>
 
+#include <deviceinfo.h>
 #include <native_vsync/native_vsync.h>
 #include "flutter/fml/macros.h"
 #include "flutter/shell/common/vsync_waiter.h"
