@@ -19,6 +19,8 @@
 #include <map>
 #include <utility>
 #include <vector>
+#include <memory>
+#include <mutex>
 #include <arkui/native_interface_accessibility.h>
 #include "flutter/fml/mapping.h"
 #include "flutter/lib/ui/semantics/custom_accessibility_action.h"
@@ -27,6 +29,7 @@
 #include "ohos_accessibility_features.h"
 #include "ohos_accessibility_ddl.h"
 #include "flutter/shell/platform/ohos/utils/ohos_utils.h"
+#include "flutter/shell/platform/ohos/utils/arkui_accessibility_constant.h"
 
 namespace flutter {
 typedef flutter::SemanticsFlags FLAGS_;
@@ -72,7 +75,6 @@ struct SemanticsNodeExtent : flutter::SemanticsNode {
 class OhosAccessibilityBridge {
 public:
     static OhosAccessibilityBridge* GetInstance();
-    static void DestroyInstance();
     OhosAccessibilityBridge(const OhosAccessibilityBridge&) = delete;
     OhosAccessibilityBridge& operator=(const OhosAccessibilityBridge&) = delete;
 
@@ -152,8 +154,9 @@ public:
     void ClearFlutterSemanticsCaches();
 
 private:
-    OhosAccessibilityBridge();
-    static OhosAccessibilityBridge* bridgeInstance;
+    OhosAccessibilityBridge() = default;
+    static std::unique_ptr<OhosAccessibilityBridge> bridgeInstance_;
+
     std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
     std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
 
