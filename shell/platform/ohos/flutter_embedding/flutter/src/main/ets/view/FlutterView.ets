@@ -12,6 +12,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
 import FlutterEngine from '../embedding/engine/FlutterEngine';
 import Log from '../util/Log';
 import { DVModel, DVModelChildren, DVModelEvents, DVModelParameters } from './DynamicView/dynamicView';
@@ -27,9 +28,7 @@ import PlatformView, { Params } from '../plugin/platform/PlatformView';
 import { JSON } from '@kit.ArkTS';
 import { accessibility } from '@kit.AccessibilityKit';
 import TextInputPlugin from '../plugin/editing/TextInputPlugin';
-import { cert } from '@kit.DeviceCertificateKit';
 import json from '@ohos.util.json';
-import { data } from '@kit.TelephonyKit';
 
 const TAG = "FlutterViewTag";
 
@@ -202,7 +201,6 @@ export class FlutterView {
   private displayFeaturesCache: Map<display.FoldDisplayMode, Array<DisplayFeature>>
     = new Map<display.FoldDisplayMode, Array<DisplayFeature>>();
 
-
   constructor(viewId: string, context: Context) {
     this.id = viewId
     this.displayInfo = display.getDefaultDisplaySync();
@@ -238,12 +236,18 @@ export class FlutterView {
 
   private displayChangeCallback = async (data: number) => {
     this.displayInfo = display.getDefaultDisplaySync();
-    if (this.viewportMetrics.devicePixelRatio != this.displayInfo?.densityPixels) {
-      this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
-      let displayFeatures: Array<DisplayFeature> = await this.buildDisplayFeatures();
+    let displayFeatures: Array<DisplayFeature> = await this.buildDisplayFeatures();
+    let devicePixelRatio: number = this.displayInfo?.densityPixels;
+    let physicalTouchSlop: number = 1.0 * this.displayInfo?.densityPixels;
+
+    if (devicePixelRatio != this.viewportMetrics.devicePixelRatio ||
+        physicalTouchSlop != this.viewportMetrics.physicalTouchSlop ||
+        displayFeatures != this.viewportMetrics.displayFeatures) {
+      this.viewportMetrics.devicePixelRatio = devicePixelRatio;
+      this.viewportMetrics.physicalTouchSlop = physicalTouchSlop;
       Log.i(TAG, "Display on: " + JSON.stringify(this.displayInfo))
       this.viewportMetrics.displayFeatures = displayFeatures;
-      this.updateViewportMetrics()
+      // this.updateViewportMetrics()
     }
   }
 
@@ -392,9 +396,7 @@ export class FlutterView {
         Log.i(TAG, `unsubscribe accessibility state change, result: ${JSON.stringify(data)}`);
       });
       this.mainWindow?.off('keyboardHeightChange', this.keyboardHeightChangeCallback);
-      display.off('foldStatusChange', (status: display.FoldStatus) => {
-        Log.d(TAG, `foldStatusChange listner destory`);
-      })
+
     } catch (e) {
       Log.e(TAG, "mainWindow off error: " + JSON.stringify(e));
     }
