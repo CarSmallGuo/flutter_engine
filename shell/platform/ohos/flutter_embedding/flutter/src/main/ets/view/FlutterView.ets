@@ -27,6 +27,9 @@ import PlatformView, { Params } from '../plugin/platform/PlatformView';
 import { JSON } from '@kit.ArkTS';
 import { accessibility } from '@kit.AccessibilityKit';
 import TextInputPlugin from '../plugin/editing/TextInputPlugin';
+import { cert } from '@kit.DeviceCertificateKit';
+import json from '@ohos.util.json';
+import { data } from '@kit.TelephonyKit';
 
 const TAG = "FlutterViewTag";
 
@@ -47,7 +50,7 @@ export class ViewportMetrics {
   systemGestureInsetBottom: number = 0;
   systemGestureInsetLeft: number = 0;
   physicalTouchSlop: number = -1;
-  displayFeatures: ArrayList<DisplayFeature> = new ArrayList();
+  displayFeatures: DisplayFeature[] = [];
 
   clone(): ViewportMetrics {
     const copy = new ViewportMetrics();
@@ -92,17 +95,17 @@ export class ViewportMetrics {
 }
 
 export class DisplayFeature {
-  bounds: display.Rect[];
+  bounds: display.Rect;
   type: DisplayFeatureType;
   state: DisplayFeatureState;
 
-  constructor(bounds: display.Rect[], type: DisplayFeatureType, state: DisplayFeatureState) {
+  constructor(bounds: display.Rect, type: DisplayFeatureType, state: DisplayFeatureState = DisplayFeatureState.UNKNOWN) {
     this.bounds = bounds;
     this.type = type;
     this.state = state;
   }
 
-  getBounds(): display.Rect[] {
+  getBounds(): display.Rect {
     return this.bounds;
   }
 
@@ -114,7 +117,7 @@ export class DisplayFeature {
     return this.state
   }
 
-  setBounds(bounds: display.Rect[]): void {
+  setBounds(bounds: display.Rect): void {
     this.bounds = bounds;
   }
 
@@ -196,13 +199,15 @@ export class FlutterView {
   private gestureAvoidArea: window.AvoidArea;
   private keyboardAvoidArea: window.AvoidArea;
   private needSetViewport: boolean = false;
+  private displayFeaturesCache: Map<display.FoldDisplayMode, Array<DisplayFeature>>
+    = new Map<display.FoldDisplayMode, Array<DisplayFeature>>();
 
 
   constructor(viewId: string, context: Context) {
     this.id = viewId
     this.displayInfo = display.getDefaultDisplaySync();
     this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
-    this.buildDisplayFeatures(display.getFoldStatus());
+
     this.mainWindow = FlutterManager.getInstance()
       .getWindowStage(FlutterManager.getInstance().getUIAbility(context))
       .getMainWindowSync();
@@ -223,69 +228,77 @@ export class FlutterView {
     this.gestureAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM_GESTURE);
     this.keyboardAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_KEYBOARD);
 
-    // 监听折叠状态的改变
-    display?.on('foldStatusChange', (data: display.FoldStatus) => {
-      Log.d(TAG, `Fold status change to ${JSON.stringify(data)}`)
-      this.buildDisplayFeatures(data);
-    })
-
     // Subscribes to display changes. Example: event that the display size is changed.
     try {
-      display.on("change", ()=>{
-        this.displayInfo = display.getDefaultDisplaySync();
-        if (this.viewportMetrics.devicePixelRatio != this.displayInfo?.densityPixels) {
-          this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
-          Log.i(TAG, "Display on: " + JSON.stringify(this.displayInfo))
-          this.updateViewportMetrics()
-        }
-      });
+      display.on("change", this.displayChangeCallback);
     } catch (e) {
       Log.e(TAG, "displayInfo error" + JSON.stringify(e));
     }
   }
 
-  private async buildDisplayFeatures(foldStatus: display.FoldStatus) {
-    let displayFeatures: ArrayList<DisplayFeature> = new ArrayList();
-    let bound: display.Rect[];
-    let state = 0;
-    let type = 0;
-    const displayInfos = display.getDefaultDisplaySync();
-    if (display.isFoldable()) {
-      switch (foldStatus) {
-        case DisplayFoldStatus.FOLD_STATUS_FOLDED.valueOf():
-          type = DisplayFeatureType.HINGE;
-          state = DisplayFeatureState.UNKNOWN;
-          break;
-        case DisplayFoldStatus.FOLD_STATUS_EXPANDED.valueOf():
-          type = DisplayFeatureType.FOLD;
-          state = DisplayFeatureState.POSTURE_FLAT;
-          break;
-        case DisplayFoldStatus.FOLD_STATUS_HALF_FOLDED.valueOf():
-          type = DisplayFeatureType.FOLD;
-          state = DisplayFeatureState.POSTURE_HALF_OPENED;
-          break;
-        default:
-          type = DisplayFeatureType.UNKNOWN;
-          state = DisplayFeatureState.UNKNOWN;
-          break;
-      }
-      const displays = await display.getAllDisplays();
-      for (let i = 0; i < displays.length; i++) {
-        let cutoutInfo = await displays[i].getCutoutInfo();
-        bound = cutoutInfo.boundingRects;
-        displayFeatures.add(new DisplayFeature(bound, type, state));
-      }
-      Log.d(TAG, `FOLD device displayFeatures is : ${JSON.stringify(displayFeatures)}`)
-    } else {
-      type = DisplayFeatureType.UNKNOWN;
-      state = DisplayFeatureState.UNKNOWN;
-      let infos = await displayInfos?.getCutoutInfo();
-      bound = infos.boundingRects;
-      displayFeatures.add(new DisplayFeature(bound, type, state));
-      Log.d(TAG, `UNFold device displayFeatures is : ${JSON.stringify(displayFeatures)}`)
+  private displayChangeCallback = async (data: number) => {
+    this.displayInfo = display.getDefaultDisplaySync();
+    if (this.viewportMetrics.devicePixelRatio != this.displayInfo?.densityPixels) {
+      this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
+      let displayFeatures: Array<DisplayFeature> = await this.buildDisplayFeatures();
+      Log.i(TAG, "Display on: " + JSON.stringify(this.displayInfo))
+      this.viewportMetrics.displayFeatures = displayFeatures;
+      this.updateViewportMetrics()
     }
-    this.viewportMetrics.displayFeatures = displayFeatures;
-    this.updateViewportMetrics();
+  }
+
+  private async buildDisplayFeatures(): Promise<Array<DisplayFeature>> {
+    let displayMode: display.FoldDisplayMode = display.getFoldDisplayMode();
+    if (this.displayFeaturesCache.has(displayMode)) {
+      return this.displayFeaturesCache.get(displayMode)!;
+    }
+    let displayFeatures: Array<DisplayFeature> = [];
+    let foldCreaseRegion: display.FoldCreaseRegion = display.getCurrentFoldCreaseRegion();
+    if (foldCreaseRegion != undefined) {
+      let type: DisplayFeatureType = DisplayFeatureType.FOLD;
+      let state: DisplayFeatureState = DisplayFeatureState.UNKNOWN;
+
+      if (displayMode == display.FoldDisplayMode.FOLD_DISPLAY_MODE_FULL ||
+        displayMode == display.FoldDisplayMode.FOLD_DISPLAY_MODE_COORDINATION) {
+        state = DisplayFeatureState.POSTURE_FLAT;
+      } else if (displayMode == display.FoldDisplayMode.FOLD_DISPLAY_MODE_MAIN
+        || displayMode == display.FoldDisplayMode.FOLD_DISPLAY_MODE_SUB) {
+        state = DisplayFeatureState.POSTURE_HALF_OPENED;
+      }
+      foldCreaseRegion.creaseRects.forEach((rect: display.Rect) => {
+        displayFeatures.push(new DisplayFeature(rect, type, state));
+      });
+    }
+
+    let cutoutInfo: display.CutoutInfo | undefined = await this.displayInfo?.getCutoutInfo();
+    if (cutoutInfo != undefined) {
+      cutoutInfo.boundingRects.forEach((bounding: display.Rect) => {
+        displayFeatures.push(new DisplayFeature(bounding, DisplayFeatureType.CUTOUT));
+      });
+
+      let waterFallRect: display.WaterfallDisplayAreaRects = cutoutInfo.waterfallDisplayAreaRects;
+      if (!this.isEmptyRect(waterFallRect.left)) {
+        displayFeatures.push(new DisplayFeature(waterFallRect.left, DisplayFeatureType.FOLD));
+      }
+      if (!this.isEmptyRect(waterFallRect.right)) {
+        displayFeatures.push(new DisplayFeature(waterFallRect.right, DisplayFeatureType.FOLD));
+      }
+      if (!this.isEmptyRect(waterFallRect.top)) {
+        displayFeatures.push(new DisplayFeature(waterFallRect.top, DisplayFeatureType.FOLD));
+      }
+      if (!this.isEmptyRect(waterFallRect.bottom)) {
+        displayFeatures.push(new DisplayFeature(waterFallRect.bottom, DisplayFeatureType.FOLD));
+      }
+    }
+    this.displayFeaturesCache.set(displayMode, displayFeatures);
+    return displayFeatures;
+  }
+
+  private isEmptyRect(rect: display.Rect | null | undefined) {
+    if (rect == null || rect == undefined) {
+      return true
+    }
+    return rect.left == 0 && rect.top ==0 && rect.width == 0 && rect.height == 0;
   }
 
   private  windowSizeChangeCallback = (data: window.Size) => {
@@ -388,12 +401,7 @@ export class FlutterView {
     this.mainWindow = null;
 
     try {
-      display.off("change", ()=>{
-        this.displayInfo = display.getDefaultDisplaySync();
-        this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
-        Log.i(TAG, "Display Info: " + JSON.stringify(this.displayInfo))
-        this.updateViewportMetrics()
-      });
+      display.off("change", this.displayChangeCallback);
     } catch (e) {
       Log.e(TAG, "displayInfo off error" + JSON.stringify(e));
     }
@@ -555,27 +563,20 @@ export class FlutterView {
   private updateViewportMetrics(): boolean {
     if (this.isAttachedToFlutterEngine()) {
       Log.i(TAG, 'updateViewportMetrics devicePixelRatio:' + this.viewportMetrics.devicePixelRatio);
+      let disPlayFeature = this.viewportMetrics.displayFeatures;
+      let displayFeatureBound: number[] = new Array(disPlayFeature.length * 4);
+      let displayFeatureType: number[] = new Array(disPlayFeature.length);
+      let displayFeatureStatus: number[] = new Array(disPlayFeature.length);
 
-      const displayFeatures = this.viewportMetrics.displayFeatures;
-      let boundCount = 0;
-      for (let i = 0; i < displayFeatures.length; i++) {
-        boundCount = boundCount + displayFeatures[i].getBounds().length;
+      for (let i = 0; i < disPlayFeature.length; i++) {
+        displayFeatureBound[4 * i] = disPlayFeature[i].bounds.left;
+        displayFeatureBound[4 * i + 1] = disPlayFeature[i].bounds.top;
+        displayFeatureBound[4 * i + 2] = disPlayFeature[i].bounds.width;
+        displayFeatureBound[4 * i + 3] = disPlayFeature[i].bounds.height;
+        displayFeatureType[i] = disPlayFeature[i].type;
+        displayFeatureStatus[i] = disPlayFeature[i].state;
       }
-      let displayFeatureBound: number[] = new Array(boundCount * 4);
-      let displayFeatureType: number[] = new Array(displayFeatures.length);
-      let displayFeatureStatus: number[] = new Array(displayFeatures.length);
-      for (let i = 0; i < displayFeatures.length; i++) {
-        let singleFeatureBound = displayFeatures[i].getBounds();
-        for (let j = 0; j < singleFeatureBound.length; j++) {
-          displayFeatureBound[4*i + 4*j] = singleFeatureBound[j].left;
-          displayFeatureBound[4*i + 4*j + 1] = singleFeatureBound[j].top
-          displayFeatureBound[4*i + 4*j + 2] = singleFeatureBound[j].width;
-          displayFeatureBound[4*i + 4*j + 3] = singleFeatureBound[j].height;
-        }
-        displayFeatureType[i] = displayFeatures[i].getType();
-        displayFeatureStatus[i] = displayFeatures[i].getState();
-      }
-
+      Log.d(TAG, 'update displayFeatureBound is:' + json.stringify(disPlayFeature));
       this?.flutterEngine?.getFlutterNapi()?.setViewportMetrics(this.viewportMetrics.devicePixelRatio,
         this.viewportMetrics.physicalWidth,
         this.viewportMetrics.physicalHeight,
