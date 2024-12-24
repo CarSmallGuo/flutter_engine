@@ -18,7 +18,6 @@
 #include "types.h"
 #include "ohos_logging.h"
 #include <functional>
-#include "flutter/shell/platform/ohos/utils/ddl_utils.h"
 
 namespace flutter {
 
@@ -395,6 +394,8 @@ void XComponentBase::RegisterArkUIAccessibilityService(OH_NativeXComponent* nati
     //将ArkUI_AccessibilityProvider传到无障碍bridge类
     auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
     ohosAccessibilityBridge->provider_ = accessibilityProvider;
+    FML_LOG(WARNING) << "RegisterArkUIAccessibilityService -> birdgeInstance addr: " << ohosAccessibilityBridge
+                     << ", provider addr:" << ohosAccessibilityBridge->provider_;
 
     LOGI("XComponentBase::SetNativeXComponent OH_ArkUI_AccessibilityProviderRegisterCallback is succeed");
 }

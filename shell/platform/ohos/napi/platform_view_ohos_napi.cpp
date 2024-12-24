@@ -1875,6 +1875,8 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
   if (OHOS_API_VERSION >= 13) {
       auto a11y_bridge = OhosAccessibilityBridge::GetInstance();
       a11y_bridge->OnOhosAccessibilityStateChange(shell_holder_id, state);
+      FML_LOG(WARNING) << "nativeAccessibilityStateChange -> birdgeInstance addr: " << a11y_bridge
+                       << ", provider addr:" << a11y_bridge->provider_;
   }
   FML_DLOG(INFO) << "nativeAccessibilityStateChange: state=" << state
                  << " shell_holder_id=" << shell_holder_id;

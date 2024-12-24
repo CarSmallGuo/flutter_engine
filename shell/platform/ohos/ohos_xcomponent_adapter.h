@@ -25,6 +25,7 @@
 #include "napi/native_api.h"
 #include "napi_common.h"
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
+#include "flutter/shell/platform/ohos/utils/ddl_utils.h"
 
 namespace flutter {
 
