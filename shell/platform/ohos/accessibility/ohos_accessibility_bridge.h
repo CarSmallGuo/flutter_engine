@@ -162,8 +162,7 @@ private:
     std::unordered_map<int32_t, AbsoluteRect> g_screenRectMap;
     std::unordered_map<int32_t, flutter::CustomAccessibilityAction> g_actions_mp;
     std::vector<int32_t> g_flutterNavigationVec;
-
-    bool isFlutterSemanticsTreeUpdated = false;
+    
     SemanticsNodeExtent inputFocusedNode;
     SemanticsNodeExtent lastInputFocusedNode;
     SemanticsNodeExtent accessibilityFocusedNode;

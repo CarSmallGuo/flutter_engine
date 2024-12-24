@@ -75,7 +75,6 @@ void OhosAccessibilityBridge::UpdateSemantics(
     flutter::CustomAccessibilityActionUpdates actions)
 {
     FML_DLOG(INFO) << "OhosAccessibilityBridge::UpdateSemantics()";
-    isFlutterSemanticsTreeUpdated = true;
     std::vector<SemanticsNodeExtent> updatedFlutterNodes;
 
     // 当flutter页面状态更新（路由新页面）时，自动请求root节点组件获焦（规避滑动组件更新干扰）
@@ -1055,7 +1054,7 @@ void OhosAccessibilityBridge::DispatchSemanticsAction(
  */
 void OhosAccessibilityBridge::DoubleClickRouteToNewPage(SemanticsNodeExtent node)
 {
-    if (isFlutterSemanticsTreeUpdated && node.HasFlag(FLAGS_::kIsButton)) {
+    if (node.HasFlag(FLAGS_::kIsButton)) {
         RequestFocusWhenPageUpdate(0);
     }
 }
