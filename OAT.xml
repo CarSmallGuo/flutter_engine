@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2021 Huawei Device Co., Ltd.
-
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          http://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
+<!-- 
+    Copyright (C) 2024 Huawei Device Co., Ltd. All rights reserved.
+ 
+    Use of this source code is governed by a BSD-style license that can be
+    found in the LICENSE file.
 
     This is the configuration file template for OpenHarmony OSS Audit Tool, please copy it to your
 project root dir and modify it refer to OpenHarmony/tools_oat/README.
@@ -92,7 +84,7 @@ used to filter file path.
 
         <filefilterlist>
             <filefilter name="defaultFilter" desc="Files not to check">
-                <filteritem type="filename" name="*.iml|*.json|*.txt" desc="desc files" />
+                <filteritem type="filename" name="*.iml|*.json|*.txt|*.yaml" desc="desc files" />
                 <filteritem type="filename"
                     name="*.png|*.ico|*.jpg|*.ttf|*.enc|*.mp4|*.ttc|*.key|*.heic|*.res|*.gif|*.otf|*.compiled|*.webp"
                     desc="app resource files" />
@@ -107,6 +99,53 @@ used to filter file path.
                 <filteritem type="filepath" name="shell/platform/ohos/flutter_embedding/hvigor/hvigor-wrapper.js" desc="hvigor编译标准程序" />
                 <filteritem type="filepath" name="shell/platform/ohos/flutter_embedding/hvigorw" desc="hvigor编译标准程序" />
                 <filteritem type="filepath" name="shell/platform/ohos/flutter_embedding/hvigorw.bat" desc="hvigor编译标准程序" />
+
+                <filteritem type="filepath" name="assets/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="attachment/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="benchmarking/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="build/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="ci/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="common/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="display_list/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="docs/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="examples/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="flow/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="flutter_frontend_server/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="flutter_vma/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="fml/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="impeller/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="lib/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="runtime/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="sky/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="testing/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="third_party/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="tools/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="vulkan/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="wasm/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="web_sdk/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+
+                <filteritem type="filepath" name="shell/common/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="shell/gpu/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="shell/profiling/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="shell/testing/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="shell/version/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="shell/vmservice/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+
+                <filteritem type="filepath" name="shell/platform/android/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="shell/platform/common/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="shell/platform/darwin/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="shell/platform/embedder/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="shell/platform/fuchsia/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="shell/platform/glfw/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="shell/platform/linux/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filepath" name="shell/platform/windows/*" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+
+                <filteritem type="filename" name=".pylintrc" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+                <filteritem type="filename" name="DEPS" desc="开源库代码（或原库代码文件）,不做侵入式修改" />
+
+                <filteritem type="filename" name="*.json5" desc="hvigor配置文件，DevEco Studio自动生成，不手动修改"/>
+                <filteritem type="filename" name="LICENSE" desc="LICENSE说明，不需要添加版权头"/>
+
             </filefilter>
             <filefilter name="defaultPolicyFilter"
                 desc="Filters for compatibility，license header policies">
