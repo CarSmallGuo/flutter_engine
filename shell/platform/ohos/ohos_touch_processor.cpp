@@ -179,7 +179,10 @@ void OhosTouchProcessor::HandleTouchEvent(
     OH_NativeXComponent_TouchPointToolType toolType;
     OH_NativeXComponent_GetTouchPointToolType(component, 0, &toolType);
     pointerData.kind = getPointerDeviceTypeForToolType(toolType);
-    pointerData.buttons = kPointerButtonTouchContact;
+    if (pointerData.change == PointerData::Change::kDown ||
+        pointerData.change == PointerData::Change::kMove) {
+      pointerData.buttons = kPointerButtonTouchContact;
+    }
     pointerData.pan_x = 0.0;
     pointerData.pan_y = 0.0;
     // Delta will be generated in pointer_data_packet_converter.cc.
