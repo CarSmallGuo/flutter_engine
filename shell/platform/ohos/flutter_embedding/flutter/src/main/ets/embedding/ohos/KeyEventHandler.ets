@@ -21,7 +21,8 @@ import { KeyCode } from "@kit.InputKit";
 
 const TAG = "KeyEventHandler";
 
-const CONTROL_KEYS = [
+// 组合键
+const COMBINATION_KEYS = [
   KeyCode.KEYCODE_CTRL_LEFT, KeyCode.KEYCODE_CTRL_RIGHT,
   KeyCode.KEYCODE_ALT_LEFT, KeyCode.KEYCODE_ALT_RIGHT
 ];
@@ -31,7 +32,7 @@ export class KeyEventHandler {
   private charMap : HashMap<number, string> = new HashMap();
   private shiftMap : HashMap<number, string> = new HashMap();
   private isShiftMode: boolean = false;
-  private isControlMode: boolean = false;
+  private isCombinationKey: boolean = false;
   // 记录输入的keyCode，确保有down和up事件才输入字符
   private inputMap: HashMap<number, string> = new HashMap();
 
@@ -159,16 +160,16 @@ export class KeyEventHandler {
     }));
     let text = this.getCharByEvent(event);
     if (event.type == KeyType.Down) {
-      if (!this.isControlMode) {
-        this.isControlMode = CONTROL_KEYS.findIndex((it) => it == event.keyCode) >= 0;
+      if (!this.isCombinationKey) {
+        this.isCombinationKey = COMBINATION_KEYS.findIndex((it) => it == event.keyCode) >= 0;
       }
       this.inputMap.set(event.keyCode, text);
     } else if (event.type == KeyType.Up) {
-      if (CONTROL_KEYS.findIndex((it) => it == event.keyCode) >= 0) {
+      if (COMBINATION_KEYS.findIndex((it) => it == event.keyCode) >= 0) {
         // Ctrl/Alt 键抬起，重置状态
-        this.isControlMode = false;
+        this.isCombinationKey = false;
         return;
-      } else if (this.isControlMode) {
+      } else if (this.isCombinationKey) {
         // Ctrl/Alt 键按下的状态，不输入字符（字母/数字/符号）
         return;
       }
