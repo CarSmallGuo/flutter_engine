@@ -50,6 +50,8 @@ public:
   void OnDispatchMouseEvent(OH_NativeXComponent* component, void* window);
   void OnDispatchMouseWheelEvent(mouseWheelEvent event);
 
+  void RegisterArkUIAccessibilityService(OH_NativeXComponent* nativeXComponent);
+
   OH_NativeXComponent_TouchEvent touchEvent_;
   OH_NativeXComponent_Callback callback_;
   OH_NativeXComponent_MouseEvent_Callback mouseCallback_;

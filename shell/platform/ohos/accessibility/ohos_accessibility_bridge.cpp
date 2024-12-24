@@ -24,45 +24,6 @@
 #include "third_party/skia/include/core/SkMatrix.h"
 #include "third_party/skia/include/core/SkScalar.h"
 
-#define ARKUI_SUCCEED_CODE 0
-#define ARKUI_FAILED_CODE -1
-#define ARKUI_BAD_PARAM_CODE -2
-#define ARKUI_OOM_CODE  -3
-
-#define ARKUI_ACCESSIBILITY_CALL_CHECK(X)                                 \
-    do {                                                                  \
-        int32_t RET = X;                                                  \
-        if (RET != ARKUI_SUCCEED_CODE) {                                  \
-            LOGE("Failed function %{public}s call, error code:%{public}d",\
-                #X, RET);                                                 \
-        }                                                                 \
-    }  while (false)                                                      \
-
-#define CHECK_DLL_NULL_PTR(func)                                      \
-    do {                                                              \
-        if (func == nullptr) {                                        \
-            LOGE("Error: Function %{public}s is nullptr, %{public}s", \
-                #func, LOAD_ERROR());                                 \
-        }                                                             \
-    } while (false)                                                   \
-
-#define CHECK_NULL_PTR(PARAM, FUNC)                            \
-    do {                                                       \
-        if (PARAM == nullptr) {                                \
-            LOGE("Error: %{public}s -> %{public}s is nullptr", \
-                #FUNC, #PARAM);                                \
-        }                                                      \
-    } while (false)                                            \
-
-#define CHECK_NULL_PTR_WITH_RET(PARAM, FUNC)                   \
-    do {                                                       \
-        if (PARAM == nullptr) {                                \
-            LOGE("Error: %{public}s -> %{public}s is nullptr", \
-                #FUNC, #PARAM);                                \
-            return ARKUI_FAILED_CODE;                          \
-        }                                                      \
-    } while (false)                                            \
-
 namespace flutter {
 
 const int32_t OhosAccessibilityBridge::OHOS_API_VERSION = OH_GetSdkApiVersion();
@@ -596,46 +557,37 @@ void OhosAccessibilityBridge::FlutterSetElementInfoOperationActions(
         // set elementinfo action types
         int32_t actionTypeNum = 10;
         ArkUI_AccessibleAction actions[actionTypeNum];
-
-        actions[0].actionType = ArkUI_Accessibility_ActionType::
+        int32_t idx = 0; 
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS;
-        actions[0].description = "获取焦点";
-
-        actions[1].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "获取焦点";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS;
-        actions[1].description = "清除焦点";
-
-        actions[2].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "清除焦点";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK;
-        actions[2].description = "点击操作";
-
-        actions[3].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "点击操作";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_LONG_CLICK;
-        actions[3].description = "长按操作";
-
-        actions[4].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "长按操作";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_COPY;
-        actions[4].description = "文本复制";
-
-        actions[5].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "文本复制";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_PASTE;
-        actions[5].description = "文本粘贴";
-
-        actions[6].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "文本粘贴";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CUT;
-        actions[6].description = "文本剪切";
-
-        actions[7].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "文本剪切";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SELECT_TEXT;
-        actions[7].description = "文本选择";
-
-        actions[8].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "文本选择";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_TEXT;
-        actions[8].description = "文本内容设置";
-
-        actions[9].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "文本内容设置";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_CURSOR_POSITION;
-        actions[9].description = "光标位置设置";
+        actions[idx].description = "光标位置设置";
 
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetOperationActions(elementInfoFromList, actionTypeNum, actions)
@@ -644,26 +596,22 @@ void OhosAccessibilityBridge::FlutterSetElementInfoOperationActions(
         // if node is a scrollable component
         int32_t actionTypeNum = 5;
         ArkUI_AccessibleAction actions[actionTypeNum];
-
-        actions[0].actionType = ArkUI_Accessibility_ActionType::
+        int32_t idx = 0; 
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS;
-        actions[0].description = "获取焦点";
-
-        actions[1].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "获取焦点";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS;
-        actions[1].description = "清除焦点";
-
-        actions[2].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "清除焦点";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK;
-        actions[2].description = "点击动作";
-
-        actions[3].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "点击动作";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_FORWARD;
-        actions[3].description = "向上滑动";
-
-        actions[4].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "向上滑动";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD;
-        actions[4].description = "向下滑动";
+        actions[idx].description = "向下滑动";
 
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetOperationActions(elementInfoFromList, actionTypeNum, actions)
@@ -672,18 +620,16 @@ void OhosAccessibilityBridge::FlutterSetElementInfoOperationActions(
         // set common component action types
         int32_t actionTypeNum = 3;
         ArkUI_AccessibleAction actions[actionTypeNum];
-
-        actions[0].actionType = ArkUI_Accessibility_ActionType::
+        int32_t idx = 0; 
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS;
-        actions[0].description = "获取焦点";
-
-        actions[1].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "获取焦点";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS;
-        actions[1].description = "清除焦点";
-
-        actions[2].actionType = ArkUI_Accessibility_ActionType::
+        actions[idx++].description = "清除焦点";
+        actions[idx].actionType = ArkUI_Accessibility_ActionType::
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK;
-        actions[2].description = "点击动作";
+        actions[idx].description = "点击动作";
 
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetOperationActions(elementInfoFromList, actionTypeNum, actions)

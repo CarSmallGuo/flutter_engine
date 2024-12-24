@@ -80,7 +80,7 @@ public:
 
     bool IS_FLUTTER_NAVIGATE = false;
     int64_t native_shell_holder_id_;
-    ArkUI_AccessibilityProvider* provider_;
+    ArkUI_AccessibilityProvider* provider_ = nullptr;
 
     void OnOhosAccessibilityStateChange(
         int64_t shellHolderId,
