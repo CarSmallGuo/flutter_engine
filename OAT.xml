@@ -86,6 +86,7 @@ used to filter file path.
                     desc="Process that runs independently, invoked by the X process." />
                 <policyitem type="compatibility" name="OFL-1.1-no-RFN" path=".*" desc="友好许可证，不影响兼容性" />
                 <policyitem type="compatibility" name="Apache-2.0" path=".*" desc="不影响兼容性" />
+                <policyitem type="compatibility" name="BSDStyleLicense" path=".*" desc="不影响兼容性" />
                 <policyitem type="license" name="BSDStyleLicense" path=".*" filefilter="defaultPolicyFilter" desc="不影响兼容性"/>
             </policy>
         </policylist>
