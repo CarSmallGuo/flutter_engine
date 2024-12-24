@@ -19,6 +19,8 @@
 #include <map>
 #include <utility>
 #include <vector>
+#include <memory>
+#include <mutex>
 #include <arkui/native_interface_accessibility.h>
 #include "flutter/fml/mapping.h"
 #include "flutter/lib/ui/semantics/custom_accessibility_action.h"
@@ -27,6 +29,7 @@
 #include "ohos_accessibility_features.h"
 #include "ohos_accessibility_ddl.h"
 #include "flutter/shell/platform/ohos/utils/ohos_utils.h"
+#include "flutter/shell/platform/ohos/utils/arkui_accessibility_constant.h"
 
 namespace flutter {
 typedef flutter::SemanticsFlags FLAGS_;
@@ -72,13 +75,12 @@ struct SemanticsNodeExtent : flutter::SemanticsNode {
 class OhosAccessibilityBridge {
 public:
     static OhosAccessibilityBridge* GetInstance();
-    static void DestroyInstance();
     OhosAccessibilityBridge(const OhosAccessibilityBridge&) = delete;
     OhosAccessibilityBridge& operator=(const OhosAccessibilityBridge&) = delete;
 
     bool IS_FLUTTER_NAVIGATE = false;
     int64_t native_shell_holder_id_;
-    ArkUI_AccessibilityProvider* provider_;
+    ArkUI_AccessibilityProvider* provider_ = nullptr;
 
     void OnOhosAccessibilityStateChange(
         int64_t shellHolderId,
@@ -130,9 +132,6 @@ public:
     void Flutter_SendAccessibilityAsyncEvent(
         int64_t elementId,
         ArkUI_AccessibilityEventType eventType);
-    void FlutterNodeToElementInfoById(
-        ArkUI_AccessibilityElementInfo* elementInfoFromList,
-        int64_t elementId);
     int32_t GetParentId(int64_t elementId);
 
     void FlutterRelativeRectToScreenRect(SemanticsNodeExtent node);
@@ -152,8 +151,9 @@ public:
     void ClearFlutterSemanticsCaches();
 
 private:
-    OhosAccessibilityBridge();
-    static OhosAccessibilityBridge* bridgeInstance;
+    OhosAccessibilityBridge() = default;
+    static std::unique_ptr<OhosAccessibilityBridge> bridgeInstance_;
+
     std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
     std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
 
@@ -162,8 +162,7 @@ private:
     std::unordered_map<int32_t, AbsoluteRect> g_screenRectMap;
     std::unordered_map<int32_t, flutter::CustomAccessibilityAction> g_actions_mp;
     std::vector<int32_t> g_flutterNavigationVec;
-
-    bool isFlutterSemanticsTreeUpdated = false;
+    
     SemanticsNodeExtent inputFocusedNode;
     SemanticsNodeExtent lastInputFocusedNode;
     SemanticsNodeExtent accessibilityFocusedNode;
