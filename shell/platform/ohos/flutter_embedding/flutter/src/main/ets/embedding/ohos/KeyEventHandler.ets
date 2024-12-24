@@ -156,7 +156,7 @@ export class KeyEventHandler {
       }
       // 处理非字符按键
       if (event.keyCode == KeyCode.KEYCODE_DEL) {
-        this.textInputPlugin?.getEditingState().handleDeleteEvent(false, 0)
+        this.textInputPlugin?.getEditingState().handleDeleteEvent(false, 1)
       }
     }
     this.isShiftMode = event.keyCode == KeyCode.KEYCODE_SHIFT_LEFT
