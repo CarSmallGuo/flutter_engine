@@ -89,7 +89,7 @@ export class ViewportMetrics {
       this.systemGestureInsetBottom === other.systemGestureInsetBottom &&
       this.systemGestureInsetLeft === other.systemGestureInsetLeft &&
       this.physicalTouchSlop === other.physicalTouchSlop &&
-      this.displayFeatures == other.displayFeatures;
+      this.displayFeatures === other.displayFeatures;
   }
 }
 
