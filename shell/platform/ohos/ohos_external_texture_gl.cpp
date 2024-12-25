@@ -303,6 +303,11 @@ void OHOSExternalTextureGL::Show()
       FML_LOG(ERROR) << "OHOSExternalTextureGL show, AttachContext failed, err code:" << ret;
     }
     state_ = AttachmentState::attached;
+    fml::TaskRunner::RunNowOrPostTask(
+        task_runners_.GetPlatformTaskRunner(),
+        [this]() {
+          delegate_.OnPlatformViewMarkTextureFrameAvailable(Id());
+        });
   } else {
     FML_LOG(ERROR) << "OHOSExternalTextureGL show, MakeCurrent failed";
     return;
@@ -318,11 +323,6 @@ void OHOSExternalTextureGL::OnGrContextCreated()
       task_runners_.GetRasterTaskRunner(),
       [this]() {
         Show();
-      });
-  fml::TaskRunner::RunNowOrPostTask(
-      task_runners_.GetPlatformTaskRunner(),
-      [this]() {
-        delegate_.OnPlatformViewMarkTextureFrameAvailable(Id());
       });
 }
 
@@ -386,13 +386,13 @@ void OHOSExternalTextureGL::OnTextureUnregistered()
     << ", backGroundNativeImage_=" << backGroundNativeImage_;
   first_update_ = false;
   fml::TaskRunner::RunNowOrPostTask(
-    task_runners_.GetRasterTaskRunner(),
-    [this]() {
-      if (state_ == AttachmentState::attached || state_ == AttachmentState::hide) {
-        Detach();
-        state_ = AttachmentState::detached;
-      }
-    });
+      task_runners_.GetRasterTaskRunner(),
+      [this]() {
+        if (state_ == AttachmentState::attached || state_ == AttachmentState::hide) {
+          Detach();
+          state_ = AttachmentState::detached;
+        }
+      });
 }
 
 bool OHOSExternalTextureGL::IsContextCurrent()
