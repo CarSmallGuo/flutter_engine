@@ -105,4 +105,34 @@ namespace flutter {
     auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
     ohos_a11y_bridge->Announce(message);
   }
+
+  /**
+   * 利用通道内部类AccessibilityMessageHandler处理主动点击给定id组件事件
+   */
+  void NativeAccessibilityChannel::AccessibilityMessageHandler::OnTap(
+      int32_t nodeId)
+  {
+    auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
+    ohos_a11y_bridge->OnTap(nodeId);
+  }
+
+  /**
+   * 利用通道内部类AccessibilityMessageHandler处理主动长按给定id组件事件
+   */
+  void NativeAccessibilityChannel::AccessibilityMessageHandler::OnLongPress(
+      int32_t nodeId)
+  {
+    auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
+    ohos_a11y_bridge->OnLongPress(nodeId);
+  }
+
+  /**
+   * 利用通道内部类AccessibilityMessageHandler处理提示文字事件
+   */
+  void NativeAccessibilityChannel::AccessibilityMessageHandler::OnTooltip(
+      std::unique_ptr<char[]>& message)
+  {
+    auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
+    ohos_a11y_bridge->OnTooltip(message);
+  }
 }

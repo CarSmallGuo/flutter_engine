@@ -54,6 +54,7 @@ void OhosAccessibilityBridge::OnOhosAccessibilityStateChange(
     accessibilityFeatures_ = std::make_shared<OhosAccessibilityFeatures>();
 
     if (ohosAccessibilityEnabled) {
+        isAccessibilityEnabled_ = ohosAccessibilityEnabled;
         nativeAccessibilityChannel_->OnOhosAccessibilityEnabled(native_shell_holder_id_);
     } else {
         accessibilityFeatures_->SetAccessibleNavigation(false, native_shell_holder_id_);
@@ -326,50 +327,49 @@ void OhosAccessibilityBridge::RequestFocusWhenPageUpdate(int32_t requestFocusId)
 }
 
 /**
- * 主动播报特定文本
+ * 业务侧通过无障碍通道主动播报自定义文本内容
  */
 void OhosAccessibilityBridge::Announce(std::unique_ptr<char[]>& message)
 {
-    if (OHOS_API_VERSION < 13) { return; }
-    CHECK_NULL_PTR(provider_, Announce);
+    if (!isAccessibilityEnabled_) { return; }
+    Flutter_SendAccessibilityAnnounceEvent(
+        message, ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ANNOUNCE_FOR_ACCESSIBILITY);
+    LOGD("Announce -> message: %{public}s", message.get());
+}
 
-    // 创建并设置屏幕朗读事件
-    auto OH_ArkUI_CreateAccessibilityEventInfo =
-        OhosAccessibilityDDL::DLLoadCreateEventInfoFunc(ArkUIAccessibilityConstant::ARKUI_CREATE_EVENT);
-    CHECK_DLL_NULL_PTR(OH_ArkUI_CreateAccessibilityEventInfo);
-    auto* announceEventInfo = OH_ArkUI_CreateAccessibilityEventInfo();
+/**
+ * 业务侧通过无障碍通道主动点击给定id的组件节点
+ */
+void OhosAccessibilityBridge::OnTap(int32_t nodeId)
+{
+    if (!isAccessibilityEnabled_) { return; }
+    Flutter_SendAccessibilityAsyncEvent(static_cast<int64_t>(nodeId),
+                                        ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_CLICKED);
+    LOGD("OnTap -> nodeId: %{public}d", nodeId);
+}
 
+/**
+ * 业务侧通过无障碍通道主动长按给定id的组件节点
+ */
+void OhosAccessibilityBridge::OnLongPress(int32_t nodeId)
+{
+    if (!isAccessibilityEnabled_) { return; }
+    Flutter_SendAccessibilityAsyncEvent(static_cast<int64_t>(nodeId),
+                                        ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_LONG_CLICKED);
+    LOGD("OnLongPress -> nodeId: %{public}d", nodeId);
+}
 
-    auto OH_ArkUI_AccessibilityEventSetEventType =
-        OhosAccessibilityDDL::DLLoadSetEventFunc(ArkUIAccessibilityConstant::ARKUI_SET_EVENT_TYPE);
-    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityEventSetEventType);
-    ARKUI_ACCESSIBILITY_CALL_CHECK(
-        OH_ArkUI_AccessibilityEventSetEventType(
-            announceEventInfo,
-            ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ANNOUNCE_FOR_ACCESSIBILITY));
-
-    auto OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility =
-        OhosAccessibilityDDL::DLLoadSetEventStringFunc(ArkUIAccessibilityConstant::ARKUI_SET_ANNOUNCED_TEXT);
-    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility);
-    ARKUI_ACCESSIBILITY_CALL_CHECK(
-        OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility(
-            announceEventInfo, message.get()));
-    FML_DLOG(INFO) << ("announce -> message: ") << (message.get());
-
-    auto callback = [](int32_t errorCode) {
-        FML_DLOG(WARNING) << "announce callback-> errorCode =" << errorCode;
-    };
-
-    auto OH_ArkUI_SendAccessibilityAsyncEvent =
-        OhosAccessibilityDDL::DLLoadSendAsyncEventFunc(ArkUIAccessibilityConstant::ARKUI_SEND_A11Y_EVENT);
-    CHECK_DLL_NULL_PTR(OH_ArkUI_SendAccessibilityAsyncEvent);
-    OH_ArkUI_SendAccessibilityAsyncEvent(provider_, announceEventInfo, callback);
-
-    auto OH_ArkUI_DestoryAccessibilityEventInfo = 
-        OhosAccessibilityDDL::DLLoadDestroyEventFunc(ArkUIAccessibilityConstant::ARKUI_DESTORY_EVENT);
-    CHECK_DLL_NULL_PTR(OH_ArkUI_DestoryAccessibilityEventInfo);
-    OH_ArkUI_DestoryAccessibilityEventInfo(announceEventInfo);
-    announceEventInfo = nullptr;
+/**
+ * 业务侧通过无障碍通道主动长按给定id的组件节点
+ */
+void OhosAccessibilityBridge::OnTooltip(std::unique_ptr<char[]>& message)
+{
+    if (!isAccessibilityEnabled_) { return; }
+    Flutter_SendAccessibilityAsyncEvent(static_cast<int64_t>(ROOT_NODE_ID),
+                                        ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_PAGE_STATE_UPDATE);
+    Flutter_SendAccessibilityAnnounceEvent(
+        message, ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ANNOUNCE_FOR_ACCESSIBILITY);
+    LOGD("OnTooltip -> message: %{public}s", message.get());
 }
 
 //获取根节点
@@ -778,6 +778,16 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
         );
         FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                        << " OH_ArkUI_AccessibilityElementInfoSetFocusable -> true";
+    }
+    if (IsNodeFocused(flutterNode)) {
+        auto OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused =
+            OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_A11Y_FOCUSED);
+        CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused);
+        ARKUI_ACCESSIBILITY_CALL_CHECK(
+            OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused(elementInfoFromList, true)
+        );
+        FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
+                       << " OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused -> true";
     }
     // 判断当前节点是否为密码输入框
     if (IsNodePassword(flutterNode)) {
@@ -1564,6 +1574,51 @@ flutter::SemanticsAction OhosAccessibilityBridge::ArkuiActionsToFlutterActions(
 }
 
 /**
+ * flutter发送无障碍自定义主动播报事件
+ */
+void OhosAccessibilityBridge::Flutter_SendAccessibilityAnnounceEvent(
+    std::unique_ptr<char[]>& message,
+    ArkUI_AccessibilityEventType eventType)
+{
+     // 创建并设置屏幕朗读事件
+    auto OH_ArkUI_CreateAccessibilityEventInfo =
+        OhosAccessibilityDDL::DLLoadCreateEventInfoFunc(ArkUIAccessibilityConstant::ARKUI_CREATE_EVENT);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_CreateAccessibilityEventInfo);
+    auto* announceEventInfo = OH_ArkUI_CreateAccessibilityEventInfo();
+
+    auto OH_ArkUI_AccessibilityEventSetEventType =
+        OhosAccessibilityDDL::DLLoadSetEventFunc(ArkUIAccessibilityConstant::ARKUI_SET_EVENT_TYPE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityEventSetEventType);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityEventSetEventType(
+            announceEventInfo,
+            ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ANNOUNCE_FOR_ACCESSIBILITY));
+
+    auto OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility =
+        OhosAccessibilityDDL::DLLoadSetEventStringFunc(ArkUIAccessibilityConstant::ARKUI_SET_ANNOUNCED_TEXT);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility(
+            announceEventInfo, message.get()));
+    FML_DLOG(INFO) << ("announce -> message: ") << (message.get());
+
+    auto callback = [](int32_t errorCode) {
+        FML_DLOG(WARNING) << "announce callback-> errorCode =" << errorCode;
+    };
+
+    auto OH_ArkUI_SendAccessibilityAsyncEvent =
+        OhosAccessibilityDDL::DLLoadSendAsyncEventFunc(ArkUIAccessibilityConstant::ARKUI_SEND_A11Y_EVENT);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_SendAccessibilityAsyncEvent);
+    OH_ArkUI_SendAccessibilityAsyncEvent(provider_, announceEventInfo, callback);
+
+    auto OH_ArkUI_DestoryAccessibilityEventInfo = 
+        OhosAccessibilityDDL::DLLoadDestroyEventFunc(ArkUIAccessibilityConstant::ARKUI_DESTORY_EVENT);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_DestoryAccessibilityEventInfo);
+    OH_ArkUI_DestoryAccessibilityEventInfo(announceEventInfo);
+    announceEventInfo = nullptr;
+}
+
+/**
  * 自定义无障碍异步事件发送
  */
 void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
@@ -1574,56 +1629,46 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
 
     CHECK_NULL_PTR(provider_, Flutter_SendAccessibilityAsyncEvent);
 
-    // 1.创建eventInfo对象
+    // 创建eventInfo对象
     auto OH_ArkUI_CreateAccessibilityEventInfo =
         OhosAccessibilityDDL::DLLoadCreateEventInfoFunc(ArkUIAccessibilityConstant::ARKUI_CREATE_EVENT);
     CHECK_DLL_NULL_PTR(OH_ArkUI_CreateAccessibilityEventInfo);
     auto* eventInfo = OH_ArkUI_CreateAccessibilityEventInfo();
     CHECK_NULL_PTR(eventInfo, Flutter_SendAccessibilityAsyncEvent);
 
-    // 2.创建的elementinfo并根据对应id的flutternode进行属性初始化
+    // 创建的elementinfo并根据对应id的flutternode进行属性初始化
     auto OH_ArkUI_CreateAccessibilityElementInfo =
         OhosAccessibilityDDL::DLLoadCreateElemInfoFunc(ArkUIAccessibilityConstant::ARKUI_CREATE_NODE);
     CHECK_DLL_NULL_PTR(OH_ArkUI_CreateAccessibilityElementInfo);
     ArkUI_AccessibilityElementInfo* _elementInfo = OH_ArkUI_CreateAccessibilityElementInfo();
     FlutterSetElementInfoProperties(_elementInfo, elementId);
 
-    // 若为获焦事件，则设置当前elementinfo获焦
-    auto OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused =
-        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_A11Y_FOCUSED);
-    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused);
-    if (eventType == ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ACCESSIBILITY_FOCUSED) {
-        ARKUI_ACCESSIBILITY_CALL_CHECK(
-            OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused(_elementInfo, true)
-        );
-    }
-
-    // 3.设置发送事件，如配置获焦、失焦、点击、滑动事件
-    auto OH_ArkUI_AccessibilityEventSetEventType =
-        OhosAccessibilityDDL::DLLoadSetEventFunc(ArkUIAccessibilityConstant::ARKUI_SET_EVENT_TYPE);
-    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityEventSetEventType);
-    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityEventSetEventType(eventInfo, eventType));
-
-    // 4.将eventinfo事件和当前elementinfo进行绑定
+    // 将eventinfo事件和当前elementinfo进行绑定
     auto OH_ArkUI_AccessibilityEventSetElementInfo =
         OhosAccessibilityDDL::DLLoadSetEventElemFunc(ArkUIAccessibilityConstant::ARKUI_EVENT_SET_NODE);
     CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityEventSetElementInfo);
     ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityEventSetElementInfo(eventInfo, _elementInfo));
 
-    // 5.调用接口发送到ohos侧
+    // 设置发送事件，如配置获焦、失焦、点击、滑动事件
+    auto OH_ArkUI_AccessibilityEventSetEventType =
+        OhosAccessibilityDDL::DLLoadSetEventFunc(ArkUIAccessibilityConstant::ARKUI_SET_EVENT_TYPE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityEventSetEventType);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityEventSetEventType(eventInfo, eventType));
+
+    // 调用接口发送到ohos侧
     auto callback = [](int32_t errorCode) {
         FML_DLOG(INFO)
             << "Flutter_SendAccessibilityAsyncEvent callback-> errorCode ="
             << errorCode;
     };
 
-    // 6.发送event到OH侧
+    // 发送event到OH侧
     auto OH_ArkUI_SendAccessibilityAsyncEvent =
         OhosAccessibilityDDL::DLLoadSendAsyncEventFunc(ArkUIAccessibilityConstant::ARKUI_SEND_A11Y_EVENT);
     CHECK_DLL_NULL_PTR(OH_ArkUI_SendAccessibilityAsyncEvent);
     OH_ArkUI_SendAccessibilityAsyncEvent(provider_, eventInfo, callback);
 
-    // 7.销毁新创建的elementinfo, eventinfo
+    // 销毁新创建的elementinfo, eventinfo
     auto OH_ArkUI_DestoryAccessibilityElementInfo =
         OhosAccessibilityDDL::DLLoadDestroyElemFunc(ArkUIAccessibilityConstant::ARKUI_DESTORY_NODE);
     CHECK_DLL_NULL_PTR(OH_ArkUI_DestoryAccessibilityElementInfo);
@@ -1934,8 +1979,6 @@ void OhosAccessibilityBridge::ClearFlutterSemanticsCaches()
     g_flutterSemanticsTree.clear();
     g_parentChildIdVec.clear();
     g_screenRectMap.clear();
-    g_actions_mp.clear();
-    g_flutterNavigationVec.clear();
 }
 
 /**
