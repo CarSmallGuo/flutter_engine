@@ -1,7 +1,6 @@
 {
   "darwin-arm64": {
     "src/out/host_release/gen/flutter/build/archives/LICENSE.artifacts.md": "LICENSE.artifacts.md",
-    "src/flutter/lib/gpu/": "flutter_gpu",
     "src/out/host_release/frontend_server.dart.snapshot": "frontend_server.dart.snapshot",
     "src/out/host_release/gen_snapshot": "gen_snapshot",
     "src/out/host_release/icudtl.dat": "icudtl.dat",
@@ -16,7 +15,6 @@
   },
   "darwin-x64": {
     "src/out/host_release/gen/flutter/build/archives/LICENSE.artifacts.md": "LICENSE.artifacts.md",
-    "src/flutter/lib/gpu/": "flutter_gpu",
     "src/out/host_release/flutter_tester": "flutter_tester",
     "src/out/host_release/frontend_server.dart.snapshot": "frontend_server.dart.snapshot",
     "src/out/host_release/gen_snapshot": "gen_snapshot",
@@ -31,7 +29,6 @@
   },
   "windows-x64": {
     "src/out/host_release/gen/flutter/build/archives/LICENSE.artifacts.md": "LICENSE.artifacts.md",
-    "src/flutter/lib/gpu/": "flutter_gpu",
     "src/out/host_release/flutter_tester.exe": "flutter_tester.exe",
     "src/out/host_release/frontend_server.dart.snapshot": "frontend_server.dart.snapshot",
     "src/out/host_release/gen_snapshot.exe": "gen_snapshot.exe",
@@ -46,7 +43,6 @@
   },
   "linux-x64": {
     "src/out/host_release/gen/flutter/build/archives/LICENSE.artifacts.md": "LICENSE.artifacts.md",
-    "src/flutter/lib/gpu/": "flutter_gpu",
     "src/out/host_release/flutter_tester": "flutter_tester",
     "src/out/host_release/frontend_server.dart.snapshot": "frontend_server.dart.snapshot",
     "src/out/host_release/gen_snapshot": "gen_snapshot",
