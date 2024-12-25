@@ -21,20 +21,11 @@ import { KeyCode } from "@kit.InputKit";
 
 const TAG = "KeyEventHandler";
 
-// 组合键
-const COMBINATION_KEYS = [
-  KeyCode.KEYCODE_CTRL_LEFT, KeyCode.KEYCODE_CTRL_RIGHT,
-  KeyCode.KEYCODE_ALT_LEFT, KeyCode.KEYCODE_ALT_RIGHT
-];
-
 export class KeyEventHandler {
   private textInputPlugin?: TextInputPlugin;
   private charMap : HashMap<number, string> = new HashMap();
   private shiftMap : HashMap<number, string> = new HashMap();
   private isShiftMode: boolean = false;
-  private isCombinationKey: boolean = false;
-  // 记录输入的keyCode，确保有down和up事件才输入字符
-  private inputMap: HashMap<number, string> = new HashMap();
 
   constructor(textInputPlugin?: TextInputPlugin) {
     this.textInputPlugin = textInputPlugin;
@@ -156,30 +147,18 @@ export class KeyEventHandler {
   handleKeyEvent(event: KeyEvent) {
     Log.i(TAG, JSON.stringify({
       "name": "handleKeyEvent",
-      "event": event,
+      "event": event
     }));
-    let text = this.getCharByEvent(event);
-    if (event.type == KeyType.Down) {
-      if (!this.isCombinationKey) {
-        this.isCombinationKey = COMBINATION_KEYS.findIndex((it) => it == event.keyCode) >= 0;
-      }
-      this.inputMap.set(event.keyCode, text);
-    } else if (event.type == KeyType.Up) {
-      if (COMBINATION_KEYS.findIndex((it) => it == event.keyCode) >= 0) {
-        // Ctrl/Alt 键抬起，重置状态
-        this.isCombinationKey = false;
-        return;
-      } else if (this.isCombinationKey) {
-        // Ctrl/Alt 键按下的状态，不输入字符（字母/数字/符号）
-        return;
-      }
+    if (event.type == KeyType.Up) {
       // 处理字符按键相关逻辑
-      if (this.inputMap.hasKey(event.keyCode) && this.charMap.hasKey(event.keyCode)) {
-        this.inputMap.remove(event.keyCode)
-        this.textInputPlugin?.getEditingState().handleInsertTextEvent(text)
+      if (this.charMap.hasKey(event.keyCode)) {
+        this.textInputPlugin?.getEditingState().handleInsertTextEvent(this.getCharByEvent(event))
+      }
+      // 处理非字符按键
+      if (event.keyCode == KeyCode.KEYCODE_DEL) {
+        this.textInputPlugin?.getEditingState().handleDeleteEvent(false, 0)
       }
     }
     this.isShiftMode = event.keyCode == KeyCode.KEYCODE_SHIFT_LEFT
-        || event.keyCode == KeyCode.KEYCODE_SHIFT_RIGHT
   }
 }
