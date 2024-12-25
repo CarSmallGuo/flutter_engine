@@ -96,8 +96,12 @@ public:
                                  fml::MallocMapping args);
 
     void Announce(std::unique_ptr<char[]>& message);
+    void OnTap(int32_t nodeId);
+    void OnLongPress(int32_t nodeId);
+    void OnTooltip(std::unique_ptr<char[]>& message);
 
     SemanticsNodeExtent GetFlutterSemanticsNode(int32_t id);
+    int32_t GetParentId(int64_t elementId);
 
     int32_t FindAccessibilityNodeInfosById(
         int64_t elementId,
@@ -132,7 +136,9 @@ public:
     void Flutter_SendAccessibilityAsyncEvent(
         int64_t elementId,
         ArkUI_AccessibilityEventType eventType);
-    int32_t GetParentId(int64_t elementId);
+    void Flutter_SendAccessibilityAnnounceEvent(
+        std::unique_ptr<char[]>& message,
+        ArkUI_AccessibilityEventType eventType);
 
     void FlutterRelativeRectToScreenRect(SemanticsNodeExtent node);
     AbsoluteRect GetAbsoluteScreenRect(SemanticsNodeExtent& flutterNode);
@@ -152,17 +158,15 @@ public:
 
 private:
     OhosAccessibilityBridge() = default;
+    bool isAccessibilityEnabled_ = false;
     static std::unique_ptr<OhosAccessibilityBridge> bridgeInstance_;
-
     std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
     std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
 
     std::vector<std::pair<int32_t, int32_t>> g_parentChildIdVec;
     std::map<int32_t, SemanticsNodeExtent> g_flutterSemanticsTree;
     std::unordered_map<int32_t, AbsoluteRect> g_screenRectMap;
-    std::unordered_map<int32_t, flutter::CustomAccessibilityAction> g_actions_mp;
-    std::vector<int32_t> g_flutterNavigationVec;
-    
+
     SemanticsNodeExtent inputFocusedNode;
     SemanticsNodeExtent lastInputFocusedNode;
     SemanticsNodeExtent accessibilityFocusedNode;

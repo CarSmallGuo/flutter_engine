@@ -219,7 +219,16 @@ class PlatformViewOHOSNapi {
   static napi_value nativeAccessibilityStateChange(
       napi_env env,
       napi_callback_info info);
-  static napi_value nativeAnnounce(
+  static napi_value nativeAccessibilityAnnounce(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeAccessibilityOnTap(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeAccessibilityOnLongPress(
+      napi_env env,
+      napi_callback_info info);
+  static napi_value nativeAccessibilityOnTooltip(
       napi_env env,
       napi_callback_info info);
   static napi_value nativeSetSemanticsEnabled(napi_env env, napi_callback_info info);
@@ -266,6 +275,7 @@ class PlatformViewOHOSNapi {
   static std::vector<std::string> system_languages;
   fml::RefPtr<fml::TaskRunner> platform_task_runner_;
   static int64_t napi_shell_holder_id_;
+  static const int32_t OHOS_API_VERSION;
 };
 
 }  // namespace flutter

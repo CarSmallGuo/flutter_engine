@@ -148,7 +148,13 @@ export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number,
 
 export const nativeAccessibilityStateChange: (nativeShellHolderId: number, state: Boolean) => void;
 
-export const nativeAnnounce: (message: string) => void;
+export const nativeAccessibilityAnnounce: (message: string) => void;
+
+export const nativeAccessibilityOnTap: (nodeId: number) => void;
+
+export const nativeAccessibilityOnLongPress: (nodeId: number) => void;
+
+export const nativeAccessibilityOnTooltip: (message: string) => void;
 
 export const nativeSetSemanticsEnabled: (nativeShellHolderId: number, enabled: boolean) => void;
 

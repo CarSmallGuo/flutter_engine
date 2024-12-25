@@ -146,8 +146,17 @@ static napi_value Init(napi_env env, napi_value exports) {
           "nativeAccessibilityStateChange",
           flutter::PlatformViewOHOSNapi::nativeAccessibilityStateChange),
       DECLARE_NAPI_FUNCTION(
-          "nativeAnnounce",
-          flutter::PlatformViewOHOSNapi::nativeAnnounce),
+          "nativeAccessibilityAnnounce",
+          flutter::PlatformViewOHOSNapi::nativeAccessibilityAnnounce),
+      DECLARE_NAPI_FUNCTION(
+          "nativeAccessibilityOnTap",
+          flutter::PlatformViewOHOSNapi::nativeAccessibilityOnTap),
+      DECLARE_NAPI_FUNCTION(
+          "nativeAccessibilityOnLongPress",
+          flutter::PlatformViewOHOSNapi::nativeAccessibilityOnLongPress),
+      DECLARE_NAPI_FUNCTION(
+          "nativeAccessibilityOnTooltip",
+          flutter::PlatformViewOHOSNapi::nativeAccessibilityOnTooltip),
       DECLARE_NAPI_FUNCTION(
           "nativeSetSemanticsEnabled",
           flutter::PlatformViewOHOSNapi::nativeSetSemanticsEnabled),

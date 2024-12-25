@@ -40,6 +40,7 @@ namespace flutter {
 napi_env PlatformViewOHOSNapi::env_;
 std::vector<std::string> PlatformViewOHOSNapi::system_languages;
 int64_t PlatformViewOHOSNapi::napi_shell_holder_id_;
+const int32_t PlatformViewOHOSNapi::OHOS_API_VERSION = OH_GetSdkApiVersion();
 
 /**
  * @brief send  empty PlatformMessage
@@ -1881,7 +1882,7 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
   return nullptr;
 }
 
-napi_value PlatformViewOHOSNapi::nativeAnnounce(
+napi_value PlatformViewOHOSNapi::nativeAccessibilityAnnounce(
   napi_env env,
   napi_callback_info info) {
   size_t argc = 1;
@@ -1895,11 +1896,70 @@ napi_value PlatformViewOHOSNapi::nativeAnnounce(
   auto char_array = std::make_unique<char[]>(null_terminated_length);
   napi_get_value_string_utf8(env, args[0], char_array.get(),
                              null_terminated_length, nullptr);
-  LOGD("PlatformViewOHOSNapi::nativeAnnounce message: %{public}s", char_array.get());
-  const int32_t OHOS_API_VERSION = OH_GetSdkApiVersion();
+  LOGD("PlatformViewOHOSNapi::nativeAccessibilityAnnounce message: %{public}s", char_array.get());
+
   if (OHOS_API_VERSION >= 13) {
       auto handler = std::make_shared<NativeAccessibilityChannel::AccessibilityMessageHandler>();
       handler->Announce(char_array);
+  }
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeAccessibilityOnTap(
+  napi_env env,
+  napi_callback_info info) {
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  int32_t nodeId;
+  napi_get_value_int32(env, args[0], &nodeId);
+
+  if (OHOS_API_VERSION >= 13) {
+      auto handler = std::make_shared<NativeAccessibilityChannel::AccessibilityMessageHandler>();
+      handler->OnTap(nodeId);
+      LOGI("nativeAccessibilityOnTap -> nodeId:%{public}d", nodeId);
+  }
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeAccessibilityOnLongPress(
+  napi_env env,
+  napi_callback_info info) {
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  int32_t nodeId;
+  napi_get_value_int32(env, args[0], &nodeId);;
+
+  if (OHOS_API_VERSION >= 13) {
+      auto handler = std::make_shared<NativeAccessibilityChannel::AccessibilityMessageHandler>();
+      handler->OnLongPress(nodeId);
+      LOGI("nativeAccessibilityOnLongPress -> nodeId:%{public}d", nodeId);
+  }
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeAccessibilityOnTooltip(
+  napi_env env,
+  napi_callback_info info) {
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  size_t length = 0;
+  napi_get_value_string_utf8(env, args[0], nullptr, 0, &length);
+
+  auto null_terminated_length = length + 1;
+  auto char_array = std::make_unique<char[]>(null_terminated_length);
+  napi_get_value_string_utf8(env, args[0], char_array.get(),
+                             null_terminated_length, nullptr);
+  LOGD("PlatformViewOHOSNapi::nativeAccessibilityOnTooltip message: %{public}s", char_array.get());
+
+if (OHOS_API_VERSION >= 13) {
+      auto handler = std::make_shared<NativeAccessibilityChannel::AccessibilityMessageHandler>();
+      handler->OnTooltip(char_array);
   }
   return nullptr;
 }
