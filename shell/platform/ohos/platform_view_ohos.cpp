@@ -120,8 +120,10 @@ PlatformViewOHOS::~PlatformViewOHOS() {
   for (auto const &it : external_texture_gl_) {
     if (it.second != nullptr) {
       FML_LOG(INFO) << " nativeImage of textureId " << it.first << " will destroy";
-      OH_NativeImage_Destroy(&(it.second->nativeImage_));
-      it.second->nativeImage_ = nullptr;
+      if (it.second->nativeImage_ != nullptr) {
+        OH_NativeImage_Destroy(&(it.second->nativeImage_));
+        it.second->nativeImage_ = nullptr;
+      }
     }
   }
   external_texture_gl_.clear();
