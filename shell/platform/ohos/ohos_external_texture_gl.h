@@ -87,6 +87,10 @@ class OHOSExternalTextureGL : public flutter::Texture, public std::enable_shared
 
   void Detach();
 
+  void Hide();
+
+  void Show();
+
   void UpdateTransform(OH_NativeImage *image);
 
   EGLDisplay GetPlatformEglDisplay(EGLenum platform, void *native_display, const EGLint *attrib_list);
@@ -101,7 +105,7 @@ class OHOSExternalTextureGL : public flutter::Texture, public std::enable_shared
 
   void ProducePixelMapToBackGroundImage();
 
-  enum class AttachmentState { uninitialized, attached, detached };
+  enum class AttachmentState { uninitialized, attached, detached, hide };
 
   AttachmentState state_;
 
