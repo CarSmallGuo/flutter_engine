@@ -24,6 +24,7 @@
 #include "flutter/shell/common/vsync_waiter.h"
 
 namespace flutter {
+using NativeDvsyncFunc = int (*)(OH_NativeVSync* nativeVSync, bool enable);
 
 class VsyncWaiterOHOS final : public VsyncWaiter {
  public:
@@ -45,8 +46,12 @@ class VsyncWaiterOHOS final : public VsyncWaiter {
   static void ConsumePendingCallback(std::weak_ptr<VsyncWaiter>* weak_this,
                                      fml::TimePoint frame_start_time,
                                      fml::TimePoint frame_target_time);
+  void SetDvsyncSwitch(bool enableDvsync);
 
   OH_NativeVSync* vsyncHandle;
+  NativeDvsyncFunc nativeDvsyncFunc_ = nullptr;
+  void *handle_ = nullptr;
+  int32_t apiVersion_ = 0;
   FML_DISALLOW_COPY_AND_ASSIGN(VsyncWaiterOHOS);
 };
 }  // namespace flutter
