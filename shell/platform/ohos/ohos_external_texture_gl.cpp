@@ -334,7 +334,7 @@ void OHOSExternalTextureGL::Hide()
   }
   if (nativeImage_ != nullptr) {
     OH_NativeImage_DetachContext(nativeImage_);
-    if (backGroundTextureName_ != 0) {
+    if (texture_name_ != 0) {
       glDeleteTextures(1, &texture_name_);
       texture_name_ = 0;
     }
