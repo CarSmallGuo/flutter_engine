@@ -19,6 +19,7 @@ namespace {
 // for further discussion on why this is necessary.
 constexpr fml::TimeDelta kNotifyIdleTaskWaitTime =
     fml::TimeDelta::FromMilliseconds(51);
+constexpr uint32_t DVSYNC_BUFFER_COUNT = 4;
 
 }  // namespace
 
@@ -38,7 +39,7 @@ Animator::Animator(Delegate& delegate,
           task_runners.GetPlatformTaskRunner() ==
                   task_runners.GetRasterTaskRunner()
               ? 1
-              : 4)),
+              : DVSYNC_BUFFER_COUNT)),
 #endif  // SHELL_ENABLE_METAL
       pending_frame_semaphore_(1),
       weak_factory_(this) {

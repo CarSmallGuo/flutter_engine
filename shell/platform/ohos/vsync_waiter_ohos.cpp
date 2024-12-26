@@ -22,6 +22,7 @@
 namespace flutter {
 
 static std::atomic_uint g_refresh_rate_ = 60;
+static constexpr uint32_t SUPPORT_API_VERSION = 14;
 
 const char* flutterSyncName = "flutter_connect";
 const char* NATIVE_DVSYNC_SO = "libnative_vsync.so"
@@ -117,7 +118,7 @@ void VsyncWaiterOHOS::SetDvsyncSwitch(bool enableDvsync) {
   if (apiVersion_ == 0) {
     apiVersion_ = OH_GetSdkApiVersion();
   }
-  if (apiVersion_ < 14) {
+  if (apiVersion_ < SUPPORT_API_VERSION) {
     LOGI("current api version not support native dvsync!")
     return;
   }
