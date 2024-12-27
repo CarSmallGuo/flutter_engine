@@ -20,6 +20,7 @@ import Any from '../common/Any';
 import { inputDevice } from '@kit.InputKit';
 import { PointerDeviceKind } from '../../embedding/ohos/OhosTouchProcessor';
 import deviceInfo from '@ohos.deviceInfo';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 /// 临时规避缺少newline对应枚举问题
 const NEWLINE_KEY_TYPE: number = 8;
@@ -127,7 +128,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   hide(): void {
     // Ensure the Xcomponent loses focus before the soft keyboard is hided.
-    if (this.focusViewId) { 
+    if (this.focusViewId) {
       focusControl.requestFocus('emptyFocusText' + this.focusViewId);
     }
     this.keyboardFocusState = false;
@@ -205,9 +206,13 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   private async hideTextInput(): Promise<void> {
-    this.inputMethodController.detach();
-    this.keyboardStatus = inputMethod.KeyboardStatus.NONE;
-    this.cancelListenKeyBoardEvent();
+    await this.inputMethodController.detach().then(() => {
+      this.keyboardStatus = inputMethod.KeyboardStatus.HIDE;
+      this.cancelListenKeyBoardEvent();
+    }).catch((err: BusinessError) => {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to detach: " + JSON.stringify(err));
+      this.keyboardStatus = inputMethod.KeyboardStatus.NONE;
+    });
   }
 
   async attach(showKeyboard: boolean): Promise<void> {
