@@ -23,6 +23,7 @@
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
 #include "third_party/skia/include/core/SkMatrix.h"
 #include "third_party/skia/include/core/SkScalar.h"
+#include "flutter/shell/platform/ohos/ohos_xcomponent_adapter.h"
 
 namespace flutter {
 
@@ -42,6 +43,9 @@ OhosAccessibilityBridge* OhosAccessibilityBridge::GetInstance()
     return bridgeInstance_.get();
 }
 
+OhosAccessibilityBridge::OhosAccessibilityBridge()
+    : isFlutterNavigated_(false), provider_(nullptr) {}
+
 /**
  * 监听当前ohos平台是否开启无障碍屏幕朗读服务
  */
@@ -50,6 +54,7 @@ void OhosAccessibilityBridge::OnOhosAccessibilityStateChange(
     bool ohosAccessibilityEnabled)
 {
     native_shell_holder_id_ = shellHolderId;
+    provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
     nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
     accessibilityFeatures_ = std::make_shared<OhosAccessibilityFeatures>();
 
@@ -79,12 +84,12 @@ void OhosAccessibilityBridge::UpdateSemantics(
     std::vector<SemanticsNodeExtent> updatedFlutterNodes;
 
     // 当flutter页面状态更新（路由新页面）时，自动请求root节点组件获焦（规避滑动组件更新干扰）
-    if (IS_FLUTTER_NAVIGATE) {
+    if (isFlutterNavigated_) {
       Flutter_SendAccessibilityAsyncEvent(0, 
           ArkUI_AccessibilityEventType::
               ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_PAGE_STATE_UPDATE);
       RequestFocusWhenPageUpdate(0);
-      IS_FLUTTER_NAVIGATE = false;
+      isFlutterNavigated_ = false;
     }
 
     /** 获取并分析每个语义节点的更新属性 */

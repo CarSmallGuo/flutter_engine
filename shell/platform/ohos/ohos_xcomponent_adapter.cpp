@@ -379,22 +379,19 @@ void XComponentBase::RegisterArkUIAccessibilityService(OH_NativeXComponent* nati
         OhosAccessibilityDDL::DLLoadGetNativeA11yProvider(ArkUIAccessibilityConstant::OH_GET_A11Y_PROVIDER);
     CHECK_DLL_NULL_PTR(OH_NativeXComponent_GetNativeAccessibilityProvider);
 
-    ArkUI_AccessibilityProvider* accessibilityProvider = nullptr;
+    ArkUI_AccessibilityProvider* a11yProvider = nullptr;
     ARKUI_ACCESSIBILITY_CALL_CHECK(
-        OH_NativeXComponent_GetNativeAccessibilityProvider(nativeXComponent, &accessibilityProvider)
+        OH_NativeXComponent_GetNativeAccessibilityProvider(nativeXComponent, &a11yProvider)
     );
 
     auto OH_ArkUI_AccessibilityProviderRegisterCallback =
         OhosAccessibilityDDL::DLLoadRegisterFunc(ArkUIAccessibilityConstant::ARKUI_REGISTER_CALLBACK);
     CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityProviderRegisterCallback);
     ARKUI_ACCESSIBILITY_CALL_CHECK(
-        OH_ArkUI_AccessibilityProviderRegisterCallback(accessibilityProvider, &accessibilityProviderCallback_)
+        OH_ArkUI_AccessibilityProviderRegisterCallback(a11yProvider, &accessibilityProviderCallback_)
     );
 
-    //将ArkUI_AccessibilityProvider传到无障碍bridge类
-    auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
-    ohosAccessibilityBridge->provider_ = accessibilityProvider;
-
+    XComponentAdapter::GetInstance()->accessibilityProvider_ = a11yProvider;
     LOGI("XComponentBase::SetNativeXComponent OH_ArkUI_AccessibilityProviderRegisterCallback is succeed");
 }
 
@@ -404,7 +401,7 @@ void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
     BindXComponentCallback();
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
-    // 注册ArkUI无障碍服务
+    // register the OH_ArkUI accessibility callbacks
     RegisterArkUIAccessibilityService(nativeXComponent_);
   }
 }

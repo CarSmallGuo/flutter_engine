@@ -84,6 +84,7 @@ class XComponentAdapter {
 
  public:
   std::map<std::string, XComponentBase*> xcomponetMap_;
+  ArkUI_AccessibilityProvider* accessibilityProvider_;
 
  private:
   static XComponentAdapter mXComponentAdapter;
