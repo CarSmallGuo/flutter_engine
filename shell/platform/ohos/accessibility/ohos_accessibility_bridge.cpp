@@ -93,7 +93,7 @@ void OhosAccessibilityBridge::UpdateSemantics(
     }
 
     /** 获取并分析每个语义节点的更新属性 */
-    for (auto& item : update) {
+    for (const auto& item : update) {
         // 获取当前更新的节点node
         const auto& node = item.second;
 
@@ -464,24 +464,18 @@ std::pair<float, float> OhosAccessibilityBridge::GetRealScaleFactor()
 }
 
 /**
- * flutter无障碍语义树的子节点相对坐标系转化为屏幕绝对坐标的映射算法
- * 目前暂未考虑旋转、透视场景，不影响屏幕朗读功能
+ * flutter语义树中相对坐标系转化为屏幕绝对坐标的映射算法实现
+ * NOTE:目前暂未考虑旋转、透视场景，不影响屏幕朗读功能
+ * (SkMatrix::kMSkewX, SkMatrix::kMSkewY, SkMatrix::kMPersp0, 
+ *  SkMatrix::kMPersp1, SkMatrix::kMPersp2)
  */
 void OhosAccessibilityBridge::FlutterRelativeRectToScreenRect(
     SemanticsNodeExtent currNode)
 {
     // 获取当前flutter节点的相对rect
-    auto currLeft = static_cast<float>(currNode.rect.fLeft);
-    auto currTop = static_cast<float>(currNode.rect.fTop);
-    auto currRight = static_cast<float>(currNode.rect.fRight);
-    auto currBottom = static_cast<float>(currNode.rect.fBottom);
+    auto [currLeft, currTop, currRight, currBottom] = currNode.rect;
 
-    /**
-     * 获取当前flutter节点的缩放、平移、透视等矩阵坐标转换
-     * 以下矩阵坐标变换参数（如：旋转/错切、透视）场景目前暂不考虑
-     * NOTE: SkMatrix::kMSkewX, SkMatrix::kMSkewY,
-     * SkMatrix::kMPersp0, SkMatrix::kMPersp1, SkMatrix::kMPersp2
-     */
+    // 获取当前flutter节点的缩放、平移、透视等矩阵坐标转换以下矩阵坐标变换参数
     SkMatrix transform = currNode.transform.asM33();
     auto _kMScaleX = transform.get(SkMatrix::kMScaleX);
     auto _kMTransX = transform.get(SkMatrix::kMTransX);
@@ -491,7 +485,7 @@ void OhosAccessibilityBridge::FlutterRelativeRectToScreenRect(
     // 获取当前flutter节点的父节点的相对rect
     int32_t parentId = GetParentId(currNode.id);
     auto parentNode = GetFlutterSemanticsNode(parentId);
-    if (!g_flutterSemanticsTree.count(parentId)) {
+    if (g_flutterSemanticsTree.find(parentId) != g_flutterSemanticsTree.end()) {
         LOGE("FlutterRelativeRectToScreenRect: GetFlutterSemanticsNode id=%{public}d null", parentId);
     }
 
@@ -507,41 +501,30 @@ void OhosAccessibilityBridge::FlutterRelativeRectToScreenRect(
     // 获取真实缩放系数
     auto [realScaleXFactor, realScaleYFactor] = GetRealScaleFactor();
 
-    // 更新后的节点屏幕坐标
-    float newLeft = 0.0;
-    float newTop = 0.0;
-    float newRight = 0.0;
-    float newBottom = 0.0;
+    // 更新后的节点屏幕坐标，子节点的屏幕绝对坐标转换，包括offset偏移值计算、缩放系数变换
+    bool isRectScaleChanged = _kMScaleX > 1 && _kMScaleY > 1;
+    float newLeft = isRectScaleChanged ?
+        currLeft + _kMTransX * _kMScaleX : (currLeft + _kMTransX) * realScaleXFactor + realParentLeft;
+    float newTop = isRectScaleChanged ?
+        currTop + _kMTransY * _kMScaleY : (currTop  + _kMTransY) * realScaleYFactor + realParentTop;
+    float newRight  = isRectScaleChanged ?
+        currRight * _kMScaleX : newLeft + currRight  * realScaleXFactor;
+    float newBottom = isRectScaleChanged ?
+        currBottom * _kMScaleY : newTop  + currBottom * realScaleYFactor;
 
-    if (_kMScaleX > 1 && _kMScaleY > 1) {
-        // 子节点相对父节点进行变化（缩放、 平移）
-        newLeft = currLeft + _kMTransX * _kMScaleX;
-        newTop  = currTop + _kMTransY * _kMScaleY;
-        newRight  = currRight * _kMScaleX;
-        newBottom = currBottom * _kMScaleY;
-        // 更新当前flutter节点currNode的相对坐标 -> 屏幕绝对坐标
-        SetAbsoluteScreenRect(currNode, newLeft, newTop, newRight, newBottom);
+    // 若子节点rect超过父节点则跳过显示（单个屏幕显示不下，滑动再重新显示）
+    const bool isExceedScreeArea = newLeft < realParentLeft || newTop < realParentTop ||
+                                   newRight > realParentRight || newBottom > realParentBottom ||
+                                   newLeft >= newRight || newTop >= newBottom ||
+                                   newRight > rootWidth || newBottom > rootHeight;
+    if (isExceedScreeArea) {
+        FML_DLOG(WARNING) << "RelativeRectToScreenRect -> childRect exceeds parentRect {Id: "
+                            << currNode.id << ", (" << newLeft << ", " << newTop
+                            << ", " << newRight << ", " << newBottom << ")}";
+        // 防止滑动场景下绿框坐标超出屏幕范围，进行正则化处理
+        SetAbsoluteScreenRect(currNode, rootWidth, rootHeight, 0, 0);
     } else {
-        // 子节点的屏幕绝对坐标转换，包括offset偏移值计算、缩放系数变换
-        newLeft = (currLeft + _kMTransX) * realScaleXFactor + realParentLeft;
-        newTop  = (currTop  + _kMTransY) * realScaleYFactor + realParentTop;
-        newRight  = newLeft + currRight  * realScaleXFactor;
-        newBottom = newTop  + currBottom * realScaleYFactor;
-
-        // 若子节点rect超过父节点则跳过显示（单个屏幕显示不下，滑动再重新显示）
-        const bool IS_OVER_SCREEN_AREA = newLeft < realParentLeft || newTop < realParentTop ||
-                                         newRight > realParentRight || newBottom > realParentBottom ||
-                                         newLeft >= newRight || newTop >= newBottom ||
-                                         newRight > rootWidth || newBottom > rootHeight;
-        if (IS_OVER_SCREEN_AREA) {
-            FML_DLOG(WARNING) << "RelativeRectToScreenRect -> childRect exceeds parentRect {Id: "
-                              << currNode.id << ", (" << newLeft << ", " << newTop
-                              << ", " << newRight << ", " << newBottom << ")}";
-            // 防止滑动场景下绿框坐标超出屏幕范围，进行正则化处理
-            SetAbsoluteScreenRect(currNode, rootWidth, rootHeight, 0, 0);
-        } else {
-            SetAbsoluteScreenRect(currNode, newLeft, newTop, newRight, newBottom);
-        }
+        SetAbsoluteScreenRect(currNode, newLeft, newTop, newRight, newBottom);
     }
 }
 
