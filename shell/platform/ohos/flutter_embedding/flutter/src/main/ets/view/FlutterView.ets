@@ -493,10 +493,8 @@ export class FlutterView {
   }
 
   onAccessibilityIsOpen() {
-    Log.i(TAG, `accessibility isOpen state -> 1`);
     let accessibilityState: boolean = accessibility.isOpenAccessibilitySync();
     if(accessibilityState) {
-      Log.i(TAG, `accessibility isOpen state -> 2`);
       this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(accessibilityState)
     }
     Log.i(TAG, `accessibility isOpen state -> ${JSON.stringify(accessibilityState)}`);
