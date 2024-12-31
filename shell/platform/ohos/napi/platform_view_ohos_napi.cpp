@@ -1872,10 +1872,8 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
       (state ? "true" : "false"));
 
   //send to accessibility bridge
-  const int32_t OHOS_API_VERSION = OH_GetSdkApiVersion();
   if (OHOS_API_VERSION >= 13) {
-      auto a11y_bridge = OhosAccessibilityBridge::GetInstance();
-      a11y_bridge->OnOhosAccessibilityStateChange(shell_holder_id, state);
+      OhosAccessibilityBridge::GetInstance()->OnOhosAccessibilityStateChange(shell_holder_id, state);
   }
   FML_DLOG(INFO) << "nativeAccessibilityStateChange: state=" << state
                  << " shell_holder_id=" << shell_holder_id;
@@ -2169,8 +2167,7 @@ napi_value PlatformViewOHOSNapi::nativeGetFlutterNavigationAction(napi_env env, 
     return nullptr;
   }
 
-  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge->IS_FLUTTER_NAVIGATE = isNavigate;
+  OhosAccessibilityBridge::GetInstance()->isFlutterNavigated_ = isNavigate;
   FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeGetFlutterNavigationAction -> "<<isNavigate;
   return nullptr;
 }

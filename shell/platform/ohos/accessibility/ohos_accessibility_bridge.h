@@ -78,9 +78,9 @@ public:
     OhosAccessibilityBridge(const OhosAccessibilityBridge&) = delete;
     OhosAccessibilityBridge& operator=(const OhosAccessibilityBridge&) = delete;
 
-    bool IS_FLUTTER_NAVIGATE = false;
+    bool isFlutterNavigated_;
     int64_t native_shell_holder_id_;
-    ArkUI_AccessibilityProvider* provider_ = nullptr;
+    ArkUI_AccessibilityProvider* provider_;
 
     void OnOhosAccessibilityStateChange(
         int64_t shellHolderId,
@@ -157,8 +157,8 @@ public:
     void ClearFlutterSemanticsCaches();
 
 private:
-    OhosAccessibilityBridge() = default;
-    bool isAccessibilityEnabled_ = false;
+    OhosAccessibilityBridge();
+    bool isAccessibilityEnabled_;
     static std::unique_ptr<OhosAccessibilityBridge> bridgeInstance_;
     std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
     std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;

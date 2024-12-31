@@ -492,6 +492,14 @@ export class FlutterView {
     }
   }
 
+  onAccessibilityIsOpen() {
+    let accessibilityState: boolean = accessibility.isOpenAccessibilitySync();
+    if(accessibilityState) {
+      this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(accessibilityState)
+    }
+    Log.i(TAG, `accessibility isOpen state -> ${JSON.stringify(accessibilityState)}`);
+  }
+
   onAreaChange(newArea: Area | null, setFullScreen: boolean = false) {
     const originalMetrics = this.viewportMetrics.clone();
 
