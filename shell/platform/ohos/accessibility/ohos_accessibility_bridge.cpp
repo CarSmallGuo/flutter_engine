@@ -44,7 +44,7 @@ OhosAccessibilityBridge* OhosAccessibilityBridge::GetInstance()
 }
 
 OhosAccessibilityBridge::OhosAccessibilityBridge()
-    : isFlutterNavigated_(false), provider_(nullptr) {}
+    : isFlutterNavigated_(false), provider_(nullptr), isAccessibilityEnabled_(false) {}
 
 /**
  * 监听当前ohos平台是否开启无障碍屏幕朗读服务
@@ -274,7 +274,10 @@ void OhosAccessibilityBridge::RequestFocusWhenPageUpdate(int32_t requestFocusId)
 {
     if (OHOS_API_VERSION < 13) { return; }
     CHECK_NULL_PTR(provider_, RequestFocusWhenPageUpdate);
-
+    if (provider_ == nullptr) {
+        return;
+    }
+    
     auto OH_ArkUI_CreateAccessibilityEventInfo = 
         OhosAccessibilityDDL::DLLoadCreateEventInfoFunc(ArkUIAccessibilityConstant::ARKUI_CREATE_EVENT);
     CHECK_DLL_NULL_PTR(OH_ArkUI_CreateAccessibilityEventInfo);
@@ -485,7 +488,7 @@ void OhosAccessibilityBridge::FlutterRelativeRectToScreenRect(
     // 获取当前flutter节点的父节点的相对rect
     int32_t parentId = GetParentId(currNode.id);
     auto parentNode = GetFlutterSemanticsNode(parentId);
-    if (g_flutterSemanticsTree.find(parentId) != g_flutterSemanticsTree.end()) {
+    if (g_flutterSemanticsTree.find(parentId) == g_flutterSemanticsTree.end()) {
         LOGE("FlutterRelativeRectToScreenRect: GetFlutterSemanticsNode id=%{public}d null", parentId);
     }
 
@@ -1568,7 +1571,12 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAnnounceEvent(
     std::unique_ptr<char[]>& message,
     ArkUI_AccessibilityEventType eventType)
 {
-     // 创建并设置屏幕朗读事件
+    if (OHOS_API_VERSION < 13) { return; }
+
+    CHECK_NULL_PTR(provider_, Flutter_SendAccessibilityAnnounceEvent);
+    if (provider_ == nullptr) { return; }
+
+    // 创建并设置屏幕朗读事件
     auto OH_ArkUI_CreateAccessibilityEventInfo =
         OhosAccessibilityDDL::DLLoadCreateEventInfoFunc(ArkUIAccessibilityConstant::ARKUI_CREATE_EVENT);
     CHECK_DLL_NULL_PTR(OH_ArkUI_CreateAccessibilityEventInfo);
@@ -1616,6 +1624,7 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
     if (OHOS_API_VERSION < 13) { return; }
 
     CHECK_NULL_PTR(provider_, Flutter_SendAccessibilityAsyncEvent);
+    if (provider_ == nullptr) { return; }
 
     // 创建eventInfo对象
     auto OH_ArkUI_CreateAccessibilityEventInfo =

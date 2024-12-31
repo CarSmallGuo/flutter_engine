@@ -158,7 +158,7 @@ public:
 
 private:
     OhosAccessibilityBridge();
-    bool isAccessibilityEnabled_ = false;
+    bool isAccessibilityEnabled_;
     static std::unique_ptr<OhosAccessibilityBridge> bridgeInstance_;
     std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
     std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
