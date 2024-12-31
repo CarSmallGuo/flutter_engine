@@ -3,10 +3,10 @@ Flutter Engine
 
 原始仓来源：https://github.com/flutter/engine
 
-## 仓库说明：
-本仓库是基于flutter官方engine仓库拓展，可构建支持在OpenHarmony设备上运行的flutter engine程序。
+## 仓库说明
+本仓库是基于flutter 3.7.12版本官方engine仓库拓展，可构建支持在OpenHarmony设备上运行的flutter engine程序。
 
-## 构建说明：
+## 构建说明
 
 * 构建环境：
 1. 目前支持在Linux与Mac中构建，Window环境中支持构建gen_snapshot;
@@ -26,7 +26,7 @@ Flutter Engine
    配置node：下载 `node` 并解压，且配置到环境变量中：
 
    ```
-    # nodejs
+    # nodejs (版本要求为v14.19.1及以上，且低于v17.0.0)
     export NODE_HOME=/home/<user>/env/node-v14.19.1-linux-x64
     export PATH=$NODE_HOME/bin:$PATH
    ```
@@ -53,11 +53,11 @@ Flutter Engine
 
 3. 同步代码：在engine目录，执行`gclient sync`；这里会同步engine源码、官方packages仓，还有执行ohos_setup任务；
 
-4. 下载sdk： 从[鸿蒙SDK](https://developer.huawei.com/consumer/cn/develop)下载配套开发工具，暂不支持非该渠道下载的套件
+4. 下载sdk： 从[OpenHarmony SDK](https://developer.huawei.com/consumer/cn/develop)下载配套开发工具，暂不支持非该渠道下载的套件
 
    ```sh
     # 需要设置的环境变量: HarmonyOS SDK, ohpm, hvigor, node
-    export TOOL_HOME=/Applications/DevEco-Studio.app/Contents # mac环境
+    export TOOL_HOME=/Applications/DevEco-Studio.app/Contents # Mac环境
     export DEVECO_SDK_HOME=$TOOL_HOME/sdk # command-line-tools/sdk
     export PATH=$TOOL_HOME/tools/ohpm/bin:$PATH # command-line-tools/ohpm/bin
     export PATH=$TOOL_HOME/tools/hvigor/bin:$PATH # command-line-tools/ hvigor/bin
@@ -72,31 +72,9 @@ Flutter Engine
 
   [构建产物](https://docs.qq.com/sheet/DUnljRVBYUWZKZEtF?tab=BB08J2)
 
-## FAQ
-1. 运行项目工程报Member notfound:'isOhos'的错误：请确保src/third_party/dart目录下应用了所有的dart patch（补丁位于src/flutter/attachment/repos目录，可使用git apply应用patch）应用patch后重新编译engine
-
-2. 提示Permission denied: 执行chmod +x <脚本文件> 添加执行权限
-
-3. 单独编译debug/release/profile模式的engine：`./ohos -t debug|release|profile`
-
-4. 查看帮助：`./ohos -h`
-
-5. 由于windows和mac、linux对换行符处理方式不同，在应用dart补丁时会造成dart vm snapshot hash结果不同，可通过以下方法获取当前snapshot hash值
-
-6. MediaQuery组件暂不支持displayFeatureType和displayFeatureState信息
-
-   ```shell
-    python xxx/src/third_party/dart/tools/make_version.py --format='{{SNAPSHOT_HASH}}'
-   ```
-
-   其中xxx为创建的engine路径
-
-   如果获取到的值不是“8af474944053df1f0a3be6e6165fa7cf”那么就需要检查xxx/src/third_party/dart/runtime/vm/dart.cc文件和xxx/src/third_party/dart/runtime/vm/image_snapshot.cc文件中全部行的结尾是不是以LF结尾的，windows可以使用notepad++查看，其它系统具体方法请自行查询
-
-
 ## embedding层代码构建指导
 
-1. 编辑shell/platform/ohos/flutter_embedding/local.properties：
+1. 编辑`shell/platform/ohos/flutter_embedding/local.properties`：
 
    ```
     sdk.dir=<OpenHarmony的sdk目录>
@@ -107,7 +85,7 @@ Flutter Engine
     1. debug/release，复制 `libflutter.so`
     2. profile，复制 `libflutter.so` 和 `libvmservice_snapshot.so`
 
-3. 在shell/platform/ohos/flutter_embedding目录下，执行 
+3. 在`shell/platform/ohos/flutter_embedding`目录下，执行 
 
     ```
      # buildMode可选值为: debug release profile
@@ -120,4 +98,23 @@ Flutter Engine
 
 6. 替换 `flutter_flutter/packages/flutter_tools/templates/app_shared/ohos.tmpl/har/har_product.tmpl/` 目录下对应文件，重新运行项目工程即可生效。
 
-ps:如果你使用的是DevEco Studio的Beta版本，编译工程时遇到“must have required property 'compatibleSdkVersion', location: build-profile.json5:17:11"错误，请参考《DevEco Studio环境配置指导.docx》中的‘6 创建工程和运行Hello World’【配置插件】章节修改 shell/platform/ohos/flutter_embedding/hvigor/hvigor-config.json5文件。
+## FAQ
+1. 运行项目工程报Member notfound:'isOhos'的错误：请确保`src/third_party/dart`目录下应用了所有的dart patch（补丁位于`src/flutter/attachment/repos`目录，可使用git apply应用patch），应用patch后重新编译engine
+
+2. 提示Permission denied: 执行chmod +x <脚本文件> 添加执行权限
+
+3. 单独编译debug/release/profile模式的engine：`./ohos -t debug|release|profile`
+
+4. 查看帮助：`./ohos -h`
+
+5. 由于windows和Linux、Mac对换行符处理方式不同，在应用dart补丁时会造成dart vm snapshot hash结果不同，可通过以下方法获取当前snapshot hash值
+
+6. MediaQuery组件暂不支持displayFeatureType和displayFeatureState信息
+
+   ```shell
+    python xxx/src/third_party/dart/tools/make_version.py --format='{{SNAPSHOT_HASH}}'
+   ```
+
+   其中xxx为创建的engine路径
+
+   如果获取到的值不是“8af474944053df1f0a3be6e6165fa7cf”那么就需要检查`xxx/src/third_party/dart/runtime/vm/dart.cc`文件和`xxx/src/third_party/dart/runtime/vm/image_snapshot.cc`文件中全部行的结尾是不是以LF结尾的，windows可以使用notepad++查看，其它系统具体方法请自行查询
