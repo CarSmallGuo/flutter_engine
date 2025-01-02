@@ -169,10 +169,10 @@ used to filter file path.
                         rule="may"
                         type="copyright" />
                 <policyitem
-                        desc=" Mikkel Nygaard Ravn &lt;mravn@google.com&gt;"
+                        desc="Mikkel Nygaard Ravn &lt;mravn@google.com&gt;"
                         filefilter="copyrightPolicyFilter"
                         group="defaultGroup"
-                        name=" Mikkel Nygaard Ravn &lt;mravn@google.com&gt;"
+                        name="Mikkel Nygaard Ravn &lt;mravn@google.com&gt;"
                         path=".*/ohos/.*"
                         rule="may"
                         type="copyright" />
@@ -305,10 +305,10 @@ used to filter file path.
                         rule="may"
                         type="copyright" />
                 <policyitem
-                        desc=" Chinmay Garde &lt;chinmaygarde@gmail.com&gt;"
+                        desc="Chinmay Garde &lt;chinmaygarde@gmail.com&gt;"
                         filefilter="copyrightPolicyFilter"
                         group="defaultGroup"
-                        name=" Chinmay Garde &lt;chinmaygarde@gmail.com&gt;"
+                        name="Chinmay Garde &lt;chinmaygarde@gmail.com&gt;"
                         path=".*/ohos/.*"
                         rule="may"
                         type="copyright" />
