@@ -388,6 +388,7 @@ void XComponentBase::RegisterArkUIAccessibilityService(OH_NativeXComponent* nati
     );
 
     XComponentAdapter::GetInstance()->accessibilityProvider_ = a11yProvider;
+    
     FML_DLOG(INFO) << "RegisterArkUIAccessibilityService is finished";
 }
 
@@ -455,6 +456,7 @@ void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component, void* wind
 void XComponentBase::OnSurfaceDestroyed(OH_NativeXComponent* component,
                                         void* window) {
   window_ = nullptr;
+  XComponentAdapter::GetInstance()->accessibilityProvider_ = nullptr;
   LOGD("XComponentManger::OnSurfaceDestroyed");
   if (isEngineAttached_) {
     PlatformViewOHOSNapi::SurfaceDestroyed(std::stoll(shellholderId_));

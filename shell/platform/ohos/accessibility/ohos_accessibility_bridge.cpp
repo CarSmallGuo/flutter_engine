@@ -44,7 +44,9 @@ OhosAccessibilityBridge* OhosAccessibilityBridge::GetInstance()
 }
 
 OhosAccessibilityBridge::OhosAccessibilityBridge()
-    : isFlutterNavigated_(false), provider_(nullptr), isAccessibilityEnabled_(false) {}
+    : isFlutterNavigated_(false),
+      provider_(nullptr),
+      isAccessibilityEnabled_(false) {}
 
 /**
  * 监听当前ohos平台是否开启无障碍屏幕朗读服务
@@ -81,15 +83,17 @@ void OhosAccessibilityBridge::UpdateSemantics(
     flutter::CustomAccessibilityActionUpdates actions)
 {
     FML_DLOG(INFO) << "OhosAccessibilityBridge::UpdateSemantics()";
+    provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
+
     std::vector<SemanticsNodeExtent> updatedFlutterNodes;
 
     // 当flutter页面状态更新（路由新页面）时，自动请求root节点组件获焦（规避滑动组件更新干扰）
     if (isFlutterNavigated_) {
-      Flutter_SendAccessibilityAsyncEvent(0, 
-          ArkUI_AccessibilityEventType::
-              ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_PAGE_STATE_UPDATE);
-      RequestFocusWhenPageUpdate(0);
-      isFlutterNavigated_ = false;
+        Flutter_SendAccessibilityAsyncEvent(0, 
+            ArkUI_AccessibilityEventType::
+                ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_PAGE_STATE_UPDATE);
+        RequestFocusWhenPageUpdate(0);
+        isFlutterNavigated_ = false;
     }
 
     /** 获取并分析每个语义节点的更新属性 */
@@ -274,9 +278,7 @@ void OhosAccessibilityBridge::RequestFocusWhenPageUpdate(int32_t requestFocusId)
 {
     if (OHOS_API_VERSION < 13) { return; }
     CHECK_NULL_PTR(provider_, RequestFocusWhenPageUpdate);
-    if (provider_ == nullptr) {
-        return;
-    }
+    if (provider_ == nullptr) { return; }
     
     auto OH_ArkUI_CreateAccessibilityEventInfo = 
         OhosAccessibilityDDL::DLLoadCreateEventInfoFunc(ArkUIAccessibilityConstant::ARKUI_CREATE_EVENT);
@@ -1377,6 +1379,8 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
                    << " *actionArguments=" << actionArguments;
     CHECK_NULL_PTR_WITH_RET(actionArguments, ExecuteAccessibilityAction);
 
+    provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
+
     // 获取当前elementid对应的flutter语义节点
     auto flutterNode = GetFlutterSemanticsNode(static_cast<int32_t>(elementId));
     if (!g_flutterSemanticsTree.count(flutterNode.id)) {
@@ -1572,7 +1576,8 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAnnounceEvent(
     ArkUI_AccessibilityEventType eventType)
 {
     if (OHOS_API_VERSION < 13) { return; }
-
+    
+    provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
     CHECK_NULL_PTR(provider_, Flutter_SendAccessibilityAnnounceEvent);
     if (provider_ == nullptr) { return; }
 
@@ -1623,6 +1628,7 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
 {
     if (OHOS_API_VERSION < 13) { return; }
 
+    provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
     CHECK_NULL_PTR(provider_, Flutter_SendAccessibilityAsyncEvent);
     if (provider_ == nullptr) { return; }
 
