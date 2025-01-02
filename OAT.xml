@@ -344,6 +344,14 @@ used to filter file path.
                         path=".*/ohos/.*"
                         rule="may"
                         type="copyright" />
+                <policyitem
+                        desc="The Flutter Authors. All rights reserved."
+                        filefilter="copyrightPolicyFilter"
+                        group="defaultGroup"
+                        name="The Flutter Authors. All rights reserved."
+                        path=".*/ohos/.*"
+                        rule="may"
+                        type="copyright" />
 
             </policy>
             <policy name="projectPolicy" desc="">
