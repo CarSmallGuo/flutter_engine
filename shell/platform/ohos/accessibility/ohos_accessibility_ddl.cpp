@@ -284,4 +284,19 @@ GetNativeA11yProvider OhosAccessibilityDDL::DLLoadGetNativeA11yProvider(const ch
     }
     return symbol;
 }
+
+GetFindActionArgs OhosAccessibilityDDL::DLLoadGetFindActionArgs(const char* symbolName)
+{
+    LIBHANDLE handler = LOAD_LIB(ACCESSIBILITY_LIB_NAME);
+    if (handler == nullptr) {
+        return nullptr;
+    }
+
+    auto symbol = reinterpret_cast<GetFindActionArgs>(LOAD_SYM(handler, symbolName));
+    if (symbol == nullptr) {
+        CLOSE_LIB(handler);
+        return nullptr;
+    }
+    return symbol;
+}
 }

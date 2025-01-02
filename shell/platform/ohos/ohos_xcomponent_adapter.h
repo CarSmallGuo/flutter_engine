@@ -25,6 +25,7 @@
 #include "napi/native_api.h"
 #include "napi_common.h"
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
+#include "flutter/shell/platform/ohos/utils/ddl_utils.h"
 
 namespace flutter {
 
@@ -49,6 +50,8 @@ public:
   void OnDispatchTouchEvent(OH_NativeXComponent* component, void* window);
   void OnDispatchMouseEvent(OH_NativeXComponent* component, void* window);
   void OnDispatchMouseWheelEvent(mouseWheelEvent event);
+
+  void RegisterArkUIAccessibilityService(OH_NativeXComponent* nativeXComponent);
 
   OH_NativeXComponent_TouchEvent touchEvent_;
   OH_NativeXComponent_Callback callback_;

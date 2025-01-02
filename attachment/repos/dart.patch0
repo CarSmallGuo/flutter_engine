@@ -76,7 +76,7 @@ index 33be98fc0aa..eda146a0580 100644
    String? _authCode;
  
 diff --git a/pkg/vm/lib/transformations/ffi/abi.dart b/pkg/vm/lib/transformations/ffi/abi.dart
-index cc2d86bafd7..e703419eed7 100644
+index cc2d86bafd7..47368356a2e 100644
 --- a/pkg/vm/lib/transformations/ffi/abi.dart
 +++ b/pkg/vm/lib/transformations/ffi/abi.dart
 @@ -40,6 +40,7 @@ enum _OS {
@@ -87,48 +87,83 @@ index cc2d86bafd7..e703419eed7 100644
  }
  
  /// An application binary interface (ABI).
-@@ -71,6 +72,9 @@ class Abi {
-   /// The application binary interface for Fuchsia on the X64 architecture.
-   static const fuchsiaX64 = _fuchsiaX64;
+@@ -65,6 +66,15 @@ class Abi {
+   /// The application binary interface for android on the X64 architecture.
+   static const androidX64 = _androidX64;
  
++  /// The application binary interface for Ohos on the X64 architecture.
++  static const ohosArm = _ohosArm;
++
++  /// The application binary interface for Ohos on the X64 architecture.
++  static const ohosArm64 = _ohosArm64;
++
 +  /// The application binary interface for Ohos on the X64 architecture.
 +  static const ohosX64 = _ohosX64;
 +
-   /// The application binary interface for iOS on the Arm architecture.
-   static const iosArm = _iosArm;
+   /// The application binary interface for Fuchsia on the Arm64 architecture.
+   static const fuchsiaArm64 = _fuchsiaArm64;
  
-@@ -131,6 +135,7 @@ class Abi {
+@@ -129,6 +139,9 @@ class Abi {
+     androidArm64,
+     androidIA32,
      androidX64,
++    ohosArm,
++    ohosArm64,
++    ohosX64,
      fuchsiaArm64,
      fuchsiaX64,
-+    ohosX64,
      iosArm,
-     iosArm64,
-     iosX64,
-@@ -176,6 +181,7 @@ class Abi {
+@@ -174,6 +187,9 @@ class Abi {
+   static const _androidArm64 = Abi._(_Architecture.arm64, _OS.android);
+   static const _androidIA32 = Abi._(_Architecture.ia32, _OS.android);
    static const _androidX64 = Abi._(_Architecture.x64, _OS.android);
++  static const _ohosArm = Abi._(_Architecture.arm, _OS.ohos);
++  static const _ohosArm64 = Abi._(_Architecture.arm64, _OS.ohos);
++  static const _ohosX64 = Abi._(_Architecture.x64, _OS.ohos);
    static const _fuchsiaArm64 = Abi._(_Architecture.arm64, _OS.fuchsia);
    static const _fuchsiaX64 = Abi._(_Architecture.x64, _OS.fuchsia);
-+  static const _ohosX64 = Abi._(_Architecture.x64, _OS.ohos);  
    static const _iosArm = Abi._(_Architecture.arm, _OS.ios);
-   static const _iosArm64 = Abi._(_Architecture.arm64, _OS.ios);
-   static const _iosX64 = Abi._(_Architecture.x64, _OS.ios);
-@@ -200,6 +206,7 @@ const Map<Abi, String> abiNames = {
+@@ -198,6 +214,9 @@ const Map<Abi, String> abiNames = {
+   Abi.androidArm64: 'androidArm64',
+   Abi.androidIA32: 'androidIA32',
    Abi.androidX64: 'androidX64',
++  Abi.ohosArm: 'ohosArm',
++  Abi.ohosArm64: 'ohosArm64',
++  Abi.ohosX64: 'ohosX64',
    Abi.fuchsiaArm64: 'fuchsiaArm64',
    Abi.fuchsiaX64: 'fuchsiaX64',
-+  Abi.ohosX64: 'ohosX64',
    Abi.iosArm: 'iosArm',
-   Abi.iosArm64: 'iosArm64',
-   Abi.iosX64: 'iosX64',
-@@ -239,6 +246,7 @@ const Map<Abi, Map<NativeType, int>> nonSizeAlignment = {
+@@ -239,6 +258,8 @@ const Map<Abi, Map<NativeType, int>> nonSizeAlignment = {
    // _wordSize64
    Abi.androidArm64: _wordSize64,
    Abi.androidX64: _wordSize64,
++  Abi.ohosArm64: _wordSize64,
 +  Abi.ohosX64: _wordSize64,
    Abi.fuchsiaArm64: _wordSize64,
    Abi.fuchsiaX64: _wordSize64,
    Abi.iosArm64: _wordSize64,
+@@ -256,6 +277,7 @@ const Map<Abi, Map<NativeType, int>> nonSizeAlignment = {
+   Abi.linuxIA32: _wordSize32Align32,
+   // _wordSize32Align64
+   Abi.androidArm: _wordSize32Align64,
++  Abi.ohosArm: _wordSize32Align64,
+   Abi.linuxArm: _wordSize32Align64,
+   Abi.linuxRiscv32: _wordSize32Align64,
+   Abi.windowsIA32: _wordSize32Align64,
+diff --git a/pkg/vm/testcases/transformations/ffi/abi_specific_int.dart b/pkg/vm/testcases/transformations/ffi/abi_specific_int.dart
+index f926b9d46c1..a72516ac911 100644
+--- a/pkg/vm/testcases/transformations/ffi/abi_specific_int.dart
++++ b/pkg/vm/testcases/transformations/ffi/abi_specific_int.dart
+@@ -9,6 +9,9 @@ import 'dart:ffi';
+   Abi.androidArm64: Uint32(),
+   Abi.androidIA32: Uint32(),
+   Abi.androidX64: Uint32(),
++  Abi.ohosArm: Uint32(),
++  Abi.ohosArm64: Uint32(),
++  Abi.ohosX64: Uint32(),
+   Abi.fuchsiaArm64: Uint64(),
+   Abi.fuchsiaX64: Uint32(),
+   Abi.iosArm: Uint32(),
 diff --git a/runtime/BUILD.gn b/runtime/BUILD.gn
 index 13bfd0a724b..042b6a45f7e 100644
 --- a/runtime/BUILD.gn
@@ -7674,166 +7709,234 @@ index b7e5be3eab5..8a8f873f6c5 100644
  
    bool _isAllowedOrigin(String origin) {
      Uri uri;
+diff --git a/sdk/lib/_internal/vm/lib/ffi_patch.dart b/sdk/lib/_internal/vm/lib/ffi_patch.dart
+index 4e719feb5d4..df1aecdb4f8 100644
+--- a/sdk/lib/_internal/vm/lib/ffi_patch.dart
++++ b/sdk/lib/_internal/vm/lib/ffi_patch.dart
+@@ -27,6 +27,9 @@ int get _intPtrSize => (const [
+       8, // androidArm64,
+       4, // androidIA32,
+       8, // androidX64,
++      4, // ohosArm,
++      8, // ohosArm64,
++      8, // ohosX64,
+       8, // fuchsiaArm64,
+       8, // fuchsiaX64,
+       4, // iosArm,
 diff --git a/sdk/lib/ffi/abi.dart b/sdk/lib/ffi/abi.dart
-index e6f08b37d25..5af605a8764 100644
+index e6f08b37d25..342c5c63c22 100644
 --- a/sdk/lib/ffi/abi.dart
 +++ b/sdk/lib/ffi/abi.dart
-@@ -34,6 +34,9 @@ class Abi {
-   /// The application binary interface for Fuchsia on the X64 architecture.
-   static const fuchsiaX64 = _fuchsiaX64;
+@@ -28,6 +28,15 @@ class Abi {
+   /// The application binary interface for android on the X64 architecture.
+   static const androidX64 = _androidX64;
  
-+  /// The application binary interface for Ohos on the X64 architecture.
++  /// The application binary interface for android on the X64 architecture.
++  static const ohosArm = _ohosArm;
++
++  /// The application binary interface for android on the X64 architecture.
++  static const ohosArm64 = _ohosArm64;
++
++  /// The application binary interface for android on the X64 architecture.
 +  static const ohosX64 = _ohosX64;
 +
-   /// The application binary interface for iOS on the Arm architecture.
-   static const iosArm = _iosArm;
+   /// The application binary interface for Fuchsia on the Arm64 architecture.
+   static const fuchsiaArm64 = _fuchsiaArm64;
  
-@@ -94,6 +97,7 @@ class Abi {
+@@ -92,6 +101,9 @@ class Abi {
+     androidArm64,
+     androidIA32,
      androidX64,
++    ohosArm,
++    ohosArm64,
++    ohosX64,
      fuchsiaArm64,
      fuchsiaX64,
-+    ohosX64,
      iosArm,
-     iosArm64,
-     iosX64,
-@@ -136,6 +140,7 @@ class Abi {
+@@ -134,6 +146,9 @@ class Abi {
+   static const _androidArm64 = Abi._(_Architecture.arm64, _OS.android);
+   static const _androidIA32 = Abi._(_Architecture.ia32, _OS.android);
    static const _androidX64 = Abi._(_Architecture.x64, _OS.android);
++  static const _ohosArm = Abi._(_Architecture.arm, _OS.ohos);
++  static const _ohosArm64 = Abi._(_Architecture.arm64, _OS.ohos);
++  static const _ohosX64 = Abi._(_Architecture.x64, _OS.ohos);
    static const _fuchsiaArm64 = Abi._(_Architecture.arm64, _OS.fuchsia);
    static const _fuchsiaX64 = Abi._(_Architecture.x64, _OS.fuchsia);
-+  static const _ohosX64 = Abi._(_Architecture.x64, _OS.ohos);
    static const _iosArm = Abi._(_Architecture.arm, _OS.ios);
-   static const _iosArm64 = Abi._(_Architecture.arm64, _OS.ios);
-   static const _iosX64 = Abi._(_Architecture.x64, _OS.ios);
-@@ -170,4 +175,5 @@ enum _OS {
+@@ -170,4 +185,5 @@ enum _OS {
    linux,
    macos,
    windows,
 +  ohos,
  }
+diff --git a/sdk/lib/ffi/abi_specific.dart b/sdk/lib/ffi/abi_specific.dart
+index 61eb867be17..8aff498845a 100644
+--- a/sdk/lib/ffi/abi_specific.dart
++++ b/sdk/lib/ffi/abi_specific.dart
+@@ -24,6 +24,9 @@ part of dart.ffi;
+ ///   Abi.androidArm64: Uint64(),
+ ///   Abi.androidIA32: Uint32(),
+ ///   Abi.androidX64: Uint64(),
++///   Abi.ohosArm: Uint32(),
++///   Abi.ohosArm64: Uint64(),
++///   Abi.ohosX64: Uint64(),
+ ///   Abi.fuchsiaArm64: Uint64(),
+ ///   Abi.fuchsiaX64: Uint64(),
+ ///   Abi.iosArm: Uint32(),
 diff --git a/sdk/lib/ffi/c_type.dart b/sdk/lib/ffi/c_type.dart
-index ee358c2f79d..1f9e629beb9 100644
+index ee358c2f79d..e87207e9e4b 100644
 --- a/sdk/lib/ffi/c_type.dart
 +++ b/sdk/lib/ffi/c_type.dart
-@@ -29,6 +29,7 @@ part of dart.ffi;
+@@ -27,6 +27,9 @@ part of dart.ffi;
+   Abi.androidArm64: Uint8(),
+   Abi.androidIA32: Int8(),
    Abi.androidX64: Int8(),
++  Abi.ohosArm: Uint8(),
++  Abi.ohosArm64: Uint8(),
++  Abi.ohosX64: Int8(),
    Abi.fuchsiaArm64: Uint8(),
    Abi.fuchsiaX64: Int8(),
-+  Abi.ohosX64: Int8(),
    Abi.iosArm: Int8(),
-   Abi.iosArm64: Int8(),
-   Abi.iosX64: Int8(),
-@@ -66,6 +67,7 @@ class Char extends AbiSpecificInteger {
+@@ -64,6 +67,9 @@ class Char extends AbiSpecificInteger {
+   Abi.androidArm64: Int8(),
+   Abi.androidIA32: Int8(),
    Abi.androidX64: Int8(),
++  Abi.ohosArm: Int8(),
++  Abi.ohosArm64: Int8(),
++  Abi.ohosX64: Int8(),
    Abi.fuchsiaArm64: Int8(),
    Abi.fuchsiaX64: Int8(),
-+  Abi.ohosX64: Int8(),
    Abi.iosArm: Int8(),
-   Abi.iosArm64: Int8(),
-   Abi.iosX64: Int8(),
-@@ -103,6 +105,7 @@ class SignedChar extends AbiSpecificInteger {
+@@ -101,6 +107,9 @@ class SignedChar extends AbiSpecificInteger {
+   Abi.androidArm64: Uint8(),
+   Abi.androidIA32: Uint8(),
    Abi.androidX64: Uint8(),
++  Abi.ohosArm: Uint8(),
++  Abi.ohosArm64: Uint8(),
++  Abi.ohosX64: Uint8(),
    Abi.fuchsiaArm64: Uint8(),
    Abi.fuchsiaX64: Uint8(),
-+  Abi.ohosX64: Uint8(),
    Abi.iosArm: Uint8(),
-   Abi.iosArm64: Uint8(),
-   Abi.iosX64: Uint8(),
-@@ -140,6 +143,7 @@ class UnsignedChar extends AbiSpecificInteger {
+@@ -138,6 +147,9 @@ class UnsignedChar extends AbiSpecificInteger {
+   Abi.androidArm64: Int16(),
+   Abi.androidIA32: Int16(),
    Abi.androidX64: Int16(),
++  Abi.ohosArm: Int16(),
++  Abi.ohosArm64: Int16(),
++  Abi.ohosX64: Int16(),
    Abi.fuchsiaArm64: Int16(),
    Abi.fuchsiaX64: Int16(),
-+  Abi.ohosX64: Int16(),
    Abi.iosArm: Int16(),
-   Abi.iosArm64: Int16(),
-   Abi.iosX64: Int16(),
-@@ -177,6 +181,7 @@ class Short extends AbiSpecificInteger {
+@@ -175,6 +187,9 @@ class Short extends AbiSpecificInteger {
+   Abi.androidArm64: Uint16(),
+   Abi.androidIA32: Uint16(),
    Abi.androidX64: Uint16(),
++  Abi.ohosArm: Uint16(),
++  Abi.ohosArm64: Uint16(),
++  Abi.ohosX64: Uint16(),
    Abi.fuchsiaArm64: Uint16(),
    Abi.fuchsiaX64: Uint16(),
-+  Abi.ohosX64: Uint16(),
    Abi.iosArm: Uint16(),
-   Abi.iosArm64: Uint16(),
-   Abi.iosX64: Uint16(),
-@@ -214,6 +219,7 @@ class UnsignedShort extends AbiSpecificInteger {
+@@ -212,6 +227,9 @@ class UnsignedShort extends AbiSpecificInteger {
+   Abi.androidArm64: Int32(),
+   Abi.androidIA32: Int32(),
    Abi.androidX64: Int32(),
++  Abi.ohosArm: Int32(),
++  Abi.ohosArm64: Int32(),
++  Abi.ohosX64: Int32(),
    Abi.fuchsiaArm64: Int32(),
    Abi.fuchsiaX64: Int32(),
-+  Abi.ohosX64: Int32(),
    Abi.iosArm: Int32(),
-   Abi.iosArm64: Int32(),
-   Abi.iosX64: Int32(),
-@@ -251,6 +257,7 @@ class Int extends AbiSpecificInteger {
+@@ -249,6 +267,9 @@ class Int extends AbiSpecificInteger {
+   Abi.androidArm64: Uint32(),
+   Abi.androidIA32: Uint32(),
    Abi.androidX64: Uint32(),
++  Abi.ohosArm: Uint32(),
++  Abi.ohosArm64: Uint32(),
++  Abi.ohosX64: Uint32(),
    Abi.fuchsiaArm64: Uint32(),
    Abi.fuchsiaX64: Uint32(),
-+  Abi.ohosX64: Uint32(),
    Abi.iosArm: Uint32(),
-   Abi.iosArm64: Uint32(),
-   Abi.iosX64: Uint32(),
-@@ -289,6 +296,7 @@ class UnsignedInt extends AbiSpecificInteger {
+@@ -287,6 +308,9 @@ class UnsignedInt extends AbiSpecificInteger {
+   Abi.androidArm64: Int64(),
+   Abi.androidIA32: Int32(),
    Abi.androidX64: Int64(),
++  Abi.ohosArm: Int32(),
++  Abi.ohosArm64: Int64(),
++  Abi.ohosX64: Int64(),
    Abi.fuchsiaArm64: Int64(),
    Abi.fuchsiaX64: Int64(),
-+  Abi.ohosX64: Int64(),
    Abi.iosArm: Int32(),
-   Abi.iosArm64: Int64(),
-   Abi.iosX64: Int64(),
-@@ -327,6 +335,7 @@ class Long extends AbiSpecificInteger {
+@@ -325,6 +349,9 @@ class Long extends AbiSpecificInteger {
+   Abi.androidArm64: Uint64(),
+   Abi.androidIA32: Uint32(),
    Abi.androidX64: Uint64(),
++  Abi.ohosArm: Uint32(),
++  Abi.ohosArm64: Uint64(),
++  Abi.ohosX64: Uint64(),
    Abi.fuchsiaArm64: Uint64(),
    Abi.fuchsiaX64: Uint64(),
-+  Abi.ohosX64: Uint64(),
    Abi.iosArm: Uint32(),
-   Abi.iosArm64: Uint64(),
-   Abi.iosX64: Uint64(),
-@@ -364,6 +373,7 @@ class UnsignedLong extends AbiSpecificInteger {
+@@ -362,6 +389,9 @@ class UnsignedLong extends AbiSpecificInteger {
+   Abi.androidArm64: Int64(),
+   Abi.androidIA32: Int64(),
    Abi.androidX64: Int64(),
++  Abi.ohosArm: Int64(),
++  Abi.ohosArm64: Int64(),
++  Abi.ohosX64: Int64(),
    Abi.fuchsiaArm64: Int64(),
    Abi.fuchsiaX64: Int64(),
-+  Abi.ohosX64: Int64(),
    Abi.iosArm: Int64(),
-   Abi.iosArm64: Int64(),
-   Abi.iosX64: Int64(),
-@@ -401,6 +411,7 @@ class LongLong extends AbiSpecificInteger {
+@@ -399,6 +429,9 @@ class LongLong extends AbiSpecificInteger {
+   Abi.androidArm64: Uint64(),
+   Abi.androidIA32: Uint64(),
    Abi.androidX64: Uint64(),
++  Abi.ohosArm: Uint64(),
++  Abi.ohosArm64: Uint64(),
++  Abi.ohosX64: Uint64(),
    Abi.fuchsiaArm64: Uint64(),
    Abi.fuchsiaX64: Uint64(),
-+  Abi.ohosX64: Uint64(),
    Abi.iosArm: Uint64(),
-   Abi.iosArm64: Uint64(),
-   Abi.iosX64: Uint64(),
-@@ -433,6 +444,7 @@ class UnsignedLongLong extends AbiSpecificInteger {
+@@ -431,6 +464,9 @@ class UnsignedLongLong extends AbiSpecificInteger {
+   Abi.androidArm64: Int64(),
+   Abi.androidIA32: Int32(),
    Abi.androidX64: Int64(),
++  Abi.ohosArm: Int32(),
++  Abi.ohosArm64: Int64(),
++  Abi.ohosX64: Int64(),
    Abi.fuchsiaArm64: Int64(),
    Abi.fuchsiaX64: Int64(),
-+  Abi.ohosX64: Int64(),
    Abi.iosArm: Int32(),
-   Abi.iosArm64: Int64(),
-   Abi.iosX64: Int64(),
-@@ -466,6 +478,7 @@ class IntPtr extends AbiSpecificInteger {
+@@ -464,6 +500,9 @@ class IntPtr extends AbiSpecificInteger {
+   Abi.androidArm64: Uint64(),
+   Abi.androidIA32: Uint32(),
    Abi.androidX64: Uint64(),
++  Abi.ohosArm: Uint32(),
++  Abi.ohosArm64: Uint64(),
++  Abi.ohosX64: Uint64(),
    Abi.fuchsiaArm64: Uint64(),
    Abi.fuchsiaX64: Uint64(),
-+  Abi.ohosX64: Uint64(),
    Abi.iosArm: Uint32(),
-   Abi.iosArm64: Uint64(),
-   Abi.iosX64: Uint64(),
-@@ -499,6 +512,7 @@ class UintPtr extends AbiSpecificInteger {
+@@ -497,6 +536,9 @@ class UintPtr extends AbiSpecificInteger {
+   Abi.androidArm64: Uint64(),
+   Abi.androidIA32: Uint32(),
    Abi.androidX64: Uint64(),
++  Abi.ohosArm: Uint32(),
++  Abi.ohosArm64: Uint64(),
++  Abi.ohosX64: Uint64(),
    Abi.fuchsiaArm64: Uint64(),
    Abi.fuchsiaX64: Uint64(),
-+  Abi.ohosX64: Uint64(),
    Abi.iosArm: Uint32(),
-   Abi.iosArm64: Uint64(),
-   Abi.iosX64: Uint64(),
-@@ -535,6 +549,7 @@ class Size extends AbiSpecificInteger {
+@@ -533,6 +575,9 @@ class Size extends AbiSpecificInteger {
+   Abi.androidArm64: Uint32(),
+   Abi.androidIA32: Uint32(),
    Abi.androidX64: Uint32(),
++  Abi.ohosArm: Uint32(),
++  Abi.ohosArm64: Uint32(),
++  Abi.ohosX64: Uint32(),
    Abi.fuchsiaArm64: Uint32(),
    Abi.fuchsiaX64: Int32(),
-+  Abi.ohosX64: Int32(),
    Abi.iosArm: Int32(),
-   Abi.iosArm64: Int32(),
-   Abi.iosX64: Int32(),
 diff --git a/sdk_args.gni b/sdk_args.gni
 index 4b2a1e4ea63..a864344ee8d 100644
 --- a/sdk_args.gni

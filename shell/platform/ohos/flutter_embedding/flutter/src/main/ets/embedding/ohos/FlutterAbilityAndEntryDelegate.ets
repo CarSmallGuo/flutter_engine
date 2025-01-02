@@ -35,7 +35,6 @@ import FlutterNapi from '../engine/FlutterNapi';
 import { FlutterView } from '../../view/FlutterView';
 import FlutterManager from './FlutterManager';
 import Any from '../../plugin/common/Any';
-import inputMethod from '@ohos.inputMethod';
 
 const TAG = "FlutterAbilityDelegate";
 const PLUGINS_RESTORATION_BUNDLE_KEY = "plugins";
@@ -56,7 +55,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
   private engineGroup?: FlutterEngineGroup;
   private isHost:boolean = false;
   private flutterView?: FlutterView;
-  private inputMethodController: inputMethod.InputMethodController = inputMethod.getController();
 
   constructor(host?: Host) {
     this.host = host;
@@ -99,7 +97,7 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
         this.flutterEngine?.getNavigationChannel()?.popRoute();
         this.flutterEngine?.getPlatformViewsController()?.setBackNodeControllers();
       } else {
-        this.inputMethodController.detach();
+        this.flutterEngine?.getTextInputChannel()?.textInputMethodHandler?.hide();
       }
     });
   }
