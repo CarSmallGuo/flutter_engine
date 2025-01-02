@@ -26,7 +26,7 @@ import sys
 import zipfile
 from datetime import datetime
 
-SUPPORT_BUILD_NAMES = ("clean", "config", "har", "compile", "zip", "zip2", "upload")
+SUPPORT_BUILD_NAMES = ("clean", "config", "har", "compile", "zip", "zip2", "upload", "host")
 SUPPORT_BUILD_TYPES = ("debug", "profile", "release")
 SUPPORT_ABIS = {
     "x86": "x86",
@@ -198,6 +198,7 @@ def engineConfig(buildInfo, args):
         + unixCommand
         + "--no-goma "
         + "--no-prebuilt-dart-sdk "
+        + "--full-dart-sdk "
         + "--embedder-for-target "
         + "--disable-desktop-embeddings "
         + "--no-build-embedder-examples "
@@ -340,6 +341,9 @@ def addParseParam(parser):
     parser.add_argument(
         "--ohos-cpu", type=str, choices=['x64', 'x86', 'arm64', 'arm'], default="arm64"
     )
+    parser.add_argument(
+        "--host-cpu", type=str, choices=['x64', 'arm64'], default="x64"
+    )
 
 
 def updateCode(args):
@@ -360,6 +364,32 @@ def checkEnvironment():
             + " in the root directory of the 'engine' compilation."
         )
         exit(1)
+
+
+def buildLocalEngine(buildType, args):
+    OPT = "--unoptimized --no-lto " if buildType == "debug" else ""
+    extraParam = args.gn_extra_param
+    osName = platform.system().lower()
+    hostAppend = f"--mac-cpu {args.host_cpu}" if osName == "darwin" else ""
+    runCommand(
+        "%s " % os.path.join("src", "flutter", "tools", "gn")
+        + "--runtime-mode %s " % buildType
+        + OPT
+        + "--no-goma "
+        + "--no-prebuilt-dart-sdk "
+        + "--full-dart-sdk "
+        + "--disable-desktop-embeddings "
+        + "--no-build-embedder-examples "
+        + "--verbose "
+        + hostAppend
+        + extraParam.replace("\\", ""),
+        checkCode=False,
+        timeout=600,
+    )
+    append1 = "_unopt" if buildType == "debug" else ""
+    append2 = "_arm64" if args.host_cpu == "arm64" else ""
+    outputName = f"host_{buildType}{append1}{append2}"
+    runCommand(f"ninja -C src/out/{outputName}")
 
 
 def uploadFiles():
@@ -388,6 +418,8 @@ def buildByNameAndType(args):
                 zipFiles(buildInfo, False, args)
             elif "zip2" == buildName:
                 zipFiles(buildInfo, True, args)
+            elif "host" == buildName:
+                buildLocalEngine(buildType, args)
             else:
                 logging.warning("Other name=%s" % buildName)
 
