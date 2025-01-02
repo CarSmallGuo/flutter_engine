@@ -56,6 +56,7 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
+          this.flutterView?.onAccessibilityIsOpen()
         })
         .onDestroy(() => {
           Log.d(TAG, "XComponent onDestroy ");
@@ -135,6 +136,7 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
+          this.flutterView?.onAccessibilityIsOpen()
         })
         .onDestroy(() => {
           Log.d(TAG, "XComponent onDestroy ");
