@@ -11,6 +11,10 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
+*
+* Based on AccessibilityEventsDelegate.java originally written by
+* Copyright (C) 2019  Amir Hardon <amirh@users.noreply.github.com>
+*
 */
 
 import AccessibilityBridge from '../../view/AccessibilityBridge';

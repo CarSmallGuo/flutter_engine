@@ -11,6 +11,10 @@
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
 * limitations under the License.
+*
+* Based on FlutterOverlaySurface.java originally written by
+* Copyright (C) 2020  cg021 <40409839+cg021@users.noreply.github.com>
+*
 */
 
 export class FlutterOverlaySurface {
