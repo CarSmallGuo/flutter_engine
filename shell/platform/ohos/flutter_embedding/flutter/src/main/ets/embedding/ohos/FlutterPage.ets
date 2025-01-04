@@ -28,6 +28,8 @@ const TAG = "FlutterPage";
  */
 @Component
 export struct FlutterPage {
+  @Prop safeAreaEdges: SafeAreaEdge[] | undefined = [];
+  @Prop safeAreaTypes: SafeAreaType[] | undefined = [];
   @Prop viewId: string = ""
   @Prop xComponentType: XComponentType = XComponentType.SURFACE
   /**
@@ -90,9 +92,9 @@ export struct FlutterPage {
           Log.d(TAG, "XComponent onDestroy ");
           this.flutterView?.onSurfaceDestroyed()
         })
-        .renderFit(this.xComponentRenderFit)
-        .backgroundColor(this.firstFrameDisplayed && this.xComponentRenderFit == RenderFit.RESIZE_FILL ?
-        this.xComponentColor : Color.Transparent)
+        .renderFit(RenderFit.TOP_LEFT)
+        .backgroundColor(Color.Transparent)
+        .expandSafeArea(this.safeAreaTypes, this.safeAreaEdges)
 
       if (this.showSplashScreen) {
         this.splashScreenView();
@@ -169,9 +171,9 @@ export struct FlutterPage {
           Log.d(TAG, "XComponent onDestroy ");
           this.flutterView?.onSurfaceDestroyed()
         })
-        .renderFit(this.xComponentRenderFit)
-        .backgroundColor(this.firstFrameDisplayed && this.xComponentRenderFit == RenderFit.RESIZE_FILL ?
-        this.xComponentColor : Color.Transparent)
+        .renderFit(RenderFit.TOP_LEFT)
+        .backgroundColor(Color.Transparent)
+        .expandSafeArea(this.safeAreaTypes, this.safeAreaEdges)
 
       if (this.showSplashScreen) {
         this.splashScreenView();
