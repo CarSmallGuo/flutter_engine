@@ -83,8 +83,7 @@ namespace flutter {
       flutter::SemanticsNodeUpdates update,
       flutter::CustomAccessibilityActionUpdates actions)
   {
-    auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
-    ohos_a11y_bridge->UpdateSemantics(update, actions);
+      OhosAccessibilityBridge::GetInstance()->UpdateSemantics(update, actions);
   }  
 
   /**
@@ -102,8 +101,7 @@ namespace flutter {
   void NativeAccessibilityChannel::AccessibilityMessageHandler::Announce(
       std::unique_ptr<char[]>& message)
   {
-    auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
-    ohos_a11y_bridge->Announce(message);
+      OhosAccessibilityBridge::GetInstance()->Announce(message);
   }
 
   /**
@@ -112,8 +110,7 @@ namespace flutter {
   void NativeAccessibilityChannel::AccessibilityMessageHandler::OnTap(
       int32_t nodeId)
   {
-    auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
-    ohos_a11y_bridge->OnTap(nodeId);
+      OhosAccessibilityBridge::GetInstance()->OnTap(nodeId);
   }
 
   /**
@@ -122,8 +119,7 @@ namespace flutter {
   void NativeAccessibilityChannel::AccessibilityMessageHandler::OnLongPress(
       int32_t nodeId)
   {
-    auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
-    ohos_a11y_bridge->OnLongPress(nodeId);
+      OhosAccessibilityBridge::GetInstance()->OnLongPress(nodeId);
   }
 
   /**
@@ -132,7 +128,6 @@ namespace flutter {
   void NativeAccessibilityChannel::AccessibilityMessageHandler::OnTooltip(
       std::unique_ptr<char[]>& message)
   {
-    auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
-    ohos_a11y_bridge->OnTooltip(message);
+      OhosAccessibilityBridge::GetInstance()->OnTooltip(message);
   }
 }
