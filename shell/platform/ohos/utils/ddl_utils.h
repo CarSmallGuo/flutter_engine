@@ -62,4 +62,13 @@ using LIBHANDLE = void*;
         }                                                      \
     } while (false)                                            \
 
+#define CHECK_NULL_PTR_RET_VOID(PARAM, FUNC)                   \
+    do {                                                       \
+        if (PARAM == nullptr) {                                \
+            LOGE("Error: %{public}s -> %{public}s is nullptr", \
+                #FUNC, #PARAM);                                \
+            return;                                            \
+        }                                                      \
+    } while (false)                                            \
+
 #endif // FOUNDATION_ACE_INTERFACE_INNERKITS_ACE_UTILS_H

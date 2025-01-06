@@ -271,8 +271,7 @@ void OhosAccessibilityBridge::RequestFocusWhenPageUpdate(int32_t requestFocusId)
 {
     if (OHOS_API_VERSION < 13) { return; }
     provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
-    CHECK_NULL_PTR(provider_, RequestFocusWhenPageUpdate);
-    if (provider_ == nullptr) { return; }
+    CHECK_NULL_PTR_RET_VOID(provider_, RequestFocusWhenPageUpdate);
     
     auto OH_ArkUI_CreateAccessibilityEventInfo = 
         OhosAccessibilityDDL::DLLoadCreateEventInfoFunc(ArkUIAccessibilityConstant::ARKUI_CREATE_EVENT);
@@ -961,8 +960,6 @@ void OhosAccessibilityBridge::BuildArkUISemanticsTree(
         //配置当前子节点信息
         FlutterSetElementInfoProperties(newElementInfo, levelOrderId);
     }
-    // 对于不同xcomponent窗口添加不同的屏幕坐标映射map
-    // g_xcomponentScreenRectMaps[xcomponentId_] = g_screenRectMap;
 }
 
 /**
@@ -1569,8 +1566,7 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAnnounceEvent(
 {
     if (OHOS_API_VERSION < 13) { return; }
     provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
-    CHECK_NULL_PTR(provider_, Flutter_SendAccessibilityAnnounceEvent);
-    if (provider_ == nullptr) { return; }
+    CHECK_NULL_PTR_RET_VOID(provider_, Flutter_SendAccessibilityAnnounceEvent);
 
     // 创建并设置屏幕朗读事件
     auto OH_ArkUI_CreateAccessibilityEventInfo =
@@ -1619,8 +1615,7 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
 {
     if (OHOS_API_VERSION < 13) { return; }
     provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
-    CHECK_NULL_PTR(provider_, Flutter_SendAccessibilityAsyncEvent);
-    if (provider_ == nullptr) { return; }
+    CHECK_NULL_PTR_RET_VOID(provider_, Flutter_SendAccessibilityAsyncEvent);
 
     // 创建eventInfo对象
     auto OH_ArkUI_CreateAccessibilityEventInfo =

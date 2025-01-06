@@ -302,8 +302,8 @@ void PlatformViewOHOS::UpdateSemantics(
       [update = std::move(update), actions = std::move(actions)]() {
         auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
         nativeAccessibilityChannel_->UpdateSemantics(update, actions);
+        FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics is called";
   });
-  FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics is called";
 }
 
 // |PlatformView|
