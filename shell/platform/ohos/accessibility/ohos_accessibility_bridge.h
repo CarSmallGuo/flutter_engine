@@ -160,11 +160,7 @@ private:
     static std::unique_ptr<OhosAccessibilityBridge> bridgeInstance_;
     std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
     std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
-    std::string xcomponentId_; 
 
-    std::unordered_map<std::string, std::unordered_map<int32_t, SemanticsNodeExtent>> g_flutterXcomponentTrees;
-    std::unordered_map<std::string, std::vector<std::pair<int32_t, int32_t>>> g_xcomponentParentChildMaps;
-    std::unordered_map<std::string, std::unordered_map<int32_t, AbsoluteRect>> g_xcomponentScreenRectMaps;
     std::unordered_map<int32_t, SemanticsNodeExtent> g_flutterSemanticsTree;
     std::vector<std::pair<int32_t, int32_t>> g_parentChildIdVec;
     std::unordered_map<int32_t, AbsoluteRect> g_screenRectMap;
