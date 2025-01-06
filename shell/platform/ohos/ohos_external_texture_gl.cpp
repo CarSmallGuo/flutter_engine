@@ -39,7 +39,6 @@ constexpr const char *CHARACTER_STRING_WHITESPACE = " ";
 constexpr const char *EGL_EXT_PLATFORM_WAYLAND = "EGL_EXT_platform_wayland";
 constexpr const char *EGL_KHR_PLATFORM_WAYLAND = "EGL_KHR_platform_wayland";
 constexpr const char *EGL_GET_PLATFORM_DISPLAY_EXT = "eglGetPlatformDisplayEXT";
-constexpr uint32_t WHITE_COLOR = 0xFFFFFFFF;
 
 const SkScalar DEFAULT_MATRIX[] = {1, 0, 0, 0, -1, 1, 0, 0, 1};
 
@@ -601,7 +600,7 @@ void OHOSExternalTextureGL::ProduceColorToBackGroundImage(int32_t width, int32_t
   uint32_t* destAddr = static_cast<uint32_t *>(mappedAddr);
 
   for (int32_t x = 0; x < handle->size / PIXEL_SIZE; x++) {
-    *destAddr++ = WHITE_COLOR;
+    *destAddr++ = backGroundColor_;
   }
 
     // munmap after use
@@ -846,6 +845,11 @@ void OHOSExternalTextureGL::DispatchBackGroundPixelMap(NativePixelMap* pixelMap)
   if (pixelMap != nullptr) {
     backGroundPixelMap_ = pixelMap;
   }
+}
+
+void OHOSExternalTextureGL::DispatchBackGroundColor(uint32_t color)
+{
+  backGroundColor_ = color;
 }
 
 }  // namespace flutter

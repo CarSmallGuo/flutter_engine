@@ -529,6 +529,17 @@ void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(
   }
 }
 
+void PlatformViewOHOS::SetExternalTextureBackGroundColor(
+    int64_t texture_id,
+    uint32_t color) {
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    auto iter = external_texture_gl_.find(texture_id);
+    if (iter != external_texture_gl_.end()) {
+      iter->second->DispatchBackGroundColor(color);
+    }
+  }
+}
+
 void PlatformViewOHOS::OnTouchEvent(
     const std::shared_ptr<std::string[]> touchPacketString,
     int size) {
