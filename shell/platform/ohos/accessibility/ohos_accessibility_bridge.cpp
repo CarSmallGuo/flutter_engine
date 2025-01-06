@@ -78,7 +78,7 @@ void OhosAccessibilityBridge::SetNativeShellHolderId(int64_t id)
  */
 void OhosAccessibilityBridge::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
-    flutter::CustomAccessibilityActionUpdates action)
+    flutter::CustomAccessibilityActionUpdates actions)
 {
     FML_DLOG(INFO) << "OhosAccessibilityBridge::UpdateSemantics()";
     provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
