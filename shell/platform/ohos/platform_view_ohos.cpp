@@ -27,6 +27,7 @@
 #include "flutter/shell/platform/ohos/platform_view_ohos_delegate.h"
 #include <GLES2/gl2ext.h>
 
+
 namespace flutter {
 
 OhosSurfaceFactoryImpl::OhosSurfaceFactoryImpl(
@@ -297,9 +298,12 @@ void PlatformViewOHOS::UpdateAssetResolverByType(
 void PlatformViewOHOS::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
+  task_runners_.GetPlatformTaskRunner()->PostTask(
+      [update = std::move(update), actions = std::move(actions)]() {
+        auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
+        nativeAccessibilityChannel_->UpdateSemantics(update, actions);
+  });
   FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics is called";
-  auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
-  nativeAccessibilityChannel_->UpdateSemantics(update, actions);
 }
 
 // |PlatformView|

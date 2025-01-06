@@ -1850,14 +1850,14 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
                     << ret;
     return nullptr;
   }
-  int64_t shell_holder_id;
-  ret = napi_get_value_int64(env, args[0], &shell_holder_id);
+
+  int64_t shellHolder = 0;
+  ret = napi_get_value_int64(env, args[0], &shellHolder);
   if (ret != napi_ok) {
-    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeAccessibilityStateChange "
-                       "napi_get_value_int64 error:"
-                    << ret;
+    LOGE("nativeAccessibilityStateChange shellHolder napi_get_value_int64 error");
     return nullptr;
   }
+
   bool state = false;
   ret = napi_get_value_bool(env, args[1], &state);
   if (ret != napi_ok) {
@@ -1866,17 +1866,13 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
                     << ret;
     return nullptr;
   }
-  LOGD(
-      "PlatformViewOHOSNapi::nativeAccessibilityStateChange state is: "
-      "%{public}s",
-      (state ? "true" : "false"));
+  LOGD("PlatformViewOHOSNapi::nativeAccessibilityStateChange state is: "
+       "%{public}s, shellholderId: %{public}ld", (state ? "true" : "false"), shellHolder);
 
   //send to accessibility bridge
   if (OHOS_API_VERSION >= 13) {
-      OhosAccessibilityBridge::GetInstance()->OnOhosAccessibilityStateChange(shell_holder_id, state);
+      OhosAccessibilityBridge::GetInstance()->OnOhosAccessibilityStateChange(state, shellHolder);
   }
-  FML_DLOG(INFO) << "nativeAccessibilityStateChange: state=" << state
-                 << " shell_holder_id=" << shell_holder_id;
   return nullptr;
 }
 
