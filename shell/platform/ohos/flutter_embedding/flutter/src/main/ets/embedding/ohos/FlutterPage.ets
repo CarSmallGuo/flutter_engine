@@ -17,7 +17,7 @@ import Log from '../../util/Log';
 import { FlutterView } from '../../view/FlutterView';
 import FlutterManager from './FlutterManager';
 import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
-
+import flutter from 'libflutter.so';
 const TAG = "FlutterPage";
 export const OHOS_FLUTTER_PAGE_UPDATE = "ohos_flutter_page_update";
 
@@ -56,7 +56,19 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
-          this.flutterView?.onAccessibilityIsOpen()
+          // 当xcomponent窗口部分显示或完全隐藏时触发回调
+          this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
+            { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
+            (ratioInc: boolean, ratio: number) => {
+              if (ratioInc) {
+                Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
+                           " ratioInc: " + ratioInc + " ratio: " + ratio);
+                flutter.nativeGetXComponentId(this.viewId);
+                // 保证获取xcomponentid之后再使用无障碍
+                this.flutterView?.onAccessibilityIsOpen();
+              }
+            }
+          )
         })
         .onDestroy(() => {
           Log.d(TAG, "XComponent onDestroy ");
@@ -136,7 +148,19 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
-          this.flutterView?.onAccessibilityIsOpen()
+          // 当xcomponent窗口部分显示或完全隐藏时触发回调
+          this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
+            { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
+            (ratioInc: boolean, ratio: number) => {
+              if (ratioInc) {
+                Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
+                            " ratioInc: " + ratioInc + " ratio: " + ratio);
+                flutter.nativeGetXComponentId(this.viewId);
+                // 保证获取xcomponentid之后再使用无障碍
+                this.flutterView?.onAccessibilityIsOpen();
+              }
+            }
+          )
         })
         .onDestroy(() => {
           Log.d(TAG, "XComponent onDestroy ");

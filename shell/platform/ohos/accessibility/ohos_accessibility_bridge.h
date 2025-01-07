@@ -92,6 +92,7 @@ public:
     OhosAccessibilityBridge(const OhosAccessibilityBridge&) = delete;
     OhosAccessibilityBridge& operator=(const OhosAccessibilityBridge&) = delete;
 
+    std::string xcomponentId_;
     bool isFlutterNavigated_;
     int64_t native_shell_holder_id_;
 
@@ -175,6 +176,12 @@ private:
     std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
     std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
 
+    std::unordered_map<int32_t, SemanticsNodeExtent> g_flutterSemanticsTree;
+    std::vector<std::pair<int32_t, int32_t>> g_parentChildIdVec;
+    std::unordered_map<int32_t, AbsoluteRect> g_screenRectMap;
+
+    SemanticsNodeExtent inputFocusedNode;
+    SemanticsNodeExtent lastInputFocusedNode;
     SemanticsNodeExtent accessibilityFocusedNode;
 
     static const int32_t OHOS_API_VERSION; 

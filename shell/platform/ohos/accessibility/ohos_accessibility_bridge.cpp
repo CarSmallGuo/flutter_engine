@@ -941,6 +941,8 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
         << elementId << " mode=" << mode;
     CHECK_NULL_PTR_WITH_RET(elementList, FindAccessibilityNodeInfosById);
 
+    AccessibiltiyChangesWithXComponentId();
+
     if (g_flutterSemanticsTree.size() == 0) {
         FML_DLOG(INFO)
             << "FindAccessibilityNodeInfosById g_flutterSemanticsTree is null";
@@ -1300,6 +1302,8 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
     FML_DLOG(INFO) << "ExecuteAccessibilityAction input-params-> elementId="
                    << elementId << " action=" << action;
     CHECK_NULL_PTR_WITH_RET(actionArguments, ExecuteAccessibilityAction);
+
+    AccessibiltiyChangesWithXComponentId();
 
     // 获取当前elementid对应的flutter语义节点
     auto flutterNode = GetFlutterSemanticsNode(static_cast<int32_t>(elementId));

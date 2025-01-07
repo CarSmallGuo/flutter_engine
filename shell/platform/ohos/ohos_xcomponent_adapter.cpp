@@ -99,6 +99,10 @@ void XComponentAdapter::AttachFlutterEngine(std::string& id,
   auto findIter = xcomponetMap_.find(id);
   if (findIter != xcomponetMap_.end()) {
     findIter->second->AttachFlutterEngine(shellholderId);
+    // register the OH_ArkUI accessibility callbacks
+    if (OH_GetSdkApiVersion() >= 13) {
+      findIter->second->RegisterArkUIAccessibilityService(findIter->second->nativeXComponent_, shellholderId);
+    }
   }
 }
 
@@ -202,6 +206,8 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
     if(it->second->nativeXComponent_ == component) {
       it->second->OnSurfaceDestroyed(component, window);
       delete it->second;
+      // 将当前要销毁的xcomponent对应的无障碍provider指针置nullptr
+      it->second->accessibilityProvider_ = nullptr;
       it = XComponentAdapter::GetInstance()->xcomponetMap_.erase(it);
       // delete the semantics tree of the destroyed xcomponent
       OhosAccessibilityBridge::GetInstance()->g_flutterSemanticsTreeXComponents.erase(it->first);

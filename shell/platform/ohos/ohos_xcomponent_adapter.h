@@ -69,7 +69,6 @@ public:
   uint64_t height_;
   OhosTouchProcessor ohosTouchProcessor_;
   ArkUI_AccessibilityProvider* accessibilityProvider_;
-
 };
 
 class XComponentAdapter {
@@ -88,7 +87,7 @@ class XComponentAdapter {
 
  public:
   std::map<std::string, XComponentBase*> xcomponetMap_;
-  ArkUI_AccessibilityProvider* accessibilityProvider_;
+  std::string currentXComponentId_;
   std::mutex mutex_;
 
  private:
