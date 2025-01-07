@@ -80,6 +80,8 @@ class OHOSExternalTextureGL : public flutter::Texture, public std::enable_shared
 
   void DispatchBackGroundPixelMap(NativePixelMap* pixelMap);
 
+  void DispatchBackGroundColor(uint32_t color);
+
  private:
   void Attach();
 
@@ -122,6 +124,8 @@ class OHOSExternalTextureGL : public flutter::Texture, public std::enable_shared
   OHNativeWindow *backGroundNativeWindow_;
 
   NativePixelMap* backGroundPixelMap_;
+
+  uint32_t backGroundColor_ = 0xFFFFFFFF;  //  white color
 
   NativePixelMap* pixelMap_;
 
