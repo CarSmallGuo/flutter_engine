@@ -2277,4 +2277,23 @@ napi_value PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol(napi_env
   napi_create_int32(env, (int)is_emoji, &result);
   return result;
 }
+
+napi_value PlatformViewOHOSNapi::nativeGetXComponentId(napi_env env, napi_callback_info info)
+{
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  std::string xcomponentId;
+  bool ret = fml::napi::GetString(env, args[0], xcomponentId);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeGetXComponentId xcomponentId: " << xcomponentId;
+    return nullptr;
+  }
+  // obtain the current visible xcomponent id from the ets callback event
+  XComponentAdapter::GetInstance()->currentXComponentId_ = xcomponentId;
+  FML_DLOG(ERROR) << "nativeGetXComponentId -> xcomponentId: " << xcomponentId;
+  return nullptr;
+}
+
 }  // namespace flutter

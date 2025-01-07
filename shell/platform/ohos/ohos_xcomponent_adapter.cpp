@@ -99,6 +99,10 @@ void XComponentAdapter::AttachFlutterEngine(std::string& id,
   auto findIter = xcomponetMap_.find(id);
   if (findIter != xcomponetMap_.end()) {
     findIter->second->AttachFlutterEngine(shellholderId);
+    // register the OH_ArkUI accessibility callbacks
+    if (OH_GetSdkApiVersion() >= 13) {
+      findIter->second->RegisterArkUIAccessibilityService(findIter->second->nativeXComponent_, shellholderId);
+    }
   }
 }
 
@@ -201,6 +205,8 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
     if(it->second->nativeXComponent_ == component) {
       it->second->OnSurfaceDestroyed(component, window);
       delete it->second;
+      // 将当前要销毁的xcomponent对应的无障碍provider指针置nullptr
+      it->second->accessibilityProvider_ = nullptr;
       it = XComponentAdapter::GetInstance()->xcomponetMap_.erase(it);
     } else {
       ++it;
@@ -364,7 +370,8 @@ void XComponentBase::DetachFlutterEngine() {
   isEngineAttached_ = false;
 }
 
-void XComponentBase::RegisterArkUIAccessibilityService(OH_NativeXComponent* nativeXComponent)
+void XComponentBase::RegisterArkUIAccessibilityService(
+    OH_NativeXComponent* nativeXComponent, const std::string& shellholderId)
 {
     BindAccessibilityProviderCallback();
 
@@ -385,8 +392,11 @@ void XComponentBase::RegisterArkUIAccessibilityService(OH_NativeXComponent* nati
         OH_ArkUI_AccessibilityProviderRegisterCallback(a11yProvider, &accessibilityProviderCallback_)
     );
 
-    XComponentAdapter::GetInstance()->accessibilityProvider_ = a11yProvider;
-    
+    auto* base = XComponentAdapter::GetInstance()->xcomponetMap_[id_];
+    base->shellholderId_ = shellholderId;
+    base->accessibilityProvider_ = a11yProvider;
+    base->nativeXComponent_ = nativeXComponent;
+
     FML_DLOG(INFO) << "RegisterArkUIAccessibilityService is finished";
 }
 
@@ -396,10 +406,6 @@ void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
     BindXComponentCallback();
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
-    // register the OH_ArkUI accessibility callbacks
-    if (OH_GetSdkApiVersion() >= 13) {
-      RegisterArkUIAccessibilityService(nativeXComponent_);
-    }
   }
 }
 
@@ -456,7 +462,8 @@ void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component, void* wind
 void XComponentBase::OnSurfaceDestroyed(OH_NativeXComponent* component,
                                         void* window) {
   window_ = nullptr;
-  XComponentAdapter::GetInstance()->accessibilityProvider_ = nullptr;
+  // XComponentAdapter::GetInstance()->accessibilityProvider_ = nullptr;
+
   LOGD("XComponentManger::OnSurfaceDestroyed");
   if (isEngineAttached_) {
     PlatformViewOHOSNapi::SurfaceDestroyed(std::stoll(shellholderId_));

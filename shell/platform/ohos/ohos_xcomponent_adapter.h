@@ -51,7 +51,8 @@ public:
   void OnDispatchMouseEvent(OH_NativeXComponent* component, void* window);
   void OnDispatchMouseWheelEvent(mouseWheelEvent event);
 
-  void RegisterArkUIAccessibilityService(OH_NativeXComponent* nativeXComponent);
+  void RegisterArkUIAccessibilityService(
+       OH_NativeXComponent* nativeXComponent, const std::string& shellholderId);
 
   OH_NativeXComponent_TouchEvent touchEvent_;
   OH_NativeXComponent_Callback callback_;
@@ -68,7 +69,6 @@ public:
   uint64_t height_;
   OhosTouchProcessor ohosTouchProcessor_;
   ArkUI_AccessibilityProvider* accessibilityProvider_;
-
 };
 
 class XComponentAdapter {
@@ -85,7 +85,7 @@ class XComponentAdapter {
 
  public:
   std::map<std::string, XComponentBase*> xcomponetMap_;
-  ArkUI_AccessibilityProvider* accessibilityProvider_;
+  std::string currentXComponentId_;
 
  private:
   static XComponentAdapter mXComponentAdapter;

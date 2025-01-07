@@ -32,6 +32,37 @@ const int32_t OhosAccessibilityBridge::OHOS_API_VERSION = OH_GetSdkApiVersion();
 std::unique_ptr<OhosAccessibilityBridge> OhosAccessibilityBridge::bridgeInstance_ = nullptr;
 
 /**
+ * flutter无障碍相关语义树、句柄指针provider等参数
+ * 跟随xcomponentid显示切换，而加载对应xcomponent的语义树和provider指针
+ * @NOTE: 当屏幕同时显示多个xcomponent时，无法通过聚焦事件而触发xcomponentid改变
+ */
+void OhosAccessibilityBridge::AccessibiltiyChangesWithXComponentId()
+{   
+    auto xcompMap = XComponentAdapter::GetInstance()->xcomponetMap_;
+    // 获取当前显示的xcomponetid
+    std::string currXcompId = XComponentAdapter::GetInstance()->currentXComponentId_;
+    if (xcomponentId_ == currXcompId) { return; }
+
+    auto it = xcompMap.find(currXcompId);
+    if (!xcompMap.empty() && it != xcompMap.end()) {
+        // 更新xcompid，shellholderId，provider指针
+        xcomponentId_ = currXcompId;
+        native_shell_holder_id_ = std::stoll(it->second->shellholderId_);
+        provider_ = it->second->accessibilityProvider_;
+        g_flutterSemanticsTree = g_flutterSemanticsTreeXComponents[xcomponentId_];
+        g_parentChildIdVec = g_parentChildIdVecXComponents[xcomponentId_];
+
+        FML_DLOG(INFO) << "AccessibiltiyChangesWithXComponentId -> xcomponentid:" << xcomponentId_;
+    } else {
+        xcomponentId_ = "oh_flutter_1";
+        provider_ = nullptr;
+        g_flutterSemanticsTree = g_flutterSemanticsTreeXComponents[xcomponentId_];
+        g_parentChildIdVec = g_parentChildIdVecXComponents[xcomponentId_];
+        FML_DLOG(INFO) << "AccessibiltiyChangesWithXComponentId -> xcomponentid:" << xcomponentId_;
+    }
+}
+
+/**
  * 采用局部静态变量配合call-once特性，实现线程安全的单例模式
  */
 OhosAccessibilityBridge* OhosAccessibilityBridge::GetInstance() 
@@ -54,7 +85,8 @@ void OhosAccessibilityBridge::OnOhosAccessibilityStateChange(
     bool ohosAccessibilityEnabled, int64_t shellholderId)
 {
     native_shell_holder_id_ = shellholderId;
-    provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
+    AccessibiltiyChangesWithXComponentId();
+    // provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
     nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
     accessibilityFeatures_ = std::make_shared<OhosAccessibilityFeatures>();
 
@@ -81,7 +113,7 @@ void OhosAccessibilityBridge::UpdateSemantics(
     flutter::CustomAccessibilityActionUpdates actions)
 {
     FML_DLOG(INFO) << "OhosAccessibilityBridge::UpdateSemantics()";
-    provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
+    // provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
     std::vector<SemanticsNodeExtent> updatedFlutterNodes;
 
     // 当flutter页面状态更新（路由新页面）时，自动请求root节点组件获焦（规避滑动组件更新干扰）
@@ -123,6 +155,10 @@ void OhosAccessibilityBridge::UpdateSemantics(
             g_parentChildIdVec.emplace_back(std::make_pair(nodeEx.id, nodeEx.childrenInTraversalOrder[i]));
         }
     }
+
+    // 将更新后的flutter语义树和父子节点id映射缓存，保存到相应的xcomponent里面
+    g_flutterSemanticsTreeXComponents[xcomponentId_] = g_flutterSemanticsTree;
+    g_parentChildIdVecXComponents[xcomponentId_] = g_parentChildIdVec;
 
     // 页面内容更新事件
     Flutter_SendAccessibilityAsyncEvent(0,
@@ -270,7 +306,8 @@ void OhosAccessibilityBridge::FlutterScrollExecution(
 void OhosAccessibilityBridge::RequestFocusWhenPageUpdate(int32_t requestFocusId)
 {
     if (OHOS_API_VERSION < 13) { return; }
-    provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
+    AccessibiltiyChangesWithXComponentId();
+    // provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
     CHECK_NULL_PTR_RET_VOID(provider_, RequestFocusWhenPageUpdate);
     
     auto OH_ArkUI_CreateAccessibilityEventInfo = 
@@ -978,6 +1015,8 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
         << elementId << " mode=" << mode;
     CHECK_NULL_PTR_WITH_RET(elementList, FindAccessibilityNodeInfosById);
 
+    AccessibiltiyChangesWithXComponentId();
+
     if (g_flutterSemanticsTree.size() == 0) {
         FML_DLOG(INFO)
             << "FindAccessibilityNodeInfosById g_flutterSemanticsTree is null";
@@ -1370,6 +1409,8 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
                    << elementId << " action=" << action;
     CHECK_NULL_PTR_WITH_RET(actionArguments, ExecuteAccessibilityAction);
 
+    AccessibiltiyChangesWithXComponentId();
+
     // 获取当前elementid对应的flutter语义节点
     auto flutterNode = GetFlutterSemanticsNode(static_cast<int32_t>(elementId));
     if (!g_flutterSemanticsTree.count(flutterNode.id)) {
@@ -1565,7 +1606,8 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAnnounceEvent(
     ArkUI_AccessibilityEventType eventType)
 {
     if (OHOS_API_VERSION < 13) { return; }
-    provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
+    AccessibiltiyChangesWithXComponentId();
+    // provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
     CHECK_NULL_PTR_RET_VOID(provider_, Flutter_SendAccessibilityAnnounceEvent);
 
     // 创建并设置屏幕朗读事件
@@ -1614,7 +1656,8 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
     ArkUI_AccessibilityEventType eventType)
 {
     if (OHOS_API_VERSION < 13) { return; }
-    provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
+    AccessibiltiyChangesWithXComponentId();
+    // provider_ = XComponentAdapter::GetInstance()->accessibilityProvider_;
     CHECK_NULL_PTR_RET_VOID(provider_, Flutter_SendAccessibilityAsyncEvent);
 
     // 创建eventInfo对象
