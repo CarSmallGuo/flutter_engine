@@ -1099,7 +1099,7 @@ index 0000000000..0e5e0829b6
 @@ -0,0 +1,32 @@
 +// Copyright (c) 2024 Huawei Device Co., Ltd. All rights reserved
 +// Use of this source code is governed by a BSD-style license that can be
-+// found in the LICENSE file.
++// found in the LICENSE_HW file.
 +
 +#include "include/core/SkTypes.h"
 +
@@ -1137,7 +1137,7 @@ index 0000000000..ea5c8ecf84
 @@ -0,0 +1,1312 @@
 +// Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved
 +// Use of this source code is governed by a BSD-style license that can be
-+// found in the LICENSE file.
++// found in the LICENSE_HW file.
 +
 +#include "FontConfig_ohos.h"
 +
@@ -2455,7 +2455,7 @@ index 0000000000..edd2c51495
 @@ -0,0 +1,217 @@
 +// Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved
 +// Use of this source code is governed by a BSD-style license that can be
-+// found in the LICENSE file.
++// found in the LICENSE_HW file.
 +
 +#ifndef FONTCONFIG_OHOS_H
 +#define FONTCONFIG_OHOS_H
@@ -2678,7 +2678,7 @@ index 0000000000..0b851ae3fa
 @@ -0,0 +1,145 @@
 +// Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved
 +// Use of this source code is governed by a BSD-style license that can be
-+// found in the LICENSE file.
++// found in the LICENSE_HW file.
 +
 +#ifndef FONTINFO_OHOS_H
 +#define FONTINFO_OHOS_H
@@ -2829,7 +2829,7 @@ index 0000000000..a18757d5d5
 @@ -0,0 +1,437 @@
 +// Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved
 +// Use of this source code is governed by a BSD-style license that can be
-+// found in the LICENSE file.
++// found in the LICENSE_HW file.
 +
 +#include "SkFontMgr_ohos.h"
 +
@@ -3276,7 +3276,9 @@ index 0000000000..b9b42ea204
 + * Use of this source code is governed by a BSD-style license that can be
 + * found in the LICENSE file.
 + * 2023.4.23 SkFontMgr on ohos.
-+ *           Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved.
++ *          Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved.
++ *          Use of this source code is governed by a BSD-style license tha
+             found in the LICENSE_HW file.
 + */
 +
 +#ifndef SKFONTMGR_OHOS_H
@@ -3347,7 +3349,7 @@ index 0000000000..b975ceddd4
 @@ -0,0 +1,14 @@
 +// Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved
 +// Use of this source code is governed by a BSD-style license that can be
-+// found in the LICENSE file.
++// found in the LICENSE_HW file.
 +
 +#include "include/core/SkFontMgr.h"
 +SK_API sk_sp<SkFontMgr> SkFontMgr_New_OHOS(const char* path);
@@ -3367,7 +3369,7 @@ index 0000000000..094e3ee532
 @@ -0,0 +1,102 @@
 +// Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved
 +// Use of this source code is governed by a BSD-style license that can be
-+// found in the LICENSE file.
++// found in the LICENSE_HW file.
 +
 +#include "SkFontStyleSet_ohos.h"
 +
@@ -3475,7 +3477,7 @@ index 0000000000..b9fb40cf1e
 @@ -0,0 +1,32 @@
 +// Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved
 +// Use of this source code is governed by a BSD-style license that can be
-+// found in the LICENSE file.
++// found in the LICENSE_HW file.
 +
 +#ifndef SKFONTSTYLESET_OHOS_H
 +#define SKFONTSTYLESET_OHOS_H
@@ -3513,7 +3515,7 @@ index 0000000000..05d3d56d1b
 @@ -0,0 +1,165 @@
 +// Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved
 +// Use of this source code is governed by a BSD-style license that can be
-+// found in the LICENSE file.
++// found in the LICENSE_HW file.
 +
 +#include "SkTypeface_ohos.h"
 +
@@ -3684,7 +3686,7 @@ index 0000000000..f80e920de0
 @@ -0,0 +1,34 @@
 +// Copyright (c) 2023 Huawei Device Co., Ltd. All rights reserved
 +// Use of this source code is governed by a BSD-style license that can be
-+// found in the LICENSE file.
++// found in the LICENSE_HW file.
 +
 +#ifndef SKTYPEFACE_OHOS_H
 +#define SKTYPEFACE_OHOS_H
