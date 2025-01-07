@@ -155,7 +155,7 @@ export default class FlutterWindow implements Host {
   }
 
   shouldAttachEngineToAbility(): boolean {
-    let param = this.parameters![FlutterEntry.ARG_SHOULD_ATTACH_ENGINE_TO_ABILITY];
+    let param = this.parameters![FlutterWindow.ARG_SHOULD_ATTACH_ENGINE_TO_ABILITY];
     if (!param) {
       return true;
     }
