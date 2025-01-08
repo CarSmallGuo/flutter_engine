@@ -384,7 +384,7 @@ used to filter file path.
         <filefilterlist>
             <filefilter name="defaultFilter" desc="Files not to check">
                 <filteritem type="filename" name="*.iml|*.json|*.txt" desc="desc files" />
-                <filteritem type="filename" name="platform_ohos.cc" desc="desc files" />
+                <filteritem type="filename" name="platform_ohos.cc|BUILD.gn" desc="desc files" />
                 <filteritem type="filename" name="LICENSE_*" desc="LICENSE文件" />
                 <filteritem type="filename"
                     name="*.png|*.ico|*.jpg|*.ttf|*.enc|*.mp4|*.ttc|*.key|*.heic|*.res|*.gif|*.otf|*.compiled|*.webp|*.gn|*.json"
