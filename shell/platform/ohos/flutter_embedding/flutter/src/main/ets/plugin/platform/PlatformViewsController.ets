@@ -163,7 +163,9 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       this.viewIdWithNodeController.delete(viewId);
       if (this.flutterView) {
         let index = this.flutterView.getDVModel().children.indexOf(viewWrapper.getDvModel()!);
-        this.flutterView.getDVModel().children.splice(index, 1);
+        if (index > -1) {
+          this.flutterView.getDVModel().children.splice(index, 1);
+        }
       }
       this.viewWrappers.delete(viewId);
     }
@@ -385,9 +387,6 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
 
   public attachToView(newFlutterView : FlutterView) {
     this.flutterView = newFlutterView;
-    for (let wrapper of this.viewWrappers.values()) {
-      this.flutterView?.getDVModel().children.push(wrapper.getDvModel()!);
-    }
     for (let mutator of this.platformViewParent.values()) {
       this.flutterView?.getDVModel().children.push(mutator.getDvModel()!);
     }
@@ -397,9 +396,6 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
   }
 
   public detachFromView(): void {
-    for (let index = 0; index < this.viewWrappers.size; index++) {
-      this.flutterView?.getDVModel().children.pop();
-    }
     for (let index = 0; index < this.platformViewParent.size; index++) {
       this.flutterView?.getDVModel().children.pop();
     }
