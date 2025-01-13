@@ -106,10 +106,6 @@ OHOSShellHolder::OHOSShellHolder(
         );
         weak_platform_view = platform_view_OHOS->GetWeakPtr();
         FML_LOG(INFO) << "on_create_platform_view end";
-        // std::vector<std::unique_ptr<Display>> displays;
-        // displays.push_back(std::make_unique<OHOSDisplay>(napi_facade));
-        // shell.OnDisplayUpdates(DisplayUpdateType::kStartup,
-        //                        std::move(displays));
         return platform_view_OHOS;
       };
 
