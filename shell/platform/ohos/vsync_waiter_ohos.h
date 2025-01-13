@@ -24,24 +24,26 @@
 namespace flutter {
 
 class VsyncWaiterOHOS final : public VsyncWaiter {
- public:
-  explicit VsyncWaiterOHOS(const flutter::TaskRunners& task_runners);
-  static void OnUpdateRefreshRate(long long refresh_rate);
+public:
+    explicit VsyncWaiterOHOS(const flutter::TaskRunners& task_runners);
+    ~VsyncWaiterOHOS() override;
 
-  ~VsyncWaiterOHOS() override;
+    static void OnUpdateRefreshRate(long long refresh_rate);
 
- private:
-  thread_local static bool firstCall;
-  // |VsyncWaiter|
-  void AwaitVSync() override;
+    int GetRefreshRate(void);
 
-  static void OnVsyncFromOHOS(long long timestamp, void* data);
-  static void ConsumePendingCallback(std::weak_ptr<VsyncWaiter>* weak_this,
+private:
+    // |VsyncWaiter|
+    void AwaitVSync() override;
+
+    static void OnVsyncFromOHOS(long long timestamp, void* data);
+    static void ConsumePendingCallback(std::weak_ptr<VsyncWaiter>* weak_this,
                                      fml::TimePoint frame_start_time,
                                      fml::TimePoint frame_target_time);
 
-  OH_NativeVSync* vsyncHandle;
-  FML_DISALLOW_COPY_AND_ASSIGN(VsyncWaiterOHOS);
+    thread_local static bool firstCall;
+    OH_NativeVSync* vsyncHandle;
+    FML_DISALLOW_COPY_AND_ASSIGN(VsyncWaiterOHOS);
 };
-}  // namespace flutter
+} // namespace flutter
 #endif

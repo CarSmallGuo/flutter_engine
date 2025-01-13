@@ -94,7 +94,7 @@ OHOSShellHolder::OHOSShellHolder(
 
   Shell::CreateCallback<PlatformView> on_create_platform_view =
       [&napi_facade, &weak_platform_view](Shell& shell) {
-        FML_DLOG(INFO) << "on_create_platform_view";
+        FML_LOG(INFO) << "on_create_platform_view";
         std::unique_ptr<PlatformViewOHOS> platform_view_OHOS;
         platform_view_OHOS = std::make_unique<PlatformViewOHOS>(
             shell,                   // delegate
@@ -104,19 +104,12 @@ OHOSShellHolder::OHOSShellHolder(
                 .enable_software_rendering,   // use software rendering
             shell.GetSettings().msaa_samples  // msaa sample count
         );
-        LOGI("on_create_platform_view LOGI");
-        FML_LOG(INFO) << "on_create_platform_view end";
         weak_platform_view = platform_view_OHOS->GetWeakPtr();
-        LOGI("on_create_platform_view LOGI2");
-        FML_LOG(INFO) << "on_create_platform_view end1";
-        std::vector<std::unique_ptr<Display>> displays;
-        displays.push_back(std::make_unique<OHOSDisplay>(napi_facade));
-        FML_DLOG(INFO) << "on_create_platform_view LOGI3";
-        FML_LOG(INFO) << "on_create_platform_view end3";
-        shell.OnDisplayUpdates(DisplayUpdateType::kStartup,
-                               std::move(displays));
-        LOGI("on_create_platform_view LOGI4");
-        FML_LOG(INFO) << "on_create_platform_view end3";
+        FML_LOG(INFO) << "on_create_platform_view end";
+        // std::vector<std::unique_ptr<Display>> displays;
+        // displays.push_back(std::make_unique<OHOSDisplay>(napi_facade));
+        // shell.OnDisplayUpdates(DisplayUpdateType::kStartup,
+        //                        std::move(displays));
         return platform_view_OHOS;
       };
 
@@ -155,6 +148,13 @@ OHOSShellHolder::OHOSShellHolder(
       );
   FML_DLOG(INFO) << "shell create end";
   if (shell_) {
+    // For getting the RefreshRate of display
+    std::vector<std::unique_ptr<Display>> displays;
+    auto vsync_waiter = std::shared_ptr<flutter::VsyncWaiter>(shell_->GetVsyncWaiter().lock());
+    auto vsync_waiter_ohos = std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsync_waiter);
+    displays.push_back(std::make_unique<OHOSDisplay>(vsync_waiter_ohos));
+    shell_->OnDisplayUpdates(DisplayUpdateType::kStartUp, std::move(displays));
+
     shell_->GetDartVM()->GetConcurrentMessageLoop()->PostTaskToAllWorkers([]() {
       if (::setpriority(PRIO_PROCESS, gettid(), 1) != 0) {
         FML_DLOG(ERROR) << "Failed to set Workers task runner priority";
