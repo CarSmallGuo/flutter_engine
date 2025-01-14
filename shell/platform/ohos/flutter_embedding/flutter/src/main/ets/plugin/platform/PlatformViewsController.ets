@@ -156,19 +156,18 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       this.textureRegistry!.unregisterTexture(textureId);
     }
 
+    this.viewIdWithNodeController.get(viewId)?.removeBuilderNode()
+    this.viewIdWithNodeController.get(viewId)?.disposeFrameNode()
+    this.viewIdWithNodeController.delete(viewId);
+
     let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
-    if (viewWrapper != null) {
-      this.viewIdWithNodeController.get(viewId)?.removeBuilderNode()
-      this.viewIdWithNodeController.get(viewId)?.disposeFrameNode()
-      this.viewIdWithNodeController.delete(viewId);
-      if (this.flutterView) {
-        let index = this.flutterView.getDVModel().children.indexOf(viewWrapper.getDvModel()!);
-        if (index > -1) {
-          this.flutterView.getDVModel().children.splice(index, 1);
-        }
+    if (viewWrapper != null && this.flutterView) {
+      let index = this.flutterView.getDVModel().children.indexOf(viewWrapper.getDvModel()!);
+      if (index > -1) {
+        this.flutterView.getDVModel().children.splice(index, 1);
       }
-      this.viewWrappers.delete(viewId);
     }
+    this.viewWrappers.delete(viewId);
 
     try {
       platformView.dispose();
