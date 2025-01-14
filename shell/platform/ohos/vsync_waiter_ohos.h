@@ -16,7 +16,7 @@
 #ifndef VSYNC_WAITER_OHOS_H
 #define VSYNC_WAITER_OHOS_H
 #include <memory>
-
+#include <atomic>
 #include <native_vsync/native_vsync.h>
 #include "flutter/fml/macros.h"
 #include "flutter/shell/common/vsync_waiter.h"
@@ -29,8 +29,12 @@ class VsyncWaiterOHOS final : public VsyncWaiter {
   static void OnUpdateRefreshRate(long long refresh_rate);
 
   ~VsyncWaiterOHOS() override;
-
+  void DisableDVSync() override;
+  void EnableDVSync() override;
+  std::atomic<bool> hasTouchEvent{true};
  private:
+  std::atomic<bool> dvsyncEnabled{false};
+
   thread_local static bool firstCall;
   // |VsyncWaiter|
   void AwaitVSync() override;

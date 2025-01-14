@@ -90,6 +90,9 @@ void Animator::BeginFrame(
       // full because the consumer is being too slow. Try again at the next
       // frame interval.
       TRACE_EVENT0("flutter", "PipelineFull");
+#if defined(FML_OS_OHOS)
+      waiter_->DisableDVSync();
+#endif
       RequestFrame();
       return;
     }
@@ -124,6 +127,9 @@ void Animator::BeginFrame(
             TRACE_EVENT0("flutter", "BeginFrame idle callback");
             self->delegate_.OnAnimatorNotifyIdle(
                 now + fml::TimeDelta::FromMilliseconds(100));
+#if defined(FML_OS_OHOS)
+            self->waiter_->DisableDVSync();
+#endif
           }
         },
         kNotifyIdleTaskWaitTime);
