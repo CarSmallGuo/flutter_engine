@@ -178,3 +178,5 @@ export const nativeUnicodeIsEmojiModifierBase: (code: number) => number;
 export const nativeUnicodeIsVariationSelector: (code: number) => number;
 
 export const nativeUnicodeIsRegionalIndicatorSymbol: (code: number) => number;
+
+export const nativeSetDVsyncSwitch: (nativeShellHolderId: number, isEnable: boolean) => void;

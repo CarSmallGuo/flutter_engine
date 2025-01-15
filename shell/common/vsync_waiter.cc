@@ -87,8 +87,9 @@ void VsyncWaiter::ScheduleSecondaryCallback(uintptr_t id,
 void VsyncWaiter::FireCallback(fml::TimePoint frame_start_time,
                                fml::TimePoint frame_target_time,
                                bool pause_secondary_tasks) {
+#if !defined(FML_OS_OHOS)
   FML_DCHECK(fml::TimePoint::Now() >= frame_start_time);
-
+#endif
   Callback callback;
   std::vector<fml::closure> secondary_callbacks;
 
