@@ -185,8 +185,6 @@ export class FlutterView {
     this.id = viewId
     this.displayInfo = display.getDefaultDisplaySync();
     this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
-    this.buildDisplayFeatures(display.getFoldStatus());
-    this.viewportMetrics.physicalTouchSlop = 1.0 * this.displayInfo?.densityPixels;
 
     this.mainWindow = FlutterManager.getInstance()
       .getWindowStage(FlutterManager.getInstance().getUIAbility(context))
@@ -212,7 +210,14 @@ export class FlutterView {
 
     // Subscribes to display changes. Example: event that the display size is changed.
     try {
-      display.on("change", this.displayChangeCallback);
+      display.on("change", ()=>{
+        this.displayInfo = display.getDefaultDisplaySync();
+        if (this.viewportMetrics.devicePixelRatio != this.displayInfo?.densityPixels) {
+          this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
+          Log.i(TAG, "Display on: " + JSON.stringify(this.displayInfo))
+          this.updateViewportMetrics()
+        }
+      });
     } catch (e) {
       Log.e(TAG, "displayInfo error" + JSON.stringify(e));
     }
@@ -374,7 +379,12 @@ export class FlutterView {
     this.mainWindow = null;
 
     try {
-      display.off("change", this.displayChangeCallback);
+      display.off("change", ()=>{
+        this.displayInfo = display.getDefaultDisplaySync();
+        this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
+        Log.i(TAG, "Display Info: " + JSON.stringify(this.displayInfo))
+        this.updateViewportMetrics()
+      });
     } catch (e) {
       Log.e(TAG, "displayInfo off error" + JSON.stringify(e));
     }

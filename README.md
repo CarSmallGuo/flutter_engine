@@ -152,4 +152,27 @@
 
 4. `har` 文件输出路径为：`shell/platform/ohos/flutter_embedding/flutter/build/default/outputs/default/flutter.har`
 
-ps:如果你使用的是DevEco Studio的Beta版本，编译工程时遇到“must have required property 'compatibleSdkVersion', location: build-profile.json5:17:11"错误，请参考《DevEco Studio环境配置指导.docx》中的‘6 创建工程和运行Hello World’【配置插件】章节修改 `shell/platform/ohos/flutter_embedding/hvigor/hvigor-config.json5` 文件。
+5. 获得 har 文件后，按 `flutter.har.BUILD_TYPE.API` 格式重命名文件，其中`BUILD_TYPE`指`debug`、`release`、`profile`，`API`指当前 SDK 版本，如 api11 就是 11；比如当前构建的是 api11 的 debug 版本，则重命名为 `flutter.har.debug.11`；
+
+6. 替换 `flutter_flutter/packages/flutter_tools/templates/app_shared/ohos.tmpl/har/har_product.tmpl/` 目录下对应文件，重新运行项目工程即可生效。
+
+## FAQ
+1. 运行项目工程报Member notfound:'isOhos'的错误：请确保`src/third_party/dart`目录下应用了所有的dart patch（补丁位于`src/flutter/attachment/repos`目录，可使用git apply应用patch），应用patch后重新编译engine
+
+2. 提示Permission denied: 执行chmod +x <脚本文件> 添加执行权限
+
+3. 单独编译debug/release/profile模式的engine：`./ohos -t debug|release|profile`
+
+4. 查看帮助：`./ohos -h`
+
+5. 由于windows和Linux、Mac对换行符处理方式不同，在应用dart补丁时会造成dart vm snapshot hash结果不同，可通过以下方法获取当前snapshot hash值
+
+   ```shell
+    python xxx/src/third_party/dart/tools/make_version.py --format='{{SNAPSHOT_HASH}}'
+   ```
+
+   其中xxx为创建的engine路径
+
+   如果获取到的值不是“8af474944053df1f0a3be6e6165fa7cf”那么就需要检查`xxx/src/third_party/dart/runtime/vm/dart.cc`文件和`xxx/src/third_party/dart/runtime/vm/image_snapshot.cc`文件中全部行的结尾是不是以LF结尾的，windows可以使用notepad++查看，其它系统具体方法请自行查询
+
+6. MediaQuery组件暂不支持gestureSettings.DeviceGesturesetting、displayFeatureType和displayFeatureState信息
