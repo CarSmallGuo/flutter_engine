@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on MessageCodec.java originally written by
-* Copyright (C) 2017  Mikkel Nygaard Ravn <mravn@google.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 

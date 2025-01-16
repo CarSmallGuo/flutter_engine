@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on FlutterPluginRegistry.java originally written by
-* Copyright (C) 2017  Zachary Anderson <zanderso@users.noreply.github.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 import { FlutterView } from '../view/FlutterView';

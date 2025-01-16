@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on DartMessenger.java originally written by
-* Copyright (C) 2019  Matt Carroll <matthew-carroll@users.noreply.github.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 import { ErrorEvent, Queue, taskpool, worker, MessageEvents, JSON } from '@kit.ArkTS';

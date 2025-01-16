@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on FlutterOverlaySurface.java originally written by
-* Copyright (C) 2020  cg021 <40409839+cg021@users.noreply.github.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 

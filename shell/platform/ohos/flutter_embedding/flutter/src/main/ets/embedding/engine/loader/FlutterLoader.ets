@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on FlutterLoader.java originally written by
-* Copyright (C) 2020  Emmanuel Garcia <egarciad@google.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 

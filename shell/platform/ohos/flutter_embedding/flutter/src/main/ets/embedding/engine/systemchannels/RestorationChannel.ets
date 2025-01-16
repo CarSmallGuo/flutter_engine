@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on RestorationChannel.java originally written by
-* Copyright (C) 2020  Michael Goderbauer <goderbauer@google.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 import Any from '../../../plugin/common/Any';

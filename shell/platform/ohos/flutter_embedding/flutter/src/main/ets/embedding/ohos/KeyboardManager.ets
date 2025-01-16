@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on KeyboardManager.java originally written by
-* Copyright (C) 2021  LongCatIsLooong <31859944+longcatislooong@users.noreply.github.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 import TextInputPlugin from '../../plugin/editing/TextInputPlugin';

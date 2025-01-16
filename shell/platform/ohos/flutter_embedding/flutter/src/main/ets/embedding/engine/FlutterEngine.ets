@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on FlutterEngine.java originally written by
-* Copyright (C) 2018  Matt Carroll <matthew-carroll@users.noreply.github.com>
+* Copyright (C) Copyright 2013 The Flutter Authors.
 *
 */
 
