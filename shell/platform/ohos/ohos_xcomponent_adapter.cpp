@@ -357,14 +357,12 @@ void XComponentBase::DetachFlutterEngine() {
 
 void XComponentBase::RegisterArkUIAccessibilityService(OH_NativeXComponent* nativeXComponent)
 {
-    if (OH_GetSdkApiVersion() < 13) { return; }
-    LOGD("api version: %{public}d", OH_GetSdkApiVersion());
-
     BindAccessibilityProviderCallback();
 
     auto OH_NativeXComponent_GetNativeAccessibilityProvider =
         OhosAccessibilityDDL::DLLoadGetNativeA11yProvider(ArkUIAccessibilityConstant::OH_GET_A11Y_PROVIDER);
     CHECK_DLL_NULL_PTR(OH_NativeXComponent_GetNativeAccessibilityProvider);
+
     ArkUI_AccessibilityProvider* a11yProvider = nullptr;
     ARKUI_ACCESSIBILITY_CALL_CHECK(
         OH_NativeXComponent_GetNativeAccessibilityProvider(nativeXComponent, &a11yProvider)
@@ -379,6 +377,7 @@ void XComponentBase::RegisterArkUIAccessibilityService(OH_NativeXComponent* nati
     );
 
     XComponentAdapter::GetInstance()->accessibilityProvider_ = a11yProvider;
+    
     FML_DLOG(INFO) << "RegisterArkUIAccessibilityService is finished";
 }
 
@@ -389,7 +388,9 @@ void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
     // register the OH_ArkUI accessibility callbacks
-    RegisterArkUIAccessibilityService(nativeXComponent_);
+    if (OH_GetSdkApiVersion() >= 13) {
+      RegisterArkUIAccessibilityService(nativeXComponent_);
+    }
   }
 }
 
@@ -446,6 +447,7 @@ void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component, void* wind
 void XComponentBase::OnSurfaceDestroyed(OH_NativeXComponent* component,
                                         void* window) {
   window_ = nullptr;
+  XComponentAdapter::GetInstance()->accessibilityProvider_ = nullptr;
   LOGD("XComponentManger::OnSurfaceDestroyed");
   if (isEngineAttached_) {
     PlatformViewOHOSNapi::SurfaceDestroyed(std::stoll(shellholderId_));

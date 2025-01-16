@@ -34,6 +34,7 @@ import LocalizationPlugin from '../../plugin/localization/LocalizationPlugin'
 import SettingsChannel from './systemchannels/SettingsChannel';
 import PlatformViewsController from '../../plugin/platform/PlatformViewsController';
 import { FlutterRenderer } from './renderer/FlutterRenderer';
+import NativeVsyncChannel from './systemchannels/NativeVsyncChannel';
 
 const TAG = "FlutterEngine";
 
@@ -65,6 +66,7 @@ export default class FlutterEngine implements EngineLifecycleListener{
   private localizationPlugin: LocalizationPlugin | null = null;
   private settingsChannel: SettingsChannel | null = null;
   private platformViewsController: PlatformViewsController;
+  private nativeVsyncChannel: NativeVsyncChannel | null = null;
 
   /**
    * 需要初始化的工作：
@@ -120,6 +122,7 @@ export default class FlutterEngine implements EngineLifecycleListener{
     this.accessibilityChannel = new AccessibilityChannel(this.dartExecutor, this.flutterNapi);
     this.flutterNapi.addEngineLifecycleListener(this);
     this.localizationPlugin = new LocalizationPlugin(context, this.localeChannel);
+    this.nativeVsyncChannel = new NativeVsyncChannel(this.dartExecutor, this.flutterNapi);
 
     // It should typically be a fresh, unattached NAPI. But on a spawned engine, the NAPI instance
     // is already attached to a native shell. In that case, the Java FlutterEngine is created around

@@ -175,6 +175,9 @@ class PlatformViewOHOSNapi {
   static napi_value nativeSetTextureBackGroundPixelMap(napi_env env,
                                                        napi_callback_info info);
 
+  static napi_value nativeSetTextureBackGroundColor(napi_env env,
+                                                       napi_callback_info info);
+
   static napi_value nativeRegisterTexture(napi_env env,
                                           napi_callback_info info);
 
@@ -257,6 +260,10 @@ class PlatformViewOHOSNapi {
       napi_callback_info info);
 
   static napi_value nativeUnicodeIsRegionalIndicatorSymbol(
+      napi_env env,
+      napi_callback_info info);
+
+  static napi_value nativeSetDVsyncSwitch(
       napi_env env,
       napi_callback_info info);
 

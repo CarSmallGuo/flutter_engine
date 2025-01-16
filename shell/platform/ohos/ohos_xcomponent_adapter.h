@@ -11,6 +11,7 @@
 #include <arkui/native_interface_accessibility.h>
 #include <string>
 #include <map>
+
 #include "flutter/shell/platform/ohos/ohos_touch_processor.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "napi/native_api.h"
@@ -57,6 +58,7 @@ public:
   uint64_t width_;
   uint64_t height_;
   OhosTouchProcessor ohosTouchProcessor_;
+  ArkUI_AccessibilityProvider* accessibilityProvider_;
 
 };
 

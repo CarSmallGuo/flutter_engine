@@ -124,6 +124,8 @@ export const nativeRegisterPixelMap: (nativeShellHolderId: number, textureId: nu
 
 export const nativeSetTextureBackGroundPixelMap: (nativeShellHolderId: number, textureId: number, pixelMap: PixelMap) => void;
 
+export const nativeSetTextureBackGroundColor: (nativeShellHolderId: number, textureId: number, color: number) => void;
+
 export const nativeRegisterTexture: (nativeShellHolderId: number, textureId: number) => number;
 
 export const nativeEncodeUtf8: (str: string) => Uint8Array;
@@ -167,3 +169,5 @@ export const nativeUnicodeIsEmojiModifierBase: (code: number) => number;
 export const nativeUnicodeIsVariationSelector: (code: number) => number;
 
 export const nativeUnicodeIsRegionalIndicatorSymbol: (code: number) => number;
+
+export const nativeSetDVsyncSwitch: (nativeShellHolderId: number, isEnable: boolean) => void;

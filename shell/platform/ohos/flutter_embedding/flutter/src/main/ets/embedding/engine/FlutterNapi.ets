@@ -489,6 +489,11 @@ export default class FlutterNapi {
     flutter.nativeSetTextureBackGroundPixelMap(this.nativeShellHolderId!, textureId, pixelMap);
   }
 
+  setTextureBackGroundColor(textureId: number, color: number): void {
+    Log.d(TAG, "called setTextureBackGroundColor ");
+    flutter.nativeSetTextureBackGroundColor(this.nativeShellHolderId!, textureId, color);
+  }
+
   registerTexture(textureId: number): number {
     Log.d(TAG, "called registerTexture ");
     if (!this.isAttached()) {
@@ -562,6 +567,9 @@ export default class FlutterNapi {
     return Boolean(flutter.nativeUnicodeIsRegionalIndicatorSymbol(code));
   }
 
+  SetDVsyncSwitch(isEnable: boolean): void {
+    flutter.nativeSetDVsyncSwitch(this.nativeShellHolderId!, isEnable);
+  }
 }
 
 export interface AccessibilityDelegate {

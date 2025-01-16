@@ -73,7 +73,7 @@ namespace flutter {
   {
     auto ohos_shell_holder =
         reinterpret_cast<OHOSShellHolder*>(shellHolderId);
-    ohos_shell_holder->GetPlatformView()->PlatformView::DispatchSemanticsAction(id, action, fml::MallocMapping());
+    ohos_shell_holder->GetPlatformView()->PlatformView::DispatchSemanticsAction(id, action, std::move(args));
   }
 
   /**

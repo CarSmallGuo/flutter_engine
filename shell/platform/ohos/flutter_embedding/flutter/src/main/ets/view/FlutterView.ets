@@ -188,8 +188,6 @@ export class FlutterView {
   private navigationAvoidArea: window.AvoidArea;
   private gestureAvoidArea: window.AvoidArea;
   private keyboardAvoidArea: window.AvoidArea;
-  private needSetViewport: boolean = false;
-
 
   constructor(viewId: string, context: Context) {
     this.id = viewId
@@ -492,8 +490,6 @@ export class FlutterView {
   }
 
   onAreaChange(newArea: Area | null, setFullScreen: boolean = false) {
-    const originalMetrics = this.viewportMetrics.clone();
-
     if (newArea != null) {
       this.viewportMetrics.physicalWidth = vp2px(newArea.width as number);
       this.viewportMetrics.physicalHeight = vp2px(newArea.height as number);
@@ -520,11 +516,7 @@ export class FlutterView {
 
     this.onKeyboardAreaChange()
     this.onGestureAreaChange()
-    if (!this.viewportMetrics.isEqual(originalMetrics) || this.needSetViewport) {
-      if (!this.updateViewportMetrics()) {
-        this.needSetViewport = true;
-      }
-    }
+    this.updateViewportMetrics()
   }
 
   private onKeyboardAreaChange() {

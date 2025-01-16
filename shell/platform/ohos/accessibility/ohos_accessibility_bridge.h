@@ -82,9 +82,7 @@ public:
     int64_t native_shell_holder_id_;
     ArkUI_AccessibilityProvider* provider_;
 
-    void OnOhosAccessibilityStateChange(
-        int64_t shellHolderId,
-        bool ohosAccessibilityEnabled);
+    void OnOhosAccessibilityStateChange(bool ohosAccessibilityEnabled, int64_t shellholderId);
 
     void SetNativeShellHolderId(int64_t id);
 
@@ -163,8 +161,8 @@ private:
     std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
     std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
 
+    std::unordered_map<int32_t, SemanticsNodeExtent> g_flutterSemanticsTree;
     std::vector<std::pair<int32_t, int32_t>> g_parentChildIdVec;
-    std::map<int32_t, SemanticsNodeExtent> g_flutterSemanticsTree;
     std::unordered_map<int32_t, AbsoluteRect> g_screenRectMap;
 
     SemanticsNodeExtent inputFocusedNode;
@@ -325,6 +323,7 @@ private:
     std::pair<float, float> GetRealScaleFactor();
     void DoubleClickRouteToNewPage(SemanticsNodeExtent node);
     void GetSemanticsDebugInfo();
+    void AccessibiltiyChangesWithXComponentId();
 };
 
 enum class AccessibilityAction : int32_t {
