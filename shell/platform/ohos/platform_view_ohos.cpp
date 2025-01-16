@@ -178,21 +178,9 @@ void PlatformViewOHOS::NotifySurfaceWindowChanged(
 }
 
 void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
-  LOGI("PlatformViewOHOS NotifyChanged enter");
-  if (ohos_surface_) {
-    fml::AutoResetWaitableEvent latch;
-    fml::TaskRunner::RunNowOrPostTask(
-        task_runners_.GetRasterTaskRunner(),  //
-        [&latch, surface = ohos_surface_.get(), size, this]() {
-          if (GetDestroyed()) {
-            LOGW("NotifyChanged, GetDestroyed is true, ignore this call.");
-          } else {
-            surface->OnScreenSurfaceResize(size);
-          }
-          latch.Signal();
-        });
-    latch.Wait();
-  }
+  //Do nothing to avoid ANR
+  //Because SetViewportMetrics has notified window size change event
+  return;
 }
 
 bool PlatformViewOHOS::GetDestroyed() {
