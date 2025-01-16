@@ -109,8 +109,6 @@ Flutter Engine
 
 5. 由于windows和Linux、Mac对换行符处理方式不同，在应用dart补丁时会造成dart vm snapshot hash结果不同，可通过以下方法获取当前snapshot hash值
 
-6. MediaQuery组件暂不支持displayFeatureType和displayFeatureState信息
-
    ```shell
     python xxx/src/third_party/dart/tools/make_version.py --format='{{SNAPSHOT_HASH}}'
    ```
@@ -118,3 +116,5 @@ Flutter Engine
    其中xxx为创建的engine路径
 
    如果获取到的值不是“8af474944053df1f0a3be6e6165fa7cf”那么就需要检查`xxx/src/third_party/dart/runtime/vm/dart.cc`文件和`xxx/src/third_party/dart/runtime/vm/image_snapshot.cc`文件中全部行的结尾是不是以LF结尾的，windows可以使用notepad++查看，其它系统具体方法请自行查询
+
+6. MediaQuery组件暂不支持gestureSettings.DeviceGesturesetting、displayFeatureType和displayFeatureState信息
