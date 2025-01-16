@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on TextEditingDelta.java originally written by
-* Copyright (C) 2021  Renzo Olivares <rmolivares@renzo-olivares.dev>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 

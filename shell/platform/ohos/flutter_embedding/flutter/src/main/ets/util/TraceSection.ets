@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on TraceSection.java originally written by
-* Copyright (C) 2022  Dan Field <dnfield@google.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 

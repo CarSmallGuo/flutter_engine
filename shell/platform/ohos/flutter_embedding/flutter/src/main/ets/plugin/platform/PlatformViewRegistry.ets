@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on PlatformViewRegistry.java originally written by
-* Copyright (C) 2018  amirh <amirh@users.noreply.github.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 

@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on AccessibilityBridge.java originally written by
-* Copyright (C) 2016  Hixie <github.com@spam.hixie.ch>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 import AccessibilityChannel, {AccessibilityMessageHandler} from '../embedding/engine/systemchannels/AccessibilityChannel';

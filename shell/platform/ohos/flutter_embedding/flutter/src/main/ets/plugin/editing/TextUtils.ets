@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on FlutterTextUtils.java originally written by
-* Copyright (C) 2020  Ali Mahdiyar <alimahdiyar77@gmail.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 import FlutterNapi from '../../embedding/engine/FlutterNapi';

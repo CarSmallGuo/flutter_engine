@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on TextureRegistry.java originally written by
-* Copyright (C) 2017  Chinmay Garde <chinmaygarde@gmail.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 import image from '@ohos.multimedia.image';

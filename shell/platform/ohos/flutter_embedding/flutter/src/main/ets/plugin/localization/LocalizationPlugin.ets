@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on LocalizationPlugin.java originally written by
-* Copyright (C) 2020  Gary Qian <garyq@google.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 

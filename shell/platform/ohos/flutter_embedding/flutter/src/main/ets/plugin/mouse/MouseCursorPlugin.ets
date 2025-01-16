@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on MouseCursorPlugin.java originally written by
-* Copyright (C) 2020  Tong Mu <dkwingsmt@users.noreply.github.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 

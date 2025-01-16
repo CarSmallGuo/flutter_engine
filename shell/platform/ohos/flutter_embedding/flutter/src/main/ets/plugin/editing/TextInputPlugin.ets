@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on TextInputPlugin.java originally written by
-* Copyright (C) 2016  Adam Barth <github@adambarth.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 

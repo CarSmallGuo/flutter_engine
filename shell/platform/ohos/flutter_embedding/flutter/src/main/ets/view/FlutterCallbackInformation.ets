@@ -4,7 +4,7 @@
 * found in the LICENSE_KHZG file.
 *
 * Based on FlutterCallbackInformation.java originally written by
-* Copyright (C) 2018  Ben Konyi <bkonyi@google.com>
+* Copyright (C) 2013 The Flutter Authors.
 *
 */
 
