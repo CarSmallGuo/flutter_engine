@@ -178,9 +178,10 @@ void PlatformViewOHOS::NotifySurfaceWindowChanged(
 }
 
 void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
-  //Do nothing to avoid ANR
-  //Because SetViewportMetrics has notified window size change event
-  return;
+    //Do nothing, because SetViewportMetrics has notified window size change event
+    //If raster thread post task, Synchronization signal block application main thread
+    //(https://gitee.com/openharmony-sig/flutter_engine/issues/IBI4PK?from=project-issue)
+    return;
 }
 
 bool PlatformViewOHOS::GetDestroyed() {
