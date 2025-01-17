@@ -21,17 +21,18 @@
 #include "flutter/fml/macros.h"
 #include "flutter/shell/common/display.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
+#include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
 namespace flutter {
 
 class OHOSDisplay : public Display {
  public:
-  explicit OHOSDisplay(std::shared_ptr<PlatformViewOHOSNapi> napi_facade_);
+  explicit OHOSDisplay(std::shared_ptr<flutter::VsyncWaiterOHOS> vsync_waiter_ohos);
   ~OHOSDisplay() = default;
 
   double GetRefreshRate() const override;
 
  private:
-  std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;
+  std::shared_ptr<VsyncWaiterOHOS> vsync_waiter_ohos_;
   FML_DISALLOW_COPY_AND_ASSIGN(OHOSDisplay);
 };
 }  // namespace flutter
