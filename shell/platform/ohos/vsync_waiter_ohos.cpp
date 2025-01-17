@@ -100,6 +100,11 @@ void VsyncWaiterOHOS::OnUpdateRefreshRate(long long refresh_rate) {
   g_refresh_rate_ = static_cast<int>(refresh_rate);
 }
 
+int VsyncWaiterOHOS::GetRefreshRate(void)
+{
+    return g_refresh_rate_;
+}
+
 void VsyncWaiterOHOS::DisableDVsync() {
   if (dvsyncEnabled.load()) {
     SetDvsyncSwitch(false);
