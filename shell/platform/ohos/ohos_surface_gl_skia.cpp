@@ -47,10 +47,7 @@ OhosSurfaceGLSkia::OhosSurfaceGLSkia(
   FML_LOG(INFO) << "OhosSurfaceGLSkia constructor end";
 }
 
-OhosSurfaceGLSkia::~OhosSurfaceGLSkia() {
-  eglMakeCurrent(eglGetCurrentDisplay(), EGL_NO_SURFACE, EGL_NO_SURFACE,
-                 EGL_NO_CONTEXT);
-}
+OhosSurfaceGLSkia::~OhosSurfaceGLSkia() = default;
 
 void OhosSurfaceGLSkia::TeardownOnScreenContext() {
   // When the onscreen surface is destroyed, the context and the surface

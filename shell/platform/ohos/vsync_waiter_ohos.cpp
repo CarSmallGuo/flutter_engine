@@ -16,13 +16,16 @@
 #include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
 #include "napi_common.h"
 #include "ohos_logging.h"
+#include <dlfcn.h>
 #include <qos/qos.h>
 
 namespace flutter {
 
 static std::atomic_uint g_refresh_rate_ = 60;
+static constexpr int32_t SUPPORT_API_VERSION = 14;
 
 const char* flutterSyncName = "flutter_connect";
+const char* NATIVE_DVSYNC_SO = "libnative_vsync.so";
 
 thread_local bool VsyncWaiterOHOS::firstCall = true;
 
@@ -35,6 +38,11 @@ VsyncWaiterOHOS::VsyncWaiterOHOS(const flutter::TaskRunners& task_runners)
 VsyncWaiterOHOS::~VsyncWaiterOHOS() {
   OH_NativeVSync_Destroy(vsyncHandle);
   vsyncHandle = nullptr;
+  nativeDvsyncFunc_ = nullptr;
+  if (handle_) {
+    dlclose(handle_);
+    handle_ = nullptr;
+  }
 }
 
 void VsyncWaiterOHOS::AwaitVSync() {
@@ -69,10 +77,6 @@ void VsyncWaiterOHOS::OnVsyncFromOHOS(long long timestamp, void* data) {
   int64_t frame_nanos = static_cast<int64_t>(timestamp);
   auto frame_time = fml::TimePoint::FromEpochDelta(
       fml::TimeDelta::FromNanoseconds(frame_nanos));
-  auto now = fml::TimePoint::Now();
-  if (frame_time > now) {
-    frame_time = now;
-  }
   auto target_time = frame_time + fml::TimeDelta::FromNanoseconds(
                                       1000000000.0 / g_refresh_rate_);
   auto* weak_this = reinterpret_cast<std::weak_ptr<VsyncWaiter>*>(data);
@@ -99,6 +103,48 @@ void VsyncWaiterOHOS::OnUpdateRefreshRate(long long refresh_rate) {
 int VsyncWaiterOHOS::GetRefreshRate(void)
 {
     return g_refresh_rate_;
+}
+
+void VsyncWaiterOHOS::DisableDVsync() {
+  if (dvsyncEnabled.load()) {
+    SetDvsyncSwitch(false);
+    dvsyncEnabled.store(false);
+  }
+}
+
+void VsyncWaiterOHOS::EnableDVsync() {
+  if (!dvsyncEnabled.load()) {
+    SetDvsyncSwitch(true);
+    dvsyncEnabled.store(true);
+  }
+}
+
+void VsyncWaiterOHOS::SetDvsyncSwitch(bool enableDvsync) {
+  if (apiVersion_ == 0) {
+    apiVersion_ = OH_GetSdkApiVersion();
+  }
+  if (apiVersion_ < SUPPORT_API_VERSION) {
+    LOGI("current api version not support native dvsync!");
+    return;
+  }
+  if (!handle_) {
+    handle_ = dlopen(NATIVE_DVSYNC_SO, RTLD_NOW);
+  }
+  if (!handle_) {
+    LOGE("SetDvsyncSwitch load %{public}s failed!", NATIVE_DVSYNC_SO);
+    return;
+  }
+
+  if (!nativeDvsyncFunc_) {
+    nativeDvsyncFunc_ = reinterpret_cast<NativeDvsyncFunc>(dlsym(handle_, "OH_NativeVSync_DVSyncSwitch"));
+  }
+  if (!nativeDvsyncFunc_) {
+    LOGE("SetDvsyncSwitch load OH_NativeVSync_DVSyncSwitch failed!");
+    dlclose(handle_);
+    handle_ = nullptr;
+    return;
+  }
+  nativeDvsyncFunc_(vsyncHandle, enableDvsync);
 }
 
 }  // namespace flutter
