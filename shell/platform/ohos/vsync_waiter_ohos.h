@@ -46,11 +46,9 @@ private:
                                      fml::TimePoint frame_start_time,
                                      fml::TimePoint frame_target_time);
     void SetDvsyncSwitch(bool enableDvsync);
-    std::atomic<bool> dvsyncEnabled{false};
 
+    std::atomic<bool> dvsyncEnabled{false};
     thread_local static bool firstCall;
-    OH_NativeVSync* vsyncHandle;
-    FML_DISALLOW_COPY_AND_ASSIGN(VsyncWaiterOHOS);
     OH_NativeVSync* vsyncHandle;
     NativeDvsyncFunc nativeDvsyncFunc_ = nullptr;
     void *handle_ = nullptr;
