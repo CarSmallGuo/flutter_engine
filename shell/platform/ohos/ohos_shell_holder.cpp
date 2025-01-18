@@ -149,7 +149,7 @@ OHOSShellHolder::OHOSShellHolder(
     auto vsync_waiter = std::shared_ptr<flutter::VsyncWaiter>(shell_->GetVsyncWaiter().lock());
     auto vsync_waiter_ohos = std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsync_waiter);
     displays.push_back(std::make_unique<OHOSDisplay>(vsync_waiter_ohos));
-    shell_->OnDisplayUpdates(DisplayUpdateType::kStartUp, std::move(displays));
+    shell_->OnDisplayUpdates(DisplayUpdateType::kStartup, std::move(displays));
 
     shell_->GetDartVM()->GetConcurrentMessageLoop()->PostTaskToAllWorkers([]() {
       if (::setpriority(PRIO_PROCESS, gettid(), 1) != 0) {
