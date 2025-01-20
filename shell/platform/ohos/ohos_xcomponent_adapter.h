@@ -20,7 +20,7 @@
 #include <arkui/native_interface_accessibility.h>
 #include <string>
 #include <map>
-
+#include <mutex>
 #include "flutter/shell/platform/ohos/ohos_touch_processor.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "napi/native_api.h"
@@ -52,7 +52,7 @@ public:
   void OnDispatchMouseWheelEvent(mouseWheelEvent event);
 
   void RegisterArkUIAccessibilityService(
-       OH_NativeXComponent* nativeXComponent, const std::string& shellholderId);
+       OH_NativeXComponent* nativeXComponent);
 
   OH_NativeXComponent_TouchEvent touchEvent_;
   OH_NativeXComponent_Callback callback_;
@@ -83,9 +83,12 @@ class XComponentAdapter {
   void DetachFlutterEngine(std::string& id);
   void OnMouseWheel(std::string& id, mouseWheelEvent event);
 
+  ArkUI_AccessibilityProvider* GetAccessibilityProvider(const std::string& xcompId);
+
  public:
   std::map<std::string, XComponentBase*> xcomponetMap_;
   std::string currentXComponentId_;
+  std::mutex mutex_;
 
  private:
   static XComponentAdapter mXComponentAdapter;

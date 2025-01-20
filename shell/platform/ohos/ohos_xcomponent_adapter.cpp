@@ -99,10 +99,6 @@ void XComponentAdapter::AttachFlutterEngine(std::string& id,
   auto findIter = xcomponetMap_.find(id);
   if (findIter != xcomponetMap_.end()) {
     findIter->second->AttachFlutterEngine(shellholderId);
-    // register the OH_ArkUI accessibility callbacks
-    if (OH_GetSdkApiVersion() >= 13) {
-      findIter->second->RegisterArkUIAccessibilityService(findIter->second->nativeXComponent_, shellholderId);
-    }
   }
 }
 
@@ -199,6 +195,7 @@ void OnSurfaceChangedCB(OH_NativeXComponent* component, void* window) {
 }
 
 void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
+  std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
   for(auto it = XComponentAdapter::GetInstance()->xcomponetMap_.begin(); 
     it != XComponentAdapter::GetInstance()->xcomponetMap_.end();)
   {
@@ -370,8 +367,17 @@ void XComponentBase::DetachFlutterEngine() {
   isEngineAttached_ = false;
 }
 
-void XComponentBase::RegisterArkUIAccessibilityService(
-    OH_NativeXComponent* nativeXComponent, const std::string& shellholderId)
+ArkUI_AccessibilityProvider* XComponentAdapter::GetAccessibilityProvider(const std::string& xcompId)
+{
+    auto it = xcomponetMap_.find(xcompId);
+    if (it != xcomponetMap_.end()) {
+        return it->second->accessibilityProvider_;
+    } else {
+        return nullptr;
+    }
+}
+
+void XComponentBase::RegisterArkUIAccessibilityService(OH_NativeXComponent* nativeXComponent)
 {
     BindAccessibilityProviderCallback();
 
@@ -392,8 +398,8 @@ void XComponentBase::RegisterArkUIAccessibilityService(
         OH_ArkUI_AccessibilityProviderRegisterCallback(a11yProvider, &accessibilityProviderCallback_)
     );
 
+    std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
     auto* base = XComponentAdapter::GetInstance()->xcomponetMap_[id_];
-    base->shellholderId_ = shellholderId;
     base->accessibilityProvider_ = a11yProvider;
     base->nativeXComponent_ = nativeXComponent;
 
@@ -406,6 +412,9 @@ void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
     BindXComponentCallback();
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
+    // register the OH_ArkUI accessibility callbacks
+    if (OH_GetSdkApiVersion() < 13) { return; }
+    RegisterArkUIAccessibilityService(nativeXComponent_);
   }
 }
 
@@ -462,8 +471,6 @@ void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component, void* wind
 void XComponentBase::OnSurfaceDestroyed(OH_NativeXComponent* component,
                                         void* window) {
   window_ = nullptr;
-  // XComponentAdapter::GetInstance()->accessibilityProvider_ = nullptr;
-
   LOGD("XComponentManger::OnSurfaceDestroyed");
   if (isEngineAttached_) {
     PlatformViewOHOSNapi::SurfaceDestroyed(std::stoll(shellholderId_));
