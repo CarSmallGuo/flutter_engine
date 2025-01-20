@@ -585,18 +585,20 @@ export class FlutterView {
         boundCount = boundCount + displayFeatures[i].getBounds().length;
       }
       let displayFeatureBound: number[] = new Array(boundCount * 4);
-      let displayFeatureType: number[] = new Array(displayFeatures.length);
-      let displayFeatureStatus: number[] = new Array(displayFeatures.length);
-      for (let i = 0; i < displayFeatures.length; i++) {
-        let singleFeatureBound = displayFeatures[i].getBounds();
-        for (let j = 0; j < singleFeatureBound.length; j++) {
-          displayFeatureBound[4 * i + 4 * j] = singleFeatureBound[j].left;
-          displayFeatureBound[4 * i + 4 * j + 1] = singleFeatureBound[j].top
-          displayFeatureBound[4 * i + 4 * j + 2] = singleFeatureBound[j].width;
-          displayFeatureBound[4 * i + 4 * j + 3] = singleFeatureBound[j].height;
+      let displayFeatureType: number[] = new Array(boundCount ? displayFeatures.length : boundCount);
+      let displayFeatureStatus: number[] = new Array(boundCount ? displayFeatures.length : boundCount);
+      if (boundCount) {
+        for (let i = 0; i < displayFeatures.length; i++) {
+          let singleFeatureBound = displayFeatures[i].getBounds();
+          for (let j = 0; j < singleFeatureBound.length; j++) {
+            displayFeatureBound[4 * i + 4 * j] = singleFeatureBound[j].left;
+            displayFeatureBound[4 * i + 4 * j + 1] = singleFeatureBound[j].top
+            displayFeatureBound[4 * i + 4 * j + 2] = singleFeatureBound[j].width;
+            displayFeatureBound[4 * i + 4 * j + 3] = singleFeatureBound[j].height;
+          }
+          displayFeatureType[i] = displayFeatures[i].getType();
+          displayFeatureStatus[i] = displayFeatures[i].getState();
         }
-        displayFeatureType[i] = displayFeatures[i].getType();
-        displayFeatureStatus[i] = displayFeatures[i].getState();
       }
 
       this?.flutterEngine?.getFlutterNapi()?.setViewportMetrics(this.viewportMetrics.devicePixelRatio,
