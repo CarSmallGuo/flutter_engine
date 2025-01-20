@@ -132,6 +132,9 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeSetTextureBackGroundPixelMap",
           flutter::PlatformViewOHOSNapi::nativeSetTextureBackGroundPixelMap),
+      DECLARE_NAPI_FUNCTION(
+          "nativeSetTextureBackGroundColor",
+          flutter::PlatformViewOHOSNapi::nativeSetTextureBackGroundColor),
       DECLARE_NAPI_FUNCTION("nativeEncodeUtf8",
                             flutter::PlatformViewOHOSNapi::nativeEncodeUtf8),
       DECLARE_NAPI_FUNCTION("nativeDecodeUtf8",
@@ -193,6 +196,9 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeGetXComponentId",
           flutter::PlatformViewOHOSNapi::nativeGetXComponentId),
+      DECLARE_NAPI_FUNCTION(
+          "nativeSetDVsyncSwitch",
+          flutter::PlatformViewOHOSNapi::nativeSetDVsyncSwitch),
   };
 
   FML_DLOG(INFO) << "Init NAPI size=" << sizeof(desc) / sizeof(desc[0]);
