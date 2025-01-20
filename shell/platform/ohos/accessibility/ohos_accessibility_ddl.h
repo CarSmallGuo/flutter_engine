@@ -42,6 +42,7 @@ using SetEventElemFunc = int32_t (*)(ArkUI_AccessibilityEventInfo*, ArkUI_Access
 
 using SetReqFocusFunc = int32_t (*)(ArkUI_AccessibilityEventInfo*, int32_t);
 using GetNativeA11yProvider = int32_t (*)(OH_NativeXComponent*, ArkUI_AccessibilityProvider**);
+using GetFindActionArgs = int32_t (*)(ArkUI_AccessibilityActionArguments*, const char*, char**);
 
 class OhosAccessibilityDDL {
 public:
@@ -72,11 +73,8 @@ public:
     static SetReqFocusFunc DLLoadSetReqFocusFunc(const char* symbolName);
 
     static GetNativeA11yProvider DLLoadGetNativeA11yProvider(const char* symbolName);
-
-
+    static GetFindActionArgs DLLoadGetFindActionArgs(const char* symbolName);
 };
 
-
 }  // namespace flutter
-
 #endif

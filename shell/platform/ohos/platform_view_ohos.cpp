@@ -27,6 +27,7 @@
 #include "flutter/shell/platform/ohos/platform_view_ohos_delegate.h"
 #include <GLES2/gl2ext.h>
 
+
 namespace flutter {
 
 OhosSurfaceFactoryImpl::OhosSurfaceFactoryImpl(
@@ -117,15 +118,16 @@ PlatformViewOHOS::PlatformViewOHOS(
 
 PlatformViewOHOS::~PlatformViewOHOS() {
   FML_LOG(INFO) << "PlatformViewOHOS::~PlatformViewOHOS";
-  for (std::map<int64_t, std::shared_ptr<OHOSExternalTextureGL>>::iterator it = external_texture_gl_.begin();
-      it != external_texture_gl_.end(); ++it) {
-    if (it->second != nullptr) {
-      OH_NativeImage_Destroy(&(it->second->nativeImage_));
-      it->second->nativeImage_ = nullptr;
+  for (auto const &it : external_texture_gl_) {
+    if (it.second != nullptr) {
+      FML_LOG(INFO) << " nativeImage of textureId " << it.first << " will destroy";
+      if (it.second->nativeImage_ != nullptr) {
+        OH_NativeImage_Destroy(&(it.second->nativeImage_));
+        it.second->nativeImage_ = nullptr;
+      }
     }
   }
   external_texture_gl_.clear();
-  FML_LOG(INFO) << "PlatformViewOHOS::~PlatformViewOHOS finish";
 }
 
 void PlatformViewOHOS::NotifyCreate(
@@ -296,9 +298,12 @@ void PlatformViewOHOS::UpdateAssetResolverByType(
 void PlatformViewOHOS::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
-  FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics is called";
-  auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
-  nativeAccessibilityChannel_->UpdateSemantics(update, actions);
+  task_runners_.GetPlatformTaskRunner()->PostTask(
+      [update = std::move(update), actions = std::move(actions)]() {
+        auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
+        nativeAccessibilityChannel_->UpdateSemantics(update, actions);
+        FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics is called";
+  });
 }
 
 // |PlatformView|

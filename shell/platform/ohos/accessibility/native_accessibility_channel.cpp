@@ -73,7 +73,7 @@ namespace flutter {
   {
     auto ohos_shell_holder =
         reinterpret_cast<OHOSShellHolder*>(shellHolderId);
-    ohos_shell_holder->GetPlatformView()->PlatformView::DispatchSemanticsAction(id, action, fml::MallocMapping());
+    ohos_shell_holder->GetPlatformView()->PlatformView::DispatchSemanticsAction(id, action, std::move(args));
   }
 
   /**
@@ -83,8 +83,7 @@ namespace flutter {
       flutter::SemanticsNodeUpdates update,
       flutter::CustomAccessibilityActionUpdates actions)
   {
-    auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
-    ohos_a11y_bridge->updateSemantics(update, actions);
+      OhosAccessibilityBridge::GetInstance()->UpdateSemantics(update, actions);
   }  
 
   /**
@@ -102,7 +101,33 @@ namespace flutter {
   void NativeAccessibilityChannel::AccessibilityMessageHandler::Announce(
       std::unique_ptr<char[]>& message)
   {
-    auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
-    ohos_a11y_bridge->Announce(message);
+      OhosAccessibilityBridge::GetInstance()->Announce(message);
+  }
+
+  /**
+   * 利用通道内部类AccessibilityMessageHandler处理主动点击给定id组件事件
+   */
+  void NativeAccessibilityChannel::AccessibilityMessageHandler::OnTap(
+      int32_t nodeId)
+  {
+      OhosAccessibilityBridge::GetInstance()->OnTap(nodeId);
+  }
+
+  /**
+   * 利用通道内部类AccessibilityMessageHandler处理主动长按给定id组件事件
+   */
+  void NativeAccessibilityChannel::AccessibilityMessageHandler::OnLongPress(
+      int32_t nodeId)
+  {
+      OhosAccessibilityBridge::GetInstance()->OnLongPress(nodeId);
+  }
+
+  /**
+   * 利用通道内部类AccessibilityMessageHandler处理提示文字事件
+   */
+  void NativeAccessibilityChannel::AccessibilityMessageHandler::OnTooltip(
+      std::unique_ptr<char[]>& message)
+  {
+      OhosAccessibilityBridge::GetInstance()->OnTooltip(message);
   }
 }

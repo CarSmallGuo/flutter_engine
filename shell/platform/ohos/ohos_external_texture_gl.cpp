@@ -104,7 +104,6 @@ OHOSExternalTextureGL::OHOSExternalTextureGL(
     backGroundPixelMap_ = nullptr;
     lastImage_ = nullptr;
     isEmulator_ = OhosMain::IsEmulator();
-    frameData_ = nullptr;
 }
 
 OHOSExternalTextureGL::~OHOSExternalTextureGL()
@@ -125,24 +124,37 @@ OHOSExternalTextureGL::~OHOSExternalTextureGL()
   lastImage_ = nullptr;
 }
 
-void OnNativeImageFrameAvailable(void *data)
+void OnNativeImageFrameAvailable(void *context)
 {
-  auto frameData = reinterpret_cast<OhosImageFrameData *>(data);
-  if (frameData == nullptr) {
-    FML_LOG(ERROR) << "OnNativeImageFrameAvailable, frameData is null.";
+  auto ohosExternalTextureGL = reinterpret_cast<OHOSExternalTextureGL *>(context);
+  if (ohosExternalTextureGL == nullptr) {
+    FML_LOG(ERROR) << "OnNativeImageFrameAvailable, ohosExternalTextureGL is null.";
     return;
   }
-  frameData->OnPlatformViewMarkTextureFrameAvailable();
+
+  if (ohosExternalTextureGL != nullptr) {
+    auto wp_ohosExternalTextureGL = std::weak_ptr<OHOSExternalTextureGL>(
+        ohosExternalTextureGL->shared_from_this());
+    fml::TaskRunner::RunNowOrPostTask(
+        ohosExternalTextureGL->task_runners_.GetPlatformTaskRunner(),
+        [wp_ohosExternalTextureGL]() {
+            if (auto sp_ohosExternalTextureGL = wp_ohosExternalTextureGL.lock()) {
+                PlatformView::Delegate& delegate =
+                    sp_ohosExternalTextureGL->delegate_;
+                delegate.OnPlatformViewMarkTextureFrameAvailable(sp_ohosExternalTextureGL->Id());
+            }
+        });
+  }  
 }
 
-bool RegisterFrameAvailableListener(OH_NativeImage *nativeImage, OhosImageFrameData *frameData)
+bool RegisterFrameAvailableListener(OH_NativeImage *nativeImage, void *context)
 {
-  if (frameData == nullptr) {
-    FML_LOG(ERROR) << "Error with RegisterFrameAvailableListener, frameData is null";
+  if (context == nullptr) {
+    FML_LOG(ERROR) << "Error with RegisterFrameAvailableListener, context is null";
     return false;
   }
   OH_OnFrameAvailableListener listener;
-  listener.context = frameData;
+  listener.context = context;
   listener.onFrameAvailable = OnNativeImageFrameAvailable;
   int64_t ret = OH_NativeImage_SetOnFrameAvailableListener(nativeImage, listener);
   if (ret != 0) {
@@ -191,12 +203,7 @@ void OHOSExternalTextureGL::Attach()
       FML_LOG(ERROR) << "OHOSExternalTextureGL OH_NativeImage_AttachContext err code:" << ret;
     }
 
-    if (frameData_ == nullptr) {
-      frameData_ = new OhosImageFrameData(this, Id());
-    }
-    if (!RegisterFrameAvailableListener(nativeImage_, (OhosImageFrameData *)frameData_)) {
-      delete (OhosImageFrameData *)frameData_;
-      frameData_ = nullptr;
+    if (!RegisterFrameAvailableListener(nativeImage_, this)) {
       return;
     }
     state_ = AttachmentState::attached;
@@ -273,14 +280,74 @@ void OHOSExternalTextureGL::Paint(PaintContext& context,
   }
 }
 
+void OHOSExternalTextureGL::Show()
+{
+  if (state_ != AttachmentState::hide) {
+    FML_LOG(WARNING) << "OHOSExternalTextureGL show, state is not hide, ignore this call";
+    return;
+  }
+  OHOSSurface* ohos_surface_ptr = ohos_surface_.get();
+  OhosSurfaceGLSkia* ohosSurfaceGLSkia_ = (OhosSurfaceGLSkia*)ohos_surface_ptr;
+  if (ohosSurfaceGLSkia_->GetOnscreenSurface() == nullptr) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL show, GetSurface failed";
+    return;
+  }
+  auto result = ohosSurfaceGLSkia_->GLContextMakeCurrent();
+  if (result->GetResult()) {
+    FML_DLOG(INFO) << "OHOSExternalTextureGL show, MakeCurrent successed";
+    glGenTextures(1, &texture_name_);
+    FML_DLOG(INFO) << "OHOSExternalTextureGL show, glGenTextures texture_name_="
+      << texture_name_ << ", Id()=" << Id();
+    int32_t ret = OH_NativeImage_AttachContext(nativeImage_, texture_name_);
+    if (ret != 0) {
+      FML_LOG(ERROR) << "OHOSExternalTextureGL show, AttachContext failed, err code:" << ret;
+    }
+    state_ = AttachmentState::attached;
+    fml::TaskRunner::RunNowOrPostTask(
+        task_runners_.GetPlatformTaskRunner(),
+        [this]() {
+          delegate_.OnPlatformViewMarkTextureFrameAvailable(Id());
+        });
+  } else {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL show, MakeCurrent failed";
+    return;
+  }
+}
+
 void OHOSExternalTextureGL::OnGrContextCreated()
 {
   FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextCreated"
                  << ", texture_name_=" << texture_name_
                  << ", Id()=" << Id();
-  if (state_ == AttachmentState::attached) {
-    delegate_.OnPlatformViewMarkTextureFrameAvailable(Id());
+  fml::TaskRunner::RunNowOrPostTask(
+      task_runners_.GetRasterTaskRunner(),
+      [this]() {
+        Show();
+      });
+}
+
+void OHOSExternalTextureGL::Hide()
+{
+  if (state_ != AttachmentState::attached) {
+    FML_LOG(WARNING) << "OHOSExternalTextureGL hide, state is not attached, ignore this call";
+    return;
   }
+  if (nativeImage_ != nullptr) {
+    OH_NativeImage_DetachContext(nativeImage_);
+    if (backGroundTextureName_ != 0) {
+      glDeleteTextures(1, &texture_name_);
+      texture_name_ = 0;
+    }
+  }
+  if (backGroundNativeWindow_ != nullptr) {
+    OH_NativeImage_DetachContext(backGroundNativeImage_);
+    if (backGroundTextureName_ != 0) {
+      infoMap.erase(backGroundTextureName_);
+      glDeleteTextures(1, &backGroundTextureName_);
+      backGroundTextureName_ = 0;
+    }
+  }
+  state_ = AttachmentState::hide;
 }
 
 void OHOSExternalTextureGL::OnGrContextDestroyed()
@@ -288,6 +355,11 @@ void OHOSExternalTextureGL::OnGrContextDestroyed()
   FML_DLOG(INFO) << " OHOSExternalTextureGL::OnGrContextDestroyed"
                  << ", texture_name_=" << texture_name_
                  << ", Id()=" << Id();
+  fml::TaskRunner::RunNowOrPostTask(
+      task_runners_.GetRasterTaskRunner(),
+      [this]() {
+        Hide();
+      });
 }
 
 void OHOSExternalTextureGL::MarkNewFrameAvailable()
@@ -313,10 +385,14 @@ void OHOSExternalTextureGL::OnTextureUnregistered()
     << ", nativeImage_=" << nativeImage_
     << ", backGroundNativeImage_=" << backGroundNativeImage_;
   first_update_ = false;
-  if (state_ == AttachmentState::attached) {
-    Detach();
-    state_ = AttachmentState::detached;
-  }
+  fml::TaskRunner::RunNowOrPostTask(
+      task_runners_.GetRasterTaskRunner(),
+      [this]() {
+        if (state_ == AttachmentState::attached || state_ == AttachmentState::hide) {
+          Detach();
+          state_ = AttachmentState::detached;
+        }
+      });
 }
 
 bool OHOSExternalTextureGL::IsContextCurrent()
@@ -343,7 +419,7 @@ bool OHOSExternalTextureGL::IsContextCurrent()
 void OHOSExternalTextureGL::Update()
 {
   FML_DLOG(INFO) << "OHOSExternalTextureGL::Update, texture_name_=" << texture_name_;
-  if (!IsContextCurrent() && context_) {
+  if (!IsContextCurrent() && context_ && display_ && draw_surface_ && read_surface_) {
       if (eglMakeCurrent(display_, draw_surface_, read_surface_, context_) != EGL_TRUE) {
         FML_LOG(WARNING) << "eglMakeCurrent in update failed";
       }
@@ -365,19 +441,17 @@ void OHOSExternalTextureGL::Update()
 void OHOSExternalTextureGL::Detach()
 {
   FML_LOG(INFO) << "OHOSExternalTextureGL::Detach, texture_name_=" << texture_name_;
-  if (state_ != AttachmentState::attached) {
-    FML_LOG(ERROR) << "OHOSExternalTextureGL::Detach, the current status is not attached";
+  if (state_ != AttachmentState::attached && state_ != AttachmentState::hide) {
+    FML_LOG(ERROR) << "OHOSExternalTextureGL::Detach, the current status is not attached or hide";
     return;
   }
   if (nativeImage_ != nullptr) {
-    OH_NativeImage_DetachContext(nativeImage_);
+    if (state_ == AttachmentState::attached) {
+      OH_NativeImage_DetachContext(nativeImage_);
+    }
     OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);
     OH_NativeImage_Destroy(&nativeImage_);
     nativeImage_ = nullptr;
-  }
-  if (frameData_ != nullptr) {
-    delete (OhosImageFrameData *)frameData_;
-    frameData_ = nullptr;
   }
   if (nativeWindow_ != nullptr) {
     OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
@@ -385,7 +459,9 @@ void OHOSExternalTextureGL::Detach()
   }
 
   if (backGroundNativeImage_ != nullptr) {
-    OH_NativeImage_DetachContext(backGroundNativeImage_);
+    if (state_ == AttachmentState::attached) {
+      OH_NativeImage_DetachContext(backGroundNativeImage_);
+    }
     OH_NativeImage_Destroy(&backGroundNativeImage_);
     backGroundNativeImage_ = nullptr;
   }
@@ -393,10 +469,12 @@ void OHOSExternalTextureGL::Detach()
     OH_NativeWindow_DestroyNativeWindow(backGroundNativeWindow_);
     backGroundNativeWindow_ = nullptr;
   }
-  glDeleteTextures(1, &texture_name_);
-  glDeleteTextures(1, &backGroundTextureName_);
-  if (backGroundTextureName_ != 0) {
-    infoMap.erase(backGroundTextureName_);
+  if (state_ == AttachmentState::attached) {
+    glDeleteTextures(1, &texture_name_);
+    glDeleteTextures(1, &backGroundTextureName_);
+    if (backGroundTextureName_ != 0) {
+      infoMap.erase(backGroundTextureName_);
+    }
   }
 }
 
@@ -767,30 +845,6 @@ void OHOSExternalTextureGL::DispatchBackGroundPixelMap(NativePixelMap* pixelMap)
 {
   if (pixelMap != nullptr) {
     backGroundPixelMap_ = pixelMap;
-  }
-}
-
-OhosImageFrameData::OhosImageFrameData(
-    OHOSExternalTextureGL *ohosExternalTextureGL,
-    int64_t textureId)
-    : ohosExternalTextureGL(ohosExternalTextureGL),
-      textureId_(textureId)
-{}
-
-OhosImageFrameData::~OhosImageFrameData()
-{
-  ohosExternalTextureGL = nullptr;
-  textureId_ = 0;
-}
-
-void OhosImageFrameData::OnPlatformViewMarkTextureFrameAvailable()
-{
-  if (ohosExternalTextureGL != nullptr) {
-    fml::TaskRunner::RunNowOrPostTask(
-        ohosExternalTextureGL->task_runners_.GetPlatformTaskRunner(), [textureId = textureId_, this]() {
-          PlatformView::Delegate& dalegate = this->ohosExternalTextureGL->delegate_;
-          dalegate.OnPlatformViewMarkTextureFrameAvailable(textureId);
-        });
   }
 }
 

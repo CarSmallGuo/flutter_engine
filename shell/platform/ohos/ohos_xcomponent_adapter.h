@@ -20,12 +20,13 @@
 #include <arkui/native_interface_accessibility.h>
 #include <string>
 #include <map>
+#include <mutex>
 #include "flutter/shell/platform/ohos/ohos_touch_processor.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "napi/native_api.h"
 #include "napi_common.h"
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
-
+#include "flutter/shell/platform/ohos/utils/ddl_utils.h"
 namespace flutter {
 
 class XComponentBase
@@ -50,6 +51,9 @@ public:
   void OnDispatchMouseEvent(OH_NativeXComponent* component, void* window);
   void OnDispatchMouseWheelEvent(mouseWheelEvent event);
 
+  void RegisterArkUIAccessibilityService(
+       OH_NativeXComponent* nativeXComponent);
+
   OH_NativeXComponent_TouchEvent touchEvent_;
   OH_NativeXComponent_Callback callback_;
   OH_NativeXComponent_MouseEvent_Callback mouseCallback_;
@@ -64,7 +68,7 @@ public:
   uint64_t width_;
   uint64_t height_;
   OhosTouchProcessor ohosTouchProcessor_;
-
+  ArkUI_AccessibilityProvider* accessibilityProvider_;
 };
 
 class XComponentAdapter {
@@ -79,8 +83,12 @@ class XComponentAdapter {
   void DetachFlutterEngine(std::string& id);
   void OnMouseWheel(std::string& id, mouseWheelEvent event);
 
+  ArkUI_AccessibilityProvider* GetAccessibilityProvider(const std::string& xcompId);
+
  public:
   std::map<std::string, XComponentBase*> xcomponetMap_;
+  std::string currentXComponentId_;
+  std::mutex mutex_;
 
  private:
   static XComponentAdapter mXComponentAdapter;

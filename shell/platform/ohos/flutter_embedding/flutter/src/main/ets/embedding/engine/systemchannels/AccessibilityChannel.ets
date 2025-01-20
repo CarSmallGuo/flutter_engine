@@ -122,24 +122,32 @@ export interface AccessibilityMessageHandler extends AccessibilityDelegate {
     announce(message: string): void;
     onTap(nodeId: number): void;
     onLongPress(nodeId: number): void;
-    onTooltip(nodeId: string): void;
+    onTooltip(message: string): void;
 }
 
 export class DefaultHandler implements AccessibilityMessageHandler {
-    private static TAG = "AccessibilityMessageHandler";
+  private static TAG = "AccessibilityMessageHandler";
+
   announce(message: string): void {
     Log.i(DefaultHandler.TAG,  "handler announce.");
-    flutter.nativeAnnounce(message);
+    flutter.nativeAccessibilityAnnounce(message);
   }
+
   onTap(nodeId: number): void {
     Log.i(DefaultHandler.TAG,  "handler onTap.");
+    flutter.nativeAccessibilityOnTap(nodeId);
   }
+
   onLongPress(nodeId: number): void {
     Log.i(DefaultHandler.TAG,  "handler onLongPress.");
+    flutter.nativeAccessibilityOnLongPress(nodeId);
   }
-  onTooltip(nodeId: string): void {
+
+  onTooltip(message: string): void {
     Log.i(DefaultHandler.TAG,  "handler onTooltip.");
+    flutter.nativeAccessibilityOnTooltip(message);
   }
+
   updateSemantics(buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]): void {
     Log.i(DefaultHandler.TAG,  "handler updateSemantics");
   }
