@@ -105,7 +105,8 @@ used to filter file path.
 
         <filefilterlist>
             <filefilter name="defaultFilter" desc="Files not to check">
-                <filteritem type="filename" name="*.iml|*.json|*.txt|*.yaml|*.gni|*.gn|*.clang-tidy|*.yapf|*AUTHORS|*README.OpenSource" desc="desc files" />
+                <filteritem type="filename" name="*.iml|*.txt|*.yaml|*.gni|*.clang-tidy|*.yapf|*AUTHORS|*README.OpenSource" desc="desc files" />
+                <filteritem type="filename" name="*.test.ets|*.tmpl|*.test.dart|*.OpenHarmonyTestRunner.ts" desc="desc files" />
                 <filteritem type="filename" name="*BUILD.gn" desc="desc files" />
                 <filteritem type="filename" name="LICENSE_*" desc="LICENSE文件" />
                 <filteritem type="filename"
