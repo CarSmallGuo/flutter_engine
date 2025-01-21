@@ -11,6 +11,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Based on platform_view_android.cc originally written by
+ * Copyright (C) 2015  Adam Barth <abarth@chromium.org>
+ *
  */
 
 #include "flutter/shell/platform/ohos/platform_view_ohos.h"
