@@ -29,6 +29,7 @@ import TextInputPlugin from '../plugin/editing/TextInputPlugin';
 import { accessibility } from '@kit.AccessibilityKit';
 
 const TAG = "FlutterViewTag";
+const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
 
 export class ViewportMetrics {
   devicePixelRatio: number = 1.0;
@@ -460,6 +461,7 @@ export class FlutterView {
     this.flutterEngine = null;
     this.keyboardManager = null;
     this.textInputPlugin?.destroy();
+    this.context?.eventHub.off(EVENT_BACK_PRESS);
   }
 
   onWindowCreated() {
