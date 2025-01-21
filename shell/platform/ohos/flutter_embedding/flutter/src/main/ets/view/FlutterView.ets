@@ -30,7 +30,7 @@ import { accessibility } from '@kit.AccessibilityKit';
 import TextInputPlugin from '../plugin/editing/TextInputPlugin';
 
 const TAG = "FlutterViewTag";
-const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
+const EVENT_BACK_PRES = 'EVENT_BACK_PRESS';
 
 export class ViewportMetrics {
   devicePixelRatio: number = 1.0;
