@@ -31,6 +31,7 @@
 #include "flutter/shell/platform/ohos/platform_view_ohos_delegate.h"
 #include <GLES2/gl2ext.h>
 
+
 namespace flutter {
 
 OhosSurfaceFactoryImpl::OhosSurfaceFactoryImpl(
@@ -181,21 +182,10 @@ void PlatformViewOHOS::NotifySurfaceWindowChanged(
 }
 
 void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
-  LOGI("PlatformViewOHOS NotifyChanged enter");
-  if (ohos_surface_) {
-    fml::AutoResetWaitableEvent latch;
-    fml::TaskRunner::RunNowOrPostTask(
-        task_runners_.GetRasterTaskRunner(),  //
-        [&latch, surface = ohos_surface_.get(), size, this]() {
-          if (GetDestroyed()) {
-            LOGW("NotifyChanged, GetDestroyed is true, ignore this call.");
-          } else {
-            surface->OnScreenSurfaceResize(size);
-          }
-          latch.Signal();
-        });
-    latch.Wait();
-  }
+    //Do nothing, because SetViewportMetrics has notified window size change event
+    //If raster thread post task, Synchronization signal block application main thread
+    //(https://gitee.com/openharmony-sig/flutter_engine/issues/IBI4PK?from=project-issue)
+    return;
 }
 
 bool PlatformViewOHOS::GetDestroyed() {
@@ -301,9 +291,12 @@ void PlatformViewOHOS::UpdateAssetResolverByType(
 void PlatformViewOHOS::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
-  FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics is called";
-  auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
-  nativeAccessibilityChannel_->UpdateSemantics(update, actions);
+  task_runners_.GetPlatformTaskRunner()->PostTask(
+      [update = std::move(update), actions = std::move(actions)]() {
+        auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
+        nativeAccessibilityChannel_->UpdateSemantics(update, actions);
+        FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics is called";
+  });
 }
 
 // |PlatformView|
@@ -525,6 +518,17 @@ void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(
     auto iter = external_texture_gl_.find(texture_id);
     if (iter != external_texture_gl_.end()) {
       iter->second->DispatchBackGroundPixelMap(pixelMap);
+    }
+  }
+}
+
+void PlatformViewOHOS::SetExternalTextureBackGroundColor(
+    int64_t texture_id,
+    uint32_t color) {
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    auto iter = external_texture_gl_.find(texture_id);
+    if (iter != external_texture_gl_.end()) {
+      iter->second->DispatchBackGroundColor(color);
     }
   }
 }
