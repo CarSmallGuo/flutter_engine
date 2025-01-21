@@ -39,7 +39,6 @@ import Any from '../../plugin/common/Any';
 const TAG = "FlutterAbilityDelegate";
 const PLUGINS_RESTORATION_BUNDLE_KEY = "plugins";
 const FRAMEWORK_RESTORATION_BUNDLE_KEY = "framework";
-const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
 
 /**
  * 主要职责：
@@ -92,14 +91,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
       this.flutterView.attachToFlutterEngine(this.flutterEngine!!);
     }
     this.host?.configureFlutterEngine(this.flutterEngine!!);
-    this.context.eventHub.on(EVENT_BACK_PRESS, () => {
-      if (this.flutterView?.getKeyboardHeight() == 0) {
-        this.flutterEngine?.getNavigationChannel()?.popRoute();
-        this.flutterEngine?.getPlatformViewsController()?.setBackNodeControllers();
-      } else {
-        this.flutterEngine?.getTextInputChannel()?.textInputMethodHandler?.hide();
-      }
-    });
   }
 
   /**
@@ -307,7 +298,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
     }
 
     this.isAttached = false;
-    this.context?.eventHub.off(EVENT_BACK_PRESS);
   }
 
   onLowMemory(): void {
