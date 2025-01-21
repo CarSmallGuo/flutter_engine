@@ -29,6 +29,7 @@ export struct FlutterPage {
   @Prop viewId: string = ""
   @Prop xComponentType: XComponentType = XComponentType.SURFACE
 
+  defaultFocusOnTouch = false;
   @Builder doNothingBuilder() {}
   @BuilderParam splashScreenView: () => void = this.doNothingBuilder;
   @Builder defaultPage() {
@@ -53,7 +54,7 @@ export struct FlutterPage {
       XComponent({ id: this.viewId, type: this.xComponentType, libraryname: 'flutter' })
         .id(this.viewId)
         .focusable(true)
-        .focusOnTouch(true)
+        .focusOnTouch(this.defaultFocusOnTouch)
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
@@ -134,7 +135,7 @@ export struct FlutterPage {
       XComponent({ id: this.viewId, type: this.xComponentType, libraryname: 'flutter' })
         .id(this.viewId)
         .focusable(true)
-        .focusOnTouch(true)
+        .focusOnTouch(this.defaultFocusOnTouch)
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
