@@ -162,8 +162,14 @@ export class KeyEventHandler {
     if (event.type == KeyType.Down) {
       if (!this.isCombinationKey) {
         this.isCombinationKey = COMBINATION_KEYS.findIndex((it) => it == event.keyCode) >= 0;
+        if (this.isCombinationKey) {
+          this.inputMap.clear();
+        }
       }
-      this.inputMap.set(event.keyCode, text);
+      if (!this.isCombinationKey) {
+        // Ctrl/Alt 键按下的状态，不输入字符（字母/数字/符号）
+        this.inputMap.set(event.keyCode, text);
+      }
     } else if (event.type == KeyType.Up) {
       if (COMBINATION_KEYS.findIndex((it) => it == event.keyCode) >= 0) {
         // Ctrl/Alt 键抬起，重置状态
