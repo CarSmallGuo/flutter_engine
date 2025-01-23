@@ -11,6 +11,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Based on android_context.cc originally written by
+ * Copyright (C) 2013  Raph Levien <raph@google.com>
+ *
  */
 
 #include "flutter/shell/platform/ohos/context/ohos_context.h"

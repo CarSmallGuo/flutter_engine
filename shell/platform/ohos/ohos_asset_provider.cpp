@@ -11,6 +11,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Based on apk_asset_provider.cc originally written by
+ * Copyright (C) 2018  Sarah Zakarias <zarah@google.com>
+ *
  */
 
 #include "ohos_asset_provider.h"

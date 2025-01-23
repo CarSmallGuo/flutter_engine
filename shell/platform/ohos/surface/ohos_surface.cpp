@@ -11,6 +11,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Based on android_surface.cc originally written by
+ * Copyright (C) 2017  Chinmay Garde <chinmaygarde@gmail.com>
+ *
  */
 
 #include "flutter/shell/platform/ohos/surface/ohos_surface.h"
