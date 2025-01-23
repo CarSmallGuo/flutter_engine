@@ -30,6 +30,9 @@
 #include "ohos_accessibility_ddl.h"
 #include "flutter/shell/platform/ohos/utils/ohos_utils.h"
 #include "flutter/shell/platform/ohos/utils/arkui_accessibility_constant.h"
+#include "third_party/skia/include/core/SkMatrix.h"
+#include "third_party/skia/include/core/SkScalar.h"
+#include "third_party/skia/include/core/SkPoint.h"
 
 namespace flutter {
 typedef flutter::SemanticsFlags FLAGS_;
@@ -43,9 +46,15 @@ struct AbsoluteRect {
     static constexpr AbsoluteRect MakeEmpty() {
         return AbsoluteRect{0.0, 0.0, 0.0, 0.0};
     }
+    static constexpr AbsoluteRect MakeRect(
+        float left, float top, float right, float bottom) {
+        return AbsoluteRect{left, top, right, bottom};
+    }
+
 };
 struct SemanticsNodeExtent : flutter::SemanticsNode {
     bool isNull = false;
+    SkM44 globalTransform = SkM44{};
     AbsoluteRect absoluteRect = AbsoluteRect::MakeEmpty();
     int32_t parentId = -1;
     bool hadPreviousConfig = false;
@@ -78,13 +87,11 @@ public:
     OhosAccessibilityBridge(const OhosAccessibilityBridge&) = delete;
     OhosAccessibilityBridge& operator=(const OhosAccessibilityBridge&) = delete;
 
+    std::string xcomponentId_;
     bool isFlutterNavigated_;
     int64_t native_shell_holder_id_;
-    ArkUI_AccessibilityProvider* provider_;
 
     void OnOhosAccessibilityStateChange(bool ohosAccessibilityEnabled, int64_t shellholderId);
-
-    void SetNativeShellHolderId(int64_t id);
 
     void UpdateSemantics(flutter::SemanticsNodeUpdates update,
                          flutter::CustomAccessibilityActionUpdates actions);
@@ -138,7 +145,7 @@ public:
         std::unique_ptr<char[]>& message,
         ArkUI_AccessibilityEventType eventType);
 
-    void FlutterRelativeRectToScreenRect(SemanticsNodeExtent node);
+    void RelativeRectToScreenRect(SemanticsNodeExtent& node);
     AbsoluteRect GetAbsoluteScreenRect(SemanticsNodeExtent& flutterNode);
     void SetAbsoluteScreenRect(SemanticsNodeExtent& flutterNode,
                                float left,
@@ -161,9 +168,14 @@ private:
     std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
     std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
 
+    std::unordered_map<std::string, std::unordered_map<int32_t, SemanticsNodeExtent>> g_flutterSemanticsTreeXComponents;
+    std::unordered_map<std::string, std::vector<std::pair<int32_t, int32_t>>> g_parentChildIdVecXComponents;
+    std::unordered_map<std::string, std::unordered_map<int32_t, AbsoluteRect>> g_screenRectMapXComponents;
+
     std::unordered_map<int32_t, SemanticsNodeExtent> g_flutterSemanticsTree;
     std::vector<std::pair<int32_t, int32_t>> g_parentChildIdVec;
     std::unordered_map<int32_t, AbsoluteRect> g_screenRectMap;
+    std::unordered_map<int32_t, SkM44> g_globalTransformMap;
 
     SemanticsNodeExtent inputFocusedNode;
     SemanticsNodeExtent lastInputFocusedNode;
@@ -250,6 +262,11 @@ private:
     flutter::SemanticsAction ArkuiActionsToFlutterActions(
         ArkUI_Accessibility_ActionType arkui_action);
 
+    void BuildParentChildNodeIdRelation(const SemanticsNodeExtent& node);
+    void ComputeGlobalTransform();
+    void ConvertRectToGlobal(SemanticsNodeExtent& node);
+    SkPoint ApplyTransform(SkPoint& point, const SkM44& transform);
+    
     bool HasScrolled(const SemanticsNodeExtent& flutterNode);
     bool HasChangedLabel(const SemanticsNodeExtent& flutterNode);
 

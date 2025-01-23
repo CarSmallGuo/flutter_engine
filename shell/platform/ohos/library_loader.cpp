@@ -194,6 +194,9 @@ static napi_value Init(napi_env env, napi_value exports) {
           "nativeUnicodeIsRegionalIndicatorSymbol",
           flutter::PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol),
       DECLARE_NAPI_FUNCTION(
+          "nativeGetXComponentId",
+          flutter::PlatformViewOHOSNapi::nativeGetXComponentId),
+      DECLARE_NAPI_FUNCTION(
           "nativeSetDVsyncSwitch",
           flutter::PlatformViewOHOSNapi::nativeSetDVsyncSwitch),
   };

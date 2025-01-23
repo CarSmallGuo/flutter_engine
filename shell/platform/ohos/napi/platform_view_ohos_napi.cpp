@@ -2297,6 +2297,25 @@ napi_value PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol(napi_env
   return result;
 }
 
+napi_value PlatformViewOHOSNapi::nativeGetXComponentId(napi_env env, napi_callback_info info)
+{
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  std::string xcomponentId;
+  bool ret = fml::napi::GetString(env, args[0], xcomponentId);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeGetXComponentId xcomponentId: " << xcomponentId;
+    return nullptr;
+  }
+  // obtain the current visible xcomponent id from the ets callback event
+  XComponentAdapter::GetInstance()->currentXComponentId_ = xcomponentId;
+  FML_DLOG(ERROR) << "nativeGetXComponentId -> xcomponentId: " << xcomponentId;
+  return nullptr;
+}
+
+
 napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callback_info info)
 {
   size_t argc = 2;

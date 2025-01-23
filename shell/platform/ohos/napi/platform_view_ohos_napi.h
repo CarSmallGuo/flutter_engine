@@ -272,6 +272,10 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);
 
+  static napi_value nativeGetXComponentId(
+      napi_env env,
+      napi_callback_info info);
+
   static napi_value nativeSetDVsyncSwitch(
       napi_env env,
       napi_callback_info info);
