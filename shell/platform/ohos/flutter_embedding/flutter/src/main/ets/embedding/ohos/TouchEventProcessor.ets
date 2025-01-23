@@ -12,6 +12,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+
 /** Handle the motion events received by the FlutterNapi. */
 // import PlainArray from '@ohos.util.PlainArray';
 // import { TouchEvent } from '@ohos.multimodalInput.touchEvent';
