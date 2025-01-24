@@ -167,15 +167,9 @@ private:
     static std::unique_ptr<OhosAccessibilityBridge> bridgeInstance_;
     std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
     std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
-
-    std::unordered_map<std::string, std::unordered_map<int32_t, SemanticsNodeExtent>> g_flutterSemanticsTreeXComponents;
-    std::unordered_map<std::string, std::vector<std::pair<int32_t, int32_t>>> g_parentChildIdVecXComponents;
-    std::unordered_map<std::string, std::unordered_map<int32_t, AbsoluteRect>> g_screenRectMapXComponents;
-
+    
     std::unordered_map<int32_t, SemanticsNodeExtent> g_flutterSemanticsTree;
-    std::vector<std::pair<int32_t, int32_t>> g_parentChildIdVec;
-    // std::unordered_map<int32_t, AbsoluteRect> g_screenRectMap;
-    std::unordered_map<int32_t, SkM44> g_globalTransformMap;
+    std::unordered_map<std::string, std::unordered_map<int32_t, SemanticsNodeExtent>> g_flutterSemanticsTreeXComponents;
 
     SemanticsNodeExtent inputFocusedNode;
     SemanticsNodeExtent lastInputFocusedNode;
@@ -262,8 +256,7 @@ private:
     flutter::SemanticsAction ArkuiActionsToFlutterActions(
         ArkUI_Accessibility_ActionType arkui_action);
 
-    void BuildParentChildNodeIdRelation(const SemanticsNodeExtent& node);
-    void ComputeGlobalTransform();
+    void ComputeGlobalTransformAndParentId();
     void ConvertRectToGlobal(SemanticsNodeExtent& node);
     SkPoint ApplyTransform(SkPoint& point, const SkM44& transform);
     
@@ -337,7 +330,6 @@ private:
 
     void RequestFocusWhenPageUpdate(int32_t requestFocusId);
     bool Contains(const std::string source, const std::string target);
-    std::pair<float, float> GetRealScaleFactor();
     void DoubleClickRouteToNewPage(SemanticsNodeExtent node);
     void GetSemanticsDebugInfo();
     void AccessibiltiyChangesWithXComponentId();

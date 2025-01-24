@@ -47,12 +47,10 @@ void OhosAccessibilityBridge::AccessibiltiyChangesWithXComponentId()
         xcomponentId_ = currXcompId;
         native_shell_holder_id_ = std::stoll(it->second->shellholderId_);
         g_flutterSemanticsTree = g_flutterSemanticsTreeXComponents[xcomponentId_];
-        g_parentChildIdVec = g_parentChildIdVecXComponents[xcomponentId_];
         FML_DLOG(INFO) << "AccessibiltiyChangesWithXComponentId -> xcomponentid:" << xcomponentId_;
     } else {
         xcomponentId_ = "oh_flutter_1";
         g_flutterSemanticsTree = g_flutterSemanticsTreeXComponents[xcomponentId_];
-        g_parentChildIdVec = g_parentChildIdVecXComponents[xcomponentId_];
         FML_DLOG(INFO) << "AccessibiltiyChangesWithXComponentId -> xcomponentid:" << xcomponentId_;
     }
 }
@@ -94,20 +92,6 @@ void OhosAccessibilityBridge::OnOhosAccessibilityStateChange(
 }
 
 /**
- * build the id mapping betwween parent node and its children nodes
- */
-void OhosAccessibilityBridge::BuildParentChildNodeIdRelation(
-    const SemanticsNodeExtent& node)
-{
-    if (!IsNodeVisible(node)) { return; }
-    for (const auto& childId : node.childrenInTraversalOrder) {
-        auto childNode = GetFlutterSemanticsNode(childId);
-        if (!IsNodeVisible(childNode)) { continue; }
-        g_parentChildIdVec.emplace_back(std::make_pair(node.id, childId));
-    }
-}
-
-/**
  * 从dart侧传递到c++侧的flutter无障碍语义树节点更新过程，
  * 路由新页面、滑动页面等操作会自动触发该语义树的更新
  */
@@ -134,14 +118,8 @@ void OhosAccessibilityBridge::UpdateSemantics(
 
         // 构建flutter无障碍语义节点树
         g_flutterSemanticsTree[nodeEx.id] = nodeEx;
-        // 构建flutter节点的父子id映射关系
-        BuildParentChildNodeIdRelation(nodeEx);
 
-        //print semantics node and flags info for debugging
-        GetSemanticsNodeDebugInfo(nodeEx);
-        GetSemanticsFlagsDebugInfo(nodeEx);
-
-        if (!IsNodeVisible(nodeEx)) { continue; }
+        // if (!IsNodeVisible(nodeEx)) { continue; }
 
         // 若当前节点为获焦
         if (IsNodeFocused(nodeEx)) {
@@ -154,19 +132,19 @@ void OhosAccessibilityBridge::UpdateSemantics(
         }
     }
 
+    // calculate the global tranfomr matrix and parent id for each node
+    ComputeGlobalTransformAndParentId();
+
     // 将更新后的flutter语义树和父子节点id映射缓存，保存到相应的xcomponent里面
     g_flutterSemanticsTreeXComponents[xcomponentId_] = g_flutterSemanticsTree;
-    g_parentChildIdVecXComponents[xcomponentId_] = g_parentChildIdVec;
-
-    // 页面内容更新事件
-    Flutter_SendAccessibilityAsyncEvent(0,
-        ArkUI_AccessibilityEventType::
-            ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_PAGE_CONTENT_UPDATE);
-    LOGD("Flutter_SendAccessibilityAsyncEvent -> PAGE_CONTENT_UPDATE");
 
     /* 针对更新后的节点进行事件处理 */
     for (auto& nodeEx: updatedFlutterNodes) {
         FML_DLOG(INFO) << "*#*#* updated node.id=" << nodeEx.id;
+
+        //print semantics node and flags info for debugging
+        GetSemanticsNodeDebugInfo(nodeEx);
+        GetSemanticsFlagsDebugInfo(nodeEx);
 
         // 当滑动节点产生滑动，并执行滑动处理
         if (HasScrolled(nodeEx)) {
@@ -200,8 +178,6 @@ void OhosAccessibilityBridge::UpdateSemantics(
                                                     ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_PAGE_CONTENT_UPDATE);
         }
     }
-    // calculate the global tranfomr matrix for each node
-    ComputeGlobalTransform();
     // 输出flutter语义树相关重要语义信息debug日志
     GetSemanticsDebugInfo();
     FML_DLOG(INFO) << "=== UpdateSemantics() is finished ===";
@@ -445,20 +421,16 @@ SemanticsNodeExtent OhosAccessibilityBridge::GetFlutterSemanticsNode(
  */
 int32_t OhosAccessibilityBridge::GetParentId(int64_t elementId)
 {
-    if (!g_parentChildIdVec.size()) {
-        FML_DLOG(WARNING) << "OhosAccessibilityBridge::GetParentId parentChildIdMap.size()=0";
-        return ARKUI_ACCESSIBILITY_ROOT_PARENT_ID;
-    }
     if (elementId == -1 || elementId == 0) {
         return ARKUI_ACCESSIBILITY_ROOT_PARENT_ID;
     }
-    int32_t childElementId = static_cast<int32_t>(elementId);
-    for (const auto& item : g_parentChildIdVec) {
-        if (item.second == childElementId) {
-            return item.first;
-        }
+    int32_t id = static_cast<int32_t>(elementId);
+    auto node = GetFlutterSemanticsNode(id);
+    if (!g_flutterSemanticsTree.count(id)) {
+        LOGE("GetParentId: %{public}d is null", id);
+        return -1;
     }
-    return RET_ERROR_STATE_CODE;
+    return node.parentId;
 }
 
 /**
@@ -478,37 +450,20 @@ void OhosAccessibilityBridge::SetAbsoluteScreenRect(SemanticsNodeExtent& flutter
 AbsoluteRect OhosAccessibilityBridge::GetAbsoluteScreenRect(const SemanticsNodeExtent& flutterNode)
 {
     return flutterNode.absoluteRect;
-    // if (!g_screenRectMap.empty() && g_screenRectMap.count(flutterNode.id) > 0) {
-    //     return g_screenRectMap.at(flutterNode.id);
-    // } else {
-    //     FML_DLOG(ERROR) << "GetAbsoluteScreenRect -> flutterNodeId="
-    //                     << flutterNode.id << " is not found !";
-    //     return {};
-    // }
-}
-
-/**
- * 获取flutter相对-绝对坐标映射的真实缩放系数
- */
-std::pair<float, float> OhosAccessibilityBridge::GetRealScaleFactor()
-{
-    auto secondNode = GetFlutterSemanticsNode(1);
-    SkMatrix transform = secondNode.transform.asM33();
-    auto scaleX = transform.get(SkMatrix::kMScaleX);
-    auto scaleY = transform.get(SkMatrix::kMScaleY);
-    return std::make_pair(scaleX, scaleY);
 }
 
 /**
  * calculate the global transform matrix for each node
  */
-void OhosAccessibilityBridge::ComputeGlobalTransform()
+void OhosAccessibilityBridge::ComputeGlobalTransformAndParentId()
 {
   std::queue<SemanticsNodeExtent> semanticsQue;
 
-  auto root = GetFlutterSemanticsNode(0);
-  semanticsQue.push(root);
-  g_globalTransformMap[root.id] = root.transform;
+  auto rootNode = GetFlutterSemanticsNode(0);
+  rootNode.globalTransform = rootNode.transform;
+  rootNode.parentId = ARKUI_ACCESSIBILITY_ROOT_PARENT_ID;
+  g_flutterSemanticsTree[rootNode.id] = rootNode;
+  semanticsQue.push(rootNode);
 
   while (!semanticsQue.empty()) {
     uint32_t queSize = semanticsQue.size();
@@ -518,8 +473,10 @@ void OhosAccessibilityBridge::ComputeGlobalTransform()
 
       for (const auto& childId: currNode.childrenInTraversalOrder) {
         auto childNode = GetFlutterSemanticsNode(childId);
+        childNode.parentId = currNode.id;
+        childNode.globalTransform = currNode.globalTransform * childNode.transform;
+        g_flutterSemanticsTree[childId] = childNode;
         semanticsQue.push(childNode);
-        g_globalTransformMap[childId] = g_globalTransformMap[currNode.id] * childNode.transform;
       }
     }
   }
@@ -538,7 +495,8 @@ SkPoint OhosAccessibilityBridge::ApplyTransform(
 void OhosAccessibilityBridge::RelativeRectToScreenRect(SemanticsNodeExtent& node)
 {
     auto [left, top, right, bottom] = node.rect;
-    SkM44 globalTransform = g_globalTransformMap[node.id];
+    // SkM44 globalTransform = g_globalTransformMap[node.id];
+    SkM44 globalTransform = node.globalTransform;
 
     SkPoint points[4] = {
         SkPoint::Make(left, top),     // top-left point
@@ -1992,17 +1950,6 @@ void OhosAccessibilityBridge::RemoveSemanticsNode(
                           "g_flutterSemanticsTree.szie()=0";
         return;
     }
-    if (g_flutterSemanticsTree.find(nodeToBeRemoved.id) ==
-        g_flutterSemanticsTree.end()) {
-        FML_DLOG(INFO) << "Attempted to remove a node that is not in the tree.";
-    }
-    int32_t nodeToBeRemovedParentId = GetParentId(nodeToBeRemoved.id);
-    for (auto it = g_parentChildIdVec.begin(); it != g_parentChildIdVec.end(); it++) {
-        if (it->first == nodeToBeRemovedParentId &&
-            it->second == nodeToBeRemoved.id) {
-            g_parentChildIdVec.erase(it);
-        }
-    }
 }
 
 /**
@@ -2012,7 +1959,6 @@ void OhosAccessibilityBridge::RemoveSemanticsNode(
 void OhosAccessibilityBridge::ClearFlutterSemanticsCaches()
 {
     g_flutterSemanticsTree.clear();
-    g_parentChildIdVec.clear();
     Flutter_SendAccessibilityAsyncEvent(
         accessibilityFocusedNode.id,
         ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ACCESSIBILITY_FOCUS_CLEARED);
@@ -2027,19 +1973,31 @@ SemanticsNodeExtent OhosAccessibilityBridge::UpdatetSemanticsNodeExtent(
 {
     SemanticsNodeExtent nodeEx = SemanticsNodeExtent();
     // 获取更新前的flutter节点信息
-    if (g_flutterSemanticsTree.size() > 0) {
-        auto prevNode = GetFlutterSemanticsNode(node.id);
-        nodeEx.hadPreviousConfig = true;
-        nodeEx.previousFlags = prevNode.flags;
-        nodeEx.previousActions = prevNode.actions;
-        nodeEx.previousTextSelectionBase = prevNode.textSelectionBase;
-        nodeEx.previousTextSelectionExtent = prevNode.textSelectionExtent;
-        nodeEx.previousScrollPosition = prevNode.scrollPosition;
-        nodeEx.previousScrollExtentMax = prevNode.scrollExtentMax;
-        nodeEx.previousScrollExtentMin = prevNode.scrollExtentMin;
-        nodeEx.previousValue = prevNode.value;
-        nodeEx.previousLabel = prevNode.label;
-    }
+    // if (g_flutterSemanticsTree.size() > 0) {
+    //     auto prevNode = GetFlutterSemanticsNode(node.id);
+    //     nodeEx.hadPreviousConfig = true;
+    //     nodeEx.previousFlags = prevNode.flags;
+    //     nodeEx.previousActions = prevNode.actions;
+    //     nodeEx.previousTextSelectionBase = prevNode.textSelectionBase;
+    //     nodeEx.previousTextSelectionExtent = prevNode.textSelectionExtent;
+    //     nodeEx.previousScrollPosition = prevNode.scrollPosition;
+    //     nodeEx.previousScrollExtentMax = prevNode.scrollExtentMax;
+    //     nodeEx.previousScrollExtentMin = prevNode.scrollExtentMin;
+    //     nodeEx.previousValue = prevNode.value;
+    //     nodeEx.previousLabel = prevNode.label;
+    // }
+
+    nodeEx.hadPreviousConfig = true;
+    nodeEx.previousFlags = nodeEx.flags;
+    nodeEx.previousActions = nodeEx.actions;
+    nodeEx.previousTextSelectionBase = nodeEx.textSelectionBase;
+    nodeEx.previousTextSelectionExtent = nodeEx.textSelectionExtent;
+    nodeEx.previousScrollPosition = nodeEx.scrollPosition;
+    nodeEx.previousScrollExtentMax = nodeEx.scrollExtentMax;
+    nodeEx.previousScrollExtentMin = nodeEx.scrollExtentMin;
+    nodeEx.previousValue = nodeEx.value;
+    nodeEx.previousLabel = nodeEx.label;
+
     // 更新当前flutter节点信息
     nodeEx.isNull = false;
     nodeEx.id = std::move(node.id);
@@ -2083,6 +2041,7 @@ void OhosAccessibilityBridge::GetSemanticsNodeDebugInfo(
     FML_DLOG(INFO) << "-------------------SemanticsNode------------------";
     SkMatrix _transform = node.transform.asM33();
     FML_DLOG(INFO) << "node.id=" << node.id;
+    FML_DLOG(INFO) << "node.parentId=" << node.parentId;
     FML_DLOG(INFO) << "node.label=" << node.label;
     FML_DLOG(INFO) << "node.previousLabel=" << node.previousLabel;
     FML_DLOG(INFO) << "node.tooltip=" << node.tooltip;
@@ -2216,10 +2175,6 @@ void OhosAccessibilityBridge::GetSemanticsDebugInfo()
     for (const auto& item : g_flutterSemanticsTree) {
         FML_DLOG(INFO) << "g_flutterSemanticsTree -> {" << item.first << ", "
                        << item.second.id << "}";
-    }
-    for (const auto& item : g_parentChildIdVec) {
-        FML_DLOG(INFO) << "g_parentChildIdVec -> (" << item.first << ", "
-                       << item.second << ")";
     }
     //打印按层次遍历排序的flutter语义树节点id数组
     std::vector<int64_t> levelOrderTraversalTree = GetLevelOrderTraversalTree(0);
