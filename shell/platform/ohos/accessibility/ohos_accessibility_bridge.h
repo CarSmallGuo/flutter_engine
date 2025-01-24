@@ -145,7 +145,7 @@ public:
         ArkUI_AccessibilityEventType eventType);
 
     void RelativeRectToScreenRect(SemanticsNodeExtent& node);
-    AbsoluteRect GetAbsoluteScreenRect(SemanticsNodeExtent& flutterNode);
+    AbsoluteRect GetAbsoluteScreenRect(const SemanticsNodeExtent& flutterNode);
     void SetAbsoluteScreenRect(SemanticsNodeExtent& flutterNode,
                                float left,
                                float top,
@@ -169,7 +169,7 @@ private:
 
     std::unordered_map<int32_t, SemanticsNodeExtent> g_flutterSemanticsTree;
     std::vector<std::pair<int32_t, int32_t>> g_parentChildIdVec;
-    std::unordered_map<int32_t, AbsoluteRect> g_screenRectMap;
+    // std::unordered_map<int32_t, AbsoluteRect> g_screenRectMap;
     std::unordered_map<int32_t, SkM44> g_globalTransformMap;
 
     SemanticsNodeExtent inputFocusedNode;

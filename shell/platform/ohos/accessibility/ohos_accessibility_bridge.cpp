@@ -466,20 +466,21 @@ void OhosAccessibilityBridge::SetAbsoluteScreenRect(SemanticsNodeExtent& flutter
                                                     float right,
                                                     float bottom)
 {
-    g_screenRectMap[flutterNode.id] = AbsoluteRect{left, top, right, bottom};
+    flutterNode.absoluteRect = {left, top, right, bottom};
     FML_DLOG(INFO) << "SetAbsoluteScreenRect -> id=" << flutterNode.id
                    << ", {" << left << ", " << top << ", " << right << ", "<< bottom << "> }";
 }
 
-AbsoluteRect OhosAccessibilityBridge::GetAbsoluteScreenRect(SemanticsNodeExtent& flutterNode)
+AbsoluteRect OhosAccessibilityBridge::GetAbsoluteScreenRect(const SemanticsNodeExtent& flutterNode)
 {
-    if (!g_screenRectMap.empty() && g_screenRectMap.count(flutterNode.id) > 0) {
-        return g_screenRectMap.at(flutterNode.id);
-    } else {
-        FML_DLOG(ERROR) << "GetAbsoluteScreenRect -> flutterNodeId="
-                        << flutterNode.id << " is not found !";
-        return {};
-    }
+    return flutterNode.absoluteRect;
+    // if (!g_screenRectMap.empty() && g_screenRectMap.count(flutterNode.id) > 0) {
+    //     return g_screenRectMap.at(flutterNode.id);
+    // } else {
+    //     FML_DLOG(ERROR) << "GetAbsoluteScreenRect -> flutterNodeId="
+    //                     << flutterNode.id << " is not found !";
+    //     return {};
+    // }
 }
 
 /**
@@ -2004,7 +2005,6 @@ void OhosAccessibilityBridge::ClearFlutterSemanticsCaches()
 {
     g_flutterSemanticsTree.clear();
     g_parentChildIdVec.clear();
-    g_screenRectMap.clear();
     Flutter_SendAccessibilityAsyncEvent(
         accessibilityFocusedNode.id,
         ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ACCESSIBILITY_FOCUS_CLEARED);
