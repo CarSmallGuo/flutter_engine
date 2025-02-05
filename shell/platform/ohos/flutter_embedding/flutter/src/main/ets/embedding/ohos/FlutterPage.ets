@@ -18,7 +18,9 @@ import { FlutterView } from '../../view/FlutterView';
 import FlutterManager from './FlutterManager';
 import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
 import flutter from 'libflutter.so';
+
 const TAG = "FlutterPage";
+
 export const OHOS_FLUTTER_PAGE_UPDATE = "ohos_flutter_page_update";
 
 /**
@@ -28,11 +30,19 @@ export const OHOS_FLUTTER_PAGE_UPDATE = "ohos_flutter_page_update";
 export struct FlutterPage {
   @Prop viewId: string = ""
   @Prop xComponentType: XComponentType = XComponentType.SURFACE
-
+  onFocusListener?: () => void | undefined;
+  onBlurListener?: () => void | undefined;
+  isFocusFlag: boolean = false;
   defaultFocusOnTouch = false;
-  @Builder doNothingBuilder() {}
+
+  @Builder
+  doNothingBuilder() {
+  }
+
   @BuilderParam splashScreenView: () => void = this.doNothingBuilder;
-  @Builder defaultPage() {
+
+  @Builder
+  defaultPage() {
     Stack() {
       ForEach(this.rootDvModel!!, (child: ESObject) => {
         DynamicView({
@@ -64,7 +74,7 @@ export struct FlutterPage {
             (ratioInc: boolean, ratio: number) => {
               if (ratioInc) {
                 Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
-                           " ratioInc: " + ratioInc + " ratio: " + ratio);
+                  " ratioInc: " + ratioInc + " ratio: " + ratio);
                 flutter.nativeGetXComponentId(this.viewId);
                 // 保证获取xcomponentid之后再使用无障碍
                 this.flutterView?.onAccessibilityIsOpen();
@@ -124,8 +134,20 @@ export struct FlutterPage {
       });
       Log.d(TAG, "onDrop");
     })
+    .onFocus(() => {
+      Log.d(TAG, "onFocus");
+      this.onFocusListener?.();
+      this.isFocusFlag = true;
+    })
+    .onBlur(() => {
+      Log.d(TAG, "onBlur");
+      this.onBlurListener?.();
+      this.isFocusFlag = false;
+    })
   }
-  @Builder mouseWheelPage() {
+
+  @Builder
+  mouseWheelPage() {
     Stack() {
       ForEach(this.rootDvModel!!, (child: ESObject) => {
         DynamicView({
@@ -157,7 +179,7 @@ export struct FlutterPage {
             (ratioInc: boolean, ratio: number) => {
               if (ratioInc) {
                 Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
-                            " ratioInc: " + ratioInc + " ratio: " + ratio);
+                  " ratioInc: " + ratioInc + " ratio: " + ratio);
                 flutter.nativeGetXComponentId(this.viewId);
                 // 保证获取xcomponentid之后再使用无障碍
                 this.flutterView?.onAccessibilityIsOpen();
@@ -229,21 +251,31 @@ export struct FlutterPage {
           this.flutterView?.onMouseWheel("actionEnd", event);
         })
     )
+    .onFocus(() => {
+      Log.d(TAG, "onFocus");
+      this.onFocusListener?.();
+      this.isFocusFlag = true;
+    })
+    .onBlur(() => {
+      Log.d(TAG, "onBlur");
+      this.onBlurListener?.();
+      this.isFocusFlag = false;
+    })
   }
-  @State showSplashScreen: boolean = true;
 
+  public isFocused(): boolean {
+    return this.isFocusFlag;
+  }
+
+  @State showSplashScreen: boolean = true;
   @State checkFullScreen: boolean = true;
   @State checkKeyboard: boolean = true;
   @State checkGesture: boolean = true;
   @State checkMouseWheel: boolean = true;
-
   @StorageLink('nodeWidth') storageLinkWidth: number = 0;
   @StorageLink('nodeHeight') storageLinkHeight: number = 0;
-
   @State rootDvModel: DVModelChildren | undefined = undefined
-
   @State isNeedUpdate: boolean = false;
-
   private flutterView?: FlutterView | null
   private lastArea?: Area;
   private panOption: PanGestureOptions = new PanGestureOptions({ direction: PanDirection.Up | PanDirection.Down });
