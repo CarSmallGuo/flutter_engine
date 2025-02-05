@@ -1,8 +1,4 @@
-/*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
-* Use of this source code is governed by a BSD-style license that can be
-* found in the LICENSE_KHZG file.
-*/
+
 
 export { default as FlutterInjector } from './src/main/ets/FlutterInjector';
 export { default as FlutterPluginRegistry } from './src/main/ets/app/FlutterPluginRegistry';
