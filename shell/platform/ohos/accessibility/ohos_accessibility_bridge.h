@@ -53,7 +53,6 @@ struct AbsoluteRect {
 
 };
 struct SemanticsNodeExtent : flutter::SemanticsNode {
-    bool isNull = false;
     SkM44 globalTransform = SkM44{};
     AbsoluteRect absoluteRect = AbsoluteRect::MakeEmpty();
     int32_t parentId = -1;
@@ -68,14 +67,20 @@ struct SemanticsNodeExtent : flutter::SemanticsNode {
     double previousScrollExtentMin = std::nan("");
     std::string previousValue;
     std::string previousLabel;
-    bool HasPrevAction(SemanticsAction action) const
-    {
+    bool HasPrevAction(SemanticsAction action) const {
         return (previousActions & this->actions) != 0;
     }
-    bool HasPrevFlag(SemanticsFlags flag) const
-    {
+    bool HasPrevFlag(SemanticsFlags flag) const {
         return (previousFlags & this->flags) != 0;
     }
+    bool operator==(const SemanticsNodeExtent& other) const {
+        return id == other.id;
+    }
+    struct Hash {
+        std::size_t operator()(const SemanticsNodeExtent& obj) const {
+            return std::hash<int>()(obj.id);
+        }
+    };
 };
 
 /**
@@ -171,8 +176,6 @@ private:
     std::unordered_map<int32_t, SemanticsNodeExtent> g_flutterSemanticsTree;
     std::unordered_map<std::string, std::unordered_map<int32_t, SemanticsNodeExtent>> g_flutterSemanticsTreeXComponents;
 
-    SemanticsNodeExtent inputFocusedNode;
-    SemanticsNodeExtent lastInputFocusedNode;
     SemanticsNodeExtent accessibilityFocusedNode;
 
     static const int32_t OHOS_API_VERSION; 
@@ -201,23 +204,6 @@ private:
     const std::string SWITCH_WIDGET_NAME = "Toggle";
     const std::string SEEKBAR_WIDGET_NAME = "SeekBar";
 
-    const std::map<std::string, ArkUI_Accessibility_ActionType>
-        ArkUI_ACTION_TYPE_MAP_ = {
-            {"invalid", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_INVALID},
-            {"click", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK},
-            {"long press", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_LONG_CLICK},
-            {"focus acquisition", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS},
-            {"focus clearance", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS},
-            {"forward scroll", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_FORWARD},
-            {"backward scroll", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD},
-            {"copy text", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_COPY},
-            {"paste text", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_PASTE},
-            {"cut text", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CUT},
-            {"text selection", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SELECT_TEXT},
-            {"set text", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_TEXT},
-            {"text cursor position setting", ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_CURSOR_POSITION},
-    };
-
     static const int32_t FOCUSABLE_FLAGS =
         static_cast<int32_t>(FLAGS_::kHasCheckedState) |
         static_cast<int32_t>(FLAGS_::kIsChecked) |
@@ -244,7 +230,7 @@ private:
         int64_t elementId);
     void FlutterSetElementInfoOperationActions(
         ArkUI_AccessibilityElementInfo* elementInfoFromList,
-        std::string widget_type);
+        const SemanticsNodeExtent& node);
     void BuildArkUISemanticsTree(
         int64_t elementId,
         ArkUI_AccessibilityElementInfo* elementInfoFromList,
