@@ -34,8 +34,7 @@ const TAG = "FlutterWindow";
  * 支持嵌入其他应用组件的flutter页面
  */
 export default class FlutterWindow implements Host {
-  private static ARG_SHOULD_ATTACH_ENGINE_TO_ABILITY: string =  "should_attach_engine_to_ability";
-
+  private static ARG_SHOULD_ATTACH_ENGINE_TO_ABILITY: string = "should_attach_engine_to_ability";
   protected uiAbility: UIAbility | null = null
   protected delegate: FlutterAbilityAndEntryDelegate | null = null
   protected flutterView: FlutterView | null = null
@@ -44,6 +43,7 @@ export default class FlutterWindow implements Host {
   private parameters: Record<string, Object> = {};
   protected engineConfigurator: FlutterEngineConfigurator | null = null
   protected hasInit: boolean = false;
+  private isFocusedFlag: boolean = false;
 
   constructor(context: Context, params: Record<string, Object> = {}) {
     this.context = context;
@@ -70,9 +70,25 @@ export default class FlutterWindow implements Host {
     }
   }
 
-  protected windowStageEventCallback = (data: window.WindowStageEventType) => {
-    let stageEventType: window.WindowStageEventType = data;
-    switch (stageEventType) {
+  /**
+   * 是否由windowStage生命周期处理window事件，如果传false，用户根据场景传递窗口事件到FlutterEngine
+   * @returns 默认由主窗口window生命周期发送事件到FlutterEntine
+   */
+  protected isWindowStageEventCallbackHandle(): boolean {
+    return true;
+  }
+
+  /**
+   * 部分FlutterWindow场景，并不依赖主window的前后台、焦点事件，依赖组件的事件，所以消息由组件转发
+   * 如果使用该方法传递window事件，需重写isWindowStageEventCallbackHandle返回false
+   * @param event window窗口事件
+   */
+  public postWindowStageEvent(event: window.WindowStageEventType) {
+    this.handleWindowStageEvent(event);
+  }
+
+  private handleWindowStageEvent(event: window.WindowStageEventType) {
+    switch (event) {
       case window.WindowStageEventType.SHOWN: // 切到前台
         Log.i(TAG, 'windowStage foreground.');
         break;
@@ -80,14 +96,27 @@ export default class FlutterWindow implements Host {
         Log.i(TAG, 'windowStage active.');
         this.delegate?.getFlutterEngine()?.getTextInputChannel()?.textInputMethodHandler?.handleChangeFocus(true);
         this?.delegate?.onWindowFocusChanged(true);
+        this.isFocusedFlag = true;
         break;
       case window.WindowStageEventType.INACTIVE: // 失焦状态
         Log.i(TAG, 'windowStage inactive.');
         this?.delegate?.onWindowFocusChanged(false);
+        this.isFocusedFlag = false;
         break;
       case window.WindowStageEventType.HIDDEN: // 切到后台
         Log.i(TAG, 'windowStage background.');
         break;
+    }
+  }
+
+  public isFocused(): boolean {
+    return this.isFocusedFlag;
+  }
+
+  protected windowStageEventCallback = (data: window.WindowStageEventType) => {
+    let stageEventType: window.WindowStageEventType = data;
+    if (this.isWindowStageEventCallbackHandle()) {
+      this.handleWindowStageEvent(stageEventType);
     }
   }
 
@@ -177,9 +206,10 @@ export default class FlutterWindow implements Host {
     }
     return param as string
   }
-  
+
   shouldDestroyEngineWithHost(): boolean {
-    if ((this.getCachedEngineId() != null && this.getCachedEngineId().length > 0) || this.delegate!!.isFlutterEngineFromHost()) {
+    if ((this.getCachedEngineId() != null && this.getCachedEngineId().length > 0) ||
+    this.delegate!!.isFlutterEngineFromHost()) {
       // Only destroy a cached engine if explicitly requested by app developer.
       return false;
     }
