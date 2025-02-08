@@ -150,7 +150,7 @@ class PlatformViewOHOS final : public PlatformView {
   void RunTask(OHOS_THREAD_TYPE type, const fml::closure& task);
 
   static napi_value NativeSetXComponentInfo(napi_env env, napi_callback_info info);
-  XComponentInfo GetXComponentInfo();
+  const XComponentInfo& GetXComponentInfo();
 
  private:
   const std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;
@@ -167,8 +167,7 @@ class PlatformViewOHOS final : public PlatformView {
 
   std::atomic<bool> isDestroyed_;
 
-  std::string xcomponentId_;
-  int64_t shellHolderId_;
+  XComponentInfo xcompInfo_;
 
   bool GetDestroyed();
 

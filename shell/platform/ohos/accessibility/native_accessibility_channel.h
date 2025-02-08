@@ -40,7 +40,7 @@ class NativeAccessibilityChannel {
 
    void UpdateSemantics(flutter::SemanticsNodeUpdates update,
                         flutter::CustomAccessibilityActionUpdates actions,
-                        std::string& xcomponentId);
+                        const std::string& xcomponentId);
 
    class AccessibilityMessageHandler {
     public:

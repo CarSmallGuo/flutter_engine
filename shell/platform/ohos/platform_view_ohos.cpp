@@ -291,8 +291,8 @@ void PlatformViewOHOS::UpdateSemantics(
     flutter::CustomAccessibilityActionUpdates actions) {
     FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics()";
 
-    // send the addr of this class to get the non-static members 
-    // from static member method
+    // send the PlatformViewOHOS address aims to get the non-static members 
+    // from static member method via cross language (c++, ets) mutual invoking
     SetPlatformViewOHOSAddr((int64_t)this);
 
     auto xcompInfo = GetXComponentInfo();
@@ -306,9 +306,8 @@ void PlatformViewOHOS::UpdateSemantics(
                                                  xcompInfo.xcomponentId);
 }
 
-XComponentInfo PlatformViewOHOS::GetXComponentInfo() {
-  XComponentInfo info{xcomponentId_, shellHolderId_};
-  return info;
+const XComponentInfo& PlatformViewOHOS::GetXComponentInfo() {
+  return xcompInfo_;
 }
 
 void PlatformViewOHOS::SetPlatformViewOHOSAddr(int64_t platformViewOHOSAddr) {
@@ -349,8 +348,8 @@ napi_value PlatformViewOHOS::NativeSetXComponentInfo(napi_env env, napi_callback
 
   // call object native func to set xcomponent info,
   // this way can assign non-static members in static menthods
-  context->xcomponentId_ = xcomponentId;
-  context->shellHolderId_ = shellHolderId;
+  context->xcompInfo_.xcomponentId = xcomponentId;
+  context->xcompInfo_.shellHolderId = shellHolderId;
 
   return nullptr;
 }

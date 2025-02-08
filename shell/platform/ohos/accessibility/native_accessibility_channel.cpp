@@ -90,9 +90,9 @@ void NativeAccessibilityChannel::DispatchSemanticsAction(
 void NativeAccessibilityChannel::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions,
-    std::string& xcomponentId)
+    const std::string& xcomponentId)
 {
-    OhosAccessibilityBridge::GetInstance()->UpdateSemantics(update, actions, xcomponentId);
+    OhosAccessibilityBridge::GetInstance()->UpdateSemantics(std::move(update), std::move(actions), xcomponentId);
 }  
 
 /**
