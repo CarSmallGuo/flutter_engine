@@ -19,7 +19,6 @@
 #include "ohos_logging.h"
 #include <functional>
 #include "flutter/fml/logging.h"
-// #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
 
 namespace flutter {
 
@@ -69,9 +68,6 @@ bool XComponentAdapter::Export(napi_env env, napi_value exports) {
   std::string id(idStr);
   auto context = XComponentAdapter::GetInstance();
   if (context) {
-    // give each PlatformViewOHOS::UpdateSemantics() a xcomponent id
-    context->xcomponentId_ = id;
-    LOGD("0090 -> xcomponentid: %{public}s", id.c_str());
     context->SetNativeXComponent(id, nativeXComponent);
     return true;
   }

@@ -303,7 +303,7 @@ void OhosAccessibilityBridge::RequestFocusWhenPageUpdate(int32_t requestFocusId)
 {
     if (OHOS_API_VERSION < 13) { return; }
     std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
-    // auto provider_ = XComponentAdapter::GetInstance()->GetAccessibilityProvider(xcomponentId_);
+    auto provider_ = XComponentAdapter::GetInstance()->GetAccessibilityProvider(xcomponentId_);
     CHECK_NULL_PTR_RET_VOID(provider_, RequestFocusWhenPageUpdate);
     
     auto OH_ArkUI_CreateAccessibilityEventInfo = 
@@ -437,10 +437,6 @@ int32_t OhosAccessibilityBridge::GetParentId(int64_t elementId)
     }
     int32_t id = static_cast<int32_t>(elementId);
     auto node = GetFlutterSemanticsNode(id);
-    if (g_flutterSemanticsTree.find(id) == g_flutterSemanticsTree.end()) {
-        LOGE("GetParentId: %{public}d is null", id);
-        return -1;
-    }
     return node.parentId;
 }
 
@@ -506,7 +502,6 @@ SkPoint OhosAccessibilityBridge::ApplyTransform(
 void OhosAccessibilityBridge::RelativeRectToScreenRect(SemanticsNodeExtent& node)
 {
     auto [left, top, right, bottom] = node.rect;
-    // SkM44 globalTransform = g_globalTransformMap[node.id];
     SkM44 globalTransform = node.globalTransform;
 
     SkPoint points[4] = {
