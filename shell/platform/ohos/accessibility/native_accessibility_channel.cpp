@@ -83,7 +83,7 @@ namespace flutter {
       flutter::SemanticsNodeUpdates update,
       flutter::CustomAccessibilityActionUpdates actions)
   {
-      OhosAccessibilityBridge::GetInstance()->UpdateSemantics(update, actions);
+      OhosAccessibilityBridge::GetInstance()->UpdateSemantics(std::move(update), std::move(actions));
   }  
 
   /**

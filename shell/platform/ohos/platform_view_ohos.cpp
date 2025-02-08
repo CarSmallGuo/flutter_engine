@@ -300,7 +300,7 @@ void PlatformViewOHOS::UpdateSemantics(
     flutter::CustomAccessibilityActionUpdates actions) {
     FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics()";
     auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
-    nativeAccessibilityChannel_->UpdateSemantics(update, actions);
+    nativeAccessibilityChannel_->UpdateSemantics(std::move(update), std::move(actions));
 }
 
 // |PlatformView|

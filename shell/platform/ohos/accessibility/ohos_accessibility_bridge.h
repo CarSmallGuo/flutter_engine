@@ -95,6 +95,9 @@ public:
     bool isFlutterNavigated_;
     int64_t native_shell_holder_id_;
 
+    std::unordered_map<int32_t, SemanticsNodeExtent> g_flutterSemanticsTree;
+    std::unordered_map<std::string, std::unordered_map<int32_t, SemanticsNodeExtent>> g_flutterSemanticsTreeXComponents;
+
     void OnOhosAccessibilityStateChange(bool ohosAccessibilityEnabled, int64_t shellholderId);
 
     void UpdateSemantics(flutter::SemanticsNodeUpdates update,
@@ -171,9 +174,6 @@ private:
     static std::unique_ptr<OhosAccessibilityBridge> bridgeInstance_;
     std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
     std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
-    
-    std::unordered_map<int32_t, SemanticsNodeExtent> g_flutterSemanticsTree;
-    std::unordered_map<std::string, std::unordered_map<int32_t, SemanticsNodeExtent>> g_flutterSemanticsTreeXComponents;
 
     SemanticsNodeExtent accessibilityFocusedNode;
 
@@ -250,127 +250,66 @@ private:
 
     bool IsNodeFocusable(const SemanticsNodeExtent& flutterNode);
     bool IsNodeFocused(const SemanticsNodeExtent& flutterNode);
-    bool IsNodeCheckable(SemanticsNodeExtent flutterNode);
-    bool IsNodeChecked(SemanticsNodeExtent flutterNode);
-    bool IsNodeSelected(SemanticsNodeExtent flutterNode);
-    bool IsNodeClickable(SemanticsNodeExtent flutterNode);
-    bool IsNodeScrollable(SemanticsNodeExtent flutterNode);
-    bool IsNodePassword(SemanticsNodeExtent flutterNode);
-    bool IsNodeVisible(SemanticsNodeExtent flutterNode);
-    bool IsNodeEnabled(SemanticsNodeExtent flutterNode);
-    bool IsNodeHasLongPress(SemanticsNodeExtent flutterNode);
-    bool IsNodeShowOnScreen(SemanticsNodeExtent flutterNode);
-
-    bool IsTextField(SemanticsNodeExtent flutterNode);
-    bool IsSlider(SemanticsNodeExtent flutterNode);
-    bool IsScrollableWidget(SemanticsNodeExtent flutterNode);
+    bool IsNodeCheckable(const SemanticsNodeExtent& flutterNode);
+    bool IsNodeChecked(const SemanticsNodeExtent& flutterNode);
+    bool IsNodeSelected(const SemanticsNodeExtent& flutterNode);
+    bool IsNodeClickable(const SemanticsNodeExtent& flutterNode);
+    bool IsNodeScrollable(const SemanticsNodeExtent& flutterNode);
+    bool IsNodePassword(const SemanticsNodeExtent& flutterNode);
+    bool IsNodeVisible(const SemanticsNodeExtent& flutterNode);
+    bool IsNodeEnabled(const SemanticsNodeExtent& flutterNode);
+    bool IsNodeHasLongPress(const SemanticsNodeExtent& flutterNode);
+    bool IsNodeShowOnScreen(const SemanticsNodeExtent& flutterNode);
+    bool IsTextField(const SemanticsNodeExtent& flutterNode);
+    bool IsSlider(const SemanticsNodeExtent& flutterNode);
+    bool IsScrollableWidget(const SemanticsNodeExtent& flutterNode);
 
     void PerformClickAction(int64_t elementId,
                             ArkUI_Accessibility_ActionType action,
-                            SemanticsNodeExtent flutterNode);
+                            const SemanticsNodeExtent& flutterNode);
     void PerformLongClickAction(int64_t elementId,
                                 ArkUI_Accessibility_ActionType action,
-                                SemanticsNodeExtent flutterNode);
+                                const SemanticsNodeExtent& flutterNode);
     void PerformGainFocusnAction(int64_t elementId,
                                  ArkUI_Accessibility_ActionType action,
-                                 SemanticsNodeExtent flutterNode);
+                                 const SemanticsNodeExtent& flutterNode);
     void PerformClearFocusAction(int64_t elementId,
                                  ArkUI_Accessibility_ActionType action,
-                                 SemanticsNodeExtent flutterNode);
+                                 const SemanticsNodeExtent& flutterNode);
     void PerformScrollUpAction(int64_t elementId,
                                ArkUI_Accessibility_ActionType action,
-                               SemanticsNodeExtent flutterNode);
+                               SemanticsNodeExtent& flutterNode);
     void PerformScrollDownAction(int64_t elementId,
                                  ArkUI_Accessibility_ActionType action,
-                                 SemanticsNodeExtent flutterNode);
+                                 SemanticsNodeExtent& flutterNode);
     void PerformClipboardAction(int64_t elementId,
-                                ArkUI_Accessibility_ActionType action);
+                                const ArkUI_Accessibility_ActionType& action);
     void PerformInvalidAction(int64_t elementId,
                               ArkUI_Accessibility_ActionType action,
-                              SemanticsNodeExtent flutterNode);
-    void PerformSetText(SemanticsNodeExtent flutterNode,
+                              const SemanticsNodeExtent& flutterNode);
+    void PerformSetText(SemanticsNodeExtent& flutterNode,
                         ArkUI_Accessibility_ActionType action,
                         ArkUI_AccessibilityActionArguments* actionArguments);
-    void PerformSelectText(SemanticsNodeExtent flutterNode,
+    void PerformSelectText(const SemanticsNodeExtent& flutterNode,
                            ArkUI_Accessibility_ActionType action,
                            ArkUI_AccessibilityActionArguments* actionArguments);
     void PerformSetCursorPosition(SemanticsNodeExtent flutterNode,
                                   ArkUI_Accessibility_ActionType action,
                                   ArkUI_AccessibilityActionArguments* actionArguments);
-    void PerformCustomAction(SemanticsNodeExtent flutterNode,
+    void PerformCustomAction(const SemanticsNodeExtent& flutterNode,
                              ArkUI_Accessibility_ActionType action,
                              ArkUI_AccessibilityActionArguments* actionArguments);
-    void PerformShowOnScreenAction(SemanticsNodeExtent flutterNode);
+    void PerformShowOnScreenAction(const SemanticsNodeExtent& flutterNode);
 
-    void AddRouteNodes(std::vector<SemanticsNodeExtent> edges,
-                       SemanticsNodeExtent node);
-    std::string GetRouteName(SemanticsNodeExtent node);
-    void OnWindowNameChange(SemanticsNodeExtent route);
-    void RemoveSemanticsNode(SemanticsNodeExtent nodeToBeRemoved);
-
-    void GetSemanticsNodeDebugInfo(SemanticsNodeExtent node);
-    void GetSemanticsFlagsDebugInfo(SemanticsNodeExtent node);
+    void GetSemanticsNodeDebugInfo(const SemanticsNodeExtent& node);
+    void GetSemanticsFlagsDebugInfo(const SemanticsNodeExtent& node);
     void GetCustomActionDebugInfo(
-        flutter::CustomAccessibilityAction customAccessibilityAction);
+        const flutter::CustomAccessibilityAction& customAccessibilityAction);
 
     void RequestFocusWhenPageUpdate(int32_t requestFocusId);
-    bool Contains(const std::string source, const std::string target);
-    void DoubleClickRouteToNewPage(SemanticsNodeExtent node);
     void GetSemanticsDebugInfo();
     void AccessibiltiyChangesWithXComponentId();
-};
-
-enum class AccessibilityAction : int32_t {
-    kTap = 1 << 0,
-    kLongPress = 1 << 1,
-    kScrollLeft = 1 << 2,
-    kScrollRight = 1 << 3,
-    kScrollUp = 1 << 4,
-    kScrollDown = 1 << 5,
-    kIncrease = 1 << 6,
-    kDecrease = 1 << 7,
-    kShowOnScreen = 1 << 8,
-    kMoveCursorForwardByCharacter = 1 << 9,
-    kMoveCursorBackwardByCharacter = 1 << 10,
-    kSetSelection = 1 << 11,
-    kCopy = 1 << 12,
-    kCut = 1 << 13,
-    kPaste = 1 << 14,
-    kDidGainAccessibilityFocus = 1 << 15,
-    kDidLoseAccessibilityFocus = 1 << 16,
-    kCustomAction = 1 << 17,
-    kDismiss = 1 << 18,
-    kMoveCursorForwardByWord = 1 << 19,
-    kMoveCursorBackwardByWord = 1 << 20,
-    kSetText = 1 << 21,
-};
-enum class AccessibilityFlags : int32_t {
-    kHasCheckedState = 1 << 0,
-    kIsChecked = 1 << 1,
-    kIsSelected = 1 << 2,
-    kIsButton = 1 << 3,
-    kIsTextField = 1 << 4,
-    kIsFocused = 1 << 5,
-    kHasEnabledState = 1 << 6,
-    kIsEnabled = 1 << 7,
-    kIsInMutuallyExclusiveGroup = 1 << 8,
-    kIsHeader = 1 << 9,
-    kIsObscured = 1 << 10,
-    kScopesRoute = 1 << 11,
-    kNamesRoute = 1 << 12,
-    kIsHidden = 1 << 13,
-    kIsImage = 1 << 14,
-    kIsLiveRegion = 1 << 15,
-    kHasToggledState = 1 << 16,
-    kIsToggled = 1 << 17,
-    kHasImplicitScrolling = 1 << 18,
-    kIsMultiline = 1 << 19,
-    kIsReadOnly = 1 << 20,
-    kIsFocusable = 1 << 21,
-    kIsLink = 1 << 22,
-    kIsSlider = 1 << 23,
-    kIsKeyboardKey = 1 << 24,
-    kIsCheckStateMixed = 1 << 25,
+    void GetFlutterSemanticsTreeWithInstance(const char* instanceId);
 };
 
 }  // namespace flutter

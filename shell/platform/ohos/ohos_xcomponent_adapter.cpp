@@ -203,6 +203,8 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
       it->second->OnSurfaceDestroyed(component, window);
       delete it->second;
       it = XComponentAdapter::GetInstance()->xcomponetMap_.erase(it);
+      // delete the semantics tree of the destroyed xcomponent
+      OhosAccessibilityBridge::GetInstance()->g_flutterSemanticsTreeXComponents.erase(it->first);
     } else {
       ++it;
     }
