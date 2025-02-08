@@ -19,12 +19,15 @@
 #include "ohos_logging.h"
 #include <functional>
 #include "flutter/fml/logging.h"
+// #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
 
 namespace flutter {
 
 bool g_isMouseLeftActive = false;
 double g_scrollDistance = 0.0;
 double g_resizeRate = 0.8;
+
+const int32_t OHOS_API_VERSION = OH_GetSdkApiVersion();
 
 XComponentAdapter XComponentAdapter::mXComponentAdapter;
 
@@ -66,6 +69,9 @@ bool XComponentAdapter::Export(napi_env env, napi_value exports) {
   std::string id(idStr);
   auto context = XComponentAdapter::GetInstance();
   if (context) {
+    // give each PlatformViewOHOS::UpdateSemantics() a xcomponent id
+    context->xcomponentId_ = id;
+    LOGD("0090 -> xcomponentid: %{public}s", id.c_str());
     context->SetNativeXComponent(id, nativeXComponent);
     return true;
   }
@@ -307,6 +313,7 @@ int32_t ExecuteAccessibilityAction(
 /** Clears the focus status of the currently focused node */
 int32_t ClearFocusedFocusAccessibilityNode()
 {
+  OhosAccessibilityBridge::GetInstance()->ClearFocusedFocusAccessibilityNode();
   LOGD("accessibilityProviderCallback_.ClearFocusedFocusAccessibilityNode");
   return 0;
 }
@@ -322,14 +329,110 @@ int32_t GetAccessibilityNodeCursorPosition(
   return 0;
 }
 
+/** Called when need to get element infos based on a specified node with multi-instances. */
+int32_t FindAccessibilityNodeInfosByIdWithInstance(
+    const char* instanceId,
+    int64_t elementId,
+    ArkUI_AccessibilitySearchMode mode,
+    int32_t requestId,
+    ArkUI_AccessibilityElementInfoList* elementList)
+{
+    OhosAccessibilityBridge::GetInstance()->FindAccessibilityNodeInfosById(instanceId, elementId, mode, requestId, elementList);
+    FML_DLOG(INFO) << "accessibilityProviderCallbackWithInstance_.FindAccessibilityNodeInfosByIdWithInstance";
+    return 0;
+}
+
+/** Performing the Action operation on a specified node with multi-instances. */
+int32_t ExecuteAccessibilityActionWithInstance(
+    const char* instanceId,
+    int64_t elementId,
+    ArkUI_Accessibility_ActionType action,
+    ArkUI_AccessibilityActionArguments* actionArguments,
+    int32_t requestId)
+{
+    OhosAccessibilityBridge::GetInstance()->ExecuteAccessibilityAction(instanceId, elementId, action, actionArguments, requestId);
+    LOGD("accessibilityProviderCallbackWithInstance_.ExecuteAccessibilityActionWithInstance");
+    return 0;
+}
+
+/** Called when need to get element infos based on a specified node and text content. */
+int32_t FindAccessibilityNodeInfosByTextWithInstance(
+    const char* instanceId,
+    int64_t elementId,
+    const char* text,
+    int32_t requestId,
+    ArkUI_AccessibilityElementInfoList* elementList)
+{
+  OhosAccessibilityBridge::GetInstance()->FindAccessibilityNodeInfosByText(instanceId, elementId, text, requestId, elementList);
+  LOGD("accessibilityProviderCallback_.FindAccessibilityNodeInfosByTextWithInstance");
+  return 0;
+}
+
+/** Called when need to get the focused element info based on a specified node. */
+int32_t FindFocusedAccessibilityNodeWithInstance(
+    const char* instanceId,
+    int64_t elementId, 
+    ArkUI_AccessibilityFocusType focusType,
+    int32_t requestId, 
+    ArkUI_AccessibilityElementInfo* elementinfo)
+{
+  OhosAccessibilityBridge::GetInstance()->FindFocusedAccessibilityNode(instanceId, elementId, focusType, requestId, elementinfo);
+  LOGD("accessibilityProviderCallback_.FindFocusedAccessibilityNodeWithInstance");
+  return 0;
+}
+
+/** Query the node that can be focused based on the reference node. Query the next node that can be focused based on the mode and direction. */
+int32_t FindNextFocusAccessibilityNodeWithInstance(
+    const char* instanceId,
+    int64_t elementId,
+    ArkUI_AccessibilityFocusMoveDirection direction,
+    int32_t requestId,
+    ArkUI_AccessibilityElementInfo *elementList)
+{
+  OhosAccessibilityBridge::GetInstance()->FindNextFocusAccessibilityNode(instanceId, elementId, direction, requestId, elementList);
+  LOGD("accessibilityProviderCallback_.FindNextFocusAccessibilityNodeWithInstance");
+  return 0;
+}
+
+/** Clears the focus status of the currently focused node */
+int32_t ClearFocusedFocusAccessibilityNodeWithInstance(const char* instanceId)
+{
+  OhosAccessibilityBridge::GetInstance()->ClearFocusedFocusAccessibilityNode(instanceId);
+  LOGD("accessibilityProviderCallback_.ClearFocusedFocusAccessibilityNodeWithInstance");
+  return 0;
+}
+
+/** Queries the current cursor position of a specified node. */
+int32_t GetAccessibilityNodeCursorPositionWithInstance(
+    const char* instanceId,
+    int64_t elementId,
+    int32_t requestId,
+    int32_t* index)
+{
+  OhosAccessibilityBridge::GetInstance()->GetAccessibilityNodeCursorPosition(instanceId, elementId, requestId, index);
+  LOGD("accessibilityProviderCallback_.GetAccessibilityNodeCursorPositionWithInstance");
+  return 0;
+}
+
 void XComponentBase::BindAccessibilityProviderCallback() {
-  accessibilityProviderCallback_.findAccessibilityNodeInfosById = FindAccessibilityNodeInfosById;
-  accessibilityProviderCallback_.findAccessibilityNodeInfosByText = FindAccessibilityNodeInfosByText;
-  accessibilityProviderCallback_.findFocusedAccessibilityNode = FindFocusedAccessibilityNode;
-  accessibilityProviderCallback_.findNextFocusAccessibilityNode = FindNextFocusAccessibilityNode;
-  accessibilityProviderCallback_.executeAccessibilityAction = ExecuteAccessibilityAction;
-  accessibilityProviderCallback_.clearFocusedFocusAccessibilityNode = ClearFocusedFocusAccessibilityNode;
-  accessibilityProviderCallback_.getAccessibilityNodeCursorPosition = GetAccessibilityNodeCursorPosition;
+    if (OHOS_API_VERSION < 13) { return; }
+    if (OHOS_API_VERSION >= 13 && OHOS_API_VERSION < 15) {
+        accessibilityProviderCallback_.findAccessibilityNodeInfosById = FindAccessibilityNodeInfosById;
+        accessibilityProviderCallback_.findAccessibilityNodeInfosByText = FindAccessibilityNodeInfosByText;
+        accessibilityProviderCallback_.findFocusedAccessibilityNode = FindFocusedAccessibilityNode;
+        accessibilityProviderCallback_.findNextFocusAccessibilityNode = FindNextFocusAccessibilityNode;
+        accessibilityProviderCallback_.executeAccessibilityAction = ExecuteAccessibilityAction;
+        accessibilityProviderCallback_.clearFocusedFocusAccessibilityNode = ClearFocusedFocusAccessibilityNode;
+        accessibilityProviderCallback_.getAccessibilityNodeCursorPosition = GetAccessibilityNodeCursorPosition;
+    } else {
+        accessibilityProviderCallbackWithInstance_.findAccessibilityNodeInfosById = FindAccessibilityNodeInfosByIdWithInstance;
+        accessibilityProviderCallbackWithInstance_.executeAccessibilityAction = ExecuteAccessibilityActionWithInstance;
+        accessibilityProviderCallbackWithInstance_.findAccessibilityNodeInfosByText = FindAccessibilityNodeInfosByTextWithInstance;
+        accessibilityProviderCallbackWithInstance_.findFocusedAccessibilityNode = FindFocusedAccessibilityNodeWithInstance;
+        accessibilityProviderCallbackWithInstance_.findNextFocusAccessibilityNode = FindNextFocusAccessibilityNodeWithInstance;
+        accessibilityProviderCallbackWithInstance_.clearFocusedFocusAccessibilityNode = ClearFocusedFocusAccessibilityNodeWithInstance;
+        accessibilityProviderCallbackWithInstance_.getAccessibilityNodeCursorPosition = GetAccessibilityNodeCursorPositionWithInstance;
+    }
 }
 
 XComponentBase::XComponentBase(std::string id){
@@ -406,16 +509,58 @@ void XComponentBase::RegisterArkUIAccessibilityService(OH_NativeXComponent* nati
     FML_DLOG(INFO) << "RegisterArkUIAccessibilityService is finished";
 }
 
+/**
+ * register accessibility service with mulitple xcomponent instances
+ */
+void XComponentBase::RegisterArkUIAccessibilityServiceWithInstance(
+    const char* instanceId, OH_NativeXComponent* nativeXComponent)
+{
+    BindAccessibilityProviderCallback();
+
+    auto OH_NativeXComponent_GetNativeAccessibilityProvider =
+        OhosAccessibilityDDL::DLLoadGetNativeA11yProvider(ArkUIAccessibilityConstant::OH_GET_A11Y_PROVIDER);
+    CHECK_DLL_NULL_PTR(OH_NativeXComponent_GetNativeAccessibilityProvider);
+
+    ArkUI_AccessibilityProvider* a11yProvider = nullptr;
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_NativeXComponent_GetNativeAccessibilityProvider(nativeXComponent, &a11yProvider)
+    );
+
+    auto OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance =
+        OhosAccessibilityDDL::DLLoadRegisterWithInstanceFunc(ArkUIAccessibilityConstant::ARKUI_REGISTER_CALLBACK_MULTI_INSTANCES);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance);
+    CHECK_NULL_PTR(a11yProvider, RegisterArkUIAccessibilityServiceWithInstance);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance(instanceId, a11yProvider, &accessibilityProviderCallbackWithInstance_)
+    );
+
+    std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
+    auto* base = XComponentAdapter::GetInstance()->xcomponetMap_[id_];
+    base->accessibilityProvider_ = a11yProvider;
+    base->nativeXComponent_ = nativeXComponent;
+
+    FML_DLOG(INFO) << "RegisterArkUIAccessibilityServiceWithInstance is finished";
+}
+
 void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
-  nativeXComponent_ = nativeXComponent;
-  if (nativeXComponent_ != nullptr) {
-    BindXComponentCallback();
-    OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
-    OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
-    // register the OH_ArkUI accessibility callbacks
-    if (OH_GetSdkApiVersion() < 13) { return; }
-    RegisterArkUIAccessibilityService(nativeXComponent_);
-  }
+    nativeXComponent_ = nativeXComponent;
+    if (nativeXComponent_ != nullptr) {
+        BindXComponentCallback();
+        OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
+        OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
+        // register the OH_ArkUI accessibility callbacks
+        if (OHOS_API_VERSION < 13) { return; }
+        if (OHOS_API_VERSION >= 13 && OHOS_API_VERSION < 15) {
+            RegisterArkUIAccessibilityService(nativeXComponent_);
+        } else {
+            std::string xcomponentId = id_;
+            LOGD("RegisterArkUIAccessibilityServiceWithInstance -> xcomponentId: %{public}s", xcomponentId.c_str());
+            // extract the instanceId number from xcomponent id by cutting the prefix of xcomponentId; 
+            auto instanceId = xcomponentId.substr(xcomponentIdPrefix_.size());
+            LOGD("RegisterArkUIAccessibilityServiceWithInstance -> instanceId: %{public}s", instanceId.c_str());
+            RegisterArkUIAccessibilityServiceWithInstance(instanceId.c_str(), nativeXComponent_);
+        }
+    }
 }
 
 void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component,

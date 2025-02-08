@@ -34,6 +34,7 @@ class XComponentBase
 private:
   void BindXComponentCallback();
   void BindAccessibilityProviderCallback();
+  std::string xcomponentIdPrefix_ = "oh_flutter_";
   
 public:
   XComponentBase(std::string id);
@@ -53,11 +54,14 @@ public:
 
   void RegisterArkUIAccessibilityService(
        OH_NativeXComponent* nativeXComponent);
+  void RegisterArkUIAccessibilityServiceWithInstance(
+      const char* instanceId, OH_NativeXComponent* nativeXComponent);
 
   OH_NativeXComponent_TouchEvent touchEvent_;
   OH_NativeXComponent_Callback callback_;
   OH_NativeXComponent_MouseEvent_Callback mouseCallback_;
   ArkUI_AccessibilityProviderCallbacks accessibilityProviderCallback_;
+  ArkUI_AccessibilityProviderCallbacksWithInstance accessibilityProviderCallbackWithInstance_;
   
   std::string id_;
   std::string shellholderId_;
@@ -69,6 +73,7 @@ public:
   uint64_t height_;
   OhosTouchProcessor ohosTouchProcessor_;
   ArkUI_AccessibilityProvider* accessibilityProvider_;
+
 };
 
 class XComponentAdapter {
@@ -89,6 +94,7 @@ class XComponentAdapter {
   std::map<std::string, XComponentBase*> xcomponetMap_;
   std::string currentXComponentId_;
   std::mutex mutex_;
+  std::string xcomponentId_;
 
  private:
   static XComponentAdapter mXComponentAdapter;

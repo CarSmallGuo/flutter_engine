@@ -21,6 +21,7 @@
 namespace flutter {
 
 using RegisterFunc = int32_t (*)(ArkUI_AccessibilityProvider*, ArkUI_AccessibilityProviderCallbacks*);
+using RegisterWithInstanceFunc = int32_t (*)(const char*, ArkUI_AccessibilityProvider*, ArkUI_AccessibilityProviderCallbacksWithInstance*);
 using SendAsyncEventFunc = void (*)(ArkUI_AccessibilityProvider*, ArkUI_AccessibilityEventInfo*, void (*)(int32_t));
 using GetElemFunc = ArkUI_AccessibilityElementInfo* (*)(ArkUI_AccessibilityElementInfoList*);
 
@@ -52,6 +53,7 @@ public:
     static constexpr char ACCESSIBILITY_LIB_NAME[] = "libflutter_accessibility.so";
     
     static RegisterFunc DLLoadRegisterFunc(const char* symbolName);
+    static RegisterWithInstanceFunc DLLoadRegisterWithInstanceFunc(const char* symbolName);
     static SendAsyncEventFunc DLLoadSendAsyncEventFunc(const char* symbolName);
     static GetElemFunc DLLoadGetElemFunc(const char* symbolName);
 

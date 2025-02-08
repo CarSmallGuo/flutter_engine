@@ -74,6 +74,18 @@ int32_t OH_ArkUI_AccessibilityProviderRegisterCallback(
     ArkUI_AccessibilityProvider* provider, ArkUI_AccessibilityProviderCallbacks* callbacks);
 
 /**
+ * @brief Registers a callback with instance for this <b>ArkUI_AccessibilityProvider</b> instance.
+ * @param instanceId Indicates ID of third-party framework instance.
+ * @param provider Indicates the pointer to the <b>ArkUI_AccessibilityProvider</b> instance.
+ * @param callbacks Indicates the pointer to the <b>ArkUI_AccessibilityProviderCallbacksWithInstance</b> callback.
+ * @return Returns {@link ARKUI_ACCESSIBILITY_NATIVE_RESULT_SUCCESSFUL} if the operation is successful.
+ *         Returns {@link ARKUI_ACCESSIBILITY_NATIVE_RESULT_BAD_PARAMETER} if a parameter is incorrect.
+ * @since 15
+ */
+int32_t OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance(const char* instanceId,
+    ArkUI_AccessibilityProvider* provider, ArkUI_AccessibilityProviderCallbacksWithInstance* callbacks);
+
+/**
  * @brief Sends accessibility event information.
  *
  * @param provider Indicates the pointer to the <b>ArkUI_AccessibilityProvider</b> instance.

@@ -34,6 +34,21 @@ RegisterFunc OhosAccessibilityDDL::DLLoadRegisterFunc(const char* symbolName)
     return symbol;
 }
 
+RegisterWithInstanceFunc OhosAccessibilityDDL::DLLoadRegisterWithInstanceFunc(const char* symbolName)
+{
+    LIBHANDLE handler = LOAD_LIB(ACCESSIBILITY_LIB_NAME);
+    if (handler == nullptr) {
+        return nullptr;
+    }
+
+    auto symbol = reinterpret_cast<RegisterWithInstanceFunc>(LOAD_SYM(handler, symbolName));
+    if (symbol == nullptr) {
+        CLOSE_LIB(handler);
+        return nullptr;
+    }
+    return symbol;
+}
+
 SendAsyncEventFunc OhosAccessibilityDDL::DLLoadSendAsyncEventFunc(const char* symbolName)
 {
     LIBHANDLE handler = LOAD_LIB(ACCESSIBILITY_LIB_NAME);

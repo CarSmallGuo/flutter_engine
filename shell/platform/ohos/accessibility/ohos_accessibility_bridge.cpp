@@ -56,6 +56,28 @@ void OhosAccessibilityBridge::AccessibiltiyChangesWithXComponentId()
     }
 }
 
+void OhosAccessibilityBridge::GetFlutterSemanticsTreeWithInstance(const char* instanceId)
+{   
+    auto xcompMap = XComponentAdapter::GetInstance()->xcomponetMap_;
+    // Splicing the prefix of xcomponetId (pure strings) and instanceId (numeric)
+    std::string xcomponentId = XCOMPONENT_ID_PREFIX;
+    xcomponentId.append(instanceId);
+
+    auto it = xcompMap.find(xcomponentId);
+    if (!xcompMap.empty() && it != xcompMap.end()) {
+        xcomponentId_ = xcomponentId;
+        native_shell_holder_id_ = std::stoll(it->second->shellholderId_);
+        provider_ = XComponentAdapter::GetInstance()->GetAccessibilityProvider(xcomponentId);
+        g_flutterSemanticsTree = g_flutterSemanticsTreeXComponents[xcomponentId];
+        FML_DLOG(INFO) << "GetFlutterSemanticsTreeWithInstance -> xcomponentid:" << xcomponentId;
+    } else {
+        xcomponentId_ = "oh_flutter_1";
+        g_flutterSemanticsTree = g_flutterSemanticsTreeXComponents[xcomponentId_];
+        FML_DLOG(INFO) << "GetFlutterSemanticsTreeWithInstance -> xcomponentid:" << xcomponentId_;
+    }
+    FML_DLOG(INFO) << "GetFlutterSemanticsTreeWithInstance -> xcomponentid:" << xcomponentId_;
+}
+
 /**
  * 采用局部静态变量配合call-once特性，实现线程安全的单例模式
  */
@@ -69,8 +91,7 @@ OhosAccessibilityBridge* OhosAccessibilityBridge::GetInstance()
 }
 
 OhosAccessibilityBridge::OhosAccessibilityBridge()
-    : isFlutterNavigated_(false),
-      isAccessibilityEnabled_(false) {}
+    : isFlutterNavigated_(false), isAccessibilityEnabled_(false), provider_(nullptr) {}
 
 /**
  * 监听当前ohos平台是否开启无障碍屏幕朗读服务
@@ -85,10 +106,10 @@ void OhosAccessibilityBridge::OnOhosAccessibilityStateChange(
 
     if (ohosAccessibilityEnabled) {
         isAccessibilityEnabled_ = ohosAccessibilityEnabled;
-        nativeAccessibilityChannel_->OnOhosAccessibilityEnabled(native_shell_holder_id_);
+        nativeAccessibilityChannel_->OnOhosAccessibilityEnabled(shellholderId);
     } else {
-        accessibilityFeatures_->SetAccessibleNavigation(false, native_shell_holder_id_);
-        nativeAccessibilityChannel_->OnOhosAccessibilityDisabled(native_shell_holder_id_);
+        accessibilityFeatures_->SetAccessibleNavigation(false, shellholderId);
+        nativeAccessibilityChannel_->OnOhosAccessibilityDisabled(shellholderId);
     }
 }
 
@@ -98,9 +119,10 @@ void OhosAccessibilityBridge::OnOhosAccessibilityStateChange(
  */
 void OhosAccessibilityBridge::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
-    flutter::CustomAccessibilityActionUpdates actions)
+    flutter::CustomAccessibilityActionUpdates actions,
+    std::string& xcomponentId)
 {
-    FML_DLOG(INFO) << "OhosAccessibilityBridge::UpdateSemantics()";
+    FML_DLOG(INFO) << "OhosAccessibilityBridge::UpdateSemantics(), xcomponentId: " << xcomponentId;
     std::unordered_set<SemanticsNodeExtent, SemanticsNodeExtent::Hash> updatedFlutterNodes;
 
     // 当flutter页面状态更新（路由新页面）时，自动请求root节点组件获焦（规避滑动组件更新干扰）
@@ -135,11 +157,12 @@ void OhosAccessibilityBridge::UpdateSemantics(
     // calculate the global tranfom matrix and parent id for each node
     ComputeGlobalTransformAndParentId();
 
+    // 将更新后的flutter语义树和父子节点id映射缓存，保存到相应的xcomponent里面
+    xcomponentId_ = xcomponentId;
+    g_flutterSemanticsTreeXComponents[xcomponentId] = g_flutterSemanticsTree;
+
     Flutter_SendAccessibilityAsyncEvent(
         0, ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_PAGE_CONTENT_UPDATE);
-
-    // 将更新后的flutter语义树和父子节点id映射缓存，保存到相应的xcomponent里面
-    g_flutterSemanticsTreeXComponents[xcomponentId_] = g_flutterSemanticsTree;
 
     /* 针对更新后的节点进行事件处理 */
     for (auto& nodeEx: updatedFlutterNodes) {
@@ -280,7 +303,7 @@ void OhosAccessibilityBridge::RequestFocusWhenPageUpdate(int32_t requestFocusId)
 {
     if (OHOS_API_VERSION < 13) { return; }
     std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
-    auto provider_ = XComponentAdapter::GetInstance()->GetAccessibilityProvider(xcomponentId_);
+    // auto provider_ = XComponentAdapter::GetInstance()->GetAccessibilityProvider(xcomponentId_);
     CHECK_NULL_PTR_RET_VOID(provider_, RequestFocusWhenPageUpdate);
     
     auto OH_ArkUI_CreateAccessibilityEventInfo = 
@@ -997,6 +1020,79 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
 }
 
 /**
+ * Called to obtain element information based on a specified node with multi-instances.
+ * 无障碍多实例 -> FindAccessibilityNodeInfosById
+ */
+int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
+    const char* instanceId,
+    int64_t elementId,
+    ArkUI_AccessibilitySearchMode mode,
+    int32_t requestId,
+    ArkUI_AccessibilityElementInfoList* elementList)
+{
+    if (OHOS_API_VERSION < 13) { return ARKUI_FAILED_CODE; }
+    FML_DLOG(INFO) 
+        << "#### FindAccessibilityNodeInfosById input-params ####: elementId = " << elementId 
+        << " mode=" << mode << " instanceId=" << instanceId;
+    CHECK_NULL_PTR_WITH_RET(elementList, FindAccessibilityNodeInfosById);
+
+    // match the corresponding component instanceId to get the flutterSemanticsTree
+    GetFlutterSemanticsTreeWithInstance(instanceId);
+
+    if (g_flutterSemanticsTree.size() == 0) {
+        FML_DLOG(INFO)
+            << "FindAccessibilityNodeInfosById g_flutterSemanticsTree is null";
+        return ARKUI_ACCESSIBILITY_NATIVE_RESULT_FAILED;
+    }
+    
+    // 获取当前对应id的flutter节点，若为空则返回错误编码
+    auto flutterNode = GetFlutterSemanticsNode(static_cast<int32_t>(elementId));
+    if (!g_flutterSemanticsTree.count(flutterNode.id)) {
+        LOGE("FindAccessibilityNodeInfosById: GetFlutterSemanticsNode id=%{public}ld is null", elementId);
+    }
+
+    // 开启无障碍导航功能
+    if(elementId == -1 || elementId == 0) {
+        accessibilityFeatures_->SetAccessibleNavigation(true, native_shell_holder_id_);
+    }
+
+    // 从elementinfolist中获取elementinfo
+    auto OH_ArkUI_AddAndGetAccessibilityElementInfo =
+        OhosAccessibilityDDL::DLLoadGetElemFunc(ArkUIAccessibilityConstant::ARKUI_GET_A11Y_NODE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AddAndGetAccessibilityElementInfo);
+    auto* elementInfoFromList = OH_ArkUI_AddAndGetAccessibilityElementInfo(elementList);
+    CHECK_NULL_PTR_WITH_RET(elementInfoFromList, OH_ArkUI_AddAndGetAccessibilityElementInfo);
+
+    if (mode == ArkUI_AccessibilitySearchMode::ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_CURRENT) {
+        /** Search for current nodes. (mode = 0) */
+        BuildArkUISemanticsTree(elementId, elementInfoFromList, elementList);
+    } else if (mode ==ArkUI_AccessibilitySearchMode::ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_PREDECESSORS) {
+        /** Search for parent nodes. (mode = 1) */
+        if (IsNodeVisible(flutterNode)) {
+            FlutterSetElementInfoProperties(elementInfoFromList, elementId);
+        }
+    } else if (mode ==ArkUI_AccessibilitySearchMode::ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_SIBLINGS) {
+        /** Search for sibling nodes. (mode = 2) */
+        if (IsNodeVisible(flutterNode)) {
+            FlutterSetElementInfoProperties(elementInfoFromList, elementId);
+        }
+    } else if (mode ==ArkUI_AccessibilitySearchMode::ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_CHILDREN) {
+        /** Search for child nodes at the next level. (mode = 4) */
+        if (IsNodeVisible(flutterNode)) {
+            FlutterSetElementInfoProperties(elementInfoFromList, elementId);
+        }
+    } else if (mode ==ArkUI_AccessibilitySearchMode::ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_RECURSIVE_CHILDREN) {
+        /** Search for all child nodes. (mode = 8) */
+        BuildArkUISemanticsTree(elementId, elementInfoFromList, elementList);
+    } else {
+        FlutterSetElementInfoProperties(elementInfoFromList, elementId);
+    }
+    FML_DLOG(INFO) << "--- FindAccessibilityNodeInfosById is end ---";
+
+    return ARKUI_ACCESSIBILITY_NATIVE_RESULT_SUCCESSFUL;
+}
+
+/**
  * 解析flutter语义动作，并通过NativAccessibilityChannel分发
  */
 void OhosAccessibilityBridge::DispatchSemanticsAction(
@@ -1404,6 +1500,113 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
 }
 
 /**
+ * 无障碍多实例 -> ExecuteAccessibilityAction
+ * 执行语义动作解析，当FindAccessibilityNodeInfosById找到相应的elementinfo时才会触发该回调函数
+ */
+int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
+    const char* instanceId,
+    int64_t elementId,
+    ArkUI_Accessibility_ActionType action,
+    ArkUI_AccessibilityActionArguments* actionArguments,
+    int32_t requestId)
+{
+    FML_DLOG(INFO) << "ExecuteAccessibilityAction input-params-> elementId="
+                   << elementId << " action=" << action << " instanceId=" << instanceId;
+    CHECK_NULL_PTR_WITH_RET(actionArguments, ExecuteAccessibilityAction);
+
+    // match the corresponding component instanceId to get the flutterSemanticsTree
+    GetFlutterSemanticsTreeWithInstance(instanceId);
+
+    // 获取当前elementid对应的flutter语义节点
+    auto flutterNode = GetFlutterSemanticsNode(static_cast<int32_t>(elementId));
+    if (!g_flutterSemanticsTree.count(flutterNode.id)) {
+        LOGE("ExecuteAccessibilityAction: GetFlutterSemanticsNode id=%{public}ld is null", elementId);
+    }
+
+    /**
+     * 将被遮挡的flutter节点显示在屏幕上
+     * @NOTE: arkui无障碍缺少showOnScreen动作
+     */
+    PerformShowOnScreenAction(flutterNode);
+
+    // 根据当前elementid和无障碍动作类型，发送无障碍事件
+    switch (action) {
+        /** Response to a click. 16 */
+        case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK:
+            PerformClickAction(elementId, action, flutterNode);
+            break;
+        
+        /** Response to a long click. 32 */
+        case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_LONG_CLICK:
+            PerformLongClickAction(elementId, action, flutterNode);
+            break;
+        
+        /** Accessibility focus acquisition. 64 */
+        case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS:
+            PerformGainFocusnAction(elementId, action, flutterNode);
+            break;
+        
+        /** Accessibility focus clearance. 128 */
+        case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS:
+            PerformClearFocusAction(elementId, action, flutterNode);
+            break;
+        
+        /** Forward scroll action. 256 */
+        case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_FORWARD:
+            PerformScrollUpAction(elementId, action, flutterNode);
+            break;
+        
+        /** Backward scroll action. 512 */
+        case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD:
+            PerformScrollDownAction(elementId, action, flutterNode);
+            break;
+        
+        /** Copy action for text content. 1024 */
+        case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_COPY:
+            PerformClipboardAction(elementId, action);
+            break;
+        
+        /** Paste action for text content. 2048 */
+        case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_PASTE:
+            PerformClipboardAction(elementId, action);
+            break;
+        
+        /** Cut action for text content. 4096 */
+        case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CUT:
+            PerformClipboardAction(elementId, action);
+            break;
+        
+        /** Text selection action, requiring the setting of <b>selectTextBegin</b>,
+         * <b>TextEnd</b>, and <b>TextInForward</b> parameters to select a text
+         * segment in the text box. 8192 */
+        case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SELECT_TEXT:
+            PerformSelectText(flutterNode, action, actionArguments);
+            break;
+        
+        /** Text content setting action. 16384 */
+        case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_TEXT:
+            PerformSetText(flutterNode, action, actionArguments);
+            break;
+        
+        /** Cursor position setting action. 1048576 */
+        case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SET_CURSOR_POSITION:
+            PerformSetCursorPosition(flutterNode, action, actionArguments);
+            break;
+        
+        /** Invalid action. 0 */
+        case ArkUI_Accessibility_ActionType::ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_INVALID:
+            PerformInvalidAction(elementId, action, flutterNode);
+            break;
+        
+        default:
+            /** custom semantics action */
+            PerformCustomAction(flutterNode, action, actionArguments);
+    }
+    FML_DLOG(INFO) << "--- ExecuteAccessibilityAction is end ---";
+    return ARKUI_ACCESSIBILITY_NATIVE_RESULT_SUCCESSFUL;
+}
+
+/**
  * Called to obtain element information based on a specified node and text
  * content.
  */
@@ -1440,6 +1643,55 @@ int32_t OhosAccessibilityBridge::ClearFocusedFocusAccessibilityNode()
     return 0;
 }
 int32_t OhosAccessibilityBridge::GetAccessibilityNodeCursorPosition(
+    int64_t elementId,
+    int32_t requestId,
+    int32_t* index)
+{
+    FML_DLOG(INFO) << "=== GetAccessibilityNodeCursorPosition() ===";
+    return 0;
+}
+
+/**
+ * muliple xcomponent instance callbacks (unimplementation)
+ */
+int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosByText(
+    const char* instanceId,
+    int64_t elementId,
+    const char* text,
+    int32_t requestId,
+    ArkUI_AccessibilityElementInfoList* elementList)
+{
+    FML_DLOG(INFO) << "=== FindAccessibilityNodeInfosByText() ===";
+    return 0;
+}
+int32_t OhosAccessibilityBridge::FindFocusedAccessibilityNode(
+    const char* instanceId,
+    int64_t elementId,
+    ArkUI_AccessibilityFocusType focusType,
+    int32_t requestId,
+    ArkUI_AccessibilityElementInfo* elementinfo)
+{
+    FML_DLOG(INFO) << "=== FindFocusedAccessibilityNode() ===";
+    return 0;
+}
+int32_t OhosAccessibilityBridge::FindNextFocusAccessibilityNode(
+    const char* instanceId,
+    int64_t elementId,
+    ArkUI_AccessibilityFocusMoveDirection direction,
+    int32_t requestId,
+    ArkUI_AccessibilityElementInfo* elementList) {
+    FML_DLOG(INFO) << "=== FindNextFocusAccessibilityNode() ===";
+    return 0;
+}
+
+int32_t OhosAccessibilityBridge::ClearFocusedFocusAccessibilityNode(
+    const char* instanceId)
+{
+    FML_DLOG(INFO) << "=== ClearFocusedFocusAccessibilityNode() ===";
+    return 0;
+}
+int32_t OhosAccessibilityBridge::GetAccessibilityNodeCursorPosition(
+    const char* instanceId,
     int64_t elementId,
     int32_t requestId,
     int32_t* index)
@@ -1511,7 +1763,7 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAnnounceEvent(
     if (OHOS_API_VERSION < 13) { return; }
     AccessibiltiyChangesWithXComponentId();
     std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
-    auto provider_ = XComponentAdapter::GetInstance()->GetAccessibilityProvider(xcomponentId_);
+    provider_ = XComponentAdapter::GetInstance()->GetAccessibilityProvider(xcomponentId_);
     CHECK_NULL_PTR_RET_VOID(provider_, Flutter_SendAccessibilityAnnounceEvent);
 
     // 创建并设置屏幕朗读事件
@@ -1562,7 +1814,7 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
     if (OHOS_API_VERSION < 13) { return; }
     AccessibiltiyChangesWithXComponentId();
     std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
-    auto provider_ = XComponentAdapter::GetInstance()->GetAccessibilityProvider(xcomponentId_);
+    provider_ = XComponentAdapter::GetInstance()->GetAccessibilityProvider(xcomponentId_);
     CHECK_NULL_PTR_RET_VOID(provider_, Flutter_SendAccessibilityAsyncEvent);
 
     // 创建eventInfo对象

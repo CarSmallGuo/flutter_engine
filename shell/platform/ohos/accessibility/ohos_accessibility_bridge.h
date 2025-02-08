@@ -50,7 +50,6 @@ struct AbsoluteRect {
         float left, float top, float right, float bottom) {
         return AbsoluteRect{left, top, right, bottom};
     }
-
 };
 struct SemanticsNodeExtent : flutter::SemanticsNode {
     SkM44 globalTransform = SkM44{};
@@ -99,7 +98,8 @@ public:
     void OnOhosAccessibilityStateChange(bool ohosAccessibilityEnabled, int64_t shellholderId);
 
     void UpdateSemantics(flutter::SemanticsNodeUpdates update,
-                         flutter::CustomAccessibilityActionUpdates actions);
+                         flutter::CustomAccessibilityActionUpdates actions,
+                         std::string& xcomponentId);
 
     void DispatchSemanticsAction(int32_t id,
                                  flutter::SemanticsAction action,
@@ -143,6 +143,43 @@ public:
                                                int32_t requestId,
                                                int32_t* index);
 
+    // mulitple xcomponent instances ArkUI callbacks
+    int32_t FindAccessibilityNodeInfosById(
+        const char* instance,
+        int64_t elementId,
+        ArkUI_AccessibilitySearchMode mode,
+        int32_t requestId,
+        ArkUI_AccessibilityElementInfoList* elementList);
+    int32_t FindAccessibilityNodeInfosByText(
+        const char* instance,
+        int64_t elementId,
+        const char* text,
+        int32_t requestId,
+        ArkUI_AccessibilityElementInfoList* elementList);
+    int32_t FindFocusedAccessibilityNode(
+        const char* instance,
+        int64_t elementId,
+        ArkUI_AccessibilityFocusType focusType,
+        int32_t requestId,
+        ArkUI_AccessibilityElementInfo* elementinfo);
+    int32_t FindNextFocusAccessibilityNode(
+        const char* instance,
+        int64_t elementId,
+        ArkUI_AccessibilityFocusMoveDirection direction,
+        int32_t requestId,
+        ArkUI_AccessibilityElementInfo* elementList);
+    int32_t ExecuteAccessibilityAction(
+        const char* instance,
+        int64_t elementId,
+        ArkUI_Accessibility_ActionType action,
+        ArkUI_AccessibilityActionArguments* actionArguments,
+        int32_t requestId);
+    int32_t ClearFocusedFocusAccessibilityNode(const char* instance);
+    int32_t GetAccessibilityNodeCursorPosition(const char* instance,
+                                               int64_t elementId,
+                                               int32_t requestId,
+                                               int32_t* index);
+
     void Flutter_SendAccessibilityAsyncEvent(
         int64_t elementId,
         ArkUI_AccessibilityEventType eventType);
@@ -177,6 +214,7 @@ private:
     std::unordered_map<std::string, std::unordered_map<int32_t, SemanticsNodeExtent>> g_flutterSemanticsTreeXComponents;
 
     SemanticsNodeExtent accessibilityFocusedNode;
+    ArkUI_AccessibilityProvider* provider_;
 
     static const int32_t OHOS_API_VERSION; 
     static const int32_t ARKUI_ACCESSIBILITY_ROOT_PARENT_ID = -2100000;
@@ -203,6 +241,8 @@ private:
     const std::string CHECK_BOX_WIDGET_NAME = "Checkbox";
     const std::string SWITCH_WIDGET_NAME = "Toggle";
     const std::string SEEKBAR_WIDGET_NAME = "SeekBar";
+
+    const char* XCOMPONENT_ID_PREFIX = "oh_flutter_";
 
     static const int32_t FOCUSABLE_FLAGS =
         static_cast<int32_t>(FLAGS_::kHasCheckedState) |
@@ -319,6 +359,7 @@ private:
     void DoubleClickRouteToNewPage(SemanticsNodeExtent node);
     void GetSemanticsDebugInfo();
     void AccessibiltiyChangesWithXComponentId();
+    void GetFlutterSemanticsTreeWithInstance(const char* instanceId);
 };
 
 enum class AccessibilityAction : int32_t {

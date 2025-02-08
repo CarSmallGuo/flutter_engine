@@ -39,7 +39,8 @@ class NativeAccessibilityChannel {
                                 fml::MallocMapping args);
 
    void UpdateSemantics(flutter::SemanticsNodeUpdates update,
-                        flutter::CustomAccessibilityActionUpdates actions);
+                        flutter::CustomAccessibilityActionUpdates actions,
+                        std::string& xcomponentId);
 
    class AccessibilityMessageHandler {
     public:

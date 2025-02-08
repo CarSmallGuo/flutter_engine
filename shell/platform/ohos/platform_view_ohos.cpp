@@ -14,6 +14,7 @@
  */
 
 #include "flutter/shell/platform/ohos/platform_view_ohos.h"
+#include <GLES2/gl2ext.h>
 #include "flutter/fml/make_copyable.h"
 #include "flutter/lib/ui/window/viewport_metrics.h"
 #include "flutter/shell/common/shell_io_manager.h"
@@ -25,7 +26,8 @@
 #include "ohos_external_texture_gl.h"
 #include "ohos_logging.h"
 #include "flutter/shell/platform/ohos/platform_view_ohos_delegate.h"
-#include <GLES2/gl2ext.h>
+#include "flutter/shell/platform/ohos/ohos_xcomponent_adapter.h"
+#include "flutter/fml/platform/ohos/napi_util.h"
 
 
 namespace flutter {
@@ -288,8 +290,69 @@ void PlatformViewOHOS::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
     FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics()";
+
+    // send the addr of this class to get the non-static members 
+    // from static member method
+    SetPlatformViewOHOSAddr((int64_t)this);
+
+    auto xcompInfo = GetXComponentInfo();
+    FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics() -> " 
+                   << "xcomponentId: " << xcompInfo.xcomponentId
+                   << " shellholderId: " << xcompInfo.shellHolderId;
+
     auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
-    nativeAccessibilityChannel_->UpdateSemantics(update, actions);
+    nativeAccessibilityChannel_->UpdateSemantics(std::move(update),
+                                                 std::move(actions),
+                                                 xcompInfo.xcomponentId);
+}
+
+XComponentInfo PlatformViewOHOS::GetXComponentInfo() {
+  XComponentInfo info{xcomponentId_, shellHolderId_};
+  return info;
+}
+
+void PlatformViewOHOS::SetPlatformViewOHOSAddr(int64_t platformViewOHOSAddr) {
+  napi_facade_->SetXcomponentInfo(platformViewOHOSAddr);
+}
+
+napi_value PlatformViewOHOS::NativeSetXComponentInfo(napi_env env, napi_callback_info info) {
+  size_t argc = 3;
+  napi_value args[3] = {nullptr};
+  napi_status status =
+      napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (status != napi_ok) {
+    LOGE("NativeSetXComponentInfo napi_get_cb_info error");
+  }
+  if (argc != 3) {
+    FML_LOG(ERROR) << "argc is error";
+  }
+
+  // unwarp object
+  PlatformViewOHOS* context = nullptr;
+  std::string xcomponentId;
+  int64_t shellHolderId = 0;
+
+  status = napi_get_value_int64(env, args[0], (int64_t*)&context);
+  if (status != napi_ok) {
+    FML_LOG(ERROR) << "napi_get_value_int64 platformViewOHOSAddr error";
+  }
+
+  bool ret = fml::napi::GetString(env, args[1], xcomponentId);
+  if (ret != napi_ok) {
+    FML_LOG(ERROR) << "fml::napi::GetString xcomponentId error";
+  }
+
+  status = napi_get_value_int64(env, args[2], &shellHolderId);
+  if (status != napi_ok) {
+    FML_LOG(ERROR) << "napi_get_value_int64 shellHolderId  error";
+  }
+
+  // call object native func to set xcomponent info,
+  // this way can assign non-static members in static menthods
+  context->xcomponentId_ = xcomponentId;
+  context->shellHolderId_ = shellHolderId;
+
+  return nullptr;
 }
 
 // |PlatformView|
