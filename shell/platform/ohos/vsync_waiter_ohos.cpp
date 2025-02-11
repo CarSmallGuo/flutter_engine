@@ -13,10 +13,10 @@
 namespace flutter {
 
 static std::atomic_uint g_refresh_rate_ = 60;
-static constexpr int32_t SUPPORT_API_VERSION = 14;
+static constexpr uint32_t SUPPORT_API_VERSION = 14;
 
 const char* flutterSyncName = "flutter_connect";
-const char* NATIVE_DVSYNC_SO = "libnative_vsync.so";
+const char* NATIVE_DVSYNC_SO = "libnative_vsync.so"
 
 thread_local bool VsyncWaiterOHOS::firstCall = true;
 
@@ -115,7 +115,7 @@ void VsyncWaiterOHOS::SetDvsyncSwitch(bool enableDvsync) {
     apiVersion_ = OH_GetSdkApiVersion();
   }
   if (apiVersion_ < SUPPORT_API_VERSION) {
-    LOGI("current api version not support native dvsync!");
+    LOGI("current api version not support native dvsync!")
     return;
   }
   if (!handle_) {
@@ -127,7 +127,7 @@ void VsyncWaiterOHOS::SetDvsyncSwitch(bool enableDvsync) {
   }
 
   if (!nativeDvsyncFunc_) {
-    nativeDvsyncFunc_ = reinterpret_cast<NativeDvsyncFunc>(dlsym(handle_, "OH_NativeVSync_DVSyncSwitch"));
+    nativeDvsyncFunc_ = reinterpret_cast<NativeDvsyncFunc>(dlsm(handle_, "OH_NativeVSync_DVSyncSwitch"));
   }
   if (!nativeDvsyncFunc_) {
     LOGE("SetDvsyncSwitch load OH_NativeVSync_DVSyncSwitch failed!");
