@@ -19,7 +19,7 @@ namespace {
 // for further discussion on why this is necessary.
 constexpr fml::TimeDelta kNotifyIdleTaskWaitTime =
     fml::TimeDelta::FromMilliseconds(51);
-constexpr uint32_t DVSYNC_BUFFER_COUNT = 4;
+constexpr uint32_t DVSYNC_BUFFER_COUNT = 2;
 
 }  // namespace
 
