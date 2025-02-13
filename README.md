@@ -3,6 +3,9 @@ Flutter Engine
 
 原始仓来源：https://github.com/flutter/engine
 
+## 公告
+**2025.02.22起，代码仓迁移至[GitCode](https://gitcode.com/openharmony-sig/flutter_engine)**
+
 ## 仓库说明
 本仓库是基于flutter 3.7.12版本官方engine仓库拓展，可构建支持在OpenHarmony设备上运行的flutter engine程序。
 
