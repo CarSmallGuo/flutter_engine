@@ -82,6 +82,16 @@ export class KeyEventHandler {
     this.charMap.set(KeyCode.KEYCODE_PERIOD, '.')
     this.charMap.set(KeyCode.KEYCODE_SLASH, '/')
     this.charMap.set(KeyCode.KEYCODE_SPACE, ' ')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_0, '0')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_1, '1')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_2, '2')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_3, '3')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_4, '4')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_5, '5')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_6, '6')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_7, '7')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_8, '8')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_9, '9')
   }
 
   private initShiftMap() {
