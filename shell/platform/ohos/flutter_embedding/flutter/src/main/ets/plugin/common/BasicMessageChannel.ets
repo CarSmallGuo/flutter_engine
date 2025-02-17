@@ -16,20 +16,6 @@ import MessageCodec from './MessageCodec';
 import { BinaryMessenger } from './BinaryMessenger';
 import StringUtils from '../../util/StringUtils';
 
-/**
- * A named channel for communicating with the Flutter application using basic, asynchronous message
- * passing.
- *
- * <p>Messages are encoded into binary before being sent, and binary messages received are decoded
- * into Java objects. The {@link MessageCodec} used must be compatible with the one used by the
- * Flutter application. This can be achieved by creating a <a
- * href="https://api.flutter.dev/flutter/services/BasicMessageChannel-class.html">BasicMessageChannel</a>
- * counterpart of this channel on the Dart side. The static Java type of messages sent and received
- * is {@code Object}, but only values supported by the specified {@link MessageCodec} can be used.
- *
- * <p>The logical identity of the channel is given by its name. Identically named channels will
- * interfere with each other's communication.
- */
 export default class BasicMessageChannel<T> {
   public static TAG = "BasicMessageChannel#";
   public static CHANNEL_BUFFERS_CHANNEL = "dev.flutter/channel-buffers";
@@ -55,17 +41,6 @@ export default class BasicMessageChannel<T> {
     this.messenger.send(this.name, this.codec.encodeMessage(message), callback == null ? null : new IncomingReplyHandler(callback, this.codec));
   }
 
-  /**
-   * Registers a message handler on this channel for receiving messages sent from the Flutter
-   * application.
-   *
-   * <p>Overrides any existing handler registration for (the name of) this channel.
-   *
-   * <p>If no handler has been registered, any incoming message on this channel will be handled
-   * silently by sending a null reply.
-   *
-   * @param handler a {@link MessageHandler}, or null to deregister.
-   */
   setMessageHandler(handler: MessageHandler<T> | null): void {
     this.messenger.setMessageHandler(this.name, handler == null ? null : new IncomingMessageHandler(handler, this.codec));
   }
@@ -92,24 +67,8 @@ export interface Reply<T> {
 
 export interface MessageHandler<T> {
 
-  /**
-   * Handles the specified message received from Flutter.
-   *
-   * <p>Handler implementations must reply to all incoming messages, by submitting a single reply
-   * message to the given {@link Reply}. Failure to do so will result in lingering Flutter reply
-   * handlers. The reply may be submitted asynchronously and invoked on any thread.
-   *
-   * <p>Any uncaught exception thrown by this method, or the preceding message decoding, will be
-   * caught by the channel implementation and logged, and a null reply message will be sent back
-   * to Flutter.
-   *
-   * <p>Any uncaught exception thrown during encoding a reply message submitted to the {@link
-   * Reply} is treated similarly: the exception is logged, and a null reply is sent to Flutter.
-   *
-   * @param message the message, possibly null.
-   * @param reply a {@link Reply} for sending a single message reply back to Flutter.
-   */
   onMessage(message: T, reply: Reply<T>): void;
+  
 }
 
 class IncomingReplyHandler <T> implements BinaryReply {

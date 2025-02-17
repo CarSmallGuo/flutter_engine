@@ -10,15 +10,7 @@
 import Any from './Any';
 
 import MethodCall from './MethodCall';
-/**
- * A codec for method calls and enveloped results.
- *
- * <p>Method calls are encoded as binary messages with enough structure that the codec can extract a
- * method name String and an arguments Object. These data items are used to populate a {@link
- * MethodCall}.
- *
- * <p>All operations throw {@link IllegalArgumentException}, if conversion fails.
- */
+
 export default interface MethodCodec {
   /**
    * Encodes a message call into binary.
@@ -47,29 +39,8 @@ export default interface MethodCodec {
    */
   encodeSuccessEnvelope(result: Any): ArrayBuffer;
 
-  /**
-   * Encodes an error result into a binary envelope message.
-   *
-   * @param errorCode An error code String.
-   * @param errorMessage An error message String, possibly null.
-   * @param errorDetails Error details, possibly null. Consider supporting {@link Throwable} in your
-   *     codec. This is the most common value passed to this field.
-   * @return a {@link ByteBuffer} containing the encoding between position 0 and the current
-   *     position.
-   */
   encodeErrorEnvelope(errorCode: string, errorMessage: string, errorDetails: Any): ArrayBuffer;
 
-  /**
-   * Encodes an error result into a binary envelope message with the native stacktrace.
-   *
-   * @param errorCode An error code String.
-   * @param errorMessage An error message String, possibly null.
-   * @param errorDetails Error details, possibly null. Consider supporting {@link Throwable} in your
-   *     codec. This is the most common value passed to this field.
-   * @param errorStacktrace Platform stacktrace for the error. possibly null.
-   * @return a {@link ByteBuffer} containing the encoding between position 0 and the current
-   *     position.
-   */
   encodeErrorEnvelopeWithStacktrace(errorCode: string, errorMessage: string, errorDetails: Any, errorStacktrace: string): ArrayBuffer
 
   /**

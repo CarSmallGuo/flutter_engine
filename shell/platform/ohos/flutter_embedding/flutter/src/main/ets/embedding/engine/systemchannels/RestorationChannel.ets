@@ -16,41 +16,11 @@ import Log from '../../../util/Log';
 import StringUtils from '../../../util/StringUtils';
 import DartExecutor from '../dart/DartExecutor';
 
-/**
- * System channel to exchange restoration data between framework and engine.
- *
- * <p>The engine can obtain the current restoration data from the framework via this channel to
- * store it on disk and - when the app is relaunched - provide the stored data back to the framework
- * to recreate the original state of the app.
- *
- * <p>The channel can be configured to delay responding to the framework's request for restoration
- * data via {@code waitForRestorationData} until the engine-side has provided the data. This is
- * useful when the engine is pre-warmed at a point in the application's life cycle where the
- * restoration data is not available yet. For example, if the engine is pre-warmed as part of the
- * Application before an Activity is created, this flag should be set to true because Android will
- * only provide the restoration data to the Activity during the onCreate callback.
- *
- * <p>The current restoration data provided by the framework can be read via {@code
- * getRestorationData()}.
- */
 export default class RestorationChannel {
   private static TAG = "RestorationChannel";
 
   private static CHANNEL_NAME = "flutter/restoration";
 
-  /**
-   * Whether the channel delays responding to the framework's initial request for restoration data
-   * until {@code setRestorationData} has been called.
-   *
-   * <p>If the engine never calls {@code setRestorationData} this flag must be set to false. If set
-   * to true, the engine must call {@code setRestorationData} either with the actual restoration
-   * data as argument or null if it turns out that there is no restoration data.
-   *
-   * <p>If the response to the framework's request for restoration data is not delayed until the
-   * data has been set via {@code setRestorationData}, the framework may intermittently initialize
-   * itself to default values until the restoration data has been made available. Setting this flag
-   * to true avoids that extra work.
-   */
   public waitForRestorationData: boolean = false;
 
   public pendingFrameworkRestorationChannelRequest: MethodResult | null = null;
