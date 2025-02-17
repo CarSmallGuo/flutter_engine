@@ -217,24 +217,12 @@ export default class FlutterNapi {
                      , displayFeaturesType: Array<number>, displayFeaturesState: Array<number>): void {
     if (this.isAttached()) {
       flutter.nativeSetViewportMetrics(this.nativeShellHolderId!, devicePixelRatio,
-        physicalWidth,
-        physicalHeight,
-        physicalPaddingTop,
-        physicalPaddingRight,
-        physicalPaddingBottom,
-        physicalPaddingLeft,
-        physicalViewInsetTop,
-        physicalViewInsetRight,
-        physicalViewInsetBottom,
-        physicalViewInsetLeft,
-        systemGestureInsetTop,
-        systemGestureInsetRight,
-        systemGestureInsetBottom,
-        systemGestureInsetLeft,
-        physicalTouchSlop,
-        displayFeaturesBounds,
-        displayFeaturesType,
-        displayFeaturesState);
+        physicalWidth, physicalHeight, physicalPaddingTop, physicalPaddingRight,
+        physicalPaddingBottom, physicalPaddingLeft, physicalViewInsetTop,
+        physicalViewInsetRight, physicalViewInsetBottom, physicalViewInsetLeft,
+        systemGestureInsetTop, systemGestureInsetRight, systemGestureInsetBottom,
+        systemGestureInsetLeft, physicalTouchSlop, displayFeaturesBounds,
+        displayFeaturesType, displayFeaturesState);
     }
   }
 

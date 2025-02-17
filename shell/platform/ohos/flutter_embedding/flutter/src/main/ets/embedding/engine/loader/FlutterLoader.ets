@@ -73,17 +73,6 @@ export default class FlutterLoader {
     this.flutterNapi = flutterNapi;
   }
 
-  /**
-   * Starts initialization of the native system.
-   *
-   * <p>This loads the Flutter engine's native library to enable subsequent JNI calls. This also
-   * starts locating and unpacking Dart resources packaged in the app's APK.
-   *
-   * <p>Calling this method multiple times has no effect.
-   *
-   * @param applicationContext The Android application context.
-   * @param settings Configuration settings.
-   */
   async startInitialization(context: common.Context) {
     Log.d(TAG, "flutterLoader start init")
     this.initStartTimestampMillis = Date.now();
