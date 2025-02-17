@@ -39,6 +39,7 @@ FilterInput::Ref FilterInput::Make(Variant input, bool msaa_enabled) {
   }
 
   FML_UNREACHABLE();
+  return std::shared_ptr<FilterContentsFilterInput>();
 }
 
 FilterInput::Ref FilterInput::Make(std::shared_ptr<Texture> texture,

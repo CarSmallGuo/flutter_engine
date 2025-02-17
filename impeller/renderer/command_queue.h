@@ -12,6 +12,12 @@
 
 namespace impeller {
 
+#ifdef OHOS_PLATFORM
+namespace vk {
+class Semaphore;
+}
+#endif
+
 /// @brief An interface for submitting command buffers to the GPU for
 ///        encoding and execution.
 class CommandQueue {

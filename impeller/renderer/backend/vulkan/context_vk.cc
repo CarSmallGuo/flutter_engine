@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// FLUTTER_NOLINT: https://github.com/flutter/flutter/issues/68331
+#pragma clang diagnostic ignored "-Wc++11-narrowing"
+
 #include "impeller/renderer/backend/vulkan/context_vk.h"
 
 #include "fml/concurrent_message_loop.h"
@@ -515,6 +518,22 @@ const vk::Device& ContextVK::GetDevice() const {
   return device_holder_->device.get();
 }
 
+void ContextVK::WaitIdle() const {
+  // vkDeviceWaitIdle is equivalent to calling vkQueueWaitIdle on all queues.
+  // We must call vkQueueWaitIdle to acquire the queue lock, ensuring that the
+  // queue is not accessed concurrently.
+  if (queues_.graphics_queue) {
+    queues_.graphics_queue->WaitIdle();
+  }
+  if (queues_.compute_queue) {
+    queues_.compute_queue->WaitIdle();
+  }
+  if (queues_.transfer_queue) {
+    queues_.transfer_queue->WaitIdle();
+  }
+  return;
+}
+
 const std::shared_ptr<fml::ConcurrentTaskRunner>
 ContextVK::GetConcurrentWorkerTaskRunner() const {
   return raster_message_loop_->GetTaskRunner();
@@ -616,6 +635,10 @@ void ContextVK::InitializeCommonlyUsedShadersIfNeeded() const {
   }
 
   auto pass = builder.Build(GetDevice());
+}
+
+void ContextVK::DisposeThreadLocalCachedResources() {
+  command_pool_recycler_->Dispose();
 }
 
 const std::shared_ptr<YUVConversionLibraryVK>&

@@ -31,6 +31,7 @@ struct KHRFrameSynchronizerVK {
   vk::UniqueSemaphore render_ready;
   vk::UniqueSemaphore present_ready;
   std::shared_ptr<CommandBuffer> final_cmd_buffer;
+  std::shared_ptr<CommandBuffer> ready_cmd_buffer;
   bool is_valid = false;
 
   explicit KHRFrameSynchronizerVK(const vk::Device& device) {
@@ -233,7 +234,11 @@ KHRSwapchainImplVK::KHRSwapchainImplVK(const std::shared_ptr<Context>& context,
   TextureDescriptor msaa_desc;
   msaa_desc.storage_mode = StorageMode::kDeviceTransient;
   msaa_desc.type = TextureType::kTexture2DMultisample;
+#ifdef OHOS_PLATFORM
+  msaa_desc.sample_count = SampleCount::kCount2;
+#else
   msaa_desc.sample_count = SampleCount::kCount4;
+#endif
   msaa_desc.format = texture_desc.format;
   msaa_desc.size = texture_desc.size;
   msaa_desc.usage = TextureUsage::kRenderTarget;
@@ -245,7 +250,11 @@ KHRSwapchainImplVK::KHRSwapchainImplVK(const std::shared_ptr<Context>& context,
   depth_stencil_desc.storage_mode = StorageMode::kDeviceTransient;
   if (enable_msaa) {
     depth_stencil_desc.type = TextureType::kTexture2DMultisample;
+#ifdef OHOS_PLATFORM
+    depth_stencil_desc.sample_count = SampleCount::kCount2;
+#else
     depth_stencil_desc.sample_count = SampleCount::kCount4;
+#endif
   } else {
     depth_stencil_desc.type = TextureType::kTexture2D;
     depth_stencil_desc.sample_count = SampleCount::kCount1;
@@ -324,8 +333,8 @@ bool KHRSwapchainImplVK::IsValid() const {
 
 void KHRSwapchainImplVK::WaitIdle() const {
   if (auto context = context_.lock()) {
-    [[maybe_unused]] auto result =
-        ContextVK::Cast(*context).GetDevice().waitIdle();
+    // vkDeviceWaitIdle is equivalent to calling vkQueueWaitIdle on all queues.
+    ContextVK::Cast(*context).WaitIdle();
   }
 }
 
@@ -402,6 +411,54 @@ KHRSwapchainImplVK::AcquireResult KHRSwapchainImplVK::AcquireNextDrawable() {
   context.GetGPUTracer()->MarkFrameStart();
 
   auto image = images_[index % images_.size()];
+
+  /// The GPU's write operations to the image must wait for the
+  /// sync->render_ready semaphore (i.e., wait for the GPU or hardware composer
+  /// to complete reading the image);
+  /// otherwise, screen tearing or other visual artifacts may occur.
+  /// However, the current function does not provide the render_ready semaphore
+  /// upon return, meaning subsequent write operations to the image will not
+  /// wait for the semaphore to signal, potentially leading to visual anomalies.
+
+  /// To address this issue, a write barrier is added here for the image,
+  /// along with a wait for the corresponding semaphore,
+  /// ensuring correct rendering.
+  /// Note: vkWaitSemaphores might not function correctly when the semaphore is
+  /// imported from a sync FD.
+  sync->ready_cmd_buffer = context.CreateCommandBuffer();
+  if (sync->ready_cmd_buffer) {
+    auto vk_cmd_buffer = CommandBufferVK::Cast(*sync->ready_cmd_buffer)
+                             .GetEncoder()
+                             ->GetCommandBuffer();
+    BarrierVK barrier;
+    barrier.new_layout = vk::ImageLayout::eColorAttachmentOptimal;
+    barrier.cmd_buffer = vk_cmd_buffer;
+    barrier.src_access = {};
+    barrier.src_stage = vk::PipelineStageFlagBits::eTopOfPipe;
+    barrier.dst_access = vk::AccessFlagBits::eColorAttachmentWrite;
+    barrier.dst_stage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    image->SetLayout(barrier);
+
+    auto end_ret = vk_cmd_buffer.end();
+    if (end_ret == vk::Result::eSuccess) {
+      vk::SubmitInfo submit_info;
+      vk::PipelineStageFlags wait_stage =
+          vk::PipelineStageFlagBits::eColorAttachmentOutput;
+      submit_info.setWaitDstStageMask(wait_stage);
+      submit_info.setWaitSemaphores(*sync->render_ready);
+      submit_info.setCommandBuffers(vk_cmd_buffer);
+      auto result = context.GetGraphicsQueue()->Submit(submit_info, nullptr);
+      if (result != vk::Result::eSuccess) {
+        VALIDATION_LOG << "Submit Swapchain Image Write Barrier Failed: "
+                       << vk::to_string(result);
+      }
+    } else {
+      VALIDATION_LOG << "Command Buffer End Failed: " << vk::to_string(end_ret);
+    }
+  } else {
+    VALIDATION_LOG << "Create Command Buffer Failed";
+  }
+
   uint32_t image_index = index;
   return AcquireResult{KHRSurfaceVK::WrapSwapchainImage(
       context_strong,  // context

@@ -412,6 +412,7 @@ struct TRect {
       return bounds.value();
     }
     FML_UNREACHABLE();
+    return {};
   }
 
   /// @brief  Constructs a Matrix that will map all points in the coordinate

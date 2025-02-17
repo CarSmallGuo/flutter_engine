@@ -7,6 +7,7 @@
 #include <cstring>
 
 #include "flutter/common/constants.h"
+#include "flutter/fml/trace_event.h"
 #include "flutter/lib/ui/compositing/scene.h"
 #include "flutter/lib/ui/ui_dart_state.h"
 #include "flutter/lib/ui/window/platform_message.h"
@@ -19,6 +20,8 @@
 #include "third_party/tonic/dart_microtask_queue.h"
 #include "third_party/tonic/logging/dart_invoke.h"
 #include "third_party/tonic/typed_data/dart_byte_data.h"
+
+#include "flutter/fml/platform/ohos/hisysevent_c.h"
 
 namespace flutter {
 namespace {
@@ -293,6 +296,7 @@ void PlatformConfiguration::DispatchPlatformMessage(
     std::unique_ptr<PlatformMessage> message) {
   std::shared_ptr<tonic::DartState> dart_state =
       dispatch_platform_message_.dart_state().lock();
+
   if (!dart_state) {
     FML_DLOG(WARNING)
         << "Dropping platform message for lack of DartState on channel: "
@@ -357,7 +361,6 @@ void PlatformConfiguration::DispatchSemanticsAction(int32_t node_id,
   if (Dart_IsError(args_handle)) {
     return;
   }
-
   tonic::CheckAndHandleError(tonic::DartInvoke(
       dispatch_semantics_action_.Get(),
       {tonic::ToDart(node_id), tonic::ToDart(static_cast<int32_t>(action)),
@@ -366,6 +369,7 @@ void PlatformConfiguration::DispatchSemanticsAction(int32_t node_id,
 
 void PlatformConfiguration::BeginFrame(fml::TimePoint frameTime,
                                        uint64_t frame_number) {
+  TRACE_EVENT0("flutter", "PlatformConfiguration::BeginFrame");
   std::shared_ptr<tonic::DartState> dart_state =
       begin_frame_.dart_state().lock();
   if (!dart_state) {
@@ -375,6 +379,7 @@ void PlatformConfiguration::BeginFrame(fml::TimePoint frameTime,
 
   int64_t microseconds = (frameTime - fml::TimePoint()).ToMicroseconds();
 
+  TRACE_EVENT0("flutter", "PlatformConfiguration::begin_frame_");
   tonic::CheckAndHandleError(
       tonic::DartInvoke(begin_frame_.Get(), {
                                                 Dart_NewInteger(microseconds),
@@ -383,6 +388,7 @@ void PlatformConfiguration::BeginFrame(fml::TimePoint frameTime,
 
   UIDartState::Current()->FlushMicrotasksNow();
 
+  TRACE_EVENT0("flutter", "PlatformConfiguration::draw_frame_");
   tonic::CheckAndHandleError(tonic::DartInvokeVoid(draw_frame_.Get()));
 }
 

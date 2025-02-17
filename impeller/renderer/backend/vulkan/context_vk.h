@@ -139,6 +139,8 @@ class ContextVK final : public Context,
 
   const vk::Device& GetDevice() const;
 
+  void WaitIdle() const;
+
   const std::unique_ptr<DriverInfoVK>& GetDriverInfo() const;
 
   const std::shared_ptr<fml::ConcurrentTaskRunner>
@@ -164,7 +166,11 @@ class ContextVK final : public Context,
 
   void RecordFrameEndTime() const;
 
+  // |Context|
   void InitializeCommonlyUsedShadersIfNeeded() const override;
+
+  // |Context|
+  void DisposeThreadLocalCachedResources() override;
 
  private:
   struct DeviceHolderImpl : public DeviceHolderVK {
