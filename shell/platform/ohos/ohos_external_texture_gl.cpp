@@ -442,9 +442,6 @@ void OHOSExternalTextureGL::Detach()
     OH_NativeImage_UnsetOnFrameAvailableListener(nativeImage_);
     OH_NativeImage_Destroy(&nativeImage_);
     nativeImage_ = nullptr;
-  }
-  if (nativeWindow_ != nullptr) {
-    OH_NativeWindow_DestroyNativeWindow(nativeWindow_);
     nativeWindow_ = nullptr;
   }
 
@@ -454,11 +451,9 @@ void OHOSExternalTextureGL::Detach()
     }
     OH_NativeImage_Destroy(&backGroundNativeImage_);
     backGroundNativeImage_ = nullptr;
-  }
-  if (backGroundNativeWindow_ != nullptr) {
-    OH_NativeWindow_DestroyNativeWindow(backGroundNativeWindow_);
     backGroundNativeWindow_ = nullptr;
   }
+
   if (state_ == AttachmentState::attached) {
     glDeleteTextures(1, &texture_name_);
     glDeleteTextures(1, &backGroundTextureName_);
