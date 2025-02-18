@@ -13,7 +13,7 @@
 * limitations under the License.
 */
 
-import hiTraceMeter form '@ohos.hiTraceMeter';
+import hiTraceMeter from '@ohos.hiTraceMeter';
 import JSONMethodCodec from '../../../plugin/common/JSONMethodCodec';
 import MethodCall from '../../../plugin/common/MethodCall';
 import MethodChannel, { MethodCallHandler, MethodResult } from '../../../plugin/common/MethodChannel';
