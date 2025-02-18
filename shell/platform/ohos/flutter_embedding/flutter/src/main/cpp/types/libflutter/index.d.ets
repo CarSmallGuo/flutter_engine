@@ -178,3 +178,7 @@ export const nativeUnicodeIsVariationSelector: (code: number) => number;
 export const nativeUnicodeIsRegionalIndicatorSymbol: (code: number) => number;
 
 export const nativeGetXComponentId: (id: string) => number;
+
+export const nativeSetDVsyncSwitch: (nativeShellHolderId: number, isEnable: boolean) => void;
+
+export const nativeTouchGuideStateChange: (state: Boolean) => void;

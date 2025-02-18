@@ -2292,8 +2292,25 @@ napi_value PlatformViewOHOSNapi::nativeGetXComponentId(napi_env env, napi_callba
   }
   // obtain the current visible xcomponent id from the ets callback event
   XComponentAdapter::GetInstance()->currentXComponentId_ = xcomponentId;
-  FML_DLOG(ERROR) << "nativeGetXComponentId -> xcomponentId: " << xcomponentId;
+  FML_DLOG(INFO) << "nativeGetXComponentId -> xcomponentId: " << xcomponentId;
   return nullptr;
 }
 
+napi_value PlatformViewOHOSNapi::NativeTouchGuideStateChange(napi_env env, napi_callback_info info)
+{
+    size_t argc = 1;
+    napi_value args[1] = {nullptr};
+    napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+    bool touchGuideState = false;
+    bool ret = napi_get_value_bool(env, args[0], &touchGuideState);
+    if (ret != napi_ok) {
+      FML_DLOG(ERROR) << "NativeTouchGuideStateChange touchGuideState: " << touchGuideState;
+      return nullptr;
+    }
+
+    OhosAccessibilityBridge::GetInstance()->isTouchGuideOn_ = touchGuideState;
+    FML_DLOG(INFO) << "NativeTouchGuideStateChange -> touchGuideState: " << touchGuideState;
+    return nullptr;
+}
 }  // namespace flutter

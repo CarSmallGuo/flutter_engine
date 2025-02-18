@@ -391,6 +391,11 @@ export default class FlutterNapi {
     flutter.nativeAccessibilityStateChange(this.nativeShellHolderId!, state);
   }
 
+  touchGuideStateChange(state: Boolean): void {
+    this.ensureRunningOnMainThread();
+    flutter.nativeTouchGuideStateChange(state);
+  }
+
   setLocalizationPlugin(localizationPlugin: LocalizationPlugin | null): void {
     this.localizationPlugin = localizationPlugin;
   }

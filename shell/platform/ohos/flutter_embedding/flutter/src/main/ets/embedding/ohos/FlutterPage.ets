@@ -65,6 +65,7 @@ export struct FlutterPage {
                            " ratioInc: " + ratioInc + " ratio: " + ratio);
                 flutter.nativeGetXComponentId(this.viewId);
                 // 保证获取xcomponentid之后再使用无障碍
+                this.flutterView?.onTouchGuideIsOpen();
                 this.flutterView?.onAccessibilityIsOpen();
               }
             }
@@ -157,6 +158,7 @@ export struct FlutterPage {
                             " ratioInc: " + ratioInc + " ratio: " + ratio);
                 flutter.nativeGetXComponentId(this.viewId);
                 // 保证获取xcomponentid之后再使用无障碍
+                this.flutterView?.onTouchGuideIsOpen();
                 this.flutterView?.onAccessibilityIsOpen();
               }
             }

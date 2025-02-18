@@ -193,6 +193,9 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeGetXComponentId",
           flutter::PlatformViewOHOSNapi::nativeGetXComponentId),
+      DECLARE_NAPI_FUNCTION(
+          "nativeTouchGuideStateChange",
+          flutter::PlatformViewOHOSNapi::NativeTouchGuideStateChange),
   };
 
   FML_DLOG(INFO) << "Init NAPI size=" << sizeof(desc) / sizeof(desc[0]);

@@ -99,10 +99,6 @@ void XComponentAdapter::AttachFlutterEngine(std::string& id,
   auto findIter = xcomponetMap_.find(id);
   if (findIter != xcomponetMap_.end()) {
     findIter->second->AttachFlutterEngine(shellholderId);
-    // register the OH_ArkUI accessibility callbacks
-    if (OH_GetSdkApiVersion() >= 13) {
-      findIter->second->RegisterArkUIAccessibilityService(findIter->second->nativeXComponent_, shellholderId);
-    }
   }
 }
 

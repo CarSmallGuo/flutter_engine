@@ -93,8 +93,9 @@ public:
     OhosAccessibilityBridge& operator=(const OhosAccessibilityBridge&) = delete;
 
     std::string xcomponentId_;
-    bool isFlutterNavigated_;
     int64_t native_shell_holder_id_;
+    bool isFlutterNavigated_;
+    bool isTouchGuideOn_;
 
     std::unordered_map<int32_t, SemanticsNodeExtent> g_flutterSemanticsTree;
     std::unordered_map<std::string, std::unordered_map<int32_t, SemanticsNodeExtent>> g_flutterSemanticsTreeXComponents;
@@ -175,10 +176,6 @@ private:
     static std::unique_ptr<OhosAccessibilityBridge> bridgeInstance_;
     std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
     std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
-
-    std::unordered_map<int32_t, SemanticsNodeExtent> g_flutterSemanticsTree;
-    std::vector<std::pair<int32_t, int32_t>> g_parentChildIdVec;
-    std::unordered_map<int32_t, AbsoluteRect> g_screenRectMap;
 
     SemanticsNodeExtent inputFocusedNode;
     SemanticsNodeExtent lastInputFocusedNode;
@@ -316,7 +313,6 @@ private:
     void RequestFocusWhenPageUpdate(int32_t requestFocusId);
     void GetSemanticsDebugInfo();
     void AccessibiltiyChangesWithXComponentId();
-    void GetFlutterSemanticsTreeWithInstance(const char* instanceId);
 };
 
 }  // namespace flutter
