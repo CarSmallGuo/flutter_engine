@@ -676,6 +676,36 @@ void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
   UpdateTransform(backGroundNativeImage_);
 }
 
+void CopyPixelToHandle(uint32_t *destAddr, uint32_t *pixel, OhosPixelMapInfos pixelMapInfo, BufferHandle *handle)
+{
+  uint32_t real_height = pixelMapInfo.height;
+  if (IsPixelMapYUVFormat((PIXEL_FORMAT)pixelMapInfo.pixelFormat)) {
+    // y is height, uv is height/2
+    real_height = pixelMapInfo.height + (pixelMapInfo.height + 1) / 2;
+  }
+
+  // 复制图片纹理数据到内存中，需要处理DMA内存补齐相关的逻辑
+  if (pixelMapInfo.width * PIXEL_SIZE != pixelMapInfo.rowSize) {
+    // 直接复制整块内存
+    if ((real_height * pixelMapInfo.rowSize) > (uint32_t)handle->size) {
+      memcpy(destAddr, pixel, handle->size);
+    } else {
+      memcpy(destAddr, pixel, real_height * pixelMapInfo.rowSize);
+    }
+  } else {
+    // 需要处理DMA内存补齐相关的逻辑
+    for (uint32_t i = 0; i < real_height; i++) {
+      if (pixelMapInfo.rowSize > (uint32_t)handle->stride) {
+        memcpy(destAddr, pixel, handle->stride);
+      } else {
+        memcpy(destAddr, pixel, pixelMapInfo.rowSize);
+      }
+      destAddr += handle->stride / PIXEL_SIZE;
+      pixel += pixelMapInfo.width;
+    }
+  }
+}
+
 void OHOSExternalTextureGL::HandlePixelMapBuffer(NativePixelMap* pixelMap, OHNativeWindowBuffer* buffer)
 {
   BufferHandle *handle = OH_NativeWindow_GetBufferHandleFromNative(buffer);
@@ -707,24 +737,8 @@ void OHOSExternalTextureGL::HandlePixelMapBuffer(NativePixelMap* pixelMap, OHNat
   FML_DLOG(INFO) << "OHOSExternalTextureGL pixelMapInfo rowSize:" << pixelMapInfo.rowSize
     << " format:" << pixelMapInfo.pixelFormat;
 
-  uint32_t real_height = pixelMapInfo.height;
-  if (IsPixelMapYUVFormat((PIXEL_FORMAT)pixelMapInfo.pixelFormat)) {
-    // y is height, uv is height/2
-    real_height = pixelMapInfo.height + (pixelMapInfo.height + 1) / 2;
-  }
+  CopyPixelToHandle(destAddr, pixel, pixelMapInfo, handle);
 
-  // 复制图片纹理数据到内存中，需要处理DMA内存补齐相关的逻辑
-  if (pixelMapInfo.width * PIXEL_SIZE != pixelMapInfo.rowSize) {
-    // 直接复制整块内存
-    memcpy(destAddr, pixel, real_height * pixelMapInfo.rowSize);
-  } else {
-    // 需要处理DMA内存补齐相关的逻辑
-    for (uint32_t i = 0; i < real_height; i++) {
-      memcpy(destAddr, pixel, pixelMapInfo.rowSize);
-      destAddr += stride / PIXEL_SIZE;
-      pixel += pixelMapInfo.width;
-    }
-  }
   OH_PixelMap_UnAccessPixels(pixelMap);
   // munmap after use
   ret = munmap(mappedAddr, handle->size);
