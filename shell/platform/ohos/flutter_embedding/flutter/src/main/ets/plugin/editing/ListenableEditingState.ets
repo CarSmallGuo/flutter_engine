@@ -247,58 +247,6 @@ export class ListenableEditingState {
     }
   }
 
-  handleDeleteEvent(leftOrRight: boolean, length: number): void {
-    if (length === 0) {
-      return;
-    }
-
-    let start =
-      this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
-    let end = this.mSelectionStartCache > this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
-
-    if (leftOrRight == false) {
-      //delete left
-      if (start == 0 && end == 0) {
-        return;
-      }
-
-      let unicodeStart = start;
-      if (start == end) {
-        for (let i = 0; i < length; i++) {
-          unicodeStart = FlutterTextUtils.getOffsetBefore(this.mStringCache, unicodeStart);
-          if (unicodeStart === 0) {
-            break;
-          }
-        }
-      }
-      this.replace(unicodeStart, end, "", 0, 0);
-      this.mSelectionStartCache = unicodeStart;
-      let tempStr: string = this.mStringCache.slice(0, unicodeStart) + this.mStringCache.slice(end);
-      this.mStringCache = tempStr;
-      this.mSelectionEndCache = this.mSelectionStartCache;
-    } else if (leftOrRight == true) {
-      //delete right
-      if (start == this.mStringCache.length) {
-        return;
-      }
-      let unicodeEnd = end;
-      if (start == end) {
-        for (let i = 0; i < length; i++) {
-          unicodeEnd = FlutterTextUtils.getOffsetAfter(this.mStringCache, unicodeEnd);
-          if (unicodeEnd === this.mStringCache.length) {
-            break;
-          }
-        }
-      }
-      this.replace(start, unicodeEnd, "", 0, 0);
-      this.mSelectionEndCache = start;
-      let tempStr: string = this.mStringCache.slice(0, start) + (unicodeEnd >= this.mStringCache.length ? "" : this.mStringCache.slice(unicodeEnd));
-      this.mStringCache = tempStr;
-      this.mSelectionStartCache = this.mSelectionEndCache;
-    }
-    this.notifyListenersIfNeeded(true, true, false);
-  }
-
   handleNewlineEvent(): void {
     // 获取光标所在位置;
     // 当光标移动前位置小于移动后的位置时，获取光标移动前位置;反之获取移动后位置
