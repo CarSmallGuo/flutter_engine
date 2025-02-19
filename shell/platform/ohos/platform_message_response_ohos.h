@@ -19,10 +19,9 @@ namespace flutter {
 
 class PlatformMessageResponseOHOS : public flutter::PlatformMessageResponse {
  public:
-  // |flutter::PlatformMessageResponse|
+  
   void Complete(std::unique_ptr<fml::Mapping> data) override;
 
-  // |flutter::PlatformMessageResponse|
   void CompleteEmpty() override;
 
  private:
