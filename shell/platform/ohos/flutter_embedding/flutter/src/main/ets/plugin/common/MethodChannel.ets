@@ -20,15 +20,15 @@ import StandardMethodCodec from './StandardMethodCodec';
 /**
  * A named channel for communicating with the Flutter application using asynchronous method calls.
  *
- * <p>Incoming method calls are decoded from binary on receipt, and Java results are encoded into
- * binary before being transmitted back to Flutter. The {@link MethodCodec} used must be compatible
- * with the one used by the Flutter application. This can be achieved by creating a <a
+ * <p>Incoming method calls are decoded from binary on receipt, and Java results are encoded 
+ * into binary before being transmitted back to Flutter. The {@link MethodCodec} used must be 
+ * compatible with the one used by the Flutter application. This can be achieved by creating a <a
  * href="https://api.flutter.dev/flutter/services/MethodChannel-class.html">MethodChannel</a>
  * counterpart of this channel on the Dart side. The Java type of method call arguments and results
  * is {@code Object}, but only values supported by the specified {@link MethodCodec} can be used.
  *
- * <p>The logical identity of the channel is given by its name. Identically named channels will
- * interfere with each other's communication.
+ * <p>The logical identity of the channel is given by its name. Identically named channels 
+ * will interfere with each other's communication.
  */
 
 export default class MethodChannel {
@@ -46,11 +46,13 @@ export default class MethodChannel {
   /**
    * Invokes a method on this channel, optionally expecting a result.
    *
-   * <p>Any uncaught exception thrown by the result callback will be caught and logged.
+   * <p>Any uncaught exception thrown by the result callback will be caught and 
+   *  logged.
    *
    * @param method the name String of the method.
    * @param arguments the arguments for the invocation, possibly null.
-   * @param callback a {@link Result} callback for the invocation result, or null.
+   * @param callback a {@link Result} callback for the invocation result, 
+   *        or null.
    */
   invokeMethod(method: string, args: Any, callback?: MethodResult): void {
     this.messenger.send(this.name, this.codec.encodeMethodCall(new MethodCall(method, args)), callback == null ? null : new IncomingResultHandler(callback, this.codec));
@@ -61,12 +63,12 @@ export default class MethodChannel {
    *
    * <p>Overrides any existing handler registration for (the name of) this channel.
    *
-   * <p>If no handler has been registered, any incoming method call on this channel will be handled
-   * silently by sending a null reply. This results in a <a
-   * href="https://api.flutter.dev/flutter/services/MissingPluginException-class.html">MissingPluginException</a>
-   * on the Dart side, unless an <a
-   * href="https://api.flutter.dev/flutter/services/OptionalMethodChannel-class.html">OptionalMethodChannel</a>
-   * is used.
+   * <p>If no handler has been registered, any incoming method call on this channel will be 
+   * handled silently by sending a null reply. This results in a <a
+   * href="https://api.flutter.dev/flutter/services/MissingPluginException-class.html">MissingPluginException<
+   * /a> on the Dart side, unless an <a
+   * href="https://api.flutter.dev/flutter/services/OptionalMethodChannel-class.html">OptionalMethodChannel<
+   * /a> is used.
    *
    * @param handler a {@link MethodCallHandler}, or null to deregister.
    */
@@ -89,17 +91,17 @@ export interface MethodCallHandler {
   /**
    * Handles the specified method call received from Flutter.
    *
-   * <p>Handler implementations must submit a result for all incoming calls, by making a single
-   * call on the given {@link Result} callback. Failure to do so will result in lingering Flutter
-   * result handlers. The result may be submitted asynchronously and on any thread. Calls to
+   * <p>Handler implementations must submit a result for all incoming calls, by making a 
+   * single call on the given {@link Result} callback. Failure to do so will result in lingering 
+   * Flutter result handlers. The result may be submitted asynchronously and on any thread. Calls to
    * unknown or unimplemented methods should be handled using {@link Result#notImplemented()}.
    *
-   * <p>Any uncaught exception thrown by this method will be caught by the channel implementation
-   * and logged, and an error result will be sent back to Flutter.
+   * <p>Any uncaught exception thrown by this method will be caught by the channel 
+   * implementation and logged, and an error result will be sent back to Flutter.
    *
    * <p>The handler is called on the platform thread (Android main thread) by default, or
-   * otherwise on the thread specified by the {@link BinaryMessenger.TaskQueue} provided to the
-   * associated {@link MethodChannel} when it was created. See also <a
+   * otherwise on the thread specified by the {@link BinaryMessenger.TaskQueue} provided 
+   * to the associated {@link MethodChannel} when it was created. See also <a
    * href="https://github.com/flutter/flutter/wiki/The-Engine-architecture#threading">Threading in
    * the Flutter Engine</a>.
    *
@@ -132,9 +134,9 @@ export interface MethodResult {
    *
    * @param errorCode An error code String.
    * @param errorMessage A human-readable error message String, possibly null.
-   * @param errorDetails Error details, possibly null. The details must be an Object type
-   *     supported by the codec. For instance, if you are using {@link StandardMessageCodec}
-   *     (default), please see its documentation on what types are supported.
+   * @param errorDetails Error details, possibly null. The details must be an Object 
+   *     type supported by the codec. For instance, if you are using {@link 
+   *     StandardMessageCodec} (default), please see its documentation on what types are supported.
    */
   error: (errorCode: string, errorMessage: string, errorDetails: Any) => void;
 

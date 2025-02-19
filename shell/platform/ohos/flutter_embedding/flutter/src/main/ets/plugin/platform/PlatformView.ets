@@ -25,18 +25,18 @@ export default abstract class PlatformView {
   /** Returns the DynamicView to be embedded in the Flutter hierarchy. */
   abstract getView(): WrappedBuilder<[Params]>;
   /**
-   * Called by the {@link io.flutter.embedding.engine.FlutterEngine} that owns this {@code
-   * PlatformView} when the DynamicView responsible for rendering a Flutter UI is
+   * Called by the {@link io.flutter.embedding.engine.FlutterEngine} that owns this 
+   * {@code PlatformView} when the DynamicView responsible for rendering a Flutter UI is
    * associated with the {@link io.flutter.embedding.engine.FlutterEngine}.
    *
-   * <p>This means that our associated {@link io.flutter.embedding.engine.FlutterEngine} can now
-   * render a UI and interact with the user.
+   * <p>This means that our associated {@link io.flutter.embedding.engine.FlutterEngine} 
+   * can now render a UI and interact with the user.
    *
-   * <p>Some platform views may have unusual dependencies on the {@link View} that renders Flutter
-   * UIs, such as unique keyboard interactions. That {@link View} is provided here for those
-   * purposes. Use of this {@link View} should be avoided if it is not absolutely necessary, because
-   * depending on this {@link View} will tend to make platform view code more brittle to future
-   * changes.
+   * <p>Some platform views may have unusual dependencies on the {@link View} that renders 
+   * Flutter UIs, such as unique keyboard interactions. That {@link View} is provided here for those
+   * purposes. Use of this {@link View} should be avoided if it is not absolutely necessary, 
+   * because depending on this {@link View} will tend to make platform view code more brittle 
+   * to future changes.
    */
   onFlutterViewAttached(dvModel: DVModel): void {}
 
