@@ -36,23 +36,17 @@ class OHOSImageGenerator : public ImageGenerator {
 
   ~OHOSImageGenerator();
 
-  // |ImageGenerator|
   const SkImageInfo& GetInfo() override;
 
-  // |ImageGenerator|
   unsigned int GetFrameCount() const override;
 
-  // |ImageGenerator|
   unsigned int GetPlayCount() const override;
 
-  // |ImageGenerator|
   const ImageGenerator::FrameInfo GetFrameInfo(
       unsigned int frame_index) const override;
 
-  // |ImageGenerator|
   SkISize GetScaledDimensions(float desired_scale) override;
 
-  // |ImageGenerator|
   bool GetPixels(const SkImageInfo& info,
                  void* pixels,
                  size_t row_bytes,
