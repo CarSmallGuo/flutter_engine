@@ -14,11 +14,11 @@ OhosEnvironmentGL::OhosEnvironmentGL()
     : display_(EGL_NO_DISPLAY), valid_(false) {
   // Get the display.
   display_ = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-
+  // OhosEnvironmentGL
   if (display_ == EGL_NO_DISPLAY) {
     return;
   }
-
+  // OhosEnvironmentGL
   // Initialize the display connection.
   if (eglInitialize(display_, nullptr, nullptr) != EGL_TRUE) {
     return;

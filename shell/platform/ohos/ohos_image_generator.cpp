@@ -75,17 +75,19 @@ bool OHOSImageGenerator::GetPixels(const SkImageInfo& info,
   if (!software_decoded_data_) {
     return false;
   }
-
+  // kRGBA_8888_SkColorType
   if (kRGBA_8888_SkColorType != info.colorType()) {
     return false;
   }
-
+  // info.alphaType
   switch (info.alphaType()) {
     case kOpaque_SkAlphaType:
       if (kOpaque_SkAlphaType != GetInfo().alphaType()) {
         return false;
+        // kOpaque_SkAlphaTyp
       }
       break;
+    // kPremul_SkAlphaType
     case kPremul_SkAlphaType:
       break;
     default:
@@ -94,6 +96,7 @@ bool OHOSImageGenerator::GetPixels(const SkImageInfo& info,
 
   // TODO(bdero): Override `GetImage()` to use `SkImage::FromAHardwareBuffer` on
   // API level 30+ once it's updated to do symbol lookups and not get
+  // memcpy
   // preprocessed out in Skia. This will allow for avoiding this copy in
   // cases where the result image doesn't need to be resized.
   memcpy(pixels, software_decoded_data_->data(),
@@ -143,6 +146,7 @@ void OHOSImageGenerator::DoDecodeImage() {
 bool OHOSImageGenerator::IsValidImageData() {
   // The generator kicks off an IO task to decode everything, and calls to
   // "GetInfo()" block until either the header has been decoded or decoding has
+  // IsValidImageData
   // failed, whichever is sooner. The decoder is initialized with a width and
   // height of -1 and will update the dimensions if the image is able to be
   // decoded.

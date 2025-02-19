@@ -47,19 +47,8 @@ class OhosEGLSurface {
 
   ~OhosEGLSurface();
 
-  //----------------------------------------------------------------------------
-  /// @return     Whether the current `EGLSurface` reference is valid. That is,
-  /// if
-  ///             the surface doesn't point to `EGL_NO_SURFACE`.
-  ///
   bool IsValid() const;
 
-  //----------------------------------------------------------------------------
-  /// @brief      Binds the EGLContext context to the current rendering thread
-  ///             and to the draw and read surface.
-  ///
-  /// @return     Whether the surface was made current.
-  ///
   OhosEGLSurfaceMakeCurrentStatus MakeCurrent() const;
 
   //----------------------------------------------------------------------------

@@ -117,9 +117,9 @@ bool OhosSurfaceGLSkia::SetNativeWindow(fml::RefPtr<OHOSNativeWindow> window) {
   FML_DCHECK(window);
   native_window_ = window;
   // Ensure the destructor is called since it destroys the `EGLSurface` before
-  // creating a new onscreen surface.
+  // creating a new onscreen surface SetNativeWindow.
   onscreen_surface_ = nullptr;
-  // Create the onscreen surface.
+  // Create the onscreen surface SetNativeWindow.
   onscreen_surface_ = GLContextPtr()->CreateOnscreenSurface(window);
   if (!onscreen_surface_->IsValid()) {
     return false;
@@ -189,8 +189,10 @@ sk_sp<const GrGLInterface> OhosSurfaceGLSkia::GetGLInterface() const {
   // implementation.  Some versions of the emulator will not update the
   // GL version string when the process switches to a new EGL context
   // unless the EGL context is being made current for the first time.
+  // GetGLInterface
   // The inaccurate version string will be rejected by Skia when it
   // tries to build the GrGLInterface.  Flutter can work around this
+  // GetGLInterface
   // by creating a new context, making it current to force an update
   // of the version, and then reverting to the previous context.
   const char* gl_renderer =
@@ -212,6 +214,7 @@ sk_sp<const GrGLInterface> OhosSurfaceGLSkia::GetGLInterface() const {
       FML_DCHECK(result == EGL_TRUE);
       result = eglMakeCurrent(display, draw_surface, read_surface, old_context);
       FML_DCHECK(result == EGL_TRUE);
+      // eglDestroyContext
       result = eglDestroyContext(display, new_context);
       FML_DCHECK(result == EGL_TRUE);
     }

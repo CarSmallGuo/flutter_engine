@@ -48,6 +48,7 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
     const flutter::CustomAccessibilityActionUpdates& actions) {
   constexpr size_t kBytesPerNode = 47 * sizeof(int32_t);
   constexpr size_t kBytesPerChild = sizeof(int32_t);
+  // UpdateSemantics
   constexpr size_t kBytesPerCustomAction = sizeof(int32_t);
   constexpr size_t kBytesPerAction = 4 * sizeof(int32_t);
   constexpr size_t kBytesPerStringAttribute = 4 * sizeof(int32_t);
@@ -58,6 +59,7 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
       num_bytes += kBytesPerNode;
       num_bytes +=
           value.second.childrenInTraversalOrder.size() * kBytesPerChild;
+          //kBytesPer
       num_bytes += value.second.childrenInHitTestOrder.size() * kBytesPerChild;
       num_bytes += value.second.customAccessibilityActions.size() *
                    kBytesPerCustomAction;
@@ -67,6 +69,7 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
           value.second.valueAttributes.size() * kBytesPerStringAttribute;
       num_bytes += value.second.increasedValueAttributes.size() *
                    kBytesPerStringAttribute;
+          // decreasedValueAttributes
       num_bytes += value.second.decreasedValueAttributes.size() *
                    kBytesPerStringAttribute;
       num_bytes +=
@@ -88,13 +91,16 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
       buffer_int32[position++] = node.id;
       buffer_int32[position++] = node.flags;
       buffer_int32[position++] = node.actions;
+      // buffer_int32 config
       buffer_int32[position++] = node.maxValueLength;
       buffer_int32[position++] = node.currentValueLength;
       buffer_int32[position++] = node.textSelectionBase;
+      // buffer_int32 config
       buffer_int32[position++] = node.textSelectionExtent;
       buffer_int32[position++] = node.platformViewId;
       buffer_int32[position++] = node.scrollChildren;
       buffer_int32[position++] = node.scrollIndex;
+      // buffer_int32 config
       buffer_float32[position++] = static_cast<float>(node.scrollPosition);
       buffer_float32[position++] = static_cast<float>(node.scrollExtentMax);
       buffer_float32[position++] = static_cast<float>(node.scrollExtentMin);
@@ -104,7 +110,7 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
         buffer_int32[position++] = strings.size();
         strings.push_back(node.label);
       }
-
+      // buffer_int32 config
       putStringAttributesIntoBuffer(node.labelAttributes, buffer_int32,
                                     position, string_attribute_args);
       if (node.value.empty()) {
@@ -113,7 +119,7 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
         buffer_int32[position++] = strings.size();
         strings.push_back(node.value);
       }
-
+      // buffer_int32 config
       putStringAttributesIntoBuffer(node.valueAttributes, buffer_int32,
                                     position, string_attribute_args);
       if (node.increasedValue.empty()) {
@@ -122,7 +128,7 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
         buffer_int32[position++] = strings.size();
         strings.push_back(node.increasedValue);
       }
-
+      // buffer_int32 config
       putStringAttributesIntoBuffer(node.increasedValueAttributes, buffer_int32,
                                     position, string_attribute_args);
       if (node.decreasedValue.empty()) {
@@ -131,7 +137,7 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
         buffer_int32[position++] = strings.size();
         strings.push_back(node.decreasedValue);
       }
-
+      // buffer_int32 config
       putStringAttributesIntoBuffer(node.decreasedValueAttributes, buffer_int32,
                                     position, string_attribute_args);
 
@@ -141,7 +147,7 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
         buffer_int32[position++] = strings.size();
         strings.push_back(node.hint);
       }
-
+      // buffer_int32 config
       putStringAttributesIntoBuffer(node.hintAttributes, buffer_int32, position,
                                     string_attribute_args);
 
@@ -159,27 +165,32 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
       buffer_float32[position++] = node.rect.bottom();
       node.transform.getColMajor(&buffer_float32[position]);
       position += 16;
-
+      
+      // buffer_int32 config
       buffer_int32[position++] = node.childrenInTraversalOrder.size();
       for (int32_t child : node.childrenInTraversalOrder) {
         buffer_int32[position++] = child;
       }
 
+      // buffer_int32 config
       for (int32_t child : node.childrenInHitTestOrder) {
         buffer_int32[position++] = child;
       }
 
+      // buffer_int32 config
       buffer_int32[position++] = node.customAccessibilityActions.size();
       for (int32_t child : node.customAccessibilityActions) {
         buffer_int32[position++] = child;
       }
     }
 
+    // num_action_bytes
     // custom accessibility actions.
     size_t num_action_bytes = actions.size() * kBytesPerAction;
     std::vector<uint8_t> actions_buffer(num_action_bytes);
     int32_t* actions_buffer_int32 =
         reinterpret_cast<int32_t*>(&actions_buffer[0]);
+    // num_action_bytes
 
     std::vector<std::string> action_strings;
     size_t actions_position = 0;
@@ -189,12 +200,14 @@ void PlatformViewOHOSDelegate::UpdateSemantics(
       const flutter::CustomAccessibilityAction& action = value.second;
       actions_buffer_int32[actions_position++] = action.id;
       actions_buffer_int32[actions_position++] = action.overrideId;
+      // actions_buffer
       if (action.label.empty()) {
         actions_buffer_int32[actions_position++] = -1;
       } else {
+        // actions_buffer
         actions_buffer_int32[actions_position++] = action_strings.size();
         action_strings.push_back(action.label);
-      }
+      } // actions_buffer
       if (action.hint.empty()) {
         actions_buffer_int32[actions_position++] = -1;
       } else {

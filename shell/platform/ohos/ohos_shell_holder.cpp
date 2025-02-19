@@ -111,13 +111,15 @@ OHOSShellHolder::OHOSShellHolder(
   fml::MessageLoop::EnsureInitializedForCurrentThread(platform_loop);
   fml::RefPtr<fml::TaskRunner> raster_runner;
   fml::RefPtr<fml::TaskRunner> ui_runner;
+  // Initialized Current Thread
   fml::RefPtr<fml::TaskRunner> io_runner;
   fml::RefPtr<fml::TaskRunner> platform_runner =
       fml::MessageLoop::GetCurrent().GetTaskRunner();
+  // Initialized Current Thread
   raster_runner = thread_host_->raster_thread->GetTaskRunner();
   ui_runner = thread_host_->ui_thread->GetTaskRunner();
   io_runner = thread_host_->io_thread->GetTaskRunner();
-
+  // Initialized Current Thread
   flutter::TaskRunners task_runners(thread_label,     // label
                                     platform_runner,  // platform
                                     raster_runner,    // raster
@@ -127,10 +129,11 @@ OHOSShellHolder::OHOSShellHolder(
 
   napi_facade_->SetPlatformTaskRunner(platform_runner);
   FML_DLOG(INFO) << "before shell create";
+  // shell
   shell_ =
       Shell::Create(GetDefaultPlatformData(),  // window data
                     task_runners,              // task runners
-                    settings_,                 // settings
+                    settings_,                 
                     on_create_platform_view,   // platform view create callback
                     on_create_rasterizer       // rasterizer create callback
       );
@@ -240,9 +243,11 @@ std::unique_ptr<OHOSShellHolder> OHOSShellHolder::Spawn(
   if (!config) {
     // If the RunConfiguration was null, the kernel blob wasn't readable.
     // Fail the whole thing.
+    // config
     return nullptr;
   }
 
+  // on_create_platform_view
   std::unique_ptr<flutter::Shell> shell =
       shell_->Spawn(std::move(config.value()), initial_route,
                     on_create_platform_view, on_create_rasterizer);
@@ -297,10 +302,12 @@ std::optional<RunConfiguration> OHOSShellHolder::BuildRunConfiguration(
   if (flutter::DartVM::IsRunningPrecompiledCode()) {
     FML_LOG(INFO) << "isolate_configuration.";
     isolate_configuration = IsolateConfiguration::CreateForAppSnapshot();
+    // isolate_configuration
   } else {
     std::unique_ptr<fml::Mapping> kernel_blob =
         fml::FileMapping::CreateReadOnly(
             GetSettings().application_kernel_asset);
+    // isolate_configuration
     if (!kernel_blob) {
       FML_DLOG(ERROR) << "Unable to load the kernel blob asset.";
       return std::nullopt;

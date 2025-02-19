@@ -107,17 +107,16 @@ class PlatformViewOHOS final : public PlatformView {
   // |PlatformView|
   PointerDataDispatcherMaker GetDispatcherMaker() override;
 
-  // |PlatformView|
   void LoadDartDeferredLibrary(
       intptr_t loading_unit_id,
       std::unique_ptr<const fml::Mapping> snapshot_data,
       std::unique_ptr<const fml::Mapping> snapshot_instructions) override;
 
+  // |PlatformView|
   void LoadDartDeferredLibraryError(intptr_t loading_unit_id,
                                     const std::string error_message,
                                     bool transient) override;
 
-  // |PlatformView|
   void UpdateAssetResolverByType(
       std::unique_ptr<AssetResolver> updated_asset_resolver,
       AssetResolver::AssetResolverType type) override;
@@ -154,45 +153,33 @@ class PlatformViewOHOS final : public PlatformView {
 
   void SetDestroyed(bool isDestroyed_);
 
-  // |PlatformView|
   void UpdateSemantics(
       flutter::SemanticsNodeUpdates update,
       flutter::CustomAccessibilityActionUpdates actions) override;
 
-  // |PlatformView|
   void HandlePlatformMessage(
       std::unique_ptr<flutter::PlatformMessage> message) override;
 
-  // |PlatformView|
   void OnPreEngineRestart() const override;
 
-  // |PlatformView|
   std::unique_ptr<VsyncWaiter> CreateVSyncWaiter() override;
 
-  // |PlatformView|
   std::unique_ptr<Surface> CreateRenderingSurface() override;
 
-  // |PlatformView|
   std::shared_ptr<ExternalViewEmbedder> CreateExternalViewEmbedder() override;
 
-  // |PlatformView|
   std::unique_ptr<SnapshotSurfaceProducer> CreateSnapshotSurfaceProducer()
       override;
 
-  // |PlatformView|
   sk_sp<GrDirectContext> CreateResourceContext() const override;
 
-  // |PlatformView|
   void ReleaseResourceContext() const override;
 
-  // |PlatformView|
   std::shared_ptr<impeller::Context> GetImpellerContext() const override;
 
-  // |PlatformView|
   std::unique_ptr<std::vector<std::string>> ComputePlatformResolvedLocales(
       const std::vector<std::string>& supported_locale_data) override;
 
-  // |PlatformView|
   void RequestDartDeferredLibrary(intptr_t loading_unit_id) override;
 
   void InstallFirstFrameCallback();
