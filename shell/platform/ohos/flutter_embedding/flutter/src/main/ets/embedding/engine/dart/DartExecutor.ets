@@ -179,12 +179,13 @@ export default class DartExecutor implements BinaryMessenger {
   /**
    * Returns the number of pending channel callback replies.
    *
-   * <p>When sending messages to the Flutter application using {@link BinaryMessenger#send(String,
+   * <p>When sending messages to the Flutter application
+   * using {@link BinaryMessenger#send(String,
    * ByteBuffer, io.flutter.plugin.common.BinaryMessenger.BinaryReply)}, developers can optionally
    * specify a reply callback if they expect a reply from the Flutter application.
    *
-   * <p>This method tracks all the pending callbacks that are waiting for response, and is supposed
-   * to be called from the main thread (as other methods). Calling from a different thread could
+   * <p>This method tracks all the pending callbacks that are waiting for response,
+   * and is supposed to be called from the main thread (as other methods). Calling from a different thread could
    * possibly capture an indeterministic internal state, so don't do it.
    *
    * <p>Currently, it's mainly useful for a testing framework like Espresso to determine whether all
@@ -328,8 +329,8 @@ export class DefaultBinaryMessenger implements BinaryMessenger {
 
   /**
    * Sets the given {@link io.flutter.plugin.common.BinaryMessenger.BinaryMessageHandler} as the
-   * singular handler for all incoming messages received from the Dart side of this Dart execution
-   * context.
+   * singular handler for all incoming messages received from the Dart side of 
+   * this Dart execution context.
    *
    * @param channel the name of the channel.
    * @param handler a {@link BinaryMessageHandler} to be invoked on incoming messages, or null.

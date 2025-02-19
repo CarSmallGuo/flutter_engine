@@ -129,6 +129,7 @@ export class FlutterTextUtils {
       return offset - deleteCharCount;
     }
 
+    // Avoid repetition
     // Keycaps
     if (codePoint == COMBINING_ENCLOSING_KEYCAP) {
       codePoint = FlutterTextUtils.codePointBefore(text, lastOffset);

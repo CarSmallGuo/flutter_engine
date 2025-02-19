@@ -25,8 +25,8 @@ import DartExecutor from '../dart/DartExecutor';
  * System channel to exchange restoration data between framework and engine.
  *
  * <p>The engine can obtain the current restoration data from the framework via this channel to
- * store it on disk and - when the app is relaunched - provide the stored data back to the framework
- * to recreate the original state of the app.
+ * store it on disk and - when the app is relaunched - provide the stored data back to
+ * the framework to recreate the original state of the app.
  *
  * <p>The channel can be configured to delay responding to the framework's request for restoration
  * data via {@code waitForRestorationData} until the engine-side has provided the data. This is
@@ -42,17 +42,17 @@ export default class RestorationChannel {
   private static TAG = "RestorationChannel";
   private static CHANNEL_NAME = "flutter/restoration";
   /**
-   * Whether the channel delays responding to the framework's initial request for restoration data
-   * until {@code setRestorationData} has been called.
+   * Whether the channel delays responding to the framework's initial request for restoration
+   * data until {@code setRestorationData} has been called.
    *
-   * <p>If the engine never calls {@code setRestorationData} this flag must be set to false. If set
-   * to true, the engine must call {@code setRestorationData} either with the actual restoration
+   * <p>If the engine never calls {@code setRestorationData} this flag must be set to false.
+   * If set to true, the engine must call {@code setRestorationData} either with the actual restoration
    * data as argument or null if it turns out that there is no restoration data.
    *
    * <p>If the response to the framework's request for restoration data is not delayed until the
    * data has been set via {@code setRestorationData}, the framework may intermittently initialize
-   * itself to default values until the restoration data has been made available. Setting this flag
-   * to true avoids that extra work.
+   * itself to default values until the restoration data has been made available. Setting
+   * this flag to true avoids that extra work.
    */
   public waitForRestorationData: boolean = false;
   public pendingFrameworkRestorationChannelRequest: MethodResult | null = null;
