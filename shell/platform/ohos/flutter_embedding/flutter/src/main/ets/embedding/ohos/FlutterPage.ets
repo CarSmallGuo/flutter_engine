@@ -19,6 +19,8 @@ export const OHOS_FLUTTER_PAGE_UPDATE = "ohos_flutter_page_update";
  */
 @Component
 export struct FlutterPage {
+  @Prop safeAreaEdges: SafeAreaEdge[] | undefined = [];
+  @Prop safeAreaTypes: SafeAreaType[] | undefined = [];
   @Prop viewId: string = ""
   @Prop xComponentType: XComponentType = XComponentType.SURFACE
   onFocusListener?: () => void | undefined;
@@ -79,6 +81,7 @@ export struct FlutterPage {
         })
         .renderFit(RenderFit.TOP_LEFT)
         .backgroundColor(Color.Transparent)
+        .expandSafeArea(this.safeAreaTypes, this.safeAreaEdges)
 
       if (this.showSplashScreen) {
         this.splashScreenView();
@@ -184,6 +187,7 @@ export struct FlutterPage {
         })
         .renderFit(RenderFit.TOP_LEFT)
         .backgroundColor(Color.Transparent)
+        .expandSafeArea(this.safeAreaTypes, this.safeAreaEdges)
 
       if (this.showSplashScreen) {
         this.splashScreenView();
