@@ -8,6 +8,7 @@
 *
 */
 
+import hiTraceMeter from '@ohos.hiTraceMeter';
 import JSONMethodCodec from '../../../plugin/common/JSONMethodCodec';
 import MethodCall from '../../../plugin/common/MethodCall';
 import MethodChannel, { MethodCallHandler, MethodResult } from '../../../plugin/common/MethodChannel';
@@ -170,6 +171,17 @@ export default class PlatformChannel {
     throw new Error("No such DeviceOrientation: " + encodedName);
   }
 
+  getScrollActivityFromValue(activity: string): ScrollActivity {
+    let activityTypes: string[] = [
+      ScrollActivity.START,
+      ScrollActivity.END
+    ];
+    if (activityTypes.includes(activity as ScrollActivity)) {
+      return activity as ScrollActivity;
+    }
+    throw new Error("No such ScrollActivity: " + activity);
+  }
+
 }
 
 export enum HapticFeedbackType {
@@ -275,6 +287,11 @@ export enum DeviceOrientation {
   PORTRAIT_DOWN = "DeviceOrientation.portraitDown",
   LANDSCAPE_LEFT = "DeviceOrientation.landscapeLeft",
   LANDSCAPE_RIGHT = "DeviceOrientation.landscapeRight",
+}
+
+export enum ScrollActivity {
+  START = "start",
+  END = "end",
 }
 
 class PlatformMethodCallback implements MethodCallHandler {
@@ -385,6 +402,9 @@ class PlatformMethodCallback implements MethodCallHandler {
             Log.e(PlatformMethodCallback.TAG, "systemPasteboard.hasData err: " + JSON.stringify(err));
           })
           break;
+        case "Scroll.Activity":
+          this.recordScrollActivity(args as string);
+          break;
         default:
           result.notImplemented();
           break;
@@ -470,5 +490,17 @@ class PlatformMethodCallback implements MethodCallHandler {
       systemNavigationBarDividerColor,
       systemNavigationBarContrastEnforced
     );
+  }
+
+  private recordScrollActivity(scrollActivity: string) {
+    let activityType = this.platform.getScrollActivityFromValue(scrollActivity);
+    switch(activityType) {
+      case ScrollActivity.START:
+        hiTraceMeter.startTrace('flutter::APP_LIST_FING', 0);
+        break;
+      case ScrollActivity.END:
+        hiTraceMeter.finishTrace('flutter::APP_LIST_FING', 0);
+        break;
+    }
   }
 }
