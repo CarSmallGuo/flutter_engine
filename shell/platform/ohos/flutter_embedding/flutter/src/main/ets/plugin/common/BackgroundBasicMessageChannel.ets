@@ -14,20 +14,6 @@ import SendableMessageCodec from './SendableMessageCodec';
 import SendableMessageHandler from './SendableMessageHandler';
 import StringUtils from '../../util/StringUtils';
 
-/**
- * A named channel for communicating with the Flutter application using basic, asynchronous message
- * passing.
- *
- * <p>Messages are encoded into binary before being sent, and binary messages received are decoded
- * into Java objects. The {@link MessageCodec} used must be compatible with the one used by the
- * Flutter application. This can be achieved by creating a <a
- * href="https://api.flutter.dev/flutter/services/BasicMessageChannel-class.html">BasicMessageChannel</a>
- * counterpart of this channel on the Dart side. The static Java type of messages sent and received
- * is {@code Object}, but only values supported by the specified {@link MessageCodec} can be used.
- *
- * <p>The logical identity of the channel is given by its name. Identically named channels will
- * interfere with each other's communication.
- */
 export default class BackgroundBasicMessageChannel<T> {
   public static TAG = "BackgroundBasicMessageChannel#";
   public static CHANNEL_BUFFERS_CHANNEL = "dev.flutter/channel-buffers";
@@ -56,17 +42,6 @@ export default class BackgroundBasicMessageChannel<T> {
                         callback == null ? null : new IncomingReplyHandler(callback, this.codec));
   }
 
-  /**
-   * Registers a message handler on this channel for receiving messages sent from the Flutter
-   * application.
-   *
-   * <p>Overrides any existing handler registration for (the name of) this channel.
-   *
-   * <p>If no handler has been registered, any incoming message on this channel will be handled
-   * silently by sending a null reply.
-   *
-   * @param handler a {@link MessageHandler}, or null to deregister.
-   */
   setMessageHandler(handler: SendableMessageHandler<T> | null): void {
     this.messenger.setMessageHandler(this.name,
           handler == null ? null : new IncomingSendableMessageHandler(handler, this.codec), this.taskQueue);

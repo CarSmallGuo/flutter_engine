@@ -138,7 +138,6 @@ export class FlutterTextUtils {
       return offset - deleteCharCount;
     }
 
-    // Keycaps
     if (codePoint == COMBINING_ENCLOSING_KEYCAP) {
       codePoint = FlutterTextUtils.codePointBefore(text, lastOffset);
       lastOffset -= FlutterTextUtils.charCount(codePoint);
@@ -153,11 +152,6 @@ export class FlutterTextUtils {
       return offset - deleteCharCount;
     }
 
-    /**
-     * Following if statements for Emoji tag sequence and Variation selector are skipping these
-     * modifiers for going through the last statement that is for handling emojis. They return the
-     * offset if they don't find proper base characters
-     */
     // Emoji Tag Sequence
     if (codePoint == CANCEL_TAG) { // tag_end
       codePoint = FlutterTextUtils.codePointBefore(text, lastOffset);

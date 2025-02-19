@@ -15,16 +15,6 @@ import MethodCall from './MethodCall';
 import MethodCodec from './MethodCodec';
 import StandardMessageCodec from './StandardMessageCodec';
 
-/**
- * A {@link MethodCodec} using the Flutter standard binary encoding.
- *
- * <p>This codec is guaranteed to be compatible with the corresponding <a
- * href="https://api.flutter.dev/flutter/services/StandardMethodCodec-class.html">StandardMethodCodec</a>
- * on the Dart side. These parts of the Flutter SDK are evolved synchronously.
- *
- * <p>Values supported as method arguments and result payloads are those supported by {@link
- * StandardMessageCodec}.
- */
 export default class StandardMethodCodec implements MethodCodec {
   private static TAG = "StandardMethodCodec";
   public static INSTANCE = new StandardMethodCodec(StandardMessageCodec.INSTANCE);
