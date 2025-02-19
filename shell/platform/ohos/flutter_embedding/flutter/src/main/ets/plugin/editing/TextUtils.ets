@@ -146,9 +146,9 @@ export class FlutterTextUtils {
     }
 
     /**
-     * Following if statements for Emoji tag sequence and Variation selector are skipping these
-     * modifiers for going through the last statement that is for handling emojis. They return the
-     * offset if they don't find proper base characters
+     * Following if statements for Emoji tag sequence and Variation selector are skipping 
+     * these modifiers for going through the last statement that is for handling emojis. They 
+     * return the offset if they don't find proper base characters
      */
     // Emoji Tag Sequence
     if (codePoint == CANCEL_TAG) { // tag_end
