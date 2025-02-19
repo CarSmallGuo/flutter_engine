@@ -15,6 +15,7 @@ class ArkUIAccessibilityConstant {
 public:
     static constexpr char OH_GET_A11Y_PROVIDER[] = "OH_NativeXComponent_GetNativeAccessibilityProvider";
     static constexpr char ARKUI_REGISTER_CALLBACK[] = "OH_ArkUI_AccessibilityProviderRegisterCallback";
+    static constexpr char ARKUI_REGISTER_CALLBACK_MULTI_INSTANCES[] = "OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance";
     static constexpr char ARKUI_SEND_A11Y_EVENT[] = "OH_ArkUI_SendAccessibilityAsyncEvent";
     static constexpr char ARKUI_GET_A11Y_NODE[] = "OH_ArkUI_AddAndGetAccessibilityElementInfo";
 

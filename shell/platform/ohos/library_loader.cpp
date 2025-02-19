@@ -10,6 +10,7 @@
 #include "napi_common.h"
 #include "ohos_logging.h"
 #include "ohos_xcomponent_adapter.h"
+#include "flutter/shell/platform/ohos/platform_view_ohos.h"
 
 // namespace flutter {
 
@@ -21,6 +22,9 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeImageDecodeCallback",
           flutter::OHOSImageGenerator::NativeImageDecodeCallback),
+      DECLARE_NAPI_FUNCTION(
+          "nativeSetXComponentInfo",
+          flutter::PlatformViewOHOS::NativeSetXComponentInfo),
       DECLARE_NAPI_FUNCTION(
           "nativeUpdateRefreshRate",
           flutter::PlatformViewOHOSNapi::nativeUpdateRefreshRate),
@@ -152,14 +156,8 @@ static napi_value Init(napi_env env, napi_value exports) {
           "nativeAccessibilityOnTooltip",
           flutter::PlatformViewOHOSNapi::nativeAccessibilityOnTooltip),
       DECLARE_NAPI_FUNCTION(
-          "nativeSetSemanticsEnabled",
-          flutter::PlatformViewOHOSNapi::nativeSetSemanticsEnabled),
-      DECLARE_NAPI_FUNCTION(
           "nativeSetFontWeightScale",
           flutter::PlatformViewOHOSNapi::nativeSetFontWeightScale),
-      DECLARE_NAPI_FUNCTION(
-          "nativeGetShellHolderId",
-          flutter::PlatformViewOHOSNapi::nativeGetShellHolderId),
       DECLARE_NAPI_FUNCTION(
           "nativeDecodeUtf8",
           flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),

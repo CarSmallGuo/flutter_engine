@@ -41,6 +41,11 @@ struct mouseWheelEvent {
   int64_t timestamp;
 };
 
+struct XcomponentInfo {
+    std::string xcomponentId;
+    int64_t shellHolderId;
+};
+
 class PlatformViewOHOSNapi {
  public:
   static napi_value nativeDispatchEmptyPlatformMessage(
@@ -88,6 +93,8 @@ class PlatformViewOHOSNapi {
                                int32_t id, 
                                flutter::SemanticsAction action, 
                                fml::MallocMapping args);
+
+  void SetXcomponentInfo(int64_t platformViewOHOSAddr);
 
   static napi_value nativeUpdateRefreshRate(
       napi_env env,
@@ -225,7 +232,7 @@ class PlatformViewOHOSNapi {
   static napi_value nativeAccessibilityOnTooltip(
       napi_env env,
       napi_callback_info info);
-  static napi_value nativeSetSemanticsEnabled(napi_env env, napi_callback_info info);
+
   static napi_value nativeEncodeUtf8(napi_env env, napi_callback_info info);
   static napi_value nativeDecodeUtf8(napi_env env, napi_callback_info info);
 
@@ -251,9 +258,6 @@ class PlatformViewOHOSNapi {
   static napi_value nativeUnicodeIsEmojiModifierBase(
       napi_env env,
       napi_callback_info info);
-  static napi_value nativeGetShellHolderId(
-      napi_env env,
-      napi_callback_info info);
 
   static napi_value nativeUnicodeIsVariationSelector(
       napi_env env,
@@ -276,7 +280,6 @@ class PlatformViewOHOSNapi {
   napi_ref ref_napi_obj_;
   static std::vector<std::string> system_languages;
   fml::RefPtr<fml::TaskRunner> platform_task_runner_;
-  static int64_t napi_shell_holder_id_;
   static const int32_t OHOS_API_VERSION;
 };
 

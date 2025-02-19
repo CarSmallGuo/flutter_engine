@@ -38,6 +38,11 @@ enum class OHOS_THREAD_TYPE {
     OHOS_THREAD_TYPE_IO,
 };
 
+struct XComponentInfo {
+    std::string xcomponentId;
+    int64_t shellHolderId;
+};
+
 class OhosSurfaceFactoryImpl : public OhosSurfaceFactory {
  public:
   OhosSurfaceFactoryImpl(const std::shared_ptr<OHOSContext>& context,
@@ -135,6 +140,9 @@ class PlatformViewOHOS final : public PlatformView {
 
   void RunTask(OHOS_THREAD_TYPE type, const fml::closure& task);
 
+  static napi_value NativeSetXComponentInfo(napi_env env, napi_callback_info info);
+  const XComponentInfo& GetXComponentInfo();
+
  private:
   const std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;
   std::shared_ptr<OHOSContext> ohos_context_;
@@ -149,6 +157,8 @@ class PlatformViewOHOS final : public PlatformView {
   std::map<int64_t, std::shared_ptr<OHOSExternalTextureGL>> external_texture_gl_;
 
   std::atomic<bool> isDestroyed_;
+
+  XComponentInfo xcompInfo_;
 
   bool GetDestroyed();
 
@@ -200,6 +210,8 @@ class PlatformViewOHOS final : public PlatformView {
   void FireFirstFrameCallback();
 
   FML_DISALLOW_COPY_AND_ASSIGN(PlatformViewOHOS);
+
+  void SetPlatformViewOHOSAddr(int64_t platformViewOHOSAddr);
 };
 
 }  // namespace flutter

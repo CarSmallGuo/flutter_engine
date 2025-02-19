@@ -37,7 +37,7 @@ export default class FlutterNapi {
   private static hasInit: boolean = false;
   //是否已实现
   hasImplemented: boolean = false;
-
+  nativeXComponentId : string | null = null;
   nativeShellHolderId: number | null = null;
   platformMessageHandler: PlatformMessageHandler | null = null;
   private engineLifecycleListeners = new Set<EngineLifecycleListener>();
@@ -301,6 +301,14 @@ export default class FlutterNapi {
     }
   }
 
+  /**
+   * Invoked by native c++ to get the xcomponent info (xcomponentid, shellholderid)
+   * via taking a platformViewOHOS address
+   */
+  setXComponentInfo(platformViewOHOSAddr : number): void {
+    flutter.nativeSetXComponentInfo(platformViewOHOSAddr, this.nativeXComponentId!, this.nativeShellHolderId!);
+  }
+
   setSemanticsEnabledWithRespId(enabled: boolean, responseId: number): void {
     this.ensureRunningOnMainThread();
     if (this.isAttached()) {
@@ -397,6 +405,7 @@ export default class FlutterNapi {
    * @param xcomponentId
    */
   xComponentAttachFlutterEngine(xcomponentId: string) {
+    this.nativeXComponentId = xcomponentId;
     flutter.nativeXComponentAttachFlutterEngine(xcomponentId, this.nativeShellHolderId!);
   }
 
