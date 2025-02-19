@@ -41,13 +41,11 @@ void PlatformMessageHandlerOHOS::InvokePlatformMessageResponseCallback(
   // PlatformMessageResponseDart so we won't need to use a mutex anymore.
   fml::RefPtr<flutter::PlatformMessageResponse> message_response;
   {
-    // message_response
     std::lock_guard lock(pending_responses_mutex_);
     auto it = pending_responses_.find(response_id);
     if (it == pending_responses_.end()) {
       return;
     }
-    // message_response
     message_response = std::move(it->second);
     pending_responses_.erase(it);
   }
@@ -62,13 +60,11 @@ void PlatformMessageHandlerOHOS::InvokePlatformMessageEmptyResponseCallback(
   }
   fml::RefPtr<flutter::PlatformMessageResponse> message_response;
   {
-    // InvokePlatformMessageEmptyResponseCallback
     std::lock_guard lock(pending_responses_mutex_);
     auto it = pending_responses_.find(response_id);
     if (it == pending_responses_.end()) {
       return;
     }
-    // InvokePlatformMessageEmptyResponseCallback
     message_response = std::move(it->second);
     pending_responses_.erase(it);
   }

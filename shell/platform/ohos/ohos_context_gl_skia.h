@@ -37,11 +37,29 @@ class OhosContextGLSkia : public OHOSContext {
 
   ~OhosContextGLSkia();
 
+  //----------------------------------------------------------------------------
+  /// @brief      Allocates an new EGL window surface that is used for on-screen
+  ///             pixels.
+  ///
+  /// @return     The window surface.
+  ///
   std::unique_ptr<OhosEGLSurface> CreateOnscreenSurface(
       const fml::RefPtr<OHOSNativeWindow>& window) const;
 
+  //----------------------------------------------------------------------------
+  /// @brief      Allocates an 1x1 pbuffer surface that is used for making the
+  ///             offscreen current for texture uploads.
+  ///
+  /// @return     The pbuffer surface.
+  ///
   std::unique_ptr<OhosEGLSurface> CreateOffscreenSurface() const;
 
+  //----------------------------------------------------------------------------
+  /// @brief      Allocates an 1x1 pbuffer surface that is used for making the
+  ///             onscreen context current for snapshotting.
+  ///
+  /// @return     The pbuffer surface.
+  ///
   std::unique_ptr<OhosEGLSurface> CreatePbufferSurface() const;
 
   //----------------------------------------------------------------------------
@@ -50,10 +68,22 @@ class OhosContextGLSkia : public OHOSContext {
   ///
   fml::RefPtr<OhosEnvironmentGL> Environment() const;
 
+  //----------------------------------------------------------------------------
+  /// @return     Whether the current context is valid. That is, if the EGL
+  ///             contexts were successfully created.
+  ///
   bool IsValid() const override;
 
+  //----------------------------------------------------------------------------
+  /// @return     Whether the current context was successfully clear.
+  ///
   bool ClearCurrent() const;
 
+  //----------------------------------------------------------------------------
+  /// @brief      Create a new EGLContext using the same EGLConfig.
+  ///
+  /// @return     The EGLContext.
+  ///
   EGLContext CreateNewContext() const;
 
   //----------------------------------------------------------------------------

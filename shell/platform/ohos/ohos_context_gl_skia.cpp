@@ -21,7 +21,7 @@ static EGLResult<EGLContext> CreateContext(EGLDisplay display,
                                            EGLConfig config,
                                            EGLContext share = EGL_NO_CONTEXT) {
   EGLint attributes[] = {EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE};
-  /*CreateContex*/
+
   EGLContext context = eglCreateContext(display, config, share, attributes);
 
   return {context != EGL_NO_CONTEXT, context};
@@ -31,13 +31,12 @@ static EGLResult<EGLConfig> ChooseEGLConfiguration(EGLDisplay display,
                                                    uint8_t msaa_samples) {
   EGLint sample_buffers = msaa_samples > 1 ? 1 : 0;
   EGLint attributes[] = {
-      // clang-format off ChooseEGLConfiguration
+      // clang-format off
       EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
       EGL_SURFACE_TYPE,    EGL_WINDOW_BIT,
       EGL_RED_SIZE,        8,
       EGL_GREEN_SIZE,      8,
       EGL_BLUE_SIZE,       8,
-      // EGLCongfig
       EGL_ALPHA_SIZE,      8,
       EGL_DEPTH_SIZE,      0,
       EGL_STENCIL_SIZE,    0,
@@ -47,23 +46,21 @@ static EGLResult<EGLConfig> ChooseEGLConfiguration(EGLDisplay display,
       // clang-format on
   };
 
-  // EGLCongfig
   EGLint config_count = 0;
   EGLConfig egl_config = nullptr;
 
   if (eglChooseConfig(display, attributes, &egl_config, 1, &config_count) !=
       EGL_TRUE) {
-    // EGLCongfig
     return {false, nullptr};
   }
-  // EGLCongfig
+
   bool success = config_count > 0 && egl_config != nullptr;
 
   return {success, success ? egl_config : nullptr};
 }
 
 static bool TeardownContext(EGLDisplay display, EGLContext context) {
-  if (context != EGL_NO_CONTEXT) {   // TeardownContext
+  if (context != EGL_NO_CONTEXT) {
     return eglDestroyContext(display, context) == EGL_TRUE;
   }
 
@@ -94,24 +91,20 @@ OhosContextGLSkia::OhosContextGLSkia(OHOSRenderingAPI rendering_api,
     return;
   }
 
-  //configuration
   // Create a context for the configuration.
   std::tie(success, context_) =
       CreateContext(environment_->Display(), config_, EGL_NO_CONTEXT);
-      //configuration
   if (!success) {
     FML_LOG(ERROR) << "Could not create an EGL context";
     LogLastEGLError();
     return;
   }
-  //configuration
+
   std::tie(success, resource_context_) =
       CreateContext(environment_->Display(), config_, context_);
-      //configuration
   if (!success) {
     FML_LOG(ERROR) << "Could not create an EGL resource context";
     LogLastEGLError();
-    //configuration
     return;
   }
 
@@ -120,15 +113,12 @@ OhosContextGLSkia::OhosContextGLSkia(OHOSRenderingAPI rendering_api,
 }
 
 OhosContextGLSkia::~OhosContextGLSkia() {
-  //~OhosContextGLSkia
   FML_DCHECK(task_runners_.GetPlatformTaskRunner()->RunsTasksOnCurrentThread());
   sk_sp<GrDirectContext> main_context = GetMainSkiaContext();
-  //~OhosContextGLSkia
   SetMainSkiaContext(nullptr);
   fml::AutoResetWaitableEvent latch;
   // This context needs to be deallocated from the raster thread in order to
   // keep a coherent usage of egl from a single thread.
-  //~OhosContextGLSkia
   fml::TaskRunner::RunNowOrPostTask(task_runners_.GetRasterTaskRunner(), [&] {
     if (main_context) {
       std::unique_ptr<OhosEGLSurface> pbuffer_surface = CreatePbufferSurface();
@@ -140,7 +130,6 @@ OhosContextGLSkia::~OhosContextGLSkia() {
       }
     }
     latch.Signal();
-    //~OhosContextGLSkia
   });
   latch.Wait();
 
@@ -149,7 +138,7 @@ OhosContextGLSkia::~OhosContextGLSkia() {
         << "Could not tear down the EGL context. Possible resource leak.";
     LogLastEGLError();
   }
-  //~OhosContextGLSkia
+
   if (!TeardownContext(environment_->Display(), resource_context_)) {
     FML_LOG(ERROR) << "Could not tear down the EGL resource context. Possible "
                       "resource leak.";
@@ -165,7 +154,7 @@ std::unique_ptr<OhosEGLSurface> OhosContextGLSkia::CreateOnscreenSurface(
     EGLDisplay display = environment_->Display();
 
     const EGLint attribs[] = {EGL_NONE};
-    //CreateOnscreenSurface
+
     EGLSurface surface = eglCreateWindowSurface(
         display, config_,
         reinterpret_cast<EGLNativeWindowType>(window->handle()), attribs);
@@ -215,13 +204,11 @@ bool OhosContextGLSkia::ClearCurrent() const {
   if (eglGetCurrentContext() != context_) {
     return true;
   }
-  // ClearCurrent
   if (eglMakeCurrent(environment_->Display(), EGL_NO_SURFACE, EGL_NO_SURFACE,
                      EGL_NO_CONTEXT) != EGL_TRUE) {
     FML_LOG(ERROR) << "Could not clear the current context";
     LogLastEGLError();
     return false;
-  // ClearCurrent
   }
   return true;
 }
@@ -229,7 +216,6 @@ bool OhosContextGLSkia::ClearCurrent() const {
 EGLContext OhosContextGLSkia::CreateNewContext() const {
   bool success;
   EGLContext context;
-  // CreateNewContext
   std::tie(success, context) =
       CreateContext(environment_->Display(), config_, EGL_NO_CONTEXT);
   return success ? context : EGL_NO_CONTEXT;

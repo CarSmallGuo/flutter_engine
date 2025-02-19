@@ -16,7 +16,7 @@
 #define NAPI_RETVAL_NOTHING
 
 #define GET_AND_THROW_LAST_ERROR(env)                                \
-  do {  /*get throw last error */                                                             \
+  do {                                                               \
     const napi_extended_error_info* errorInfo = nullptr;             \
     napi_get_last_error_info((env), &errorInfo);                     \
     bool isPending = false;                                          \
@@ -45,7 +45,7 @@
   NAPI_ASSERT_BASE(env, assertion, message, NAPI_RETVAL_NOTHING)
 
 #define NAPI_CALL_BASE(env, theCall, retVal) \
-  do {  /* NAPI_CALL_BAS */                  \
+  do {                                       \
     if ((theCall) != napi_ok) {              \
       GET_AND_THROW_LAST_ERROR((env));       \
       return retVal;                         \
