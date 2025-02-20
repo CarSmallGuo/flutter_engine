@@ -112,7 +112,6 @@ void XComponentAdapter::AttachFlutterEngine(std::string& id,
   if (findIter != xcomponetMap_.end()) {
     findIter->second->AttachFlutterEngine(shellholderId);
   }
-  SetCurrentXcomponentId(id);
 }
 
 void XComponentAdapter::PreDraw(std::string& id,
@@ -138,9 +137,6 @@ void XComponentAdapter::DetachFlutterEngine(std::string& id) {
   if (iter != xcomponetMap_.end()) {
     iter->second->DetachFlutterEngine();
   }
-  if (current_xcomponent_id_ == id) {
-    SetCurrentXcomponentId("");
-  }
 }
 
 void XComponentAdapter::OnMouseWheel(std::string& id, mouseWheelEvent event) {
@@ -152,16 +148,12 @@ void XComponentAdapter::OnMouseWheel(std::string& id, mouseWheelEvent event) {
 }
 
 // It must be invoked within the xcomponentMap_mutex_ lock.
-XComponentBase* XComponentAdapter::GetCurrentXcomponent() {
-  auto iter = xcomponetMap_.find(current_xcomponent_id_);
+XComponentBase* XComponentAdapter::GetXcomponentBase(const std::string& id) {
+  auto iter = xcomponetMap_.find(id);
   if (iter != xcomponetMap_.end()) {
-    return xcomponetMap_[current_xcomponent_id_];
+    return iter->second;
   }
   return nullptr;
-}
-
-void XComponentAdapter::SetCurrentXcomponentId(std::string id) {
-  current_xcomponent_id_ = std::move(id);
 }
 
 static int32_t SetNativeWindowOpt(OHNativeWindow* nativeWindow,
@@ -230,11 +222,6 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
   for (auto it = XComponentAdapter::GetInstance()->xcomponetMap_.begin();
        it != XComponentAdapter::GetInstance()->xcomponetMap_.end();) {
     if (it->second->nativeXComponent_ == component) {
-      auto component_id = it->first;
-      if (it->second ==
-          XComponentAdapter::GetInstance()->GetCurrentXcomponent()) {
-        XComponentAdapter::GetInstance()->SetCurrentXcomponentId("");
-      }
       it->second->OnSurfaceDestroyed(component, window);
       delete it->second;
       it = XComponentAdapter::GetInstance()->xcomponetMap_.erase(it);
@@ -278,17 +265,16 @@ void XComponentBase::BindXComponentCallback() {
 
 /** Called when need to get element infos based on a specified node. */
 static int32_t FindAccessibilityNodeInfosByIdCallback(
+    const char* instanceId,
     int64_t elementId,
     ArkUI_AccessibilitySearchMode mode,
     int32_t requestId,
     ArkUI_AccessibilityElementInfoList* elementList) {
-  LOGD(
-      "accessibilityProviderCallback_.FindAccessibilityNodeInfosById mode "
-      "%{public}d id %{public}ld",
-      mode, elementId);
+  LOGD("accessibilityProviderCallback_.FindAccessibilityNodeInfosById instanceId %{public}s "
+      "id %{public}ld mode %{public}d", instanceId, elementId, mode);
   std::lock_guard<std::mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
+  auto xcomp = XComponentAdapter::GetInstance()->GetXcomponentBase(std::string(instanceId));
   if (xcomp != nullptr) {
     return xcomp->FindAccessibilityNodeInfosById(elementId, mode, requestId,
                                                  elementList);
@@ -300,14 +286,16 @@ static int32_t FindAccessibilityNodeInfosByIdCallback(
 /** Called when need to get element infos based on a specified node and text
  * content. */
 int32_t FindAccessibilityNodeInfosByTextCallback(
+    const char* instanceId,
     int64_t elementId,
     const char* text,
     int32_t requestId,
     ArkUI_AccessibilityElementInfoList* elementList) {
-  LOGD("accessibilityProviderCallback_.FindAccessibilityNodeInfosByText");
+  LOGD("accessibilityProviderCallback_.FindAccessibilityNodeInfosByText instanceId %{public}s "
+       "id %{public}ld text %{public}s", instanceId, elementId, text);
   std::lock_guard<std::mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
+  auto xcomp = XComponentAdapter::GetInstance()->GetXcomponentBase(std::string(instanceId));
   if (xcomp != nullptr) {
     return xcomp->FindAccessibilityNodeInfosByText(elementId, text, requestId,
                                                    elementList);
@@ -319,14 +307,16 @@ int32_t FindAccessibilityNodeInfosByTextCallback(
 /** Called when need to get the focused element info based on a specified node.
  */
 int32_t FindFocusedAccessibilityNodeCallback(
+    const char* instanceId,
     int64_t elementId,
     ArkUI_AccessibilityFocusType focusType,
     int32_t requestId,
     ArkUI_AccessibilityElementInfo* elementinfo) {
-  LOGD("accessibilityProviderCallback_.FindFocusedAccessibilityNode");
+  LOGD("accessibilityProviderCallback_.FindFocusedAccessibilityNode instanceId %{public}s "
+       "id %{public}ld", instanceId, elementId);
   std::lock_guard<std::mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
+  auto xcomp = XComponentAdapter::GetInstance()->GetXcomponentBase(std::string(instanceId));
   if (xcomp != nullptr) {
     return xcomp->FindFocusedAccessibilityNode(elementId, focusType, requestId,
                                                elementinfo);
@@ -338,14 +328,16 @@ int32_t FindFocusedAccessibilityNodeCallback(
 /** Query the node that can be focused based on the reference node. Query the
  * next node that can be focused based on the mode and direction. */
 int32_t FindNextFocusAccessibilityNodeCallback(
+    const char* instanceId,
     int64_t elementId,
     ArkUI_AccessibilityFocusMoveDirection direction,
     int32_t requestId,
     ArkUI_AccessibilityElementInfo* elementList) {
-  LOGD("accessibilityProviderCallback_.FindNextFocusAccessibilityNode");
+  LOGD("accessibilityProviderCallback_.FindNextFocusAccessibilityNode instanceId %{public}s "
+       "id %{public}ld", instanceId, elementId);
   std::lock_guard<std::mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
+  auto xcomp = XComponentAdapter::GetInstance()->GetXcomponentBase(std::string(instanceId));
   if (xcomp != nullptr) {
     return xcomp->FindNextFocusAccessibilityNode(elementId, direction,
                                                  requestId, elementList);
@@ -356,14 +348,16 @@ int32_t FindNextFocusAccessibilityNodeCallback(
 
 /** Performing the Action operation on a specified node. */
 int32_t ExecuteAccessibilityActionCallback(
+    const char* instanceId,
     int64_t elementId,
     ArkUI_Accessibility_ActionType action,
     ArkUI_AccessibilityActionArguments* actionArguments,
     int32_t requestId) {
-  LOGD("accessibilityProviderCallback_.ExecuteAccessibilityAction");
+  LOGD("accessibilityProviderCallback_.ExecuteAccessibilityAction instanceId %{public}s "
+       "id %{public}ld", instanceId, elementId);
   std::lock_guard<std::mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
+  auto xcomp = XComponentAdapter::GetInstance()->GetXcomponentBase(std::string(instanceId));
   if (xcomp != nullptr) {
     return xcomp->ExecuteAccessibilityAction(elementId, action, actionArguments,
                                              requestId);
@@ -373,11 +367,12 @@ int32_t ExecuteAccessibilityActionCallback(
 }
 
 /** Clears the focus status of the currently focused node */
-int32_t ClearFocusedFocusAccessibilityNodeCallback() {
+int32_t ClearFocusedFocusAccessibilityNodeCallback(const char* instanceId) {
+  LOGD("accessibilityProviderCallback_.ClearFocusedFocusAccessibilityNode instanceId %{public}s"
+       , instanceId);
   std::lock_guard<std::mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
-  LOGD("accessibilityProviderCallback_.ClearFocusedFocusAccessibilityNode");
+  auto xcomp = XComponentAdapter::GetInstance()->GetXcomponentBase(std::string(instanceId));
   if (xcomp != nullptr) {
     return xcomp->ClearFocusedFocusAccessibilityNode(0);
   } else {
@@ -386,13 +381,15 @@ int32_t ClearFocusedFocusAccessibilityNodeCallback() {
 }
 
 /** Queries the current cursor position of a specified node. */
-int32_t GetAccessibilityNodeCursorPositionCallback(int64_t elementId,
+int32_t GetAccessibilityNodeCursorPositionCallback(const char* instanceId,
+                                                   int64_t elementId,
                                                    int32_t requestId,
                                                    int32_t* index) {
-  LOGD("accessibilityProviderCallback_.GetAccessibilityNodeCursorPosition");
+  LOGD("accessibilityProviderCallback_.GetAccessibilityNodeCursorPosition  instanceId %{public}s "
+       "id %{public}ld", instanceId, elementId);
   std::lock_guard<std::mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
+  auto xcomp = XComponentAdapter::GetInstance()->GetXcomponentBase(std::string(instanceId));
   if (xcomp != nullptr) {
     return xcomp->GetAccessibilityNodeCursorPosition(elementId, requestId,
                                                      index);
@@ -505,10 +502,10 @@ XComponentBase::GetArkUIAccessibilityServiceProvider(
     LOGE("OH_NativeXComponent_GetNativeAccessibilityProvider is failed");
     return nullptr;
   }
-  ret = OH_ArkUI_AccessibilityProviderRegisterCallback(
-      provider, &accessibilityProviderCallback_);
+  ret = OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance(
+      id_.c_str(), provider, &accessibilityProviderCallback_);
   if (ret != 0) {
-    LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is failed");
+    LOGE("OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance is failed");
     return nullptr;
   }
   LOGI("XComponentBase::GetArkUIAccessibilityServiceProvider -> finished");

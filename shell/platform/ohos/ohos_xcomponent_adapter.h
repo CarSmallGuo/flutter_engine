@@ -85,7 +85,7 @@ class XComponentBase {
   OH_NativeXComponent_TouchEvent touchEvent_;
   OH_NativeXComponent_Callback callback_;
   OH_NativeXComponent_MouseEvent_Callback mouseCallback_;
-  ArkUI_AccessibilityProviderCallbacks accessibilityProviderCallback_;
+  ArkUI_AccessibilityProviderCallbacksWithInstance accessibilityProviderCallback_;
   std::string id_;
   std::string shellholderId_;
   OHOSShellHolder* shellholder_ptr_ = nullptr;
@@ -115,15 +115,13 @@ class XComponentAdapter {
                int height);
   void DetachFlutterEngine(std::string& id);
   void OnMouseWheel(std::string& id, mouseWheelEvent event);
-  XComponentBase* GetCurrentXcomponent();
-  void SetCurrentXcomponentId(std::string id);
+  XComponentBase* GetXcomponentBase(const std::string& id);
 
  public:
   std::map<std::string, XComponentBase*> xcomponetMap_;
   std::mutex xcomponentMap_mutex_;
 
  private:
-  std::string current_xcomponent_id_ = "";
   static XComponentAdapter mXComponentAdapter;
 };
 

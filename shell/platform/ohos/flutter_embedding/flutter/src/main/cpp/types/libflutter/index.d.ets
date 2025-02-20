@@ -180,5 +180,3 @@ export const nativeSetSemanticsEnabled: (nativeShellHolderId: number, enabled: b
 export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightScale: number) => void;
 
 export const nativeSetFlutterNavigationAction: (nativeShellHolderId: number, isNavigate: boolean) => void;
-
-export const nativeUpdateCurrentXComponentId: (xcomponent_id: string) => void;

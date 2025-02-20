@@ -2467,25 +2467,4 @@ napi_value PlatformViewOHOSNapi::nativeSetFlutterNavigationAction(
   return nullptr;
 }
 
-napi_value PlatformViewOHOSNapi::nativeUpdateCurrentXComponentId(
-    napi_env env,
-    napi_callback_info info) {
-  napi_status ret;
-  size_t argc = 1;
-  napi_value args[1] = {nullptr};
-  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-  std::string xcomponent_id;
-
-  if (fml::napi::GetString(env, args[0], xcomponent_id) != 0) {
-    FML_DLOG(ERROR)
-        << "nativeUpdateCurrentXComponentId xcomponent_id GetString error";
-    return nullptr;
-  }
-
-  std::lock_guard<std::mutex> lock(
-      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  XComponentAdapter::GetInstance()->SetCurrentXcomponentId(xcomponent_id);
-  return nullptr;
-}
-
 }  // namespace flutter

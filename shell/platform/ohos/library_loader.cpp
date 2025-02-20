@@ -201,9 +201,6 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeEnableFrameCache",
           flutter::PlatformViewOHOSNapi::nativeEnableFrameCache),
-      DECLARE_NAPI_FUNCTION(
-          "nativeUpdateCurrentXComponentId",
-          flutter::PlatformViewOHOSNapi::nativeUpdateCurrentXComponentId),
   };
 
   FML_DLOG(INFO) << "Init NAPI size=" << sizeof(desc) / sizeof(desc[0]);
