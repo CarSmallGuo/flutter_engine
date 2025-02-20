@@ -146,10 +146,9 @@ void OhosAccessibilityBridge::UpdateSemantics(
     
     // if the screen reader starts (touch guide state is true),
     // sending the a11y event and draw the green rect 
-    if (1) {
-        Flutter_SendAccessibilityAsyncEvent(
-            0, ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_PAGE_CONTENT_UPDATE);
-    }
+    Flutter_SendAccessibilityAsyncEvent(
+        0, ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_PAGE_CONTENT_UPDATE);
+    
 
     /* 针对更新后的节点进行事件处理 */
     for (auto& nodeEx: updatedFlutterNodes) {
@@ -167,8 +166,8 @@ void OhosAccessibilityBridge::UpdateSemantics(
             // flutter滑动组件滑动处理逻辑
             FlutterScrollExecution(nodeEx, _elementInfo);
 
-            // 屏幕朗读状态下双指滑动，获焦节点绿框实时跟随节点滑动
-            if (1) {
+            // when screen reader is on and the touch guide is active
+            if (isTouchGuideOn_) {
                 Flutter_SendAccessibilityAsyncEvent(
                     static_cast<int64_t>(accessibilityFocusedNode.id),
                     ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_FOCUS_NODE_UPDATE);
@@ -182,7 +181,7 @@ void OhosAccessibilityBridge::UpdateSemantics(
         }
 
         // 判断是否触发liveRegion活动区，当前节点是否活跃
-        if (nodeEx.HasFlag(FLAGS_::kIsLiveRegion) && HasChangedLabel(nodeEx) && isTouchGuideOn_) {
+        if (nodeEx.HasFlag(FLAGS_::kIsLiveRegion) && HasChangedLabel(nodeEx)) {
             FML_DLOG(INFO) << "liveRegion -> page content update, nodeEx.id=" << nodeEx.id;
             Flutter_SendAccessibilityAsyncEvent(static_cast<int64_t>(nodeEx.id),
                                                 ArkUI_AccessibilityEventType::
@@ -221,13 +220,6 @@ void OhosAccessibilityBridge::FlutterScrollExecution(
     } else {
         nodeScrollExtentMax -= node.scrollExtentMin;
         nodePosition -= node.scrollExtentMin;
-    }
-
-    if (node.HasAction(ACTIONS_::kScrollUp) ||
-        node.HasAction(ACTIONS_::kScrollDown)) {
-    } else if (node.HasAction(ACTIONS_::kScrollLeft) ||
-               node.HasAction(ACTIONS_::kScrollRight)) {
-        LOGD("current flutterNode has scroll up/down/left/right");
     }
 
     // 当可滑动组件存在滑动子节点
@@ -495,7 +487,6 @@ SkPoint OhosAccessibilityBridge::ApplyTransform(
 void OhosAccessibilityBridge::RelativeRectToScreenRect(SemanticsNodeExtent& node)
 {
     auto [left, top, right, bottom] = node.rect;
-    // SkM44 globalTransform = g_globalTransformMap[node.id];
     SkM44 globalTransform = node.globalTransform;
 
     SkPoint points[4] = {
@@ -584,22 +575,13 @@ void OhosAccessibilityBridge::FlutterSetElementInfoOperationActions(
             ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD;
         actions[idx++].description = "scrollBackward action";
     }
-    // if (accessibilityFocusedNode.id != 0 &&
-    //     accessibilityFocusedNode.id == node.id) {
-    //     actions[idx].actionType = ArkUI_Accessibility_ActionType::
-    //     ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS;
-    //     actions[idx++].description = "clearFocus action";
-    // } else {
-    //     actions[idx].actionType = ArkUI_Accessibility_ActionType::
-    //     ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS;
-    //     actions[idx++].description = "focus action";
-    // }
     actions[idx].actionType = ArkUI_Accessibility_ActionType::
-        ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS;
+    ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS;
     actions[idx++].description = "focus action";
     actions[idx].actionType = ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS;
     actions[idx++].description = "clearFocus action";
+    
     ARKUI_ACCESSIBILITY_CALL_CHECK(
         OH_ArkUI_AccessibilityElementInfoSetOperationActions(elementInfoFromList, idx, actions)
     );
@@ -897,8 +879,6 @@ std::vector<int64_t> OhosAccessibilityBridge::GetLevelOrderTraversalTree(int32_t
   semanticsQue.push(root);
 
   while (!semanticsQue.empty()) {
-    uint32_t queSize = semanticsQue.size();
-    for (uint32_t i=0; i<queSize; i++) {
       auto currNode = semanticsQue.front();
       semanticsQue.pop();
       levelOrderTraversalTree.emplace_back(static_cast<int64_t>(currNode.id));
@@ -907,7 +887,6 @@ std::vector<int64_t> OhosAccessibilityBridge::GetLevelOrderTraversalTree(int32_t
         auto childNode = GetFlutterSemanticsNode(childId);
         semanticsQue.push(childNode);
       }
-    }
   }
   return levelOrderTraversalTree;
 }
@@ -1906,22 +1885,22 @@ SemanticsNodeExtent OhosAccessibilityBridge::UpdatetSemanticsNodeExtent(
     nodeEx.elevation = node.elevation;
     nodeEx.thickness = node.thickness;
     nodeEx.label = node.label;
-    nodeEx.labelAttributes = node.labelAttributes;
+    nodeEx.labelAttributes = std::move(node.labelAttributes);
     nodeEx.hint = node.hint;
-    nodeEx.hintAttributes = node.hintAttributes;
+    nodeEx.hintAttributes = std::move(node.hintAttributes);
     nodeEx.value = node.value;
-    nodeEx.valueAttributes = node.valueAttributes;
+    nodeEx.valueAttributes = std::move(node.valueAttributes);
     nodeEx.increasedValue = node.increasedValue;
-    nodeEx.increasedValueAttributes = node.increasedValueAttributes;
+    nodeEx.increasedValueAttributes = std::move(node.increasedValueAttributes);
     nodeEx.decreasedValue = node.decreasedValue;
-    nodeEx.decreasedValueAttributes = node.decreasedValueAttributes;
+    nodeEx.decreasedValueAttributes = std::move(node.decreasedValueAttributes);
     nodeEx.tooltip = node.tooltip;
     nodeEx.textDirection = node.textDirection;
-    nodeEx.rect = node.rect;
-    nodeEx.transform = node.transform;
-    nodeEx.childrenInTraversalOrder = node.childrenInTraversalOrder;
-    nodeEx.childrenInHitTestOrder = node.childrenInHitTestOrder;
-    nodeEx.customAccessibilityActions = node.customAccessibilityActions;
+    nodeEx.rect = std::move(node.rect);
+    nodeEx.transform = std::move(node.transform);
+    nodeEx.childrenInTraversalOrder = std::move(node.childrenInTraversalOrder);
+    nodeEx.childrenInHitTestOrder = std::move(node.childrenInHitTestOrder);
+    nodeEx.customAccessibilityActions = std::move(node.customAccessibilityActions);
     return nodeEx;
 }
 
