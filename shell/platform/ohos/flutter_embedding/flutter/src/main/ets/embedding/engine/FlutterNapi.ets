@@ -1,16 +1,7 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 */
 
 import flutter from 'libflutter.so';
@@ -226,24 +217,12 @@ export default class FlutterNapi {
                      , displayFeaturesType: Array<number>, displayFeaturesState: Array<number>): void {
     if (this.isAttached()) {
       flutter.nativeSetViewportMetrics(this.nativeShellHolderId!, devicePixelRatio,
-        physicalWidth,
-        physicalHeight,
-        physicalPaddingTop,
-        physicalPaddingRight,
-        physicalPaddingBottom,
-        physicalPaddingLeft,
-        physicalViewInsetTop,
-        physicalViewInsetRight,
-        physicalViewInsetBottom,
-        physicalViewInsetLeft,
-        systemGestureInsetTop,
-        systemGestureInsetRight,
-        systemGestureInsetBottom,
-        systemGestureInsetLeft,
-        physicalTouchSlop,
-        displayFeaturesBounds,
-        displayFeaturesType,
-        displayFeaturesState);
+        physicalWidth, physicalHeight, physicalPaddingTop, physicalPaddingRight,
+        physicalPaddingBottom, physicalPaddingLeft, physicalViewInsetTop,
+        physicalViewInsetRight, physicalViewInsetBottom, physicalViewInsetLeft,
+        systemGestureInsetTop, systemGestureInsetRight, systemGestureInsetBottom,
+        systemGestureInsetLeft, physicalTouchSlop, displayFeaturesBounds,
+        displayFeaturesType, displayFeaturesState);
     }
   }
 
@@ -497,6 +476,11 @@ export default class FlutterNapi {
     flutter.nativeSetTextureBackGroundPixelMap(this.nativeShellHolderId!, textureId, pixelMap);
   }
 
+  setTextureBackGroundColor(textureId: number, color: number): void {
+    Log.d(TAG, "called setTextureBackGroundColor ");
+    flutter.nativeSetTextureBackGroundColor(this.nativeShellHolderId!, textureId, color);
+  }
+
   registerTexture(textureId: number): number {
     Log.d(TAG, "called registerTexture ");
     if (!this.isAttached()) {
@@ -570,6 +554,9 @@ export default class FlutterNapi {
     return Boolean(flutter.nativeUnicodeIsRegionalIndicatorSymbol(code));
   }
 
+  SetDVsyncSwitch(isEnable: boolean): void {
+    flutter.nativeSetDVsyncSwitch(this.nativeShellHolderId!, isEnable);
+  }
 }
 
 export interface AccessibilityDelegate {

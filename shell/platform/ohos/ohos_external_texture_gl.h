@@ -1,16 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2013 The Flutter Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
  */
 
 #ifndef OHOS_EXTERNAL_TEXTURE_GL_H
@@ -36,7 +27,8 @@
 // maybe now unused
 namespace flutter {
 
-class OHOSExternalTextureGL : public flutter::Texture {
+// Represents an external texture for OHOS platform, using std::weak_ptr to avoid circular reference.
+class OHOSExternalTextureGL : public flutter::Texture, public std::enable_shared_from_this<OHOSExternalTextureGL> {
  public:
   explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface);
   explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface,
@@ -51,8 +43,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
   OH_NativeImage *nativeImage_;
 
   OH_NativeImage *backGroundNativeImage_;
-
-  void *frameData_;
 
   bool first_update_ = false;
 
@@ -81,12 +71,18 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   void DispatchBackGroundPixelMap(NativePixelMap* pixelMap);
 
+  void DispatchBackGroundColor(uint32_t color);
+
  private:
   void Attach();
 
   void Update();
 
   void Detach();
+
+  void Hide();
+
+  void Show();
 
   void UpdateTransform(OH_NativeImage *image);
 
@@ -102,7 +98,7 @@ class OHOSExternalTextureGL : public flutter::Texture {
 
   void ProducePixelMapToBackGroundImage();
 
-  enum class AttachmentState { uninitialized, attached, detached };
+  enum class AttachmentState { uninitialized, attached, detached, hide };
 
   AttachmentState state_;
 
@@ -119,6 +115,8 @@ class OHOSExternalTextureGL : public flutter::Texture {
   OHNativeWindow *backGroundNativeWindow_;
 
   NativePixelMap* backGroundPixelMap_;
+
+  uint32_t backGroundColor_ = 0xFFFFFFFF;  //  white color
 
   NativePixelMap* pixelMap_;
 
@@ -143,23 +141,6 @@ class OHOSExternalTextureGL : public flutter::Texture {
   void* context_;
 
   bool IsContextCurrent();
-};
-
-class OhosImageFrameData {
- public:
-  OhosImageFrameData(OHOSExternalTextureGL *ohosExternalTextureGL, int64_t textureId);
-
-  OhosImageFrameData() = delete;
-
-  ~OhosImageFrameData();
-
-  void OnPlatformViewMarkTextureFrameAvailable();
-
- private:
-
-  OHOSExternalTextureGL *ohosExternalTextureGL;
-
-  int64_t textureId_;
 };
 
 }  // namespace flutter

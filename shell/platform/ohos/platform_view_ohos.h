@@ -1,16 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2013 The Flutter Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
  */
 
 #ifndef OHOS_PLATFORM_VIEW_H
@@ -109,22 +100,23 @@ class PlatformViewOHOS final : public PlatformView {
   
   void SetExternalTextureBackGroundPixelMap(int64_t texture_id, NativePixelMap* pixelMap);
 
+  void SetExternalTextureBackGroundColor(int64_t texture_id, uint32_t color);
+
   void UnRegisterExternalTexture(int64_t texture_id);
 
   // |PlatformView|
   PointerDataDispatcherMaker GetDispatcherMaker() override;
 
-  // |PlatformView|
   void LoadDartDeferredLibrary(
       intptr_t loading_unit_id,
       std::unique_ptr<const fml::Mapping> snapshot_data,
       std::unique_ptr<const fml::Mapping> snapshot_instructions) override;
 
+  // |PlatformView|
   void LoadDartDeferredLibraryError(intptr_t loading_unit_id,
                                     const std::string error_message,
                                     bool transient) override;
 
-  // |PlatformView|
   void UpdateAssetResolverByType(
       std::unique_ptr<AssetResolver> updated_asset_resolver,
       AssetResolver::AssetResolverType type) override;
@@ -161,45 +153,33 @@ class PlatformViewOHOS final : public PlatformView {
 
   void SetDestroyed(bool isDestroyed_);
 
-  // |PlatformView|
   void UpdateSemantics(
       flutter::SemanticsNodeUpdates update,
       flutter::CustomAccessibilityActionUpdates actions) override;
 
-  // |PlatformView|
   void HandlePlatformMessage(
       std::unique_ptr<flutter::PlatformMessage> message) override;
 
-  // |PlatformView|
   void OnPreEngineRestart() const override;
 
-  // |PlatformView|
   std::unique_ptr<VsyncWaiter> CreateVSyncWaiter() override;
 
-  // |PlatformView|
   std::unique_ptr<Surface> CreateRenderingSurface() override;
 
-  // |PlatformView|
   std::shared_ptr<ExternalViewEmbedder> CreateExternalViewEmbedder() override;
 
-  // |PlatformView|
   std::unique_ptr<SnapshotSurfaceProducer> CreateSnapshotSurfaceProducer()
       override;
 
-  // |PlatformView|
   sk_sp<GrDirectContext> CreateResourceContext() const override;
 
-  // |PlatformView|
   void ReleaseResourceContext() const override;
 
-  // |PlatformView|
   std::shared_ptr<impeller::Context> GetImpellerContext() const override;
 
-  // |PlatformView|
   std::unique_ptr<std::vector<std::string>> ComputePlatformResolvedLocales(
       const std::vector<std::string>& supported_locale_data) override;
 
-  // |PlatformView|
   void RequestDartDeferredLibrary(intptr_t loading_unit_id) override;
 
   void InstallFirstFrameCallback();

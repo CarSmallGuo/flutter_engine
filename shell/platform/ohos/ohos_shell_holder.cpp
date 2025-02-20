@@ -1,16 +1,8 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright 2013 The Flutter Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
@@ -94,7 +86,7 @@ OHOSShellHolder::OHOSShellHolder(
 
   Shell::CreateCallback<PlatformView> on_create_platform_view =
       [&napi_facade, &weak_platform_view](Shell& shell) {
-        FML_DLOG(INFO) << "on_create_platform_view";
+        FML_LOG(INFO) << "on_create_platform_view";
         std::unique_ptr<PlatformViewOHOS> platform_view_OHOS;
         platform_view_OHOS = std::make_unique<PlatformViewOHOS>(
             shell,                   // delegate
@@ -104,19 +96,8 @@ OHOSShellHolder::OHOSShellHolder(
                 .enable_software_rendering,   // use software rendering
             shell.GetSettings().msaa_samples  // msaa sample count
         );
-        LOGI("on_create_platform_view LOGI");
-        FML_LOG(INFO) << "on_create_platform_view end";
         weak_platform_view = platform_view_OHOS->GetWeakPtr();
-        LOGI("on_create_platform_view LOGI2");
-        FML_LOG(INFO) << "on_create_platform_view end1";
-        std::vector<std::unique_ptr<Display>> displays;
-        displays.push_back(std::make_unique<OHOSDisplay>(napi_facade));
-        FML_DLOG(INFO) << "on_create_platform_view LOGI3";
-        FML_LOG(INFO) << "on_create_platform_view end3";
-        shell.OnDisplayUpdates(DisplayUpdateType::kStartup,
-                               std::move(displays));
-        LOGI("on_create_platform_view LOGI4");
-        FML_LOG(INFO) << "on_create_platform_view end3";
+        FML_LOG(INFO) << "on_create_platform_view end";
         return platform_view_OHOS;
       };
 
@@ -155,6 +136,13 @@ OHOSShellHolder::OHOSShellHolder(
       );
   FML_DLOG(INFO) << "shell create end";
   if (shell_) {
+    // For getting the RefreshRate of display
+    std::vector<std::unique_ptr<Display>> displays;
+    auto vsync_waiter = std::shared_ptr<flutter::VsyncWaiter>(shell_->GetVsyncWaiter().lock());
+    auto vsync_waiter_ohos = std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsync_waiter);
+    displays.push_back(std::make_unique<OHOSDisplay>(vsync_waiter_ohos));
+    shell_->OnDisplayUpdates(DisplayUpdateType::kStartup, std::move(displays));
+
     shell_->GetDartVM()->GetConcurrentMessageLoop()->PostTaskToAllWorkers([]() {
       if (::setpriority(PRIO_PROCESS, gettid(), 1) != 0) {
         FML_DLOG(ERROR) << "Failed to set Workers task runner priority";

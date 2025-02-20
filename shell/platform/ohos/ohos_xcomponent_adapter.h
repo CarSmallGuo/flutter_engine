@@ -1,16 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE_KHZG file.
  */
 
 #ifndef OHOS_XCOMPONENT_ADAPTER_H
@@ -20,12 +11,13 @@
 #include <arkui/native_interface_accessibility.h>
 #include <string>
 #include <map>
+#include <mutex>
 #include "flutter/shell/platform/ohos/ohos_touch_processor.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "napi/native_api.h"
 #include "napi_common.h"
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
-
+#include "flutter/shell/platform/ohos/utils/ddl_utils.h"
 namespace flutter {
 
 class XComponentBase
@@ -50,6 +42,9 @@ public:
   void OnDispatchMouseEvent(OH_NativeXComponent* component, void* window);
   void OnDispatchMouseWheelEvent(mouseWheelEvent event);
 
+  void RegisterArkUIAccessibilityService(
+       OH_NativeXComponent* nativeXComponent);
+
   OH_NativeXComponent_TouchEvent touchEvent_;
   OH_NativeXComponent_Callback callback_;
   OH_NativeXComponent_MouseEvent_Callback mouseCallback_;
@@ -64,7 +59,7 @@ public:
   uint64_t width_;
   uint64_t height_;
   OhosTouchProcessor ohosTouchProcessor_;
-
+  ArkUI_AccessibilityProvider* accessibilityProvider_;
 };
 
 class XComponentAdapter {
@@ -79,8 +74,12 @@ class XComponentAdapter {
   void DetachFlutterEngine(std::string& id);
   void OnMouseWheel(std::string& id, mouseWheelEvent event);
 
+  ArkUI_AccessibilityProvider* GetAccessibilityProvider(const std::string& xcompId);
+
  public:
   std::map<std::string, XComponentBase*> xcomponetMap_;
+  std::string currentXComponentId_;
+  std::mutex mutex_;
 
  private:
   static XComponentAdapter mXComponentAdapter;

@@ -1,16 +1,7 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 */
 
 import common from '@ohos.app.ability.common';
@@ -35,12 +26,10 @@ import FlutterNapi from '../engine/FlutterNapi';
 import { FlutterView } from '../../view/FlutterView';
 import FlutterManager from './FlutterManager';
 import Any from '../../plugin/common/Any';
-import inputMethod from '@ohos.inputMethod';
 
 const TAG = "FlutterAbilityDelegate";
 const PLUGINS_RESTORATION_BUNDLE_KEY = "plugins";
 const FRAMEWORK_RESTORATION_BUNDLE_KEY = "framework";
-const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
 
 /**
  * 主要职责：
@@ -56,7 +45,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
   private engineGroup?: FlutterEngineGroup;
   private isHost:boolean = false;
   private flutterView?: FlutterView;
-  private inputMethodController: inputMethod.InputMethodController = inputMethod.getController();
 
   constructor(host?: Host) {
     this.host = host;
@@ -94,14 +82,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
       this.flutterView.attachToFlutterEngine(this.flutterEngine!!);
     }
     this.host?.configureFlutterEngine(this.flutterEngine!!);
-    this.context.eventHub.on(EVENT_BACK_PRESS, () => {
-      if (this.flutterView?.getKeyboardHeight() == 0) {
-        this.flutterEngine?.getNavigationChannel()?.popRoute();
-        this.flutterEngine?.getPlatformViewsController()?.setBackNodeControllers();
-      } else {
-        this.inputMethodController.detach();
-      }
-    });
   }
 
   /**
@@ -309,7 +289,6 @@ class FlutterAbilityAndEntryDelegate implements ExclusiveAppComponent<UIAbility>
     }
 
     this.isAttached = false;
-    this.context?.eventHub.off(EVENT_BACK_PRESS);
   }
 
   onLowMemory(): void {

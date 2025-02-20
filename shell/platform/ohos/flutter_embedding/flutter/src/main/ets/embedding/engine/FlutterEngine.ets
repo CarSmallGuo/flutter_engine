@@ -1,16 +1,11 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 *
-*     http://www.apache.org/licenses/LICENSE-2.0
+* Based on FlutterEngine.java originally written by
+* Copyright (C) Copyright 2013 The Flutter Authors.
 *
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 */
 
 import LifecycleChannel from './systemchannels/LifecycleChannel';
@@ -39,6 +34,7 @@ import LocalizationPlugin from '../../plugin/localization/LocalizationPlugin'
 import SettingsChannel from './systemchannels/SettingsChannel';
 import PlatformViewsController from '../../plugin/platform/PlatformViewsController';
 import { FlutterRenderer } from './renderer/FlutterRenderer';
+import NativeVsyncChannel from './systemchannels/NativeVsyncChannel';
 
 const TAG = "FlutterEngine";
 
@@ -70,6 +66,7 @@ export default class FlutterEngine implements EngineLifecycleListener{
   private localizationPlugin: LocalizationPlugin | null = null;
   private settingsChannel: SettingsChannel | null = null;
   private platformViewsController: PlatformViewsController;
+  private nativeVsyncChannel: NativeVsyncChannel | null = null;
 
   /**
    * 需要初始化的工作：
@@ -125,6 +122,7 @@ export default class FlutterEngine implements EngineLifecycleListener{
     this.accessibilityChannel = new AccessibilityChannel(this.dartExecutor, this.flutterNapi);
     this.flutterNapi.addEngineLifecycleListener(this);
     this.localizationPlugin = new LocalizationPlugin(context, this.localeChannel);
+    this.nativeVsyncChannel = new NativeVsyncChannel(this.dartExecutor, this.flutterNapi);
 
     // It should typically be a fresh, unattached NAPI. But on a spawned engine, the NAPI instance
     // is already attached to a native shell. In that case, the Java FlutterEngine is created around

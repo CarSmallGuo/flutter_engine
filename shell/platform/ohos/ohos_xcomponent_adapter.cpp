@@ -1,16 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE_KHZG file.
  */
 
 #include "ohos_xcomponent_adapter.h"
@@ -18,6 +9,7 @@
 #include "types.h"
 #include "ohos_logging.h"
 #include <functional>
+#include "flutter/fml/logging.h"
 
 namespace flutter {
 
@@ -194,12 +186,15 @@ void OnSurfaceChangedCB(OH_NativeXComponent* component, void* window) {
 }
 
 void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
+  std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
   for(auto it = XComponentAdapter::GetInstance()->xcomponetMap_.begin(); 
     it != XComponentAdapter::GetInstance()->xcomponetMap_.end();)
   {
     if(it->second->nativeXComponent_ == component) {
       it->second->OnSurfaceDestroyed(component, window);
       delete it->second;
+      // 将当前要销毁的xcomponent对应的无障碍provider指针置nullptr
+      it->second->accessibilityProvider_ = nullptr;
       it = XComponentAdapter::GetInstance()->xcomponetMap_.erase(it);
     } else {
       ++it;
@@ -247,9 +242,8 @@ int32_t FindAccessibilityNodeInfosById(
     int32_t requestId,
     ArkUI_AccessibilityElementInfoList* elementList)
 {
-  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge->FindAccessibilityNodeInfosById(elementId, mode, requestId, elementList);
-  LOGD("accessibilityProviderCallback_.FindAccessibilityNodeInfosById");
+  OhosAccessibilityBridge::GetInstance()->FindAccessibilityNodeInfosById(elementId, mode, requestId, elementList);
+  FML_DLOG(INFO) << "accessibilityProviderCallback_.FindAccessibilityNodeInfosById";
   return 0;
 }
 
@@ -260,8 +254,7 @@ int32_t FindAccessibilityNodeInfosByText(
     int32_t requestId,
     ArkUI_AccessibilityElementInfoList* elementList)
 {
-  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge->FindAccessibilityNodeInfosByText(elementId, text, requestId, elementList);
+  OhosAccessibilityBridge::GetInstance()->FindAccessibilityNodeInfosByText(elementId, text, requestId, elementList);
   LOGD("accessibilityProviderCallback_.FindAccessibilityNodeInfosByText");
   return 0;
 }
@@ -273,8 +266,7 @@ int32_t FindFocusedAccessibilityNode(
     int32_t requestId, 
     ArkUI_AccessibilityElementInfo* elementinfo)
 {
-  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge->FindFocusedAccessibilityNode(elementId, focusType, requestId, elementinfo);
+  OhosAccessibilityBridge::GetInstance()->FindFocusedAccessibilityNode(elementId, focusType, requestId, elementinfo);
   LOGD("accessibilityProviderCallback_.FindFocusedAccessibilityNode");
   return 0;
 }
@@ -286,8 +278,7 @@ int32_t FindNextFocusAccessibilityNode(
     int32_t requestId,
     ArkUI_AccessibilityElementInfo *elementList)
 {
-  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge->FindNextFocusAccessibilityNode(elementId, direction, requestId, elementList);
+  OhosAccessibilityBridge::GetInstance()->FindNextFocusAccessibilityNode(elementId, direction, requestId, elementList);
   LOGD("accessibilityProviderCallback_.FindNextFocusAccessibilityNode");
   return 0;
 }
@@ -299,8 +290,7 @@ int32_t ExecuteAccessibilityAction(
     ArkUI_AccessibilityActionArguments* actionArguments,
     int32_t requestId)
 {
-  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge->ExecuteAccessibilityAction(elementId, action, actionArguments, requestId);
+  OhosAccessibilityBridge::GetInstance()->ExecuteAccessibilityAction(elementId, action, actionArguments, requestId);
   LOGD("accessibilityProviderCallback_.ExecuteAccessibilityAction");
   return 0;
 }
@@ -318,8 +308,7 @@ int32_t GetAccessibilityNodeCursorPosition(
     int32_t requestId,
     int32_t* index)
 {
-  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge->GetAccessibilityNodeCursorPosition(elementId, requestId, index);
+  OhosAccessibilityBridge::GetInstance()->GetAccessibilityNodeCursorPosition(elementId, requestId, index);
   LOGD("accessibilityProviderCallback_.GetAccessibilityNodeCursorPosition");
   return 0;
 }
@@ -369,47 +358,54 @@ void XComponentBase::DetachFlutterEngine() {
   isEngineAttached_ = false;
 }
 
+ArkUI_AccessibilityProvider* XComponentAdapter::GetAccessibilityProvider(const std::string& xcompId)
+{
+    auto it = xcomponetMap_.find(xcompId);
+    if (it != xcomponetMap_.end()) {
+        return it->second->accessibilityProvider_;
+    } else {
+        return nullptr;
+    }
+}
+
+void XComponentBase::RegisterArkUIAccessibilityService(OH_NativeXComponent* nativeXComponent)
+{
+    BindAccessibilityProviderCallback();
+
+    auto OH_NativeXComponent_GetNativeAccessibilityProvider =
+        OhosAccessibilityDDL::DLLoadGetNativeA11yProvider(ArkUIAccessibilityConstant::OH_GET_A11Y_PROVIDER);
+    CHECK_DLL_NULL_PTR(OH_NativeXComponent_GetNativeAccessibilityProvider);
+
+    ArkUI_AccessibilityProvider* a11yProvider = nullptr;
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_NativeXComponent_GetNativeAccessibilityProvider(nativeXComponent, &a11yProvider)
+    );
+
+    auto OH_ArkUI_AccessibilityProviderRegisterCallback =
+        OhosAccessibilityDDL::DLLoadRegisterFunc(ArkUIAccessibilityConstant::ARKUI_REGISTER_CALLBACK);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityProviderRegisterCallback);
+    CHECK_NULL_PTR(a11yProvider, RegisterArkUIAccessibilityService);
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityProviderRegisterCallback(a11yProvider, &accessibilityProviderCallback_)
+    );
+
+    std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
+    auto* base = XComponentAdapter::GetInstance()->xcomponetMap_[id_];
+    base->accessibilityProvider_ = a11yProvider;
+    base->nativeXComponent_ = nativeXComponent;
+
+    FML_DLOG(INFO) << "RegisterArkUIAccessibilityService is finished";
+}
+
 void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
   nativeXComponent_ = nativeXComponent;
   if (nativeXComponent_ != nullptr) {
     BindXComponentCallback();
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
-    
-    if (OH_GetSdkApiVersion() >= 13) {
-      LOGD("api version: %{public}d", OH_GetSdkApiVersion());
-      BindAccessibilityProviderCallback();
-
-      int32_t (*OH_NativeXComponent_GetNativeAccessibilityProvider)(OH_NativeXComponent*, ArkUI_AccessibilityProvider**) = 
-          OhosAccessibilityDDL::DLLoadGetNativeA11yProvider("OH_NativeXComponent_GetNativeAccessibilityProvider");
-      if (OH_NativeXComponent_GetNativeAccessibilityProvider == nullptr) {
-          LOGE("OH_NativeXComponent_GetNativeAccessibilityProvider is null, %{public}s", dlerror());
-      }
-      ArkUI_AccessibilityProvider* accessibilityProvider = nullptr;
-      int32_t ret1 = OH_NativeXComponent_GetNativeAccessibilityProvider(nativeXComponent_, &accessibilityProvider); 
-      if (ret1 != 0) {
-        LOGE("OH_NativeXComponent_GetNativeAccessibilityProvider is failed");
-        return;
-      }
-
-      int32_t (*OH_ArkUI_AccessibilityProviderRegisterCallback)(ArkUI_AccessibilityProvider*, ArkUI_AccessibilityProviderCallbacks*) = 
-          OhosAccessibilityDDL::DLLoadRegisterFunc("OH_ArkUI_AccessibilityProviderRegisterCallback");
-      if (OH_ArkUI_AccessibilityProviderRegisterCallback == nullptr) {
-          LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is null, %{public}s", dlerror());
-      }
-      int32_t ret2 = OH_ArkUI_AccessibilityProviderRegisterCallback(accessibilityProvider, &accessibilityProviderCallback_);
-      if (ret2 != 0) {
-        LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is failed");
-        return;
-      }
-      LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is %{public}d", ret2);
-
-      //将ArkUI_AccessibilityProvider传到无障碍bridge类
-      auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
-      ohosAccessibilityBridge->provider_ = accessibilityProvider;
-
-      LOGI("XComponentBase::SetNativeXComponent OH_ArkUI_AccessibilityProviderRegisterCallback is succeed");
-    }
+    // register the OH_ArkUI accessibility callbacks
+    if (OH_GetSdkApiVersion() < 13) { return; }
+    RegisterArkUIAccessibilityService(nativeXComponent_);
   }
 }
 
@@ -532,7 +528,8 @@ void XComponentBase::OnDispatchMouseWheelEvent(mouseWheelEvent event)
         }
         if (event.eventType == "actionUpdate") {
             OH_NativeXComponent_MouseEvent mouseEvent;
-            double scrollY = event.offsetY - g_scrollDistance;
+            // 调整鼠标滚轮滚动时，列表滑动的方向。和Windows保持一致。
+            double scrollY = g_scrollDistance - event.offsetY;
             g_scrollDistance = event.offsetY;
             // fix resize ratio
             mouseEvent.x = event.globalX / g_resizeRate;

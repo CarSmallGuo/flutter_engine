@@ -1,16 +1,11 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 *
-*     http://www.apache.org/licenses/LICENSE-2.0
+* Based on DartMessenger.java originally written by
+* Copyright (C) 2013 The Flutter Authors.
 *
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 */
 import { ErrorEvent, Queue, taskpool, worker, MessageEvents, JSON } from '@kit.ArkTS';
 
@@ -149,12 +144,12 @@ export class DartMessenger implements BinaryMessenger, PlatformMessageHandler {
    * Returns the number of pending channel callback replies.
    *
    * <p>When sending messages to the Flutter application using {@link BinaryMessenger#send(String,
-   * ByteBuffer, io.flutter.plugin.common.BinaryMessenger.BinaryReply)}, developers can optionally
-   * specify a reply callback if they expect a reply from the Flutter application.
+   * ByteBuffer, io.flutter.plugin.common.BinaryMessenger.BinaryReply)},developers can 
+   * optionally specify a reply callback if they expect a reply from the Flutter application.
    *
    * <p>This method tracks all the pending callbacks that are waiting for response, and is supposed
-   * to be called from the main thread (as other methods). Calling from a different thread could
-   * possibly capture an indeterministic internal state, so don't do it.
+   * to be called from the main thread (as other methods). Calling from a different thread
+   * could possibly capture an indeterministic internal state, so don't do it.
    */
   getPendingChannelResponseCount(): number {
     return this.pendingReplies.size;

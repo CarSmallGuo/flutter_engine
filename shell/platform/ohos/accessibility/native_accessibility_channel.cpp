@@ -1,16 +1,7 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE_HW file.
  */
 #include "native_accessibility_channel.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
@@ -73,7 +64,7 @@ namespace flutter {
   {
     auto ohos_shell_holder =
         reinterpret_cast<OHOSShellHolder*>(shellHolderId);
-    ohos_shell_holder->GetPlatformView()->PlatformView::DispatchSemanticsAction(id, action, fml::MallocMapping());
+    ohos_shell_holder->GetPlatformView()->PlatformView::DispatchSemanticsAction(id, action, std::move(args));
   }
 
   /**
@@ -83,8 +74,7 @@ namespace flutter {
       flutter::SemanticsNodeUpdates update,
       flutter::CustomAccessibilityActionUpdates actions)
   {
-    auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
-    ohos_a11y_bridge->updateSemantics(update, actions);
+      OhosAccessibilityBridge::GetInstance()->UpdateSemantics(update, actions);
   }  
 
   /**
@@ -102,7 +92,33 @@ namespace flutter {
   void NativeAccessibilityChannel::AccessibilityMessageHandler::Announce(
       std::unique_ptr<char[]>& message)
   {
-    auto ohos_a11y_bridge = OhosAccessibilityBridge::GetInstance();
-    ohos_a11y_bridge->Announce(message);
+      OhosAccessibilityBridge::GetInstance()->Announce(message);
+  }
+
+  /**
+   * 利用通道内部类AccessibilityMessageHandler处理主动点击给定id组件事件
+   */
+  void NativeAccessibilityChannel::AccessibilityMessageHandler::OnTap(
+      int32_t nodeId)
+  {
+      OhosAccessibilityBridge::GetInstance()->OnTap(nodeId);
+  }
+
+  /**
+   * 利用通道内部类AccessibilityMessageHandler处理主动长按给定id组件事件
+   */
+  void NativeAccessibilityChannel::AccessibilityMessageHandler::OnLongPress(
+      int32_t nodeId)
+  {
+      OhosAccessibilityBridge::GetInstance()->OnLongPress(nodeId);
+  }
+
+  /**
+   * 利用通道内部类AccessibilityMessageHandler处理提示文字事件
+   */
+  void NativeAccessibilityChannel::AccessibilityMessageHandler::OnTooltip(
+      std::unique_ptr<char[]>& message)
+  {
+      OhosAccessibilityBridge::GetInstance()->OnTooltip(message);
   }
 }

@@ -1,16 +1,11 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 *
-*     http://www.apache.org/licenses/LICENSE-2.0
+* Based on ListenableEditingState.java originally written by
+* Copyright (C) 2013 The Flutter Authors.
 *
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 */
 
 import { TextEditState } from '../../embedding/engine/systemchannels/TextInputChannel';
@@ -250,42 +245,6 @@ export class ListenableEditingState {
     if(this.mBatchEditNestDepth > 0) {
       this.mPendingListeners.remove(listener);
     }
-  }
-
-  handleDeleteEvent(leftOrRight: boolean, length: number): void {
-    let start = this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
-    let end = this.mSelectionStartCache > this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
-
-    if (leftOrRight == false) {
-      //delete left
-      if (start == 0 && end == 0) {
-        return;
-      }
-      let unicodeStart = start;
-      if (start == end) {
-        unicodeStart = FlutterTextUtils.getOffsetBefore(this.mStringCache, start);
-      }
-      this.replace(unicodeStart, end, "", 0, 0);
-      this.mSelectionStartCache = unicodeStart;
-      let tempStr: string = this.mStringCache.slice(0, unicodeStart) + this.mStringCache.slice(end);
-      this.mStringCache = tempStr;
-      this.mSelectionEndCache = this.mSelectionStartCache;
-    } else if (leftOrRight == true) {
-      //delete right
-      if (start == this.mStringCache.length) {
-        return;
-      }
-      let unicodeEnd = end;
-      if (start == end) {
-        unicodeEnd = FlutterTextUtils.getOffsetAfter(this.mStringCache, start);
-      }
-      this.replace(start, unicodeEnd, "", 0, 0);
-      this.mSelectionEndCache = start;
-      let tempStr: string = this.mStringCache.slice(0, start) + (unicodeEnd >= this.mStringCache.length ? "" : this.mStringCache.slice(unicodeEnd));
-      this.mStringCache = tempStr;
-      this.mSelectionStartCache = this.mSelectionEndCache;
-    }
-    this.notifyListenersIfNeeded(true, true, false);
   }
 
   handleNewlineEvent(): void {
