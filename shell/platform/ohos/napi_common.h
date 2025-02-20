@@ -15,18 +15,18 @@
 
 #define NAPI_RETVAL_NOTHING
 
-#define GET_AND_THROW_LAST_ERROR(env)                                \
-  do {                                                               \
+#define GET_AND_THROW_LAST_ERROR(env)                                 \
+  do {                                                                \
     const napi_extended_error_info* error_Info = nullptr;             \
     napi_get_last_error_info((env), &error_Info);                     \
-    bool isPending = false;                                          \
-    napi_is_exception_pending((env), &isPending);                    \
+    bool isPending = false;                                           \
+    napi_is_exception_pending((env), &isPending);                     \
     if (!isPending && error_Info != nullptr) {                        \
       const char* errorMessage = error_Info->error_message != nullptr \
                                      ? error_Info->error_message      \
-                                     : "empty error message";        \
-      napi_throw_error((env), nullptr, errorMessage);                \
-    }                                                                \
+                                     : "empty error message";         \
+      napi_throw_error((env), nullptr, errorMessage);                 \
+    }                                                                 \
   } while (0)
 
 #define NAPI_ASSERT_BASE(env, assertion, message, retVal)              \
@@ -45,11 +45,11 @@
   NAPI_ASSERT_BASE(env, assertion, message, NAPI_RETVAL_NOTHING)
 
 #define NAPI_CALL_BASE(env, theCall, retValue) \
-  do {                                       \
-    if ((theCall) != napi_ok) {              \
-      GET_AND_THROW_LAST_ERROR((env));       \
+  do {                                         \
+    if ((theCall) != napi_ok) {                \
+      GET_AND_THROW_LAST_ERROR((env));         \
       return retValue;                         \
-    }                                        \
+    }                                          \
   } while (0)
 
 #define NAPI_CALL(env, theCall) NAPI_CALL_BASE(env, theCall, nullptr)
