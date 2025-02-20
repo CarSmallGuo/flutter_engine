@@ -87,7 +87,6 @@ source_set("flutter_ohos_sources") {
              "platform_view_ohos_delegate.h",
              "./accessibility/ohos_accessibility_bridge.h",
              "./accessibility/ohos_accessibility_features.h",
-             "./accessibility/ohos_accessibility_manager.h",
              "./accessibility/native_accessibility_channel.h",
              "./accessibility/ohos_accessibility_ddl.h",
              "./utils/ddl_utils.h",
@@ -126,7 +125,6 @@ source_set("flutter_ohos_sources") {
       "platform_view_ohos_delegate.cpp",
       "./accessibility/ohos_accessibility_bridge.cpp",
       "./accessibility/ohos_accessibility_features.cpp",
-      "./accessibility/ohos_accessibility_manager.cpp",
       "./accessibility/native_accessibility_channel.cpp",
       "./accessibility/ohos_accessibility_ddl.cpp",
       "./utils/ohos_utils.cpp"
