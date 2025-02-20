@@ -31,10 +31,10 @@
     bool isPending = false;                                           \
     napi_is_exception_pending((env), &isPending);                     \
     if (!isPending && error_Info != nullptr) {                        \
-      const char* errorMessage = error_Info->error_message != nullptr \
+        const char* errorMessage = error_Info->error_message != nullptr   \
                                      ? error_Info->error_message      \
                                      : "empty error message";         \
-      napi_throw_error((env), nullptr, errorMessage);                 \
+        napi_throw_error((env), nullptr, errorMessage);                   \
     }                                                                 \
   } while (0)
 
@@ -56,8 +56,8 @@
 #define NAPI_CALL_BASE(env, theCall, retValue) \
   do {                                         \
     if ((theCall) != napi_ok) {                \
-      GET_AND_THROW_LAST_ERROR((env));         \
-      return retValue;                         \
+        GET_AND_THROW_LAST_ERROR((env));         \
+        return retValue;                         \
     }                                          \
   } while (0)
 
