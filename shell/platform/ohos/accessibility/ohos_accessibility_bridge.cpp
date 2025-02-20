@@ -458,8 +458,6 @@ void OhosAccessibilityBridge::ComputeGlobalTransformAndParentId()
   semanticsQue.push(rootNode);
 
   while (!semanticsQue.empty()) {
-    uint32_t queSize = semanticsQue.size();
-    for (uint32_t i=0; i<queSize; i++) {
       auto currNode = semanticsQue.front();
       semanticsQue.pop();
 
@@ -470,7 +468,6 @@ void OhosAccessibilityBridge::ComputeGlobalTransformAndParentId()
         g_flutterSemanticsTree[childId] = childNode;
         semanticsQue.push(childNode);
       }
-    }
   }
 }
 
