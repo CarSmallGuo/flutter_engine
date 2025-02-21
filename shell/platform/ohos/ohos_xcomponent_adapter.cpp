@@ -195,6 +195,8 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
       delete it->second;
       // 将当前要销毁的xcomponent对应的无障碍provider指针置nullptr
       it->second->accessibilityProvider_ = nullptr;
+      // delete the semantics tree of the destroyed xcomponent
+      OhosAccessibilityBridge::GetInstance()->g_flutterSemanticsTreeXComponents.erase(it->first);
       it = XComponentAdapter::GetInstance()->xcomponetMap_.erase(it);
     } else {
       ++it;

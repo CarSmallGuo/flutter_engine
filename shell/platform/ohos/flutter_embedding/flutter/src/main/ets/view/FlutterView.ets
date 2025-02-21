@@ -207,6 +207,12 @@ export class FlutterView {
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
     this.mainWindow?.on('windowStatusChange', this.windowStatusChangeCallback);
 
+    // listen the touchGuideStateChange, when screen reader is on that
+    // the callback data of this lister event is true
+    accessibility.on('touchGuideStateChange', (data: boolean) => {
+      this.flutterEngine?.getFlutterNapi()?.touchGuideStateChange(data);
+      console.info(`subscribe touch guide state change, result: ${JSON.stringify(data)}`);
+    });
     //监听系统无障碍服务状态改变
     accessibility.on('accessibilityStateChange', (data: boolean) => {
       Log.i(TAG, `subscribe accessibility state change, result: ${JSON.stringify(data)}`);
@@ -370,6 +376,9 @@ export class FlutterView {
       this.mainWindow?.off('windowSizeChange', this.windowSizeChangeCallback);
       this.mainWindow?.off('avoidAreaChange', this.avoidAreaChangeCallback);
       this.mainWindow?.off('windowStatusChange', this.windowStatusChangeCallback);
+      accessibility.off('touchGuideStateChange', (data: boolean) => {
+        Log.i(TAG, `subscribe touch guide state change, result: ${JSON.stringify(data)}`);
+      });
       accessibility.off('accessibilityStateChange', (data: boolean) => {
         Log.i(TAG, `unsubscribe accessibility state change, result: ${JSON.stringify(data)}`);
       });
@@ -501,6 +510,14 @@ export class FlutterView {
       this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(accessibilityState)
     }
     Log.i(TAG, `accessibility isOpen state -> ${JSON.stringify(accessibilityState)}`);
+  }
+
+  onTouchGuideIsOpen() {
+    let touchGuideState: boolean = accessibility.isOpenTouchGuideSync();
+    if(touchGuideState) {
+      this.flutterEngine?.getFlutterNapi()?.touchGuideStateChange(touchGuideState)
+    }
+    Log.i(TAG, `Touch Guide isOpen state -> ${JSON.stringify(touchGuideState)}`);
   }
 
   onAreaChange(newArea: Area | null, setFullScreen: boolean = false) {
