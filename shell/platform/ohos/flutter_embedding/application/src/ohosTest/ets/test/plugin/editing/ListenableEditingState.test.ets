@@ -18,6 +18,13 @@ export default function ListenableEditingStateTest() {
       expect(editingState.getSelectionStart()).assertEqual(5);
       expect(editingState.getSelectionEnd()).assertEqual(5);
     })
+
+    it('should handle delete event correctly (right)', 0, ()  => {
+      editingState.handleDeleteEvent(true, 1);
+      expect(editingState.getStringCache()).assertEqual('hello');
+      expect(editingState.getSelectionStart()).assertEqual(5);
+      expect(editingState.getSelectionEnd()).assertEqual(5);
+    })
     it('should handle newline event correctly', 0, ()  => {
       editingState.handleNewlineEvent();
       expect(editingState.getStringCache()).assertEqual('hello\n');
