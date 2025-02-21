@@ -426,7 +426,8 @@ void OhosAccessibilityBridge::SetAbsoluteScreenRect(SemanticsNodeExtent& flutter
                    << ", {" << left << ", " << top << ", " << right << ", "<< bottom << "> }";
 }
 
-AbsoluteRect OhosAccessibilityBridge::GetAbsoluteScreenRect(const SemanticsNodeExtent& flutterNode)
+const AbsoluteRect& OhosAccessibilityBridge::GetAbsoluteScreenRect(
+    const SemanticsNodeExtent& flutterNode)
 {
     return flutterNode.absoluteRect;
 }
@@ -1850,8 +1851,8 @@ SemanticsNodeExtent OhosAccessibilityBridge::UpdatetSemanticsNodeExtent(
         nodeEx.previousScrollPosition = prevNode.scrollPosition;
         nodeEx.previousScrollExtentMax = prevNode.scrollExtentMax;
         nodeEx.previousScrollExtentMin = prevNode.scrollExtentMin;
-        nodeEx.previousValue = prevNode.value;
-        nodeEx.previousLabel = prevNode.label;
+        nodeEx.previousValue = std::move(prevNode.value);
+        nodeEx.previousLabel = std::move(prevNode.label);
     }
 
     // 更新当前flutter节点信息
@@ -1870,17 +1871,17 @@ SemanticsNodeExtent OhosAccessibilityBridge::UpdatetSemanticsNodeExtent(
     nodeEx.scrollExtentMin = node.scrollExtentMin;
     nodeEx.elevation = node.elevation;
     nodeEx.thickness = node.thickness;
-    nodeEx.label = node.label;
+    nodeEx.label = std::move(node.label);
     nodeEx.labelAttributes = std::move(node.labelAttributes);
-    nodeEx.hint = node.hint;
+    nodeEx.hint = std::move(node.hint);
     nodeEx.hintAttributes = std::move(node.hintAttributes);
-    nodeEx.value = node.value;
+    nodeEx.value = std::move(node.value);
     nodeEx.valueAttributes = std::move(node.valueAttributes);
-    nodeEx.increasedValue = node.increasedValue;
+    nodeEx.increasedValue = std::move(node.increasedValue);
     nodeEx.increasedValueAttributes = std::move(node.increasedValueAttributes);
-    nodeEx.decreasedValue = node.decreasedValue;
+    nodeEx.decreasedValue = std::move(node.decreasedValue);
     nodeEx.decreasedValueAttributes = std::move(node.decreasedValueAttributes);
-    nodeEx.tooltip = node.tooltip;
+    nodeEx.tooltip = std::move(node.tooltip);
     nodeEx.textDirection = node.textDirection;
     nodeEx.rect = std::move(node.rect);
     nodeEx.transform = std::move(node.transform);

@@ -24,9 +24,6 @@
 #include "third_party/skia/include/core/SkMatrix.h"
 #include "third_party/skia/include/core/SkScalar.h"
 #include "third_party/skia/include/core/SkPoint.h"
-#include "third_party/skia/include/core/SkMatrix.h"
-#include "third_party/skia/include/core/SkScalar.h"
-#include "third_party/skia/include/core/SkPoint.h"
 
 namespace flutter {
 typedef flutter::SemanticsFlags FLAGS_;
@@ -149,7 +146,7 @@ public:
         ArkUI_AccessibilityEventType eventType);
 
     void RelativeRectToScreenRect(SemanticsNodeExtent& node);
-    AbsoluteRect GetAbsoluteScreenRect(const SemanticsNodeExtent& flutterNode);
+    const AbsoluteRect& GetAbsoluteScreenRect(const SemanticsNodeExtent& flutterNode);
     void SetAbsoluteScreenRect(SemanticsNodeExtent& flutterNode,
                                float left,
                                float top,
