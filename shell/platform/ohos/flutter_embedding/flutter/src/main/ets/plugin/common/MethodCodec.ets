@@ -1,16 +1,11 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 *
-*     http://www.apache.org/licenses/LICENSE-2.0
+* Based on MethodCodec.java originally written by
+* Copyright (C) 2013 The Flutter Authors.
 *
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 */
 import Any from './Any';
 
@@ -18,9 +13,9 @@ import MethodCall from './MethodCall';
 /**
  * A codec for method calls and enveloped results.
  *
- * <p>Method calls are encoded as binary messages with enough structure that the codec can extract a
- * method name String and an arguments Object. These data items are used to populate a {@link
- * MethodCall}.
+ * <p>Method calls are encoded as binary messages with enough structure that the codec can
+ * extract amethod name String and an arguments Object. These data items are used to populate 
+ * a {@link MethodCall}.
  *
  * <p>All operations throw {@link IllegalArgumentException}, if conversion fails.
  */
@@ -57,10 +52,10 @@ export default interface MethodCodec {
    *
    * @param errorCode An error code String.
    * @param errorMessage An error message String, possibly null.
-   * @param errorDetails Error details, possibly null. Consider supporting {@link Throwable} in your
-   *     codec. This is the most common value passed to this field.
-   * @return a {@link ByteBuffer} containing the encoding between position 0 and the current
-   *     position.
+   * @param errorDetails Error details, possibly null. Consider supporting {@link Throwable} 
+   *     in your codec. This is the most common value passed to this field.
+   * @return a {@link ByteBuffer} containing the encoding between position 0 and the 
+   *     current position.
    */
   encodeErrorEnvelope(errorCode: string, errorMessage: string, errorDetails: Any): ArrayBuffer;
 
@@ -69,11 +64,11 @@ export default interface MethodCodec {
    *
    * @param errorCode An error code String.
    * @param errorMessage An error message String, possibly null.
-   * @param errorDetails Error details, possibly null. Consider supporting {@link Throwable} in your
-   *     codec. This is the most common value passed to this field.
+   * @param errorDetails Error details, possibly null. Consider supporting {@link Throwable} 
+   *     in your codec. This is the most common value passed to this field.
    * @param errorStacktrace Platform stacktrace for the error. possibly null.
-   * @return a {@link ByteBuffer} containing the encoding between position 0 and the current
-   *     position.
+   * @return a {@link ByteBuffer} containing the encoding between position 0 and the 
+   *     current position.
    */
   encodeErrorEnvelopeWithStacktrace(errorCode: string, errorMessage: string, errorDetails: Any, errorStacktrace: string): ArrayBuffer
 

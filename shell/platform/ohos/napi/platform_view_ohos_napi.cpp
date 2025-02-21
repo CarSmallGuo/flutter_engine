@@ -1,16 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE_KHZG file.
  */
 
 #include "platform_view_ohos_napi.h"
@@ -31,6 +22,7 @@
 #include "flutter/shell/platform/ohos/ohos_xcomponent_adapter.h"
 #include "flutter/shell/platform/ohos/surface/ohos_native_window.h"
 #include "flutter/shell/platform/ohos/types.h"
+#include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
 #include "flutter/lib/ui/plugins/callback_cache.h"
 #include "unicode/uchar.h"
 
@@ -40,6 +32,7 @@ namespace flutter {
 napi_env PlatformViewOHOSNapi::env_;
 std::vector<std::string> PlatformViewOHOSNapi::system_languages;
 int64_t PlatformViewOHOSNapi::napi_shell_holder_id_;
+const int32_t PlatformViewOHOSNapi::OHOS_API_VERSION = OH_GetSdkApiVersion();
 
 /**
  * @brief send  empty PlatformMessage
@@ -1583,6 +1576,24 @@ napi_value PlatformViewOHOSNapi::nativeSetTextureBackGroundPixelMap(
   return nullptr;
 }
 
+napi_value PlatformViewOHOSNapi::nativeSetTextureBackGroundColor(
+    napi_env env,
+    napi_callback_info info) {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetTextureBackGroundColor";
+  size_t argc = 3;
+  napi_value args[3] = {nullptr};
+  int64_t shell_holder;
+  int64_t textureId;
+  uint32_t color;
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
+  NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
+  NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
+  NAPI_CALL(env, napi_get_value_uint32(env, args[2], &color));
+  OHOS_SHELL_HOLDER->GetPlatformView()->SetExternalTextureBackGroundColor(
+      textureId, color);
+  return nullptr;
+}
+
 void PlatformViewOHOSNapi::SurfaceCreated(int64_t shell_holder, void* window) {
   auto native_window = fml::MakeRefCounted<OHOSNativeWindow>(
       static_cast<OHNativeWindow*>(window));
@@ -1849,14 +1860,14 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
                     << ret;
     return nullptr;
   }
-  int64_t shell_holder_id;
-  ret = napi_get_value_int64(env, args[0], &shell_holder_id);
+
+  int64_t shellHolder = 0;
+  ret = napi_get_value_int64(env, args[0], &shellHolder);
   if (ret != napi_ok) {
-    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeAccessibilityStateChange "
-                       "napi_get_value_int64 error:"
-                    << ret;
+    LOGE("nativeAccessibilityStateChange shellHolder napi_get_value_int64 error");
     return nullptr;
   }
+
   bool state = false;
   ret = napi_get_value_bool(env, args[1], &state);
   if (ret != napi_ok) {
@@ -1865,20 +1876,17 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
                     << ret;
     return nullptr;
   }
-  LOGD(
-      "PlatformViewOHOSNapi::nativeAccessibilityStateChange state is: "
-      "%{public}s",
-      (state ? "true" : "false"));
+  LOGD("PlatformViewOHOSNapi::nativeAccessibilityStateChange state is: "
+       "%{public}s, shellholderId: %{public}ld", (state ? "true" : "false"), shellHolder);
 
   //send to accessibility bridge
-  auto a11y_bridge = OhosAccessibilityBridge::GetInstance();
-  a11y_bridge->OnOhosAccessibilityStateChange(shell_holder_id, state);
-  FML_DLOG(INFO) << "nativeAccessibilityStateChange: state=" << state
-                 << " shell_holder_id=" << shell_holder_id;
+  if (OHOS_API_VERSION >= 13) {
+      OhosAccessibilityBridge::GetInstance()->OnOhosAccessibilityStateChange(state, shellHolder);
+  }
   return nullptr;
 }
 
-napi_value PlatformViewOHOSNapi::nativeAnnounce(
+napi_value PlatformViewOHOSNapi::nativeAccessibilityAnnounce(
   napi_env env,
   napi_callback_info info) {
   size_t argc = 1;
@@ -1892,9 +1900,71 @@ napi_value PlatformViewOHOSNapi::nativeAnnounce(
   auto char_array = std::make_unique<char[]>(null_terminated_length);
   napi_get_value_string_utf8(env, args[0], char_array.get(),
                              null_terminated_length, nullptr);
-  LOGD("PlatformViewOHOSNapi::nativeAnnounce message: %{public}s", char_array.get());
-  auto handler = std::make_shared<NativeAccessibilityChannel::AccessibilityMessageHandler>();
-  handler->Announce(char_array);
+  LOGD("PlatformViewOHOSNapi::nativeAccessibilityAnnounce message: %{public}s", char_array.get());
+
+  if (OHOS_API_VERSION >= 13) {
+      auto handler = std::make_shared<NativeAccessibilityChannel::AccessibilityMessageHandler>();
+      handler->Announce(char_array);
+  }
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeAccessibilityOnTap(
+  napi_env env,
+  napi_callback_info info) {
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  int32_t nodeId;
+  napi_get_value_int32(env, args[0], &nodeId);
+
+  if (OHOS_API_VERSION >= 13) {
+      auto handler = std::make_shared<NativeAccessibilityChannel::AccessibilityMessageHandler>();
+      handler->OnTap(nodeId);
+      LOGI("nativeAccessibilityOnTap -> nodeId:%{public}d", nodeId);
+  }
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeAccessibilityOnLongPress(
+  napi_env env,
+  napi_callback_info info) {
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  int32_t nodeId;
+  napi_get_value_int32(env, args[0], &nodeId);;
+
+  if (OHOS_API_VERSION >= 13) {
+      auto handler = std::make_shared<NativeAccessibilityChannel::AccessibilityMessageHandler>();
+      handler->OnLongPress(nodeId);
+      LOGI("nativeAccessibilityOnLongPress -> nodeId:%{public}d", nodeId);
+  }
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeAccessibilityOnTooltip(
+  napi_env env,
+  napi_callback_info info) {
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  size_t length = 0;
+  napi_get_value_string_utf8(env, args[0], nullptr, 0, &length);
+
+  auto null_terminated_length = length + 1;
+  auto char_array = std::make_unique<char[]>(null_terminated_length);
+  napi_get_value_string_utf8(env, args[0], char_array.get(),
+                             null_terminated_length, nullptr);
+  LOGD("PlatformViewOHOSNapi::nativeAccessibilityOnTooltip message: %{public}s", char_array.get());
+
+if (OHOS_API_VERSION >= 13) {
+      auto handler = std::make_shared<NativeAccessibilityChannel::AccessibilityMessageHandler>();
+      handler->OnTooltip(char_array);
+  }
   return nullptr;
 }
 
@@ -2103,8 +2173,7 @@ napi_value PlatformViewOHOSNapi::nativeGetFlutterNavigationAction(napi_env env, 
     return nullptr;
   }
 
-  auto ohosAccessibilityBridge = OhosAccessibilityBridge::GetInstance();
-  ohosAccessibilityBridge->IS_FLUTTER_NAVIGATE = isNavigate;
+  OhosAccessibilityBridge::GetInstance()->isFlutterNavigated_ = isNavigate;
   FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeGetFlutterNavigationAction -> "<<isNavigate;
   return nullptr;
 }
@@ -2216,6 +2285,66 @@ napi_value PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol(napi_env
 
   napi_value result;
   napi_create_int32(env, (int)is_emoji, &result);
+  return result;
+}
+
+napi_value PlatformViewOHOSNapi::nativeGetXComponentId(napi_env env, napi_callback_info info)
+{
+  size_t argc = 1;
+  napi_value args[1] = {nullptr};
+  napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+
+  std::string xcomponentId;
+  bool ret = fml::napi::GetString(env, args[0], xcomponentId);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeGetXComponentId xcomponentId: " << xcomponentId;
+    return nullptr;
+  }
+  // obtain the current visible xcomponent id from the ets callback event
+  XComponentAdapter::GetInstance()->currentXComponentId_ = xcomponentId;
+  FML_DLOG(ERROR) << "nativeGetXComponentId -> xcomponentId: " << xcomponentId;
+  return nullptr;
+}
+
+
+napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callback_info info)
+{
+  size_t argc = 2;
+  napi_value result;
+  napi_value args[2] = {nullptr};
+  napi_status ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (ret != napi_ok) {
+    LOGE("nativeSetDVsyncSwitch napi_get_cb_info error");
+    napi_create_int32(env, -1, &result);
+    return result;
+  }
+
+  int64_t shell_holder;
+  ret = napi_get_value_int64(env, args[0], &shell_holder);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeSetDVsyncSwitch shell_holder "
+                       "napi_get_value_int64 error";
+    return nullptr;
+  }
+
+  bool isEnable;
+  ret = napi_get_value_bool(env, args[1], &isEnable);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeSetDVsyncSwitch isEnable "
+                       "napi_get_value_bool error";
+    return nullptr;
+  }
+
+  auto vsyncWaiter = std::shared_ptr<flutter::VsyncWaiter>(OHOS_SHELL_HOLDER->GetVsyncWaiter().lock());
+  auto vsync_waiter_ohos = std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsyncWaiter);
+
+  if (isEnable) {
+    LOGD("EnableDVsync");
+  } else {
+    LOGD("DisableDVsync");
+  }
+
+  napi_create_int32(env, 0, &result);
   return result;
 }
 }  // namespace flutter

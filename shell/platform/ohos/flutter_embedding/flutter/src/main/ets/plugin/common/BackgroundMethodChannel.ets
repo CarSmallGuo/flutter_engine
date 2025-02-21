@@ -1,16 +1,7 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 */
 import Log from '../../util/Log';
 import MessageChannelUtils from '../../util/MessageChannelUtils';
@@ -26,14 +17,15 @@ import SendableMethodCodec from './SendableMethodCodec'
 import SendableBinaryMessageHandler from './SendableBinaryMessageHandler'
 
 /**
- * A named channel for communicating with the Flutter application using asynchronous method calls.
+ * A named channel for communicating with the Flutter application using asynchronous method
+ * calls.
  *
  * <p>Incoming method calls are decoded from binary on receipt, and Java results are encoded into
- * binary before being transmitted back to Flutter. The {@link MethodCodec} used must be compatible
- * with the one used by the Flutter application. This can be achieved by creating a <a
+ * binary before being transmitted back to Flutter. The {@link MethodCodec} used must be 
+ * compatible with the one used by the Flutter application. This can be achieved by creating a <a
  * href="https://api.flutter.dev/flutter/services/MethodChannel-class.html">MethodChannel</a>
- * counterpart of this channel on the Dart side. The Java type of method call arguments and results
- * is {@code Object}, but only values supported by the specified {@link MethodCodec} can be used.
+ * counterpart of this channel on the Dart side. The Java type of method call arguments and
+ * results is {@code Object}, but only values supported by the specified {@link MethodCodec} can be used.
  *
  * <p>The logical identity of the channel is given by its name. Identically named channels will
  * interfere with each other's communication.
@@ -62,7 +54,8 @@ export default class BackgroundMethodChannel {
   /**
    * Invokes a method on this channel, optionally expecting a result.
    *
-   * <p>Any uncaught exception thrown by the result callback will be caught and logged.
+   * <p>Any uncaught exception thrown by the result callback will be caught and
+   * logged.
    *
    * @param method the name String of the method.
    * @param arguments the arguments for the invocation, possibly null.
@@ -79,12 +72,12 @@ export default class BackgroundMethodChannel {
    *
    * <p>Overrides any existing handler registration for (the name of) this channel.
    *
-   * <p>If no handler has been registered, any incoming method call on this channel will be handled
-   * silently by sending a null reply. This results in a <a
-   * href="https://api.flutter.dev/flutter/services/MissingPluginException-class.html">MissingPluginException</a>
-   * on the Dart side, unless an <a
-   * href="https://api.flutter.dev/flutter/services/OptionalMethodChannel-class.html">OptionalMethodChannel</a>
-   * is used.
+   * <p>If no handler has been registered, any incoming method call on this channel will
+   * be handled silently by sending a null reply. This results in a <a
+   * href="https://api.flutter.dev/flutter/services/MissingPluginException-class.html">MissingPluginException</a
+   * > on the Dart side, unless an <a
+   * href="https://api.flutter.dev/flutter/services/OptionalMethodChannel-class.html">OptionalMethodChannel</a
+   * > is used.
    *
    * @param handler a {@link MethodCallHandler}, or null to deregister.
    */

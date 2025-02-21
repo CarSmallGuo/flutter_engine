@@ -1,16 +1,11 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 *
-*     http://www.apache.org/licenses/LICENSE-2.0
+* Based on PlatformViewsController.java originally written by
+* Copyright (C) 2013 The Flutter Authors.
 *
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 */
 
 import { PlatformViewsAccessibilityDelegate } from './PlatformViewsAccessibilityDelegate';
@@ -64,6 +59,20 @@ class DVModelJson {
     this.events = events;
     this.build = build;
   }
+}
+enum TouchEventType {
+  /// Action code for when a primary pointer touched the screen.
+  ACTION_DOWN = 0,
+  /// Action code for when a primary pointer stopped touching the screen.
+  ACTION_UP = 1,
+  /// Action code for when the event only includes information about pointer movement.
+  ACTION_MOVE = 2,
+  /// Action code for when a motion event has been canceled.
+  ACTION_CANCEL = 3,
+  /// Action code for when a secondary pointer touched the screen.
+  ACTION_POINTER_DOWN = 5,
+  /// Action code for when a secondary pointer touched the screen.
+  ACTION_POINTER_UP = 6,
 }
 
 const TAG = "PlatformViewsController"
@@ -142,17 +151,18 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       this.textureRegistry!.unregisterTexture(textureId);
     }
 
+    this.viewIdWithNodeController.get(viewId)?.removeBuilderNode()
+    this.viewIdWithNodeController.get(viewId)?.disposeFrameNode()
+    this.viewIdWithNodeController.delete(viewId);
+
     let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
-    if (viewWrapper != null) {
-      this.viewIdWithNodeController.get(viewId)?.removeBuilderNode()
-      this.viewIdWithNodeController.get(viewId)?.disposeFrameNode()
-      this.viewIdWithNodeController.delete(viewId);
-      if (this.flutterView) {
-        let index = this.flutterView.getDVModel().children.indexOf(viewWrapper.getDvModel()!);
+    if (viewWrapper != null && this.flutterView) {
+      let index = this.flutterView.getDVModel().children.indexOf(viewWrapper.getDvModel()!);
+      if (index > -1) {
         this.flutterView.getDVModel().children.splice(index, 1);
       }
-      this.viewWrappers.delete(viewId);
     }
+    this.viewWrappers.delete(viewId);
 
     try {
       platformView.dispose();
@@ -203,12 +213,12 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       let dvModel = viewWrapper.getDvModel()
       let params = dvModel.getLayoutParams() as Record<string, Any>;
       //接收到点击类型为down的时候
-      if (touch.action == 0) {
+      if (touch.action === TouchEventType.ACTION_DOWN) {
         //将当前点击状态设置为true
         params['down'] = true
         //首次收到触控点击类型为 OH_NATIVEXCOMPONENT_DOWN ，则将存到列表中的事件分发出去
         let touchEventArray: Array<CustomTouchEvent> | undefined = params['touchEvent'] as Array<CustomTouchEvent>
-        if (touchEventArray != undefined) {
+        if (touchEventArray !== undefined) {
           let nodeController = params['nodeController'] as EmbeddingNodeController;
           for (let it of touchEventArray) {
             nodeController.postEvent(it)
@@ -216,9 +226,9 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
           //首次执行完之后，将列表数据置空
           params['touchEvent'] = undefined
         }
-      //当前接收的事件类型为up的时候
-      } else if (touch.action == 1) {
-        //手指抬起之后，将当前点击状态设置为false。测试了一下，多个手指突然抬起，最后返回的状态也是1
+        //当前接收的事件类型为up的时候
+      } else if (touch.action === TouchEventType.ACTION_UP || touch.action === TouchEventType.ACTION_CANCEL) {
+        //手指抬起之后，将当前点击状态设置为false。测试了一下，多个手指突然抬起，最后返回的状态也是ACTION_UP
         //所以，这边就以状态抬起，代表当前用户不点击platformview了
         params['down'] = false
       }
@@ -371,9 +381,6 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
 
   public attachToView(newFlutterView : FlutterView) {
     this.flutterView = newFlutterView;
-    for (let wrapper of this.viewWrappers.values()) {
-      this.flutterView?.getDVModel().children.push(wrapper.getDvModel()!);
-    }
     for (let mutator of this.platformViewParent.values()) {
       this.flutterView?.getDVModel().children.push(mutator.getDvModel()!);
     }
@@ -383,9 +390,6 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
   }
 
   public detachFromView(): void {
-    for (let index = 0; index < this.viewWrappers.size; index++) {
-      this.flutterView?.getDVModel().children.pop();
-    }
     for (let index = 0; index < this.platformViewParent.size; index++) {
       this.flutterView?.getDVModel().children.pop();
     }

@@ -1,16 +1,7 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 */
 
 import UIAbility from '@ohos.app.ability.UIAbility';
@@ -29,14 +20,13 @@ import I18n from '@ohos.i18n'
 import { PlatformBrightness } from '../engine/systemchannels/SettingsChannel';
 import ConfigurationConstant from '@ohos.app.ability.ConfigurationConstant';
 import { Configuration } from '@ohos.app.ability.Configuration';
-
+import { deviceInfo } from '@kit.BasicServicesKit';
 import ExclusiveAppComponent from './ExclusiveAppComponent';
 import errorManager from '@ohos.app.ability.errorManager';
 import appRecovery from '@ohos.app.ability.appRecovery';
 import FlutterManager from './FlutterManager';
 import { FlutterView } from '../../view/FlutterView';
 import ApplicationInfoLoader from '../engine/loader/ApplicationInfoLoader';
-import { accessibility } from '@kit.AccessibilityKit';
 import { AccessibilityManager } from '../../view/AccessibilityBridge';
 
 const TAG = "FlutterAbility";
@@ -60,6 +50,14 @@ export class FlutterAbility extends UIAbility implements Host {
 
   pagePath(): string {
     return "pages/Index"
+  }
+
+  /**
+   * 可重写该方法，自定义FlutterAbility是否全屏；
+   * 默认值，根据设备类型，判断是否需要全屏
+   */
+  isDefaultFullScreen(): boolean {
+    return deviceInfo.deviceType != '2in1';
   }
 
   /**
@@ -107,13 +105,6 @@ export class FlutterAbility extends UIAbility implements Host {
     if (flutterApplicationInfo.isDebugMode) {
       this.delegate?.initWindow();
     }
-
-    //冷启动对os是否开启无障碍服务进行查询
-    let accessibilityState: boolean = accessibility.isOpenAccessibilitySync();
-    if(accessibilityState) {
-      this.delegate?.getFlutterNapi()?.accessibilityStateChange(accessibilityState);
-    }
-    Log.i(TAG, `accessibility isOpen state -> ${JSON.stringify(accessibilityState)}`);
   }
 
   onDestroy() {
@@ -184,7 +175,9 @@ export class FlutterAbility extends UIAbility implements Host {
 
         Log.i(TAG, 'Succeeded in loading the content. Data: %{public}s', JSON.stringify(data) ?? '');
       });
-      FlutterManager.getInstance().setUseFullScreen(true, this.context);
+      if (this.isDefaultFullScreen()) {
+        FlutterManager.getInstance().setUseFullScreen(true, this.context);
+      }
     } catch (exception) {
       Log.e(TAG, 'Failed to enable the listener for window stage event changes. Cause:' + JSON.stringify(exception));
     }
@@ -319,7 +312,7 @@ export class FlutterAbility extends UIAbility implements Host {
     if (this.launchWant.parameters![FlutterAbilityLaunchConfigs.EXTRA_CACHED_ENGINE_ID] != undefined) {
       return this.launchWant.parameters![FlutterAbilityLaunchConfigs.EXTRA_CACHED_ENGINE_ID] as boolean;
     }
-    if (this.getCachedEngineId() != null) {
+    if (this.getCachedEngineId() != null && this.getCachedEngineId().length > 0) {
       // Prevent overwriting the existing state in a cached engine with restoration state.
       return false;
     }

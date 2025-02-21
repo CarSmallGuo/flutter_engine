@@ -1,16 +1,7 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE_HW file.
  */
 #ifndef OHOS_ACCESSIBILITY_DDL_H
 #define OHOS_ACCESSIBILITY_DDL_H
@@ -42,6 +33,7 @@ using SetEventElemFunc = int32_t (*)(ArkUI_AccessibilityEventInfo*, ArkUI_Access
 
 using SetReqFocusFunc = int32_t (*)(ArkUI_AccessibilityEventInfo*, int32_t);
 using GetNativeA11yProvider = int32_t (*)(OH_NativeXComponent*, ArkUI_AccessibilityProvider**);
+using GetFindActionArgs = int32_t (*)(ArkUI_AccessibilityActionArguments*, const char*, char**);
 
 class OhosAccessibilityDDL {
 public:
@@ -72,11 +64,8 @@ public:
     static SetReqFocusFunc DLLoadSetReqFocusFunc(const char* symbolName);
 
     static GetNativeA11yProvider DLLoadGetNativeA11yProvider(const char* symbolName);
-
-
+    static GetFindActionArgs DLLoadGetFindActionArgs(const char* symbolName);
 };
 
-
 }  // namespace flutter
-
 #endif

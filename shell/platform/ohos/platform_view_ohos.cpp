@@ -1,16 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2013 The Flutter Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
  */
 
 #include "flutter/shell/platform/ohos/platform_view_ohos.h"
@@ -26,6 +17,7 @@
 #include "ohos_logging.h"
 #include "flutter/shell/platform/ohos/platform_view_ohos_delegate.h"
 #include <GLES2/gl2ext.h>
+
 
 namespace flutter {
 
@@ -117,15 +109,16 @@ PlatformViewOHOS::PlatformViewOHOS(
 
 PlatformViewOHOS::~PlatformViewOHOS() {
   FML_LOG(INFO) << "PlatformViewOHOS::~PlatformViewOHOS";
-  for (std::map<int64_t, std::shared_ptr<OHOSExternalTextureGL>>::iterator it = external_texture_gl_.begin();
-      it != external_texture_gl_.end(); ++it) {
-    if (it->second != nullptr) {
-      OH_NativeImage_Destroy(&(it->second->nativeImage_));
-      it->second->nativeImage_ = nullptr;
+  for (auto const &it : external_texture_gl_) {
+    if (it.second != nullptr) {
+      FML_LOG(INFO) << " nativeImage of textureId " << it.first << " will destroy";
+      if (it.second->nativeImage_ != nullptr) {
+        OH_NativeImage_Destroy(&(it.second->nativeImage_));
+        it.second->nativeImage_ = nullptr;
+      }
     }
   }
   external_texture_gl_.clear();
-  FML_LOG(INFO) << "PlatformViewOHOS::~PlatformViewOHOS finish";
 }
 
 void PlatformViewOHOS::NotifyCreate(
@@ -176,21 +169,10 @@ void PlatformViewOHOS::NotifySurfaceWindowChanged(
 }
 
 void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
-  LOGI("PlatformViewOHOS NotifyChanged enter");
-  if (ohos_surface_) {
-    fml::AutoResetWaitableEvent latch;
-    fml::TaskRunner::RunNowOrPostTask(
-        task_runners_.GetRasterTaskRunner(),  //
-        [&latch, surface = ohos_surface_.get(), size, this]() {
-          if (GetDestroyed()) {
-            LOGW("NotifyChanged, GetDestroyed is true, ignore this call.");
-          } else {
-            surface->OnScreenSurfaceResize(size);
-          }
-          latch.Signal();
-        });
-    latch.Wait();
-  }
+    //Do nothing, because SetViewportMetrics has notified window size change event
+    //If raster thread post task, Synchronization signal block application main thread
+    //(https://gitee.com/openharmony-sig/flutter_engine/issues/IBI4PK?from=project-issue)
+    return;
 }
 
 bool PlatformViewOHOS::GetDestroyed() {
@@ -296,9 +278,9 @@ void PlatformViewOHOS::UpdateAssetResolverByType(
 void PlatformViewOHOS::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
-  FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics is called";
-  auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
-  nativeAccessibilityChannel_->UpdateSemantics(update, actions);
+    FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics()";
+    auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
+    nativeAccessibilityChannel_->UpdateSemantics(update, actions);
 }
 
 // |PlatformView|
@@ -520,6 +502,17 @@ void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(
     auto iter = external_texture_gl_.find(texture_id);
     if (iter != external_texture_gl_.end()) {
       iter->second->DispatchBackGroundPixelMap(pixelMap);
+    }
+  }
+}
+
+void PlatformViewOHOS::SetExternalTextureBackGroundColor(
+    int64_t texture_id,
+    uint32_t color) {
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    auto iter = external_texture_gl_.find(texture_id);
+    if (iter != external_texture_gl_.end()) {
+      iter->second->DispatchBackGroundColor(color);
     }
   }
 }

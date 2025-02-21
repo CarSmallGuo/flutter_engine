@@ -1,16 +1,11 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 *
-*     http://www.apache.org/licenses/LICENSE-2.0
+* Based on FlutterLoader.java originally written by
+* Copyright (C) 2013 The Flutter Authors.
 *
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 */
 
 /**
@@ -81,12 +76,12 @@ export default class FlutterLoader {
   /**
    * Starts initialization of the native system.
    *
-   * <p>This loads the Flutter engine's native library to enable subsequent JNI calls. This also
-   * starts locating and unpacking Dart resources packaged in the app's APK.
+   * <p>This loads the Flutter engine's native library to enable subsequent NAPI calls. This also
+   * starts locating and unpacking Dart resources packaged in the app's HAP.
    *
    * <p>Calling this method multiple times has no effect.
    *
-   * @param applicationContext The Android application context.
+   * @param applicationContext The Ohos application context.
    * @param settings Configuration settings.
    */
   async startInitialization(context: common.Context) {
@@ -240,6 +235,9 @@ export default class FlutterLoader {
   }
 
   getLookupKeyForAsset(asset: string, packageName?: string): string {
+    if (typeof packageName === 'string' && packageName.trim().length > 0) {
+        return this.fullAssetPathFrom('packages' + FILE_SEPARATOR + packageName + FILE_SEPARATOR + asset);
+    }
     return this.fullAssetPathFrom(asset);
   }
 

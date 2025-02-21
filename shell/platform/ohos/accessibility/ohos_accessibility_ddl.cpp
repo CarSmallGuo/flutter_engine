@@ -1,16 +1,7 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE_HW file.
  */
 #include "ohos_accessibility_ddl.h"
 
@@ -278,6 +269,21 @@ GetNativeA11yProvider OhosAccessibilityDDL::DLLoadGetNativeA11yProvider(const ch
     }
 
     auto symbol = reinterpret_cast<GetNativeA11yProvider>(LOAD_SYM(handler, symbolName));
+    if (symbol == nullptr) {
+        CLOSE_LIB(handler);
+        return nullptr;
+    }
+    return symbol;
+}
+
+GetFindActionArgs OhosAccessibilityDDL::DLLoadGetFindActionArgs(const char* symbolName)
+{
+    LIBHANDLE handler = LOAD_LIB(ACCESSIBILITY_LIB_NAME);
+    if (handler == nullptr) {
+        return nullptr;
+    }
+
+    auto symbol = reinterpret_cast<GetFindActionArgs>(LOAD_SYM(handler, symbolName));
     if (symbol == nullptr) {
         CLOSE_LIB(handler);
         return nullptr;
