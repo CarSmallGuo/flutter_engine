@@ -1838,8 +1838,8 @@ SemanticsNodeExtent OhosAccessibilityBridge::UpdatetSemanticsNodeExtent(
     flutter::SemanticsNode node)
 {
     SemanticsNodeExtent nodeEx = SemanticsNodeExtent();
-    // 获取更新前的flutter节点信息
-    if (!g_flutterSemanticsTree.size()) {
+    // 
+    if (!g_flutterSemanticsTree.empty()) {
         auto prevNode = GetFlutterSemanticsNode(node.id);
         nodeEx.hadPreviousConfig = true;
         nodeEx.parentId = prevNode.parentId;
