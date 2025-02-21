@@ -1,16 +1,7 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 */
 
 import Log from '../../util/Log';
@@ -19,6 +10,7 @@ import FlutterManager from './FlutterManager';
 import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
 import flutter from 'libflutter.so';
 const TAG = "FlutterPage";
+
 export const OHOS_FLUTTER_PAGE_UPDATE = "ohos_flutter_page_update";
 
 /**
@@ -26,12 +18,23 @@ export const OHOS_FLUTTER_PAGE_UPDATE = "ohos_flutter_page_update";
  */
 @Component
 export struct FlutterPage {
+  @Prop safeAreaEdges: SafeAreaEdge[] | undefined = [];
+  @Prop safeAreaTypes: SafeAreaType[] | undefined = [];
   @Prop viewId: string = ""
   @Prop xComponentType: XComponentType = XComponentType.SURFACE
+  onFocusListener?: () => void | undefined;
+  onBlurListener?: () => void | undefined;
+  isFocusFlag: boolean = false;
+  defaultFocusOnTouch = false;
 
-  @Builder doNothingBuilder() {}
+  @Builder
+  doNothingBuilder() {
+  }
+
   @BuilderParam splashScreenView: () => void = this.doNothingBuilder;
-  @Builder defaultPage() {
+
+  @Builder
+  defaultPage() {
     Stack() {
       ForEach(this.rootDvModel!!, (child: ESObject) => {
         DynamicView({
@@ -53,6 +56,7 @@ export struct FlutterPage {
       XComponent({ id: this.viewId, type: this.xComponentType, libraryname: 'flutter' })
         .id(this.viewId)
         .focusable(true)
+        .focusOnTouch(this.defaultFocusOnTouch)
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
@@ -77,6 +81,7 @@ export struct FlutterPage {
         })
         .renderFit(RenderFit.TOP_LEFT)
         .backgroundColor(Color.Transparent)
+        .expandSafeArea(this.safeAreaTypes, this.safeAreaEdges)
 
       if (this.showSplashScreen) {
         this.splashScreenView();
@@ -123,8 +128,20 @@ export struct FlutterPage {
       });
       Log.d(TAG, "onDrop");
     })
+    .onFocus(() => {
+      Log.d(TAG, "onFocus");
+      this.onFocusListener?.();
+      this.isFocusFlag = true;
+    })
+    .onBlur(() => {
+      Log.d(TAG, "onBlur");
+      this.onBlurListener?.();
+      this.isFocusFlag = false;
+    })
   }
-  @Builder mouseWheelPage() {
+
+  @Builder
+  mouseWheelPage() {
     Stack() {
       ForEach(this.rootDvModel!!, (child: ESObject) => {
         DynamicView({
@@ -146,6 +163,7 @@ export struct FlutterPage {
       XComponent({ id: this.viewId, type: this.xComponentType, libraryname: 'flutter' })
         .id(this.viewId)
         .focusable(true)
+        .focusOnTouch(this.defaultFocusOnTouch)
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
@@ -170,6 +188,7 @@ export struct FlutterPage {
         })
         .renderFit(RenderFit.TOP_LEFT)
         .backgroundColor(Color.Transparent)
+        .expandSafeArea(this.safeAreaTypes, this.safeAreaEdges)
 
       if (this.showSplashScreen) {
         this.splashScreenView();
@@ -228,21 +247,31 @@ export struct FlutterPage {
           this.flutterView?.onMouseWheel("actionEnd", event);
         })
     )
+    .onFocus(() => {
+      Log.d(TAG, "onFocus");
+      this.onFocusListener?.();
+      this.isFocusFlag = true;
+    })
+    .onBlur(() => {
+      Log.d(TAG, "onBlur");
+      this.onBlurListener?.();
+      this.isFocusFlag = false;
+    })
   }
-  @State showSplashScreen: boolean = true;
 
+  public isFocused(): boolean {
+    return this.isFocusFlag;
+  }
+
+  @State showSplashScreen: boolean = true;
   @State checkFullScreen: boolean = true;
   @State checkKeyboard: boolean = true;
   @State checkGesture: boolean = true;
   @State checkMouseWheel: boolean = true;
-
   @StorageLink('nodeWidth') storageLinkWidth: number = 0;
   @StorageLink('nodeHeight') storageLinkHeight: number = 0;
-
   @State rootDvModel: DVModelChildren | undefined = undefined
-
   @State isNeedUpdate: boolean = false;
-
   private flutterView?: FlutterView | null
   private lastArea?: Area;
   private panOption: PanGestureOptions = new PanGestureOptions({ direction: PanDirection.Up | PanDirection.Down });

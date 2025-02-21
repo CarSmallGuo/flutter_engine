@@ -1,16 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE_KHZG file.
  */
 
 #include "platform_view_ohos_napi.h"
@@ -31,6 +22,7 @@
 #include "flutter/shell/platform/ohos/ohos_xcomponent_adapter.h"
 #include "flutter/shell/platform/ohos/surface/ohos_native_window.h"
 #include "flutter/shell/platform/ohos/types.h"
+#include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
 #include "flutter/lib/ui/plugins/callback_cache.h"
 #include "unicode/uchar.h"
 
@@ -1584,6 +1576,24 @@ napi_value PlatformViewOHOSNapi::nativeSetTextureBackGroundPixelMap(
   return nullptr;
 }
 
+napi_value PlatformViewOHOSNapi::nativeSetTextureBackGroundColor(
+    napi_env env,
+    napi_callback_info info) {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetTextureBackGroundColor";
+  size_t argc = 3;
+  napi_value args[3] = {nullptr};
+  int64_t shell_holder;
+  int64_t textureId;
+  uint32_t color;
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
+  NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
+  NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
+  NAPI_CALL(env, napi_get_value_uint32(env, args[2], &color));
+  OHOS_SHELL_HOLDER->GetPlatformView()->SetExternalTextureBackGroundColor(
+      textureId, color);
+  return nullptr;
+}
+
 void PlatformViewOHOSNapi::SurfaceCreated(int64_t shell_holder, void* window) {
   auto native_window = fml::MakeRefCounted<OHOSNativeWindow>(
       static_cast<OHNativeWindow*>(window));
@@ -2292,8 +2302,50 @@ napi_value PlatformViewOHOSNapi::nativeGetXComponentId(napi_env env, napi_callba
   }
   // obtain the current visible xcomponent id from the ets callback event
   XComponentAdapter::GetInstance()->currentXComponentId_ = xcomponentId;
-  FML_DLOG(INFO) << "nativeGetXComponentId -> xcomponentId: " << xcomponentId;
+  FML_DLOG(ERROR) << "nativeGetXComponentId -> xcomponentId: " << xcomponentId;
   return nullptr;
+}
+
+
+napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callback_info info)
+{
+  size_t argc = 2;
+  napi_value result;
+  napi_value args[2] = {nullptr};
+  napi_status ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (ret != napi_ok) {
+    LOGE("nativeSetDVsyncSwitch napi_get_cb_info error");
+    napi_create_int32(env, -1, &result);
+    return result;
+  }
+
+  int64_t shell_holder;
+  ret = napi_get_value_int64(env, args[0], &shell_holder);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeSetDVsyncSwitch shell_holder "
+                       "napi_get_value_int64 error";
+    return nullptr;
+  }
+
+  bool isEnable;
+  ret = napi_get_value_bool(env, args[1], &isEnable);
+  if (ret != napi_ok) {
+    FML_DLOG(ERROR) << "nativeSetDVsyncSwitch isEnable "
+                       "napi_get_value_bool error";
+    return nullptr;
+  }
+
+  auto vsyncWaiter = std::shared_ptr<flutter::VsyncWaiter>(OHOS_SHELL_HOLDER->GetVsyncWaiter().lock());
+  auto vsync_waiter_ohos = std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsyncWaiter);
+
+  if (isEnable) {
+    LOGD("EnableDVsync");
+  } else {
+    LOGD("DisableDVsync");
+  }
+
+  napi_create_int32(env, 0, &result);
+  return result;
 }
 
 napi_value PlatformViewOHOSNapi::NativeTouchGuideStateChange(napi_env env, napi_callback_info info)

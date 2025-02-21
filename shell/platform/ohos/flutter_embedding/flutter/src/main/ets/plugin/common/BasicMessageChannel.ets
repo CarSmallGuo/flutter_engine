@@ -1,16 +1,11 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 *
-*     http://www.apache.org/licenses/LICENSE-2.0
+* Based on BasicMessageChannel.java originally written by
+* Copyright (C) 2013 The Flutter Authors.
 *
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 */
 import MessageChannelUtils from '../../util/MessageChannelUtils';
 import { BinaryMessageHandler } from './BinaryMessenger';
@@ -22,15 +17,15 @@ import { BinaryMessenger } from './BinaryMessenger';
 import StringUtils from '../../util/StringUtils';
 
 /**
- * A named channel for communicating with the Flutter application using basic, asynchronous message
- * passing.
+ * A named channel for communicating with the Flutter application using basic, asynchronous
+ * message passing.
  *
- * <p>Messages are encoded into binary before being sent, and binary messages received are decoded
- * into Java objects. The {@link MessageCodec} used must be compatible with the one used by the
+ * <p>Messages are encoded into binary before being sent, and binary messages received are
+ * decoded into Java objects. The {@link MessageCodec} used must be compatible with the one used by the
  * Flutter application. This can be achieved by creating a <a
  * href="https://api.flutter.dev/flutter/services/BasicMessageChannel-class.html">BasicMessageChannel</a>
- * counterpart of this channel on the Dart side. The static Java type of messages sent and received
- * is {@code Object}, but only values supported by the specified {@link MessageCodec} can be used.
+ * counterpart of this channel on the Dart side. The static Java type of messages sent and
+ * received is {@code Object}, but only values supported by the specified {@link MessageCodec} can be used.
  *
  * <p>The logical identity of the channel is given by its name. Identically named channels will
  * interfere with each other's communication.
@@ -61,13 +56,13 @@ export default class BasicMessageChannel<T> {
   }
 
   /**
-   * Registers a message handler on this channel for receiving messages sent from the Flutter
-   * application.
+   * Registers a message handler on this channel for receiving messages sent from the
+   * Flutter application.
    *
    * <p>Overrides any existing handler registration for (the name of) this channel.
    *
-   * <p>If no handler has been registered, any incoming message on this channel will be handled
-   * silently by sending a null reply.
+   * <p>If no handler has been registered, any incoming message on this channel will be
+   * handled silently by sending a null reply.
    *
    * @param handler a {@link MessageHandler}, or null to deregister.
    */
@@ -104,12 +99,12 @@ export interface MessageHandler<T> {
    * message to the given {@link Reply}. Failure to do so will result in lingering Flutter reply
    * handlers. The reply may be submitted asynchronously and invoked on any thread.
    *
-   * <p>Any uncaught exception thrown by this method, or the preceding message decoding, will be
-   * caught by the channel implementation and logged, and a null reply message will be sent back
+   * <p>Any uncaught exception thrown by this method, or the preceding message decoding,
+   * will be caught by the channel implementation and logged, and a null reply message will be sent back
    * to Flutter.
    *
-   * <p>Any uncaught exception thrown during encoding a reply message submitted to the {@link
-   * Reply} is treated similarly: the exception is logged, and a null reply is sent to Flutter.
+   * <p>Any uncaught exception thrown during encoding a reply message submitted to the 
+   * {@link Reply} is treated similarly: the exception is logged, and a null reply is sent to Flutter.
    *
    * @param message the message, possibly null.
    * @param reply a {@link Reply} for sending a single message reply back to Flutter.

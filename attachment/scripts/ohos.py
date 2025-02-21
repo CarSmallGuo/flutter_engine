@@ -1,18 +1,9 @@
 #!/usr/bin/env python3
 # coding=utf-8
 #
-# Copyright (c) 2021-2023 Huawei Device Co., Ltd.
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Copyright (c) 2021-2024 Huawei Device Co., Ltd. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE_HW file.
 
 import argparse
 import json
@@ -26,7 +17,7 @@ import sys
 import zipfile
 from datetime import datetime
 
-SUPPORT_BUILD_NAMES = ("clean", "config", "har", "compile", "zip", "zip2", "upload")
+SUPPORT_BUILD_NAMES = ("clean", "config", "har", "compile", "zip", "zip2", "upload", "host")
 SUPPORT_BUILD_TYPES = ("debug", "profile", "release")
 SUPPORT_ABIS = {
     "x86": "x86",
@@ -198,6 +189,7 @@ def engineConfig(buildInfo, args):
         + unixCommand
         + "--no-goma "
         + "--no-prebuilt-dart-sdk "
+        + "--full-dart-sdk "
         + "--embedder-for-target "
         + "--disable-desktop-embeddings "
         + "--no-build-embedder-examples "
@@ -340,6 +332,9 @@ def addParseParam(parser):
     parser.add_argument(
         "--ohos-cpu", type=str, choices=['x64', 'x86', 'arm64', 'arm'], default="arm64"
     )
+    parser.add_argument(
+        "--host-cpu", type=str, choices=['x64', 'arm64'], default="x64"
+    )
 
 
 def updateCode(args):
@@ -360,6 +355,32 @@ def checkEnvironment():
             + " in the root directory of the 'engine' compilation."
         )
         exit(1)
+
+
+def buildLocalEngine(buildType, args):
+    OPT = "--unoptimized --no-lto " if buildType == "debug" else ""
+    extraParam = args.gn_extra_param
+    osName = platform.system().lower()
+    hostAppend = f"--mac-cpu {args.host_cpu}" if osName == "darwin" else ""
+    runCommand(
+        "%s " % os.path.join("src", "flutter", "tools", "gn")
+        + "--runtime-mode %s " % buildType
+        + OPT
+        + "--no-goma "
+        + "--no-prebuilt-dart-sdk "
+        + "--full-dart-sdk "
+        + "--disable-desktop-embeddings "
+        + "--no-build-embedder-examples "
+        + "--verbose "
+        + hostAppend
+        + extraParam.replace("\\", ""),
+        checkCode=False,
+        timeout=600,
+    )
+    append1 = "_unopt" if buildType == "debug" else ""
+    append2 = "_arm64" if args.host_cpu == "arm64" else ""
+    outputName = f"host_{buildType}{append1}{append2}"
+    runCommand(f"ninja -C src/out/{outputName}")
 
 
 def uploadFiles():
@@ -388,6 +409,8 @@ def buildByNameAndType(args):
                 zipFiles(buildInfo, False, args)
             elif "zip2" == buildName:
                 zipFiles(buildInfo, True, args)
+            elif "host" == buildName:
+                buildLocalEngine(buildType, args)
             else:
                 logging.warning("Other name=%s" % buildName)
 

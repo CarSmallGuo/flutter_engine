@@ -1,16 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2013 The Flutter Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
  */
 
 #include "flutter/shell/platform/ohos/platform_view_ohos.h"
@@ -178,21 +169,10 @@ void PlatformViewOHOS::NotifySurfaceWindowChanged(
 }
 
 void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
-  LOGI("PlatformViewOHOS NotifyChanged enter");
-  if (ohos_surface_) {
-    fml::AutoResetWaitableEvent latch;
-    fml::TaskRunner::RunNowOrPostTask(
-        task_runners_.GetRasterTaskRunner(),  //
-        [&latch, surface = ohos_surface_.get(), size, this]() {
-          if (GetDestroyed()) {
-            LOGW("NotifyChanged, GetDestroyed is true, ignore this call.");
-          } else {
-            surface->OnScreenSurfaceResize(size);
-          }
-          latch.Signal();
-        });
-    latch.Wait();
-  }
+    //Do nothing, because SetViewportMetrics has notified window size change event
+    //If raster thread post task, Synchronization signal block application main thread
+    //(https://gitee.com/openharmony-sig/flutter_engine/issues/IBI4PK?from=project-issue)
+    return;
 }
 
 bool PlatformViewOHOS::GetDestroyed() {
@@ -522,6 +502,17 @@ void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(
     auto iter = external_texture_gl_.find(texture_id);
     if (iter != external_texture_gl_.end()) {
       iter->second->DispatchBackGroundPixelMap(pixelMap);
+    }
+  }
+}
+
+void PlatformViewOHOS::SetExternalTextureBackGroundColor(
+    int64_t texture_id,
+    uint32_t color) {
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    auto iter = external_texture_gl_.find(texture_id);
+    if (iter != external_texture_gl_.end()) {
+      iter->second->DispatchBackGroundColor(color);
     }
   }
 }

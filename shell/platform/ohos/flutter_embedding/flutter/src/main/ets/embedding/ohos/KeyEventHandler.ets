@@ -1,16 +1,7 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE_HW file.
  */
 
 import { HashMap } from "@kit.ArkTS";
@@ -21,11 +12,20 @@ import { KeyCode } from "@kit.InputKit";
 
 const TAG = "KeyEventHandler";
 
+// 组合键
+const COMBINATION_KEYS = [
+  KeyCode.KEYCODE_CTRL_LEFT, KeyCode.KEYCODE_CTRL_RIGHT,
+  KeyCode.KEYCODE_ALT_LEFT, KeyCode.KEYCODE_ALT_RIGHT
+];
+
 export class KeyEventHandler {
   private textInputPlugin?: TextInputPlugin;
   private charMap : HashMap<number, string> = new HashMap();
   private shiftMap : HashMap<number, string> = new HashMap();
   private isShiftMode: boolean = false;
+  private isCombinationKey: boolean = false;
+  // 记录输入的keyCode，确保有down和up事件才输入字符
+  private inputMap: HashMap<number, string> = new HashMap();
 
   constructor(textInputPlugin?: TextInputPlugin) {
     this.textInputPlugin = textInputPlugin;
@@ -82,6 +82,16 @@ export class KeyEventHandler {
     this.charMap.set(KeyCode.KEYCODE_PERIOD, '.')
     this.charMap.set(KeyCode.KEYCODE_SLASH, '/')
     this.charMap.set(KeyCode.KEYCODE_SPACE, ' ')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_0, '0')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_1, '1')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_2, '2')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_3, '3')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_4, '4')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_5, '5')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_6, '6')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_7, '7')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_8, '8')
+    this.charMap.set(KeyCode.KEYCODE_NUMPAD_9, '9')
   }
 
   private initShiftMap() {
@@ -147,18 +157,36 @@ export class KeyEventHandler {
   handleKeyEvent(event: KeyEvent) {
     Log.i(TAG, JSON.stringify({
       "name": "handleKeyEvent",
-      "event": event
+      "event": event,
     }));
-    if (event.type == KeyType.Up) {
-      // 处理字符按键相关逻辑
-      if (this.charMap.hasKey(event.keyCode)) {
-        this.textInputPlugin?.getEditingState().handleInsertTextEvent(this.getCharByEvent(event))
+    let text = this.getCharByEvent(event);
+    if (event.type == KeyType.Down) {
+      if (!this.isCombinationKey) {
+        this.isCombinationKey = COMBINATION_KEYS.findIndex((it) => it == event.keyCode) >= 0;
+        if (this.isCombinationKey) {
+          this.inputMap.clear();
+        }
       }
-      // 处理非字符按键
-      if (event.keyCode == KeyCode.KEYCODE_DEL) {
-        this.textInputPlugin?.getEditingState().handleDeleteEvent(false, 0)
+      if (!this.isCombinationKey) {
+        // Ctrl/Alt 键按下的状态，不输入字符（字母/数字/符号）
+        this.inputMap.set(event.keyCode, text);
+      }
+    } else if (event.type == KeyType.Up) {
+      if (COMBINATION_KEYS.findIndex((it) => it == event.keyCode) >= 0) {
+        // Ctrl/Alt 键抬起，重置状态
+        this.isCombinationKey = false;
+        return;
+      } else if (this.isCombinationKey) {
+        // Ctrl/Alt 键按下的状态，不输入字符（字母/数字/符号）
+        return;
+      }
+      // 处理字符按键相关逻辑
+      if (this.inputMap.hasKey(event.keyCode) && this.charMap.hasKey(event.keyCode)) {
+        this.inputMap.remove(event.keyCode)
+        this.textInputPlugin?.getEditingState().handleInsertTextEvent(text)
       }
     }
     this.isShiftMode = event.keyCode == KeyCode.KEYCODE_SHIFT_LEFT
+        || event.keyCode == KeyCode.KEYCODE_SHIFT_RIGHT
   }
 }

@@ -1,16 +1,7 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 */
 
 import FlutterEngine from '../embedding/engine/FlutterEngine';
@@ -30,6 +21,7 @@ import { accessibility } from '@kit.AccessibilityKit';
 import TextInputPlugin from '../plugin/editing/TextInputPlugin';
 
 const TAG = "FlutterViewTag";
+const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
 
 export class ViewportMetrics {
   devicePixelRatio: number = 1.0;
@@ -184,6 +176,7 @@ export class FlutterView {
   private mouseCursorPlugin?: MouseCursorPlugin;
   private textInputPlugin?: TextInputPlugin;
   private uiContext?: UIContext | undefined;
+  private context: Context;
   private settings?: Settings;
   private mFirstFrameListeners: ArrayList<FirstFrameListener>;
   private isFlutterUiDisplayed: boolean = false;
@@ -197,13 +190,13 @@ export class FlutterView {
   private navigationAvoidArea: window.AvoidArea;
   private gestureAvoidArea: window.AvoidArea;
   private keyboardAvoidArea: window.AvoidArea;
-  private needSetViewport: boolean = false;
-
 
   constructor(viewId: string, context: Context) {
-    this.id = viewId
+    this.id = viewId;
+    this.context = context;
     this.displayInfo = display.getDefaultDisplaySync();
     this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
+
     this.buildDisplayFeatures(display.getFoldStatus());
     this.mainWindow = FlutterManager.getInstance()
       .getWindowStage(FlutterManager.getInstance().getUIAbility(context))
@@ -443,6 +436,15 @@ export class FlutterView {
     }
     this.onAreaChange(newArea, true);
 
+    this.context.eventHub.on(EVENT_BACK_PRESS, () => {
+      if (this?.getKeyboardHeight() == 0) {
+        this.flutterEngine?.getNavigationChannel()?.popRoute();
+        this.flutterEngine?.getPlatformViewsController()?.setBackNodeControllers();
+      } else {
+        this.flutterEngine?.getTextInputChannel()?.textInputMethodHandler?.hide();
+      }
+    });
+
     let windowId = this.mainWindow?.getWindowProperties()?.id ?? 0
     this.mouseCursorPlugin = new MouseCursorPlugin(windowId, this.flutterEngine?.getMouseCursorChannel()!);
     this.textInputPlugin = new TextInputPlugin(this.flutterEngine?.getTextInputChannel()!);
@@ -469,6 +471,7 @@ export class FlutterView {
     this.flutterEngine = null;
     this.keyboardManager = null;
     this.textInputPlugin?.destroy();
+    this.context?.eventHub.off(EVENT_BACK_PRESS);
   }
 
   onWindowCreated() {
@@ -518,8 +521,6 @@ export class FlutterView {
   }
 
   onAreaChange(newArea: Area | null, setFullScreen: boolean = false) {
-    const originalMetrics = this.viewportMetrics.clone();
-
     if (newArea != null) {
       this.viewportMetrics.physicalWidth = vp2px(newArea.width as number);
       this.viewportMetrics.physicalHeight = vp2px(newArea.height as number);
@@ -546,11 +547,7 @@ export class FlutterView {
 
     this.onKeyboardAreaChange()
     this.onGestureAreaChange()
-    if (!this.viewportMetrics.isEqual(originalMetrics) || this.needSetViewport) {
-      if (!this.updateViewportMetrics()) {
-        this.needSetViewport = true;
-      }
-    }
+    this.updateViewportMetrics()
   }
 
   private onKeyboardAreaChange() {
@@ -594,51 +591,53 @@ export class FlutterView {
   }
 
   private updateViewportMetrics(): boolean {
-    if (this.isAttachedToFlutterEngine()) {
-      Log.i(TAG, 'updateViewportMetrics devicePixelRatio:' + this.viewportMetrics.devicePixelRatio);
-
-      const displayFeatures = this.viewportMetrics.displayFeatures;
-      let boundCount = 0;
-      for (let i = 0; i < displayFeatures.length; i++) {
-        boundCount = boundCount + displayFeatures[i].getBounds().length;
-      }
-      let displayFeatureBound: number[] = new Array(boundCount * 4);
-      let displayFeatureType: number[] = new Array(displayFeatures.length);
-      let displayFeatureStatus: number[] = new Array(displayFeatures.length);
-      for (let i = 0; i < displayFeatures.length; i++) {
-        let singleFeatureBound = displayFeatures[i].getBounds();
-        for (let j = 0; j < singleFeatureBound.length; j++) {
-          displayFeatureBound[4*i + 4*j] = singleFeatureBound[j].left;
-          displayFeatureBound[4*i + 4*j + 1] = singleFeatureBound[j].top
-          displayFeatureBound[4*i + 4*j + 2] = singleFeatureBound[j].width;
-          displayFeatureBound[4*i + 4*j + 3] = singleFeatureBound[j].height;
-        }
-        displayFeatureType[i] = displayFeatures[i].getType();
-        displayFeatureStatus[i] = displayFeatures[i].getState();
-      }
-
-      this?.flutterEngine?.getFlutterNapi()?.setViewportMetrics(this.viewportMetrics.devicePixelRatio,
-        this.viewportMetrics.physicalWidth,
-        this.viewportMetrics.physicalHeight,
-        this.viewportMetrics.physicalViewPaddingTop,
-        this.viewportMetrics.physicalViewPaddingRight,
-        this.viewportMetrics.physicalViewPaddingBottom,
-        this.viewportMetrics.physicalViewPaddingLeft,
-        this.viewportMetrics.physicalViewInsetTop,
-        this.viewportMetrics.physicalViewInsetRight,
-        this.viewportMetrics.physicalViewInsetBottom,
-        this.viewportMetrics.physicalViewInsetLeft,
-        this.viewportMetrics.systemGestureInsetTop,
-        this.viewportMetrics.systemGestureInsetRight,
-        this.viewportMetrics.systemGestureInsetBottom,
-        this.viewportMetrics.systemGestureInsetLeft,
-        this.viewportMetrics.physicalTouchSlop,
-        displayFeatureBound,
-        displayFeatureType,
-        displayFeatureStatus)
-      return true;
+    if (!this.isAttachedToFlutterEngine()) {
+      return false;
     }
-    return false;
+    Log.i(TAG, 'updateViewportMetrics devicePixelRatio:' + this.viewportMetrics.devicePixelRatio);
+
+    const displayFeatures = this.viewportMetrics.displayFeatures;
+    let boundCount = 0;
+    for (let i = 0; i < displayFeatures.length; i++) {
+      boundCount = boundCount + displayFeatures[i].getBounds().length;
+    }
+    let displayFeatureBound: number[] = new Array(boundCount * 4);
+    let displayFeatureType: number[] = new Array(boundCount ? displayFeatures.length : boundCount);
+    let displayFeatureStatus: number[] = new Array(boundCount ? displayFeatures.length : boundCount);
+    for (let i = 0; i < displayFeatures.length; i++) {
+      let singleFeatureBound = displayFeatures[i].getBounds();
+      if (singleFeatureBound.length === 0) {
+        continue;
+      }
+      for (let j = 0; j < singleFeatureBound.length; j++) {
+        displayFeatureBound[4 * i + 4 * j] = singleFeatureBound[j].left;
+        displayFeatureBound[4 * i + 4 * j + 1] = singleFeatureBound[j].top;
+        displayFeatureBound[4 * i + 4 * j + 2] = singleFeatureBound[j].width;
+        displayFeatureBound[4 * i + 4 * j + 3] = singleFeatureBound[j].height;
+      }
+      displayFeatureType[i] = displayFeatures[i].getType();
+      displayFeatureStatus[i] = displayFeatures[i].getState();
+    }
+    this?.flutterEngine?.getFlutterNapi()?.setViewportMetrics(this.viewportMetrics.devicePixelRatio,
+      this.viewportMetrics.physicalWidth,
+      this.viewportMetrics.physicalHeight,
+      this.viewportMetrics.physicalViewPaddingTop,
+      this.viewportMetrics.physicalViewPaddingRight,
+      this.viewportMetrics.physicalViewPaddingBottom,
+      this.viewportMetrics.physicalViewPaddingLeft,
+      this.viewportMetrics.physicalViewInsetTop,
+      this.viewportMetrics.physicalViewInsetRight,
+      this.viewportMetrics.physicalViewInsetBottom,
+      this.viewportMetrics.physicalViewInsetLeft,
+      this.viewportMetrics.systemGestureInsetTop,
+      this.viewportMetrics.systemGestureInsetRight,
+      this.viewportMetrics.systemGestureInsetBottom,
+      this.viewportMetrics.systemGestureInsetLeft,
+      this.viewportMetrics.physicalTouchSlop,
+      displayFeatureBound,
+      displayFeatureType,
+      displayFeatureStatus)
+    return true;
   }
 
   onKeyPreIme(event: KeyEvent) : boolean {

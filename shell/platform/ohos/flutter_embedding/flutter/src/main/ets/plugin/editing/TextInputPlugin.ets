@@ -1,16 +1,11 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 *
-*     http://www.apache.org/licenses/LICENSE-2.0
+* Based on TextInputPlugin.java originally written by
+* Copyright (C) 2013 The Flutter Authors.
 *
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 */
 
 import TextInputChannel, {
@@ -259,22 +254,6 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     }
 
     try {
-      this.inputMethodController.on('deleteLeft', this.deleteLeftCallback)
-    } catch (err) {
-      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe deleteLeft:" + JSON.stringify(err));
-      this.cancelListenKeyBoardEvent();
-      return;
-    }
-
-    try {
-      this.inputMethodController.on('deleteRight', this.deleteRightCallback)
-    } catch (err) {
-      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe deleteRight:" + JSON.stringify(err));
-      this.cancelListenKeyBoardEvent();
-      return;
-    }
-
-    try {
       this.inputMethodController.on('sendFunctionKey', this.sendFunctionKeyCallback)
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe sendFunctionKey:" + JSON.stringify(err));
@@ -306,14 +285,6 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.mEditable.handleInsertTextEvent(text);
   }
 
-  private deleteLeftCallback = (length: number) => {
-    this.mEditable.handleDeleteEvent(false, length);
-  }
-
-  private deleteRightCallback = (length: number) => {
-    this.mEditable.handleDeleteEvent(true, length);
-  }
-
   private sendFunctionKeyCallback = (functionKey: inputMethod.FunctionKey) => {
     /// 临时规避缺少newline对应枚举类型问题
     if (functionKey.enterKeyType == NEWLINE_KEY_TYPE) {
@@ -332,8 +303,6 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   cancelListenKeyBoardEvent(): void {
     this.inputMethodController?.off('insertText', this.insertTextCallback);
-    this.inputMethodController?.off('deleteLeft', this.deleteLeftCallback);
-    this.inputMethodController?.off('deleteRight', this.deleteRightCallback);
     this.inputMethodController?.off('sendFunctionKey', this.sendFunctionKeyCallback);
     this.inputMethodController?.off('sendKeyboardStatus', this.sendKeyboardStatusCallback);
     this.inputMethodController?.off('selectByRange', this.selectByRangeCallback);

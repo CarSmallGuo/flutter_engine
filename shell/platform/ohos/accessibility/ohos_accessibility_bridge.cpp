@@ -1,16 +1,7 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE_HW file.
  */
 #include "ohos_accessibility_bridge.h"
 #include <limits>
@@ -124,7 +115,6 @@ void OhosAccessibilityBridge::UpdateSemantics(
         // 更新扩展的SemanticsNode信息
         auto nodeEx = UpdatetSemanticsNodeExtent(std::move(node));
 
-        // 构建flutter无障碍语义节点树
         g_flutterSemanticsTree[nodeEx.id] = nodeEx;
 
         if (!IsNodeVisible(nodeEx)) { continue; }
@@ -137,9 +127,6 @@ void OhosAccessibilityBridge::UpdateSemantics(
     }
     // calculate the global tranfom matrix and parent id for each node
     ComputeGlobalTransformAndParentId();
-
-    Flutter_SendAccessibilityAsyncEvent(
-        0, ArkUI_AccessibilityEventType::ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_PAGE_CONTENT_UPDATE);
 
     // 将更新后的flutter语义树和父子节点id映射缓存，保存到相应的xcomponent里面
     g_flutterSemanticsTreeXComponents[xcomponentId_] = g_flutterSemanticsTree;
@@ -180,7 +167,7 @@ void OhosAccessibilityBridge::UpdateSemantics(
             _elementInfo = nullptr;
         }
 
-        // 判断是否触发liveRegion活动区，当前节点是否活跃
+        // 判断是否触发liveRegion活动区，当前节点是否活跃 nodeEx.HasFlag(FLAGS_::kIsLiveRegion) 
         if (nodeEx.HasFlag(FLAGS_::kIsLiveRegion) && HasChangedLabel(nodeEx)) {
             FML_DLOG(INFO) << "liveRegion -> page content update, nodeEx.id=" << nodeEx.id;
             Flutter_SendAccessibilityAsyncEvent(static_cast<int64_t>(nodeEx.id),
@@ -877,11 +864,13 @@ std::vector<int64_t> OhosAccessibilityBridge::GetLevelOrderTraversalTree(int32_t
 
   while (!semanticsQue.empty()) {
       auto currNode = semanticsQue.front();
+
       semanticsQue.pop();
       levelOrderTraversalTree.emplace_back(static_cast<int64_t>(currNode.id));
       
       for (const auto& childId: currNode.childrenInTraversalOrder) {
         auto childNode = GetFlutterSemanticsNode(childId);
+
         semanticsQue.push(childNode);
       }
   }
