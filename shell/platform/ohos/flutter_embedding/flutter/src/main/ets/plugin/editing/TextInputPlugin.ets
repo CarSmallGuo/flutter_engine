@@ -254,6 +254,22 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     }
 
     try {
+      this.inputMethodController.on('deleteLeft', this.deleteLeftCallback)
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe deleteLeft:" + JSON.stringify(err));
+      this.cancelListenKeyBoardEvent();
+      return;
+    }
+
+    try {
+      this.inputMethodController.on('deleteRight', this.deleteRightCallback)
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe deleteRight:" + JSON.stringify(err));
+      this.cancelListenKeyBoardEvent();
+      return;
+    }
+
+    try {
       this.inputMethodController.on('sendFunctionKey', this.sendFunctionKeyCallback)
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe sendFunctionKey:" + JSON.stringify(err));
@@ -285,6 +301,14 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.mEditable.handleInsertTextEvent(text);
   }
 
+  private deleteLeftCallback = (length: number) => {
+    this.mEditable.handleDeleteEvent(false, length);
+  }
+
+  private deleteRightCallback = (length: number) => {
+    this.mEditable.handleDeleteEvent(true, length);
+  }
+
   private sendFunctionKeyCallback = (functionKey: inputMethod.FunctionKey) => {
     /// 临时规避缺少newline对应枚举类型问题
     if (functionKey.enterKeyType == NEWLINE_KEY_TYPE) {
@@ -303,6 +327,8 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   cancelListenKeyBoardEvent(): void {
     this.inputMethodController?.off('insertText', this.insertTextCallback);
+    this.inputMethodController?.off('deleteLeft', this.deleteLeftCallback);
+    this.inputMethodController?.off('deleteRight', this.deleteRightCallback);
     this.inputMethodController?.off('sendFunctionKey', this.sendFunctionKeyCallback);
     this.inputMethodController?.off('sendKeyboardStatus', this.sendKeyboardStatusCallback);
     this.inputMethodController?.off('selectByRange', this.selectByRangeCallback);
