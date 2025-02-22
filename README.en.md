@@ -3,6 +3,9 @@ Flutter Engine
 
 Source of the original repository: https://github.com/flutter/engine
 
+## Notice
+**Starting from February 22, 2025, the code repository will be migrated to [GitCode](https://gitcode.com/openharmony-sig/flutter_engine)**
+
 ## Repository Description
 This repository is an extension of the Flutter engine repository. It enables Flutter engine to run on OpenHarmony devices.
 
