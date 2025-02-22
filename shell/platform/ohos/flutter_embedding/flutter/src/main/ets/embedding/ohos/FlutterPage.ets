@@ -9,7 +9,6 @@ import { FlutterView } from '../../view/FlutterView';
 import FlutterManager from './FlutterManager';
 import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
 import flutter from 'libflutter.so';
-
 const TAG = "FlutterPage";
 
 export const OHOS_FLUTTER_PAGE_UPDATE = "ohos_flutter_page_update";
@@ -67,9 +66,10 @@ export struct FlutterPage {
             (ratioInc: boolean, ratio: number) => {
               if (ratioInc) {
                 Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
-                  " ratioInc: " + ratioInc + " ratio: " + ratio);
+                           " ratioInc: " + ratioInc + " ratio: " + ratio);
                 flutter.nativeGetXComponentId(this.viewId);
                 // 保证获取xcomponentid之后再使用无障碍
+                this.flutterView?.onTouchGuideIsOpen();
                 this.flutterView?.onAccessibilityIsOpen();
               }
             }
@@ -173,9 +173,10 @@ export struct FlutterPage {
             (ratioInc: boolean, ratio: number) => {
               if (ratioInc) {
                 Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
-                  " ratioInc: " + ratioInc + " ratio: " + ratio);
+                            " ratioInc: " + ratioInc + " ratio: " + ratio);
                 flutter.nativeGetXComponentId(this.viewId);
                 // 保证获取xcomponentid之后再使用无障碍
+                this.flutterView?.onTouchGuideIsOpen();
                 this.flutterView?.onAccessibilityIsOpen();
               }
             }
