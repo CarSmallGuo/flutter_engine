@@ -595,7 +595,7 @@ deps = {
       }
     ],
     'dep_type': 'cipd',
-    'condition': 'host_os == "win" and download_dart_sdk'
+    'condition': 'host_os == "win" and download_dart_sdk and not release_candidate and host_cpu == "arm64"'
   },
 
   # esbuild download
@@ -1256,4 +1256,10 @@ hooks = [
       'src/flutter/tools/fuchsia/test_scripts/gen_build_defs.py',
     ],
   },
+  {
+    # Generate the ohos compile environment
+    'name': 'ohos_setup',
+    'pattern': 'src/flutter/attachment/scripts/.*\\.py',
+    'action': ['python3', 'src/flutter/attachment/scripts/ohos_setup.py'],
+  }
 ]

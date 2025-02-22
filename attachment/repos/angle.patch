@@ -1,0 +1,126 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index efaf09033..73af49870 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -83,7 +83,7 @@ if (angle_build_all) {
+       ":translator_fuzzer",
+       ":xxhash_fuzzer",
+       "$angle_root/samples:angle_samples",
+-      "$angle_root/src/tests:angle_tests",
++      #"$angle_root/src/tests:angle_tests",
+     ]
+     if (angle_enable_cl) {
+       deps += [ "$angle_root/src/libOpenCL:angle_cl" ]
+@@ -486,7 +486,8 @@ angle_static_library("angle_image_util") {
+   sources = libangle_image_util_sources
+   public_configs += [ ":angle_image_util_config" ]
+   public_deps = [ ":angle_image_util_headers" ]
+-
++  
++  angle_has_astc_encoder = false
+   if (angle_has_astc_encoder) {
+     public_deps += [ "third_party/astc-encoder:astcenc" ]
+     include_dirs = [ "third_party/astc-encoder/src/Source/" ]
+diff --git a/gni/angle.gni b/gni/angle.gni
+index b8086660a..d82d056d6 100644
+--- a/gni/angle.gni
++++ b/gni/angle.gni
+@@ -60,8 +60,7 @@ if (angle_has_build) {
+ 
+   declare_args() {
+     angle_use_gbm = ozone_platform_gbm
+-    angle_use_x11 =
+-        ozone_platform_x11 && !is_ggp && (is_linux || is_chromeos) && !is_castos
++    angle_use_x11 = ozone_platform_x11 && !is_ggp && (is_linux || is_chromeos) && !is_castos
+     angle_use_wayland =
+         ozone_platform_wayland && !is_ggp && is_linux && !is_castos
+     angle_use_vulkan_display = (is_linux || is_chromeos) && !is_ggp
+@@ -191,7 +190,9 @@ declare_args() {
+ 
+ declare_args() {
+   # ASTC emulation is only built on standalone non-android builds
+-  angle_has_astc_encoder = angle_has_build && angle_standalone && !is_android
++  #angle_has_astc_encoder = angle_has_build && angle_standalone && !is_android
++  #for ohos
++  angle_has_astc_encoder = false
+ }
+ 
+ declare_args() {
+@@ -255,13 +256,13 @@ declare_args() {
+   angle_wayland_dir = "$angle_root/third_party/wayland"
+ 
+   angle_vulkan_headers_dir =
+-      "$angle_root/third_party/vulkan-deps/vulkan-headers/src"
++      "//third_party/vulkan-deps/vulkan-headers/src"
+   angle_vulkan_loader_dir =
+-      "$angle_root/third_party/vulkan-deps/vulkan-loader/src"
++      "//third_party/vulkan-deps/vulkan-loader/src"
+   angle_vulkan_tools_dir =
+-      "$angle_root/third_party/vulkan-deps/vulkan-tools/src"
++      "//third_party/vulkan-deps/vulkan-tools/src"
+   angle_vulkan_validation_layers_dir =
+-      "$angle_root/third_party/vulkan-deps/vulkan-validation-layers/src"
++      "//third_party/vulkan-deps/vulkan-validation-layers/src"
+ 
+   angle_build_vulkan_system_info = angle_has_build && !angle_is_winuwp
+ 
+diff --git a/include/EGL/eglplatform.h b/include/EGL/eglplatform.h
+index 9ebaf00a9..fe111d115 100644
+--- a/include/EGL/eglplatform.h
++++ b/include/EGL/eglplatform.h
+@@ -117,13 +117,19 @@ typedef khronos_uintptr_t EGLNativeWindowType;
+ 
+ #elif defined(__unix__) || defined(USE_X11)
+ 
+-/* X11 (tentative)  */
+-#include <X11/Xlib.h>
+-#include <X11/Xutil.h>
++struct NativeWindow;
+ 
+-typedef Display *EGLNativeDisplayType;
+-typedef Pixmap   EGLNativePixmapType;
+-typedef Window   EGLNativeWindowType;
++typedef void*                   EGLNativeDisplayType;
++typedef void*                   EGLNativePixmapType;
++typedef struct NativeWindow*    EGLNativeWindowType;
++
++// /* X11 (tentative)  */
++// #include <X11/Xlib.h>
++// #include <X11/Xutil.h>
++
++// typedef Display *EGLNativeDisplayType;
++// typedef Pixmap   EGLNativePixmapType;
++// typedef Window   EGLNativeWindowType;
+ 
+ #elif defined(__APPLE__)
+ 
+diff --git a/src/common/angle_version.h b/src/common/angle_version.h
+index d9d7e8929..a97e3844b 100644
+--- a/src/common/angle_version.h
++++ b/src/common/angle_version.h
+@@ -14,8 +14,12 @@
+ #define ANGLE_MINOR_VERSION 1
+ 
+ #ifndef ANGLE_REVISION
++#ifndef ANGLE_COMMIT_POSITION
++#    define ANGLE_REVISION 0
++#else
+ #    define ANGLE_REVISION ANGLE_COMMIT_POSITION
+ #endif
++#endif
+ 
+ #define ANGLE_STRINGIFY(x) #x
+ #define ANGLE_MACRO_STRINGIFY(x) ANGLE_STRINGIFY(x)
+diff --git a/src/compiler/translator/BuildSPIRV.h b/src/compiler/translator/BuildSPIRV.h
+index d67bd812b..00d22d025 100644
+--- a/src/compiler/translator/BuildSPIRV.h
++++ b/src/compiler/translator/BuildSPIRV.h
+@@ -110,6 +110,8 @@ struct SpirvType
+     SpirvTypeSpec typeSpec;
+ };
+ 
++bool operator==(const SpirvType &a, const SpirvType &b);
++
+ struct SpirvIdAndIdList
+ {
+     spirv::IdRef id;

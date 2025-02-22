@@ -86,6 +86,8 @@ const std::shared_ptr<GlyphAtlas>& LazyGlyphAtlas::CreateOrGetGlyphAtlas(
     return color_atlas_;
   }
   FML_UNREACHABLE();
+  static std::shared_ptr<GlyphAtlas> null_atlas(nullptr);
+  return null_atlas;
 }
 
 }  // namespace impeller

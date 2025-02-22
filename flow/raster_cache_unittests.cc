@@ -1058,6 +1058,7 @@ TEST(RasterCacheUtilsTest, SkM44IntegralTransCTM) {
           snaps = false;
           break;
         default:
+          snaps = false;
           FML_UNREACHABLE();
       }
       auto label = std::to_string(r) + ", " + std::to_string(c);
