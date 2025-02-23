@@ -39,16 +39,16 @@ Flutter Engine
 2. 配置文件：创建空文件夹engine，engine内新建.gclient文件，编辑文件：
 
    ```
-    solutions = [
-      {
+   solutions = [
+     {
         "managed": False,
         "name": "src/flutter",
         "url": "git@gitee.com:openharmony-sig/flutter_engine.git",
         "custom_deps": {},
         "deps_file": "DEPS",
         "safesync_url": "",
-      },
-    ]
+     },
+   ]
    ```
 
 3. 同步代码：在engine目录，执行`gclient sync`；这里会同步engine源码、官方packages仓，还有执行ohos_setup任务；
