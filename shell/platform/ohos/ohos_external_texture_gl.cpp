@@ -673,23 +673,23 @@ void OHOSExternalTextureGL::ProducePixelMapToBackGroundImage()
 
 void CopyPixelToHandle(uint32_t *destAddr, uint32_t *pixel, OhosPixelMapInfos pixelMapInfo, BufferHandle *handle)
 {
-  uint32_t real_height = pixelMapInfo.height;
+  uint32_t realHeight = pixelMapInfo.height;
   if (IsPixelMapYUVFormat((PIXEL_FORMAT)pixelMapInfo.pixelFormat)) {
     // y is height, uv is height/2
-    real_height = pixelMapInfo.height + (pixelMapInfo.height + 1) / 2;
+    realHeight = pixelMapInfo.height + (pixelMapInfo.height + 1) / 2;
   }
 
   // 复制图片纹理数据到内存中，需要处理DMA内存补齐相关的逻辑
   if (pixelMapInfo.width * PIXEL_SIZE != pixelMapInfo.rowSize) {
     // 直接复制整块内存
-    if ((real_height * pixelMapInfo.rowSize) > (uint32_t)handle->size) {
+    if ((realHeight * pixelMapInfo.rowSize) > (uint32_t)handle->size) {
       memcpy(destAddr, pixel, handle->size);
     } else {
-      memcpy(destAddr, pixel, real_height * pixelMapInfo.rowSize);
+      memcpy(destAddr, pixel, realHeight * pixelMapInfo.rowSize);
     }
   } else {
     // 需要处理DMA内存补齐相关的逻辑
-    for (uint32_t i = 0; i < real_height; i++) {
+    for (uint32_t i = 0; i < realHeight; i++) {
       if (pixelMapInfo.rowSize > (uint32_t)handle->stride) {
         memcpy(destAddr, pixel, handle->stride);
       } else {
