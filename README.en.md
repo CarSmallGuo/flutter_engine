@@ -40,14 +40,14 @@ This repository is an extension of the Flutter engine repository. It enables Flu
 
    ```
    solutions = [
-   {
-      "managed": False,
-      "name": "src/flutter",
-      "url": "git@gitee.com:openharmony-sig/flutter_engine.git",
-      "custom_deps": {},
-      "deps_file": "DEPS",
-      "safesync_url": "",
-   },
+     {
+       "managed": False,
+       "name": "src/flutter",
+       "url": "git@gitee.com:openharmony-sig/flutter_engine.git",
+       "custom_deps": {},
+       "deps_file": "DEPS",
+       "safesync_url": "",
+     },
    ]
    ```
 
