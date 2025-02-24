@@ -313,17 +313,6 @@ def addParseParam(parser):
   parser.add_argument("--har-unstripped", action="store_true", help="Use so.unstripped or not.")
   parser.add_argument("--ohos-cpu", type=str, choices=['x64', 'x86', 'arm64', 'arm'], default="arm64")
 
-def updateCode(args):
-  if args.branch:
-    dir = os.path.join("src", "flutter")
-    runCommand("git -C %s add -A" % dir)
-    runCommand("git -C %s stash save 'Auto stash save.'" % dir)
-    runCommand("git -C %s checkout %s" % (dir, args.branch))
-    runCommand("git -C %s pull --rebase" % dir, checkCode=False)
-    runCommand("git -C %s log -1" % dir)
-    runCommand("python3 src/flutter/attachment/scripts/ohos_setup.py")
-
-
 def checkEnvironment():
   if not os.path.exists("src/flutter"):
     logging.error(
@@ -387,7 +376,7 @@ def ohos_main():
   addParseParam(parser)
   args = parser.parse_args()
   checkEnvironment()
-  updateCode(args)
+
   buildByNameAndType(args)
   logging.info("ohos_main() finish.")
   return 0
