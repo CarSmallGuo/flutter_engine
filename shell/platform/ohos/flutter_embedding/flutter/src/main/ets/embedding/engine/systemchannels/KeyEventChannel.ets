@@ -36,7 +36,8 @@ export default class KeyEventChannel {
         let isEventHandled = false;
         try {
           if (message != null) {
-            isEventHandled = message.get("handled") as boolean;
+            //typeof message is Object.
+            isEventHandled = message["handled"];
           }
         } catch (e) {
           Log.e(KeyEventChannel.TAG, "Unable to unpack JSON message: " + e);
