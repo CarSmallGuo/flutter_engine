@@ -20,6 +20,7 @@ import KeyEmbedderResponder from './KeyEmbedderResponder';
 import { BinaryMessenger } from '../../plugin/common/BinaryMessenger';
 import { KeyEventHandler } from './KeyEventHandler';
 import HashSet from '@ohos.util.HashSet';
+import { KeyCode } from '@kit.InputKit';
 
 export default class KeyboardManager {
   private keyEventChannel: KeyEventChannel | null = null;
@@ -35,18 +36,20 @@ export default class KeyboardManager {
     this.keyEventHandler = new KeyEventHandler(textInputPlugin);
   }
 
-  onKeyPreIme(event: KeyEvent) : boolean {
-    this.keyEmbedderResponder.handleKeyEvent(event);
-
+  onKeyPreIme(event: KeyEvent): boolean {
     this.keyEventChannel?.sendFlutterKeyEvent(new FlutterKeyEvent(event), event.type == KeyType.Up, {
       onFrameworkResponse: (isEventHandled: boolean): void => {
 
       }
     })
+    //del物理按键会触发输入法的delete回调，一定时序下会导致多次删除
+    if(event.type == KeyType.Down && (event.keyCode == KeyCode.KEYCODE_DEL || event.keyCode == KeyCode.KEYCODE_FORWARD_DEL)){
+      return true;
+    }
     return false;
   }
 
-  onKeyEvent(event: KeyEvent) : boolean {
+  onKeyEvent(event: KeyEvent): boolean {
     this.keyEventHandler.handleKeyEvent(event);
     return false;
   }
