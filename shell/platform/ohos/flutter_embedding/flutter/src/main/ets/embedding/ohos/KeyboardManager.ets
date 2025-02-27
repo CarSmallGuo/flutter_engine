@@ -11,6 +11,7 @@ import TextInputPlugin from '../../plugin/editing/TextInputPlugin';
 import FlutterEngine from '../engine/FlutterEngine';
 import KeyEventChannel, { FlutterKeyEvent } from '../engine/systemchannels/KeyEventChannel';
 import { KeyEventHandler } from './KeyEventHandler';
+import { KeyCode } from '@kit.InputKit';
 
 export default class KeyboardManager {
   private keyEventChannel: KeyEventChannel | null = null
@@ -21,16 +22,20 @@ export default class KeyboardManager {
     this.keyEventHandler = new KeyEventHandler(textInputPlugin);
   }
 
-  onKeyPreIme(event: KeyEvent) : boolean {
+  onKeyPreIme(event: KeyEvent): boolean {
     this.keyEventChannel?.sendFlutterKeyEvent(new FlutterKeyEvent(event), event.type == KeyType.Up, {
       onFrameworkResponse: (isEventHandled: boolean): void => {
 
       }
     })
+    //del物理按键会触发输入法的delete回调，一定时序下会导致多次删除
+    if(event.type == KeyType.Down && (event.keyCode == KeyCode.KEYCODE_DEL || event.keyCode == KeyCode.KEYCODE_FORWARD_DEL)){
+      return true;
+    }
     return false;
   }
 
-  onKeyEvent(event: KeyEvent) : boolean {
+  onKeyEvent(event: KeyEvent): boolean {
     this.keyEventHandler.handleKeyEvent(event);
     return false;
   }
