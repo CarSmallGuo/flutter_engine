@@ -29,6 +29,8 @@ import { JSON } from '@kit.ArkTS';
 
 const TAG = "FlutterViewTag";
 
+
+
 export class ViewportMetrics {
   devicePixelRatio: number = 1.0;
   physicalWidth: number = 0;
