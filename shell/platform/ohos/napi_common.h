@@ -1,0 +1,93 @@
+/*
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE_KHZG file.
+ */
+
+//
+// Created on 2023/6/17.
+//
+// Node APIs are not fully supported. To solve the compilation error of the
+// interface cannot be found, please include "napi/native_api.h".
+
+#ifndef XComponentDemo_native_common_H
+#define XComponentDemo_native_common_H
+
+#define NAPI_RETVAL_NOTHING
+
+#define GET_AND_THROW_LAST_ERROR(env)                                 \
+  do {                                                                \
+    const napi_extended_error_info* error_Info = nullptr;             \
+    napi_get_last_error_info((env), &error_Info);                     \
+    bool isPending = false;                                           \
+    napi_is_exception_pending((env), &isPending);                     \
+    if (!isPending && error_Info != nullptr) {                        \
+        const char* errorMessage = error_Info->error_message != nullptr   \
+                                     ? error_Info->error_message      \
+                                     : "empty error message";         \
+        napi_throw_error((env), nullptr, errorMessage);                   \
+    }                                                                 \
+  } while (0)
+
+#define NAPI_ASSERT_BASE(env, assertion, message, retVal)              \
+  do {                                                                 \
+    if (!(assertion)) {                                                \
+      napi_throw_error((env), nullptr,                                 \
+                       "assertion (" #assertion ") failed: " message); \
+      return retVal;                                                   \
+    }                                                                  \
+  } while (0)
+
+#define NAPI_ASSERT(env, assertion, message) \
+  NAPI_ASSERT_BASE(env, assertion, message, nullptr)
+
+#define NAPI_ASSERT_RETURN_VOID(env, assertion, message) \
+  NAPI_ASSERT_BASE(env, assertion, message, NAPI_RETVAL_NOTHING)
+
+#define NAPI_CALL_BASE(env, theCall, retValue) \
+  do {                                         \
+    if ((theCall) != napi_ok) {                \
+        GET_AND_THROW_LAST_ERROR((env));         \
+        return retValue;                         \
+    }                                          \
+  } while (0)
+
+#define NAPI_CALL(env, theCall) NAPI_CALL_BASE(env, theCall, nullptr)
+
+#define NAPI_CALL_RETURN_VOID(env, theCall) \
+  NAPI_CALL_BASE(env, theCall, NAPI_RETVAL_NOTHING)
+
+#define DECLARE_NAPI_PROPERTY(name, val) \
+  { (name), nullptr, nullptr, nullptr, nullptr, val, napi_default, nullptr }
+
+#define DECLARE_NAPI_STATIC_PROPERTY(name, val) \
+  { (name), nullptr, nullptr, nullptr, nullptr, val, napi_static, nullptr }
+
+#define DECLARE_NAPI_FUNCTION(name, func) \
+  { (name), nullptr, (func), nullptr, nullptr, nullptr, napi_default, nullptr }
+
+#define DECLARE_NAPI_FUNCTION_WITH_DATA(name, func, data) \
+  { (name), nullptr, (func), nullptr, nullptr, nullptr, napi_default, data }
+
+#define DECLARE_NAPI_STATIC_FUNCTION(name, func) \
+  { (name), nullptr, (func), nullptr, nullptr, nullptr, napi_static, nullptr }
+
+#define DECLARE_NAPI_GETTER(name, getter)                               \
+  {                                                                     \
+    (name), nullptr, nullptr, (getter), nullptr, nullptr, napi_default, \
+        nullptr                                                         \
+  }
+
+#define DECLARE_NAPI_SETTER(name, setter)                               \
+  {                                                                     \
+    (name), nullptr, nullptr, nullptr, (setter), nullptr, napi_default, \
+        nullptr                                                         \
+  }
+
+#define DECLARE_NAPI_GETTER_SETTER(name, getter, setter)                 \
+  {                                                                      \
+    (name), nullptr, nullptr, (getter), (setter), nullptr, napi_default, \
+        nullptr                                                          \
+  }
+
+#endif  // XComponentDemo_native_common_H

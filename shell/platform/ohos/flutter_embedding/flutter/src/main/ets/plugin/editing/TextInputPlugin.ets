@@ -1,0 +1,366 @@
+/*
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
+*
+* Based on TextInputPlugin.java originally written by
+* Copyright (C) 2013 The Flutter Authors.
+*
+*/
+
+import TextInputChannel, {
+  Configuration,
+  TextEditState,
+  TextInputMethodHandler,
+} from '../../embedding/engine/systemchannels/TextInputChannel';
+import inputMethod from '@ohos.inputMethod';
+import Log from '../../util/Log';
+import { EditingStateWatcher, ListenableEditingState } from './ListenableEditingState';
+import Any from '../common/Any';
+import { inputDevice } from '@kit.InputKit';
+
+/// 临时规避缺少newline对应枚举问题
+const NEWLINE_KEY_TYPE: number = 8;
+
+export default class TextInputPlugin implements EditingStateWatcher {
+  private static TAG = "TextInputPlugin";
+  private textInputChannel: TextInputChannel;
+  private mTextInputHandler: TextInputMethodHandlerImpl;
+
+  constructor(textInputChannel: TextInputChannel) {
+    this.textInputChannel = textInputChannel;
+    this.mTextInputHandler = new TextInputMethodHandlerImpl(this);
+    this.textInputChannel.setTextInputMethodHandler(this.mTextInputHandler);
+  }
+
+  public clearTextInputClient() {
+    this.textInputChannel.textInputMethodHandler?.clearClient();
+  }
+
+  setTextInputEditingState(state: TextEditState) {
+
+  }
+
+  getEditingState() {
+    return this.mTextInputHandler.mEditable;
+  }
+
+  didChangeEditingState(textChanged: boolean, selectionChanged: boolean, composingRegionChanged: boolean): void {
+    let editable = this.mTextInputHandler.mEditable;
+    let inputTarget = this.mTextInputHandler.inputTarget;
+    let configuration = this.mTextInputHandler.configuration;
+    if (configuration != null && configuration.enableDeltaModel) {
+      this.textInputChannel.updateEditingStateWithDeltas(inputTarget.id, editable.extractBatchTextEditingDeltas());
+      editable.clearBatchDeltas();
+    } else {
+      this.textInputChannel.updateEditingState(inputTarget.id, editable.getStringCache(),
+        editable.getSelectionStart(), editable.getSelectionEnd(),
+        editable.getComposingStart(), editable.getComposingEnd())
+    }
+
+  }
+
+  detach(): void {
+    this.mTextInputHandler.inputMethodController.detach((err) => {
+      if (err) {
+        Log.e(TextInputPlugin.TAG, "Failed to detach: " + JSON.stringify(err));
+      }
+    })
+  }
+
+  destroy() {
+    this.textInputChannel.setTextInputMethodHandler(null);
+  }
+}
+
+class TextInputMethodHandlerImpl implements TextInputMethodHandler {
+  private static TAG = "TextInputMethodHandlerImpl";
+  private textConfig: inputMethod.TextConfig;
+  inputMethodController: inputMethod.InputMethodController;
+  inputTarget: InputTarget;
+  public configuration: Configuration | null = null;
+  mEditable: ListenableEditingState;
+  private mRestartInputPending: boolean = false;
+  private plugin: EditingStateWatcher | Any;
+  private imcFlag: boolean = false;
+  private inputTypeNone: string = 'NONE';
+  private keyboardStatus: inputMethod.KeyboardStatus = inputMethod.KeyboardStatus.HIDE;
+  private inputAttribute: inputMethod.InputAttribute = { textInputType: 0, enterKeyType: 1 };
+  private keyboardFocusState: boolean = false
+
+  constructor(plugin: TextInputPlugin | Any) {
+    this.textConfig = {
+      inputAttribute: this.inputAttribute
+    };
+    this.plugin = plugin;
+    this.mEditable = new ListenableEditingState(null, 0);
+    this.inputMethodController = inputMethod.getController();
+    this.inputTarget = new InputTarget(Type.NO_TARGET, 0);
+  }
+
+  /// 通过判断是否是TextInputType.none来决定是否弹出键盘
+  show(): void {
+    if (this.canShowTextInput()) {
+      this.keyboardFocusState = true;
+      this.showTextInput();
+    } else {
+      this.hide();
+    }
+  }
+
+  hide(): void {
+    this.keyboardFocusState = false;
+    this.hideTextInput();
+  }
+
+  requestAutofill(): void {
+
+  }
+
+  finishAutofillContext(shouldSave: boolean): void {
+
+  }
+
+  setClient(textInputClientId: number, configuration: Configuration | null): void {
+    Log.d(TextInputMethodHandlerImpl.TAG, "textInputClientId: " + textInputClientId);
+    this.setTextInputClient(textInputClientId, configuration);
+  }
+
+  setPlatformViewClient(id: number, usesVirtualDisplay: boolean): void {
+
+  }
+
+  setEditableSizeAndTransform(width: number, height: number, transform: number[]): void {
+
+  }
+
+  setCursorSizeAndPosition(cursorInfo: inputMethod.CursorInfo) {
+    this.inputMethodController.updateCursor(cursorInfo)
+  }
+
+  setEditingState(editingState: TextEditState): void {
+    Log.d(TextInputMethodHandlerImpl.TAG,
+      "text:" + editingState.text + " selectionStart:" + editingState.selectionStart + " selectionEnd:"
+        + editingState.selectionEnd + " composingStart:" + editingState.composingStart + " composingEnd" +
+      editingState.composingEnd);
+    this.mEditable.updateTextInputState(editingState);
+  }
+
+  clearClient(): void {
+    this.clearTextInputClient();
+  }
+
+  private async showTextInput(): Promise<void> {
+    if (this.keyboardStatus == inputMethod.KeyboardStatus.SHOW) {
+      return;
+    }
+    await this.attach(true);
+    if (!this.imcFlag) {
+      this.listenKeyBoardEvent();
+    }
+  }
+
+  private async hideTextInput(): Promise<void> {
+    this.inputMethodController.detach();
+    this.keyboardStatus = inputMethod.KeyboardStatus.NONE;
+    this.cancelListenKeyBoardEvent();
+  }
+
+  async attach(showKeyboard: boolean): Promise<void> {
+    try {
+      await this.inputMethodController.attach(showKeyboard, this.textConfig);
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to attach:" + JSON.stringify(err));
+    }
+  }
+
+  handleChangeFocus(focusState: boolean) {
+    try {
+      inputDevice.getDeviceList((Error: Error, ids: Array<number>) => {
+        let isPhysicalKeyboard = false;
+        for (let i = 0; i < ids.length; i++) {
+          const type = inputDevice.getKeyboardTypeSync(ids[i]);
+          if (type == inputDevice.KeyboardType.ALPHABETIC_KEYBOARD || type == inputDevice.KeyboardType.DIGITAL_KEYBOARD) {
+            isPhysicalKeyboard = true;
+            break;
+          }
+        }
+
+        if(focusState && isPhysicalKeyboard && this.keyboardFocusState) {
+          this.cancelListenKeyBoardEvent();
+          this.inputMethodController.detach().then(async () =>{
+            await this.attach(true);
+            this.listenKeyBoardEvent();
+          })
+        }
+      })
+    } catch (error) {
+      Log.e(TextInputMethodHandlerImpl.TAG, `Failed to query device. Code is ${error.code}, message is ${error.message}`)
+    }
+  }
+
+  async updateAttribute(): Promise<void> {
+    if (this.keyboardStatus != inputMethod.KeyboardStatus.SHOW) {
+      return;
+    }
+    try {
+      await this.inputMethodController.updateAttribute(this.inputAttribute);
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to updateAttribute:" + JSON.stringify(err));
+    }
+  }
+
+  setTextInputClient(client: number, configuration: Configuration | null): void {
+    const INPUT_TYPE_NAME =
+      ['NONE', 'TEXT', 'MULTILINE', 'NUMBER', 'PHONE', 'DATETIME', 'EMAIL_ADDRESS', 'URL', 'VISIBLE_PASSWORD']
+    if (configuration) {
+      this.configuration = configuration;
+      if (configuration.inputType) {
+        this.textConfig.inputAttribute.textInputType = INPUT_TYPE_NAME.indexOf(configuration.inputType.type) - 1
+        this.textConfig.inputAttribute.enterKeyType = configuration.inputAction as Any;
+      }
+    }
+    if (this.canShowTextInput()) {
+      this.inputTarget = new InputTarget(Type.FRAMEWORK_CLIENT, client);
+    } else {
+      this.inputTarget = new InputTarget(Type.NO_TARGET, client);
+    }
+    this.mEditable.removeEditingStateListener(this.plugin);
+
+    this.mEditable = new ListenableEditingState(this.plugin.textInputChannel, this.inputTarget.id);
+
+    this.mRestartInputPending = true;
+    this.mEditable.addEditingStateListener(this.plugin);
+
+    this.inputAttribute = this.textConfig.inputAttribute;
+
+    this.updateAttribute();
+  }
+
+  canShowTextInput(): boolean {
+    if (this.configuration == null || this.configuration.inputType == null) {
+      return true;
+    }
+    return this.configuration.inputType.type != this.inputTypeNone;
+  }
+
+  listenKeyBoardEvent(): void {
+    try {
+      this.inputMethodController.on('insertText', this.insertTextCallback);
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe insertText:" + JSON.stringify(err));
+      this.cancelListenKeyBoardEvent();
+      return;
+    }
+
+    try {
+      this.inputMethodController.on('deleteLeft', this.deleteLeftCallback)
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe deleteLeft:" + JSON.stringify(err));
+      this.cancelListenKeyBoardEvent();
+      return;
+    }
+
+    try {
+      this.inputMethodController.on('deleteRight', this.deleteRightCallback)
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe deleteRight:" + JSON.stringify(err));
+      this.cancelListenKeyBoardEvent();
+      return;
+    }
+
+    try {
+      this.inputMethodController.on('sendFunctionKey', this.sendFunctionKeyCallback)
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe sendFunctionKey:" + JSON.stringify(err));
+      this.cancelListenKeyBoardEvent();
+      return;
+    }
+
+    try {
+      this.inputMethodController.on('sendKeyboardStatus', this.sendKeyboardStatusCallback)
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe sendKeyboardStatus:" + JSON.stringify(err));
+      this.cancelListenKeyBoardEvent();
+      return;
+    }
+
+    try {
+      this.inputMethodController.on('selectByRange', this.selectByRangeCallback)
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe selectByRange:" + JSON.stringify(err));
+      this.cancelListenKeyBoardEvent();
+      return;
+    }
+    Log.d(TextInputMethodHandlerImpl.TAG, "listenKeyBoardEvent success");
+    this.imcFlag = true;
+  }
+
+  private insertTextCallback = (text: string) => {
+    Log.d(TextInputMethodHandlerImpl.TAG, "insertText: " + text);
+    this.mEditable.handleInsertTextEvent(text);
+  }
+
+  private deleteLeftCallback = (length: number) => {
+    this.mEditable.handleDeleteEvent(false, length);
+  }
+
+  private deleteRightCallback = (length: number) => {
+    this.mEditable.handleDeleteEvent(true, length);
+  }
+
+  private sendFunctionKeyCallback = (functionKey: inputMethod.FunctionKey) => {
+    /// 临时规避缺少newline对应枚举类型问题
+    if (functionKey.enterKeyType == NEWLINE_KEY_TYPE) {
+      this.mEditable.handleNewlineEvent();
+    }
+    this.mEditable.handleFunctionKey(functionKey);
+  }
+
+  private sendKeyboardStatusCallback = (state: inputMethod.KeyboardStatus) => {
+    this.keyboardStatus = state;
+  }
+
+  private selectByRangeCallback = (range: inputMethod.Range) => {
+    this.mEditable.handleSelectByRange(range);
+  }
+
+  cancelListenKeyBoardEvent(): void {
+    this.inputMethodController?.off('insertText', this.insertTextCallback);
+    this.inputMethodController?.off('deleteLeft', this.deleteLeftCallback);
+    this.inputMethodController?.off('deleteRight', this.deleteRightCallback);
+    this.inputMethodController?.off('sendFunctionKey', this.sendFunctionKeyCallback);
+    this.inputMethodController?.off('sendKeyboardStatus', this.sendKeyboardStatusCallback);
+    this.inputMethodController?.off('selectByRange', this.selectByRangeCallback);
+    this.imcFlag = false;
+  }
+
+  public clearTextInputClient(): void {
+    if (this.inputTarget.type == Type.VIRTUAL_DISPLAY_PLATFORM_VIEW) {
+      return;
+    }
+    this.mEditable.removeEditingStateListener(this.plugin);
+    this.configuration = null;
+    this.inputTarget = new InputTarget(Type.NO_TARGET, 0);
+  }
+}
+
+enum Type {
+  NO_TARGET,
+  // InputConnection is managed by the TextInputPlugin, and events are forwarded to the Flutter
+  // framework.
+  FRAMEWORK_CLIENT,
+  // InputConnection is managed by a platform view that is presented on a virtual display.
+  VIRTUAL_DISPLAY_PLATFORM_VIEW,
+  PHYSICAL_DISPLAY_PLATFORM_VIEW,
+}
+
+export class InputTarget {
+  type: Type;
+  id: number;
+
+  constructor(type: Type, id: number) {
+    this.type = type;
+    this.id = id;
+  }
+}

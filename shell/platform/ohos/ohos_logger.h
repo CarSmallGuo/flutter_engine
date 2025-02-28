@@ -1,0 +1,37 @@
+/*
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE_KHZG file.
+ */
+
+#ifndef __OHOS__LOGGER_H
+#define __OHOS__LOGGER_H
+#include <hilog/log.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef enum {
+  /** Debug level to be used by {@link OH_LOG_DEBUG} */
+  OHOS_LOG_DEBUG = 3,
+  /** Informational level to be used by {@link OH_LOG_INFO} */
+  OHOS_LOG_INFO = 4,
+  /** Warning level to be used by {@link OH_LOG_WARN} */
+  OHOS_LOG_WARN = 5,
+  /** Error level to be used by {@link OH_LOG_ERROR} */
+  OHOS_LOG_ERROR = 6,
+  /** Fatal level to be used by {@link OH_LOG_FATAL} */
+  OHOS_LOG_FATAL = 7,
+} OhosLogLevel;
+
+extern int ohos_log(OhosLogLevel level, const char* fmt, ...);
+
+#ifdef __cplusplus
+}  // end extern
+#endif
+
+#endif

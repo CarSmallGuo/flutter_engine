@@ -1,0 +1,90 @@
+/*
+ * Copyright 2013 The Flutter Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
+ */
+
+#ifndef FLUTTER_IMAGE_GENERATOR_H
+#define FLUTTER_IMAGE_GENERATOR_H
+
+#include "flutter/common/task_runners.h"
+#include "flutter/fml/memory/ref_ptr.h"
+#include "flutter/fml/synchronization/waitable_event.h"
+#include "flutter/fml/task_runner.h"
+#include "flutter/lib/ui/painting/image_generator.h"
+
+#include "napi/native_api.h"
+#include "napi/platform_view_ohos_napi.h"
+#include "napi_common.h"
+
+namespace flutter {
+
+class OHOSImageGenerator : public ImageGenerator {
+ private:
+  explicit OHOSImageGenerator(
+      sk_sp<SkData> buffer,
+      const fml::RefPtr<fml::TaskRunner>& task_runner,
+      std::shared_ptr<PlatformViewOHOSNapi> napi_facade);
+
+  static napi_env g_env;
+
+ public:
+  static napi_value ImageNativeInit(napi_env env, napi_callback_info info);
+
+  static napi_value NativeImageDecodeCallback(napi_env env,
+                                              napi_callback_info info);
+
+  ~OHOSImageGenerator();
+
+  const SkImageInfo& GetInfo() override;
+
+  unsigned int GetFrameCount() const override;
+
+  unsigned int GetPlayCount() const override;
+
+  const ImageGenerator::FrameInfo GetFrameInfo(
+      unsigned int frame_index) const override;
+
+  SkISize GetScaledDimensions(float desired_scale) override;
+
+  bool GetPixels(const SkImageInfo& info,
+                 void* pixels,
+                 size_t row_bytes,
+                 unsigned int frame_index,
+                 std::optional<unsigned int> prior_frame) override;
+
+  void DecodeImage();
+
+  static std::shared_ptr<ImageGenerator> MakeFromData(
+      sk_sp<SkData> data,
+      const TaskRunners& task_runners,
+      std::shared_ptr<PlatformViewOHOSNapi> napi_facade);
+
+  fml::RefPtr<fml::TaskRunner> GetTaskRunner() const;
+
+ private:
+  sk_sp<SkData> data_;
+  sk_sp<SkData> software_decoded_data_;
+  const fml::RefPtr<fml::TaskRunner> task_runner_;
+  SkImageInfo image_info_;
+
+  std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;
+
+  /// Blocks until the header of the image has been decoded and the image
+  /// dimensions have been determined.
+  fml::ManualResetWaitableEvent header_decoded_latch_;
+
+  /// Blocks until the image has been fully decoded.
+  fml::ManualResetWaitableEvent fully_decoded_latch_;
+
+  // block this unconstruct until nativeCallback called
+  fml::ManualResetWaitableEvent native_callback_latch_;
+
+  void DoDecodeImage();
+
+  bool IsValidImageData();
+
+  FML_DISALLOW_COPY_ASSIGN_AND_MOVE(OHOSImageGenerator);
+};
+}  // namespace flutter
+#endif

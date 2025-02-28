@@ -1,0 +1,142 @@
+/*
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
+*/
+
+import image from '@ohos.multimedia.image';
+import { BusinessError } from '@ohos.base';
+import { SurfaceTextureEntry, TextureRegistry } from '../../../view/TextureRegistry';
+import { FlutterAbility } from '../../ohos/FlutterAbility';
+import FlutterNapi from '../FlutterNapi';
+import { SurfaceTextureWrapper } from './SurfaceTextureWrapper';
+import Log from '../../../util/Log';
+
+const TAG = "FlutterRenderer"
+export class FlutterRenderer implements TextureRegistry {
+  private nextTextureId: number = 0;
+  private flutterNapi: FlutterNapi;
+
+  constructor(flutterNapi: FlutterNapi) {
+    this.flutterNapi = flutterNapi;
+  }
+  createSurfaceTexture(): SurfaceTextureEntry {
+    let receiver: image.ImageReceiver = this.getImageReceiver();
+    return this.registerSurfaceTexture(receiver);
+  }
+
+  getTextureId(): number {
+    this.nextTextureId = this.nextTextureId + 1;
+    Log.i(TAG, "getTextureId: ", this.nextTextureId )
+    return this.nextTextureId;
+  }
+
+  registerTexture(textureId: number): SurfaceTextureEntry {
+    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.nextTextureId);
+    let surfaceId = this.flutterNapi.registerTexture(textureId);
+    Log.i(TAG, "registerTexture, surfaceId=" + surfaceId);
+    surfaceTextureRegistryEntry.setSurfaceId(surfaceId);
+    return surfaceTextureRegistryEntry;
+  }
+
+  registerSurfaceTexture(receiver: image.ImageReceiver): SurfaceTextureEntry {
+    this.nextTextureId = this.nextTextureId + 1;
+    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.nextTextureId);
+    surfaceTextureRegistryEntry.setImageReceiver(receiver);
+    this.registerImage(surfaceTextureRegistryEntry.getTextureId(), surfaceTextureRegistryEntry.textureWrapper());
+    return surfaceTextureRegistryEntry;
+  }
+
+  registerPixelMap(pixelMap: PixelMap): number {
+    this.nextTextureId = this.nextTextureId + 1;
+    this.flutterNapi.registerPixelMap(this.nextTextureId, pixelMap);
+    return this.nextTextureId;
+  }
+
+  setTextureBackGroundPixelMap(textureId: number, pixelMap: PixelMap): void {
+    this.flutterNapi.setTextureBackGroundPixelMap(textureId, pixelMap);
+  }
+
+  setTextureBackGroundColor(textureId: number, color: number): void {
+    this.flutterNapi.setTextureBackGroundColor(textureId, color);
+  }
+
+  setTextureBufferSize(textureId: number, width: number, height: number): void {
+    this.flutterNapi.setTextureBufferSize(textureId, width, height);
+  }
+
+  unregisterTexture(textureId: number): void {
+    this.flutterNapi.unregisterTexture(textureId);
+  }
+  onTrimMemory(level: number) {
+    throw new Error('Method not implemented.');
+  }
+
+  private getImageReceiver(): image.ImageReceiver {
+    let receiver: image.ImageReceiver = image.createImageReceiver(640, 480, 4, 8);
+    if (receiver !== undefined) {
+      Log.i(TAG, '[camera test] ImageReceiver is ok');
+    } else {
+      Log.i(TAG, '[camera test] ImageReceiver is not ok');
+    }
+    return receiver;
+  }
+  private registerImage(textureId: number, surfaceTextureWrapper: SurfaceTextureWrapper): void {
+    let receiver = surfaceTextureWrapper.getImageReceiver();
+    receiver.on('imageArrival', () => {
+      receiver.readNextImage((err: BusinessError, nextImage: image.Image) => {
+        if (err || nextImage === undefined) {
+          return;
+        }
+        this.flutterNapi.initNativeImage(textureId, nextImage);
+        Log.i(TAG, "[camera test] format: " + nextImage.format);
+        nextImage.release((err : BusinessError) =>{
+          if (err != undefined) {
+            Log.i(TAG, 'Failed to release the image source instance.');
+          } else {
+            Log.i(TAG, 'Succeeded in releasing the image source instance.');
+          }
+        });
+      })
+    })
+  }
+
+}
+
+export class SurfaceTextureRegistryEntry implements SurfaceTextureEntry {
+  private textureId: number = 0;
+  private surfaceId: number = 0;
+  private surfaceTextureWrapper: SurfaceTextureWrapper | null = null;
+  private released: boolean = false;
+
+  constructor(id: number) {
+    this.textureId = id;
+  }
+
+  getImageReceiver(): image.ImageReceiver {
+    return this.surfaceTextureWrapper!.getImageReceiver();
+  }
+
+  setImageReceiver(receiver: image.ImageReceiver): void {
+    this.surfaceTextureWrapper = new SurfaceTextureWrapper(receiver);
+  }
+
+  getTextureId(): number {
+    return this.textureId;
+  }
+
+  getSurfaceId(): number {
+    return this.surfaceId;
+  }
+
+  setSurfaceId(surfaceId: number): void {
+    this.surfaceId = surfaceId;
+  }
+
+  textureWrapper(): SurfaceTextureWrapper {
+    return this.surfaceTextureWrapper!;
+  }
+  release() {
+    throw new Error('Method not implemented.');
+  }
+}
