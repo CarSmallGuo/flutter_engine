@@ -41,35 +41,6 @@ OhosAccessibilityBridge::OhosAccessibilityBridge()
   isAccessibilityEnabled_(false) {}
 
 /**
- * flutter无障碍相关语义树、句柄指针provider等参数
- * 跟随xcomponentid显示切换，而加载对应xcomponent的语义树和provider指针
- * @NOTE: 当屏幕同时显示多个xcomponent时，无法通过聚焦事件而触发xcomponentid改变
- */
-// void OhosAccessibilityBridge::AccessibiltiyChangesWithXComponentId()
-// {   
-//     auto xcompMap = XComponentAdapter::GetInstance()->xcomponetMap_;
-//     // 获取当前显示的xcomponetid
-//     std::string currXcompId = XComponentAdapter::GetInstance()->currentXComponentId_;
-//     if (xcomponentId_ == currXcompId) { 
-//         xcomponentId_ = currXcompId;
-//         return; 
-//     }
-
-//     auto it = xcompMap.find(currXcompId);
-//     if (!xcompMap.empty() && it != xcompMap.end()) {
-//         // 更新xcompid，shellholderId，provider指针
-//         xcomponentId_ = currXcompId;
-//         native_shell_holder_id_ = std::stoll(it->second->shellholderId_);
-//         g_flutterSemanticsTree = g_flutterSemanticsTreeXComponents[xcomponentId_];
-//         FML_DLOG(INFO) << "AccessibiltiyChangesWithXComponentId -> xcomponentid:" << xcomponentId_;
-//     } else {
-//         xcomponentId_ = "oh_flutter_1";
-//         g_flutterSemanticsTree = g_flutterSemanticsTreeXComponents[xcomponentId_];
-//         FML_DLOG(INFO) << "AccessibiltiyChangesWithXComponentId -> xcomponentid:" << xcomponentId_;
-//     }
-// }
-
-/**
  * 监听当前ohos平台是否开启无障碍屏幕朗读服务
  */
 void OhosAccessibilityBridge::OnOhosAccessibilityStateChange(
@@ -125,11 +96,21 @@ void OhosAccessibilityBridge::UpdateSemantics(
             FML_DLOG(INFO) << "updatedFlutterNodes -> node.id=" << nodeEx.id;
         }
     }
-    // calculate the global tranfom matrix and parent id for each node
-    ComputeGlobalTransformAndParentId();
 
-    // 将更新后的flutter语义树和父子节点id映射缓存，保存到相应的xcomponent里面
-    // g_flutterSemanticsTreeXComponents[xcomponentId_] = g_flutterSemanticsTree;
+    std::unordered_set<int32_t> visitedIds;
+    // calculate the global tranfom matrix and parent id for each node
+    ComputeGlobalTransformAndParentId(visitedIds);
+
+    // detele the remain useless nodes from semantics tree
+    for (auto it = g_flutterSemanticsTree.begin(); 
+        it != g_flutterSemanticsTree.end();) {
+        if (visitedIds.find(it->first) == visitedIds.end()) {
+            FML_DLOG(INFO) << "g_flutterSemanticsTree delete node.id: " << it->first;
+            it = g_flutterSemanticsTree.erase(it);
+        } else {
+            ++it;
+        }
+    }
     
     // if the screen reader starts (touch guide state is true),
     // sending the a11y event and draw the green rect 
@@ -435,7 +416,8 @@ const AbsoluteRect& OhosAccessibilityBridge::GetAbsoluteScreenRect(
 /**
  * calculate the global transform matrix for each node
  */
-void OhosAccessibilityBridge::ComputeGlobalTransformAndParentId()
+void OhosAccessibilityBridge::ComputeGlobalTransformAndParentId(
+    std::unordered_set<int32_t>& visitedIds)
 {
   std::queue<SemanticsNodeExtent> semanticsQue;
 
@@ -444,6 +426,7 @@ void OhosAccessibilityBridge::ComputeGlobalTransformAndParentId()
   rootNode.parentId = ARKUI_ACCESSIBILITY_ROOT_PARENT_ID;
   g_flutterSemanticsTree[rootNode.id] = rootNode;
   semanticsQue.push(rootNode);
+  visitedIds.insert(rootNode.id);
 
   while (!semanticsQue.empty()) {
       auto currNode = semanticsQue.front();
@@ -455,6 +438,7 @@ void OhosAccessibilityBridge::ComputeGlobalTransformAndParentId()
         childNode.globalTransform = currNode.globalTransform * childNode.transform;
         g_flutterSemanticsTree[childId] = childNode;
         semanticsQue.push(childNode);
+        visitedIds.insert(childNode.id);
       }
   }
 }
@@ -935,14 +919,14 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
     
     // 获取当前对应id的flutter节点，若为空则返回错误编码
     auto flutterNode = GetFlutterSemanticsNode(static_cast<int32_t>(elementId));
-    if (!g_flutterSemanticsTree.count(flutterNode.id)) {
+    if (g_flutterSemanticsTree.find(flutterNode.id) == g_flutterSemanticsTree.end()) {
         LOGE("FindAccessibilityNodeInfosById: GetFlutterSemanticsNode id=%{public}ld is null", elementId);
     }
 
     // 开启无障碍导航功能
-    if(elementId == -1 || elementId == 0) {
-        accessibilityFeatures_->SetAccessibleNavigation(true, native_shell_holder_id_);
-    }
+    // if(elementId == -1 || elementId == 0) {
+    //     accessibilityFeatures_->SetAccessibleNavigation(true, native_shell_holder_id_);
+    // }
 
     // 从elementinfolist中获取elementinfo
     auto OH_ArkUI_AddAndGetAccessibilityElementInfo =
@@ -1285,7 +1269,7 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
 
     // 获取当前elementid对应的flutter语义节点
     auto flutterNode = GetFlutterSemanticsNode(static_cast<int32_t>(elementId));
-    if (!g_flutterSemanticsTree.count(flutterNode.id)) {
+    if (g_flutterSemanticsTree.find(flutterNode.id) == g_flutterSemanticsTree.end()) {
         LOGE("ExecuteAccessibilityAction: GetFlutterSemanticsNode id=%{public}ld is null", elementId);
     }
 

@@ -236,7 +236,7 @@ private:
     flutter::SemanticsAction ArkuiActionsToFlutterActions(
         ArkUI_Accessibility_ActionType arkui_action);
 
-    void ComputeGlobalTransformAndParentId();
+    void ComputeGlobalTransformAndParentId(std::unordered_set<int32_t>& visitedIds);
     void ConvertRectToGlobal(SemanticsNodeExtent& node);
     SkPoint ApplyTransform(SkPoint& point, const SkM44& transform);
     
