@@ -196,7 +196,7 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
       // 将当前要销毁的xcomponent对应的无障碍provider指针置nullptr
       it->second->accessibilityProvider_ = nullptr;
       // delete the semantics tree of the destroyed xcomponent
-      OhosAccessibilityBridge::GetInstance()->g_flutterSemanticsTreeXComponents.erase(it->first);
+      // OhosAccessibilityBridge::GetInstance()->g_flutterSemanticsTreeXComponents.erase(it->first);
       it = XComponentAdapter::GetInstance()->xcomponetMap_.erase(it);
     } else {
       ++it;
@@ -391,7 +391,7 @@ void XComponentBase::RegisterArkUIAccessibilityService(OH_NativeXComponent* nati
         OH_ArkUI_AccessibilityProviderRegisterCallback(a11yProvider, &accessibilityProviderCallback_)
     );
 
-    std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
+    // std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
     auto* base = XComponentAdapter::GetInstance()->xcomponetMap_[id_];
     base->accessibilityProvider_ = a11yProvider;
     base->nativeXComponent_ = nativeXComponent;

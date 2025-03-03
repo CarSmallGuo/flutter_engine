@@ -45,29 +45,29 @@ OhosAccessibilityBridge::OhosAccessibilityBridge()
  * 跟随xcomponentid显示切换，而加载对应xcomponent的语义树和provider指针
  * @NOTE: 当屏幕同时显示多个xcomponent时，无法通过聚焦事件而触发xcomponentid改变
  */
-void OhosAccessibilityBridge::AccessibiltiyChangesWithXComponentId()
-{   
-    auto xcompMap = XComponentAdapter::GetInstance()->xcomponetMap_;
-    // 获取当前显示的xcomponetid
-    std::string currXcompId = XComponentAdapter::GetInstance()->currentXComponentId_;
-    if (xcomponentId_ == currXcompId) { 
-        xcomponentId_ = currXcompId;
-        return; 
-    }
+// void OhosAccessibilityBridge::AccessibiltiyChangesWithXComponentId()
+// {   
+//     auto xcompMap = XComponentAdapter::GetInstance()->xcomponetMap_;
+//     // 获取当前显示的xcomponetid
+//     std::string currXcompId = XComponentAdapter::GetInstance()->currentXComponentId_;
+//     if (xcomponentId_ == currXcompId) { 
+//         xcomponentId_ = currXcompId;
+//         return; 
+//     }
 
-    auto it = xcompMap.find(currXcompId);
-    if (!xcompMap.empty() && it != xcompMap.end()) {
-        // 更新xcompid，shellholderId，provider指针
-        xcomponentId_ = currXcompId;
-        native_shell_holder_id_ = std::stoll(it->second->shellholderId_);
-        g_flutterSemanticsTree = g_flutterSemanticsTreeXComponents[xcomponentId_];
-        FML_DLOG(INFO) << "AccessibiltiyChangesWithXComponentId -> xcomponentid:" << xcomponentId_;
-    } else {
-        xcomponentId_ = "oh_flutter_1";
-        g_flutterSemanticsTree = g_flutterSemanticsTreeXComponents[xcomponentId_];
-        FML_DLOG(INFO) << "AccessibiltiyChangesWithXComponentId -> xcomponentid:" << xcomponentId_;
-    }
-}
+//     auto it = xcompMap.find(currXcompId);
+//     if (!xcompMap.empty() && it != xcompMap.end()) {
+//         // 更新xcompid，shellholderId，provider指针
+//         xcomponentId_ = currXcompId;
+//         native_shell_holder_id_ = std::stoll(it->second->shellholderId_);
+//         g_flutterSemanticsTree = g_flutterSemanticsTreeXComponents[xcomponentId_];
+//         FML_DLOG(INFO) << "AccessibiltiyChangesWithXComponentId -> xcomponentid:" << xcomponentId_;
+//     } else {
+//         xcomponentId_ = "oh_flutter_1";
+//         g_flutterSemanticsTree = g_flutterSemanticsTreeXComponents[xcomponentId_];
+//         FML_DLOG(INFO) << "AccessibiltiyChangesWithXComponentId -> xcomponentid:" << xcomponentId_;
+//     }
+// }
 
 /**
  * 监听当前ohos平台是否开启无障碍屏幕朗读服务
@@ -76,7 +76,7 @@ void OhosAccessibilityBridge::OnOhosAccessibilityStateChange(
     bool ohosAccessibilityEnabled, int64_t shellholderId)
 {
     native_shell_holder_id_ = shellholderId;
-    AccessibiltiyChangesWithXComponentId();
+    // AccessibiltiyChangesWithXComponentId();
     nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
     accessibilityFeatures_ = std::make_shared<OhosAccessibilityFeatures>();
 
@@ -99,7 +99,7 @@ void OhosAccessibilityBridge::UpdateSemantics(
 {
     FML_DLOG(INFO) << "OhosAccessibilityBridge::UpdateSemantics()";
     std::unordered_set<SemanticsNodeExtent, SemanticsNodeExtent::Hash> updatedFlutterNodes;
-    AccessibiltiyChangesWithXComponentId();
+    // AccessibiltiyChangesWithXComponentId();
 
     // request rootNode when routes a new flutter page
     // on touch guide mode (screen reader is on)
@@ -129,7 +129,7 @@ void OhosAccessibilityBridge::UpdateSemantics(
     ComputeGlobalTransformAndParentId();
 
     // 将更新后的flutter语义树和父子节点id映射缓存，保存到相应的xcomponent里面
-    g_flutterSemanticsTreeXComponents[xcomponentId_] = g_flutterSemanticsTree;
+    // g_flutterSemanticsTreeXComponents[xcomponentId_] = g_flutterSemanticsTree;
     
     // if the screen reader starts (touch guide state is true),
     // sending the a11y event and draw the green rect 
@@ -270,7 +270,7 @@ void OhosAccessibilityBridge::FlutterScrollExecution(
 void OhosAccessibilityBridge::RequestFocusWhenPageUpdate(int32_t requestFocusId)
 {
     if (OHOS_API_VERSION < 13) { return; }
-    std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
+    // std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
     auto provider_ = XComponentAdapter::GetInstance()->GetAccessibilityProvider(xcomponentId_);
     CHECK_NULL_PTR_RET_VOID(provider_, RequestFocusWhenPageUpdate);
     
@@ -925,7 +925,7 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
         << elementId << " mode=" << mode;
     CHECK_NULL_PTR_WITH_RET(elementList, FindAccessibilityNodeInfosById);
 
-    AccessibiltiyChangesWithXComponentId();
+    // AccessibiltiyChangesWithXComponentId();
 
     if (g_flutterSemanticsTree.size() == 0) {
         FML_DLOG(INFO)
@@ -953,22 +953,16 @@ int32_t OhosAccessibilityBridge::FindAccessibilityNodeInfosById(
 
     if (mode == ArkUI_AccessibilitySearchMode::ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_CURRENT) {
         /** Search for current nodes. (mode = 0) */
-        BuildArkUISemanticsTree(elementId, elementInfoFromList, elementList);
+        FlutterSetElementInfoProperties(elementInfoFromList, elementId);
     } else if (mode ==ArkUI_AccessibilitySearchMode::ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_PREDECESSORS) {
         /** Search for parent nodes. (mode = 1) */
-        if (IsNodeVisible(flutterNode)) {
-            FlutterSetElementInfoProperties(elementInfoFromList, elementId);
-        }
+        FlutterSetElementInfoProperties(elementInfoFromList, elementId);
     } else if (mode ==ArkUI_AccessibilitySearchMode::ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_SIBLINGS) {
         /** Search for sibling nodes. (mode = 2) */
-        if (IsNodeVisible(flutterNode)) {
-            FlutterSetElementInfoProperties(elementInfoFromList, elementId);
-        }
+        FlutterSetElementInfoProperties(elementInfoFromList, elementId);
     } else if (mode ==ArkUI_AccessibilitySearchMode::ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_CHILDREN) {
         /** Search for child nodes at the next level. (mode = 4) */
-        if (IsNodeVisible(flutterNode)) {
-            FlutterSetElementInfoProperties(elementInfoFromList, elementId);
-        }
+        FlutterSetElementInfoProperties(elementInfoFromList, elementId);
     } else if (mode ==ArkUI_AccessibilitySearchMode::ARKUI_ACCESSIBILITY_NATIVE_SEARCH_MODE_PREFETCH_RECURSIVE_CHILDREN) {
         /** Search for all child nodes. (mode = 8) */
         BuildArkUISemanticsTree(elementId, elementInfoFromList, elementList);
@@ -1287,7 +1281,7 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
                    << elementId << " action=" << action;
     CHECK_NULL_PTR_WITH_RET(actionArguments, ExecuteAccessibilityAction);
 
-    AccessibiltiyChangesWithXComponentId();
+    // AccessibiltiyChangesWithXComponentId();
 
     // 获取当前elementid对应的flutter语义节点
     auto flutterNode = GetFlutterSemanticsNode(static_cast<int32_t>(elementId));
@@ -1484,8 +1478,8 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAnnounceEvent(
     ArkUI_AccessibilityEventType eventType)
 {
     if (OHOS_API_VERSION < 13) { return; }
-    AccessibiltiyChangesWithXComponentId();
-    std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
+    // AccessibiltiyChangesWithXComponentId();
+    // std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
     auto provider_ = XComponentAdapter::GetInstance()->GetAccessibilityProvider(xcomponentId_);
     CHECK_NULL_PTR_RET_VOID(provider_, Flutter_SendAccessibilityAnnounceEvent);
 
@@ -1535,8 +1529,8 @@ void OhosAccessibilityBridge::Flutter_SendAccessibilityAsyncEvent(
     ArkUI_AccessibilityEventType eventType)
 {
     if (OHOS_API_VERSION < 13) { return; }
-    AccessibiltiyChangesWithXComponentId();
-    std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
+    // AccessibiltiyChangesWithXComponentId();
+    // std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
     auto provider_ = XComponentAdapter::GetInstance()->GetAccessibilityProvider(xcomponentId_);
     CHECK_NULL_PTR_RET_VOID(provider_, Flutter_SendAccessibilityAsyncEvent);
 
