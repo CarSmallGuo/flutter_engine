@@ -268,6 +268,7 @@ export struct FlutterPage {
   @State checkKeyboard: boolean = true;
   @State checkGesture: boolean = true;
   @State checkMouseWheel: boolean = true;
+  @State paddingTop?: number = undefined;
   @StorageLink('nodeWidth') storageLinkWidth: number = 0;
   @StorageLink('nodeHeight') storageLinkHeight: number = 0;
   @State rootDvModel: DVModelChildren | undefined = undefined
@@ -283,6 +284,7 @@ export struct FlutterPage {
     this.flutterView?.setCheckFullScreen(this.checkFullScreen)
     this.flutterView?.setCheckKeyboard(this.checkKeyboard)
     this.flutterView?.setCheckGesture(this.checkGesture)
+    this.flutterView?.setPaddingTop(this.paddingTop)
 
     this.rootDvModel = this.flutterView!!.getDVModel().children
     getContext().eventHub.on(OHOS_FLUTTER_PAGE_UPDATE, () => {
