@@ -13,7 +13,6 @@
 #include "flutter/shell/platform/embedder/embedder.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
 #include "flutter/shell/platform/ohos/ohos_xcomponent_adapter.h"
-#include <chrono>
 
 namespace flutter {
 
@@ -223,6 +222,7 @@ void OhosAccessibilityBridge::UpdateSemantics(
     // calculate the global tranfom matrix and parent id for each node
     ComputeGlobalTransformAndParentId(visitedIds);
 
+    FML_DLOG(INFO) << "before -> g_flutterSemanticsTree size: " << g_flutterSemanticsTree.size();
     // detele the remain useless nodes from the semantics tree
     for (auto it = g_flutterSemanticsTree.begin(); 
         it != g_flutterSemanticsTree.end();) {
@@ -233,6 +233,7 @@ void OhosAccessibilityBridge::UpdateSemantics(
             ++it;
         }
     }
+    FML_DLOG(INFO) << "after -> g_flutterSemanticsTree size: " << g_flutterSemanticsTree.size();
 
     // if the screen reader starts (touch guide state is true),
     // sending the a11y event and draw the green rect 
@@ -835,9 +836,6 @@ int32_t OhosAccessibilityBridge::ExecuteAccessibilityAction(
     CHECK_NULL_PTR_WITH_RET(actionArguments, ExecuteAccessibilityAction);
 
     auto flutterNode = GetFlutterSemanticsNode(static_cast<int32_t>(elementId));
-    // if (g_flutterSemanticsTree.find(flutterNode.id) == g_flutterSemanticsTree.end()) {
-    //     LOGE("ExecuteAccessibilityAction: GetFlutterSemanticsNode id=%{public}ld is null", elementId);
-    // }
 
     // Display obscured flutter nodes on the screen when scrolling
     // ArkUI accessibility service does not support this feature
