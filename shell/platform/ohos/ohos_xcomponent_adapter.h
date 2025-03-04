@@ -74,7 +74,7 @@ class XComponentAdapter {
   void DetachFlutterEngine(std::string& id);
   void OnMouseWheel(std::string& id, mouseWheelEvent event);
 
-  ArkUI_AccessibilityProvider* GetAccessibilityProvider(const std::string& xcompId);
+  ArkUI_AccessibilityProvider* GetAccessibilityProvider();
 
  public:
   std::map<std::string, XComponentBase*> xcomponetMap_;

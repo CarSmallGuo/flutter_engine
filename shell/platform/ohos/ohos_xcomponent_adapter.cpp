@@ -244,7 +244,14 @@ int32_t FindAccessibilityNodeInfosById(
     int32_t requestId,
     ArkUI_AccessibilityElementInfoList* elementList)
 {
+  auto start = std::chrono::high_resolution_clock::now(); // 记录开始时间
+
   OhosAccessibilityBridge::GetInstance()->FindAccessibilityNodeInfosById(elementId, mode, requestId, elementList);
+
+  auto end = std::chrono::high_resolution_clock::now(); // 记录结束时间
+  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+  FML_DLOG(INFO)  << "FindAccessibilityNodeInfosById() -> Elapsed time: " << elapsed.count() << " ms"; // 输出耗时 
+
   FML_DLOG(INFO) << "accessibilityProviderCallback_.FindAccessibilityNodeInfosById";
   return 0;
 }
@@ -292,7 +299,14 @@ int32_t ExecuteAccessibilityAction(
     ArkUI_AccessibilityActionArguments* actionArguments,
     int32_t requestId)
 {
+  auto start = std::chrono::high_resolution_clock::now(); // 记录开始时间
+
   OhosAccessibilityBridge::GetInstance()->ExecuteAccessibilityAction(elementId, action, actionArguments, requestId);
+
+  auto end = std::chrono::high_resolution_clock::now(); // 记录结束时间
+  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+  FML_DLOG(INFO)  << "ExecuteAccessibilityAction() -> Elapsed time: " << elapsed.count() << " ms"; // 输出耗时 
+
   LOGD("accessibilityProviderCallback_.ExecuteAccessibilityAction");
   return 0;
 }
@@ -360,9 +374,9 @@ void XComponentBase::DetachFlutterEngine() {
   isEngineAttached_ = false;
 }
 
-ArkUI_AccessibilityProvider* XComponentAdapter::GetAccessibilityProvider(const std::string& xcompId)
+ArkUI_AccessibilityProvider* XComponentAdapter::GetAccessibilityProvider()
 {
-    auto it = xcomponetMap_.find(xcompId);
+    auto it = xcomponetMap_.find(currentXComponentId_);
     if (it != xcomponetMap_.end()) {
         return it->second->accessibilityProvider_;
     } else {
@@ -391,10 +405,10 @@ void XComponentBase::RegisterArkUIAccessibilityService(OH_NativeXComponent* nati
         OH_ArkUI_AccessibilityProviderRegisterCallback(a11yProvider, &accessibilityProviderCallback_)
     );
 
-    // std::lock_guard<std::mutex> lock(XComponentAdapter::GetInstance()->mutex_);
     auto* base = XComponentAdapter::GetInstance()->xcomponetMap_[id_];
     base->accessibilityProvider_ = a11yProvider;
     base->nativeXComponent_ = nativeXComponent;
+    XComponentAdapter::GetInstance()->currentXComponentId_ = id_;
 
     FML_DLOG(INFO) << "RegisterArkUIAccessibilityService is finished";
 }
