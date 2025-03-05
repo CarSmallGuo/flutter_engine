@@ -79,7 +79,6 @@ public:
     bool isTouchGuideOn_;
 
     std::unordered_map<int32_t, SemanticsNodeExtend> g_flutterSemanticsTree;
-    std::unordered_map<std::string, std::unordered_map<int32_t, SemanticsNodeExtend>> g_flutterSemanticsTreeXComponents;
 
     void OnOhosAccessibilityStateChange(bool ohosAccessibilityEnabled, int64_t shellholderId);
 
