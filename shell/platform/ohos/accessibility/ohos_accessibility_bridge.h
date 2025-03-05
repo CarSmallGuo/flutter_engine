@@ -161,59 +161,53 @@ private:
     SemanticsNodeExtend inputFocusedNode;
     SemanticsNodeExtend lastInputFocusedNode;
     SemanticsNodeExtend accessibilityFocusedNode;
-
-    // GetElemFunc OH_ArkUI_AddAndGetAccessibilityElementInfo;
-    // CreateElemInfoFunc OH_ArkUI_CreateAccessibilityElementInfo;
-    // DestroyElemFunc OH_ArkUI_DestoryAccessibilityElementInfo;
-    // CreateEventInfoFunc OH_ArkUI_CreateAccessibilityEventInfo;
-    // DestroyEventFunc OH_ArkUI_DestoryAccessibilityEventInfo;
-
-    // SendAsyncEventFunc OH_ArkUI_SendAccessibilityAsyncEvent;
-    // GetFindActionArgs OH_ArkUI_FindAccessibilityActionArgumentByKey;
-    // SetElemChildFunc OH_ArkUI_AccessibilityElementInfoSetChildNodeIds;
-    // SetElemOperActionsFunc OH_ArkUI_AccessibilityElementInfoSetOperationActions;
-    // SetElemSreenRectFunc OH_ArkUI_AccessibilityElementInfoSetScreenRect;
-    // SetEventElemFunc OH_ArkUI_AccessibilityEventSetElementInfo;
-    // SetEventFunc OH_ArkUI_AccessibilityEventSetEventType;
-    // SetReqFocusFunc OH_ArkUI_AccessibilityEventSetRequestFocusId;
-    // SetEventStringFunc OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility;
-
-    // SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetElementId;
-    // SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetParentId;
-    // SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetCurrentItemIndex;
-    // SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetStartItemIndex;
-    // SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetEndItemIndex;
-    // SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetItemCount;
-
-    // SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetComponentType;
-    // SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetContents;
-    // SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetHintText;
-    // SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityText;
-    // SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityDescription;
-    // SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel;
     
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetCheckable;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetChecked;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetFocusable;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetFocused;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetVisible;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetSelected;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetClickable;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetLongClickable;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetEnabled;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetIsPassword;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetScrollable;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetEditable;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetIsHint;
-    // SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup;
+    // function pointers from libflutter_accessibility.so
+    GetElemFunc OH_ArkUI_AddAndGetAccessibilityElementInfo;
+    CreateElemInfoFunc OH_ArkUI_CreateAccessibilityElementInfo;
+    DestroyElemFunc OH_ArkUI_DestoryAccessibilityElementInfo;
+    CreateEventInfoFunc OH_ArkUI_CreateAccessibilityEventInfo;
+    DestroyEventFunc OH_ArkUI_DestoryAccessibilityEventInfo;
+    SendAsyncEventFunc OH_ArkUI_SendAccessibilityAsyncEvent;
+    GetFindActionArgs OH_ArkUI_FindAccessibilityActionArgumentByKey;
+    SetElemChildFunc OH_ArkUI_AccessibilityElementInfoSetChildNodeIds;
+    SetElemOperActionsFunc OH_ArkUI_AccessibilityElementInfoSetOperationActions;
+    SetElemSreenRectFunc OH_ArkUI_AccessibilityElementInfoSetScreenRect;
+    SetEventElemFunc OH_ArkUI_AccessibilityEventSetElementInfo;
+    SetEventFunc OH_ArkUI_AccessibilityEventSetEventType;
+    SetReqFocusFunc OH_ArkUI_AccessibilityEventSetRequestFocusId;
+    SetEventStringFunc OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility;
+    SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetElementId;
+    SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetParentId;
+    SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetCurrentItemIndex;
+    SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetStartItemIndex;
+    SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetEndItemIndex;
+    SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetItemCount;
+    SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetComponentType;
+    SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetContents;
+    SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetHintText;
+    SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityText;
+    SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityDescription;
+    SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetCheckable;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetChecked;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetFocusable;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetFocused;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetVisible;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetSelected;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetClickable;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetLongClickable;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetEnabled;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetIsPassword;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetScrollable;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetEditable;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetIsHint;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup;
 
-    static const int32_t OHOS_API_VERSION; 
     static const int32_t ARKUI_ACCESSIBILITY_ROOT_PARENT_ID = -2100000;
     static const int32_t RET_ERROR_STATE_CODE = -1;
     static const int32_t ROOT_NODE_ID = 0;
-    constexpr static const double SCROLL_EXTENT_FOR_INFINITY = 100000.0;
-    constexpr static const double SCROLL_POSITION_CAP_FOR_INFINITY = 70000.0;
     
     const char* ARKUI_ACTION_ARG_SET_TEXT = "setText";
     const char* ARKUI_ACTION_ARG_SELECT_TEXT_START = "selectTextBegin";
@@ -271,13 +265,16 @@ private:
     flutter::SemanticsAction ArkuiActionsToFlutterActions(
         ArkUI_Accessibility_ActionType arkui_action);
 
-    void ComputeGlobalTransformAndParentId(std::unordered_set<int32_t>& visitedIds);
+    void UpdateIteratively(std::unordered_set<int32_t>& visitedIds);
     void ConvertRectToGlobal(SemanticsNodeExtend& node);
     SkPoint ApplyTransform(SkPoint& point, const SkM44& transform);
     
     bool HasScrolled(const SemanticsNodeExtend& flutterNode);
     void DoScroll(SemanticsNodeExtend nodeEx);
     bool HasChangedLabel(const SemanticsNodeExtend& flutterNode);
+
+    void RequestFocusWhenPageUpdate(int32_t requestFocusId);
+    void DynamicLoadAccessibilityLibrary();
 
     bool IsNodeFocusable(const SemanticsNodeExtend& flutterNode);
     bool IsNodeFocused(const SemanticsNodeExtend& flutterNode);
@@ -331,13 +328,6 @@ private:
                              ArkUI_Accessibility_ActionType action,
                              ArkUI_AccessibilityActionArguments* actionArguments);
     void PerformShowOnScreenAction(const SemanticsNodeExtend& flutterNode);
-
-    void GetSemanticsNodeDebugInfo(const SemanticsNodeExtend& node);
-    void GetSemanticsFlagsDebugInfo(const SemanticsNodeExtend& node);
-    void GetCustomActionDebugInfo(
-        const flutter::CustomAccessibilityAction& customAccessibilityAction);
-
-    void RequestFocusWhenPageUpdate(int32_t requestFocusId);
 };
 
 }  // namespace flutter
