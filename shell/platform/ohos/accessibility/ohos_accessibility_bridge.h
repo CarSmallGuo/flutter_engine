@@ -186,7 +186,6 @@ private:
     SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetContents;
     SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetHintText;
     SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityText;
-    SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityDescription;
     SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel;
     SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetCheckable;
     SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetChecked;
@@ -201,7 +200,6 @@ private:
     SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetIsPassword;
     SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetScrollable;
     SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetEditable;
-    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetIsHint;
     SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup;
 
     static const int32_t ARKUI_ACCESSIBILITY_ROOT_PARENT_ID = -2100000;

@@ -520,7 +520,7 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
     }
     if (IsNodeFocused(flutterNode)) {
         ARKUI_ACCESSIBILITY_CALL_CHECK(
-            OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused(elementInfoFromList, true)
+            OH_ArkUI_AccessibilityElementInfoSetFocused(elementInfoFromList, true)
         );
         FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
                        << " OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused -> true";
