@@ -279,8 +279,15 @@ void PlatformViewOHOS::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
     FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics()";
+    
+    auto start = std::chrono::high_resolution_clock::now(); // 记录开始时间
+
     auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
     nativeAccessibilityChannel_->UpdateSemantics(std::move(update), std::move(actions));
+
+    auto end = std::chrono::high_resolution_clock::now(); // 记录结束时间
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    FML_DLOG(INFO)  << "UpdateSemantics() -> Elapsed time: " << elapsed.count() << " ms"; // 输出耗时 
 }
 
 // |PlatformView|
