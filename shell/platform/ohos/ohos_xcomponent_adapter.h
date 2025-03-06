@@ -25,7 +25,7 @@ class XComponentBase
 private:
   void BindXComponentCallback();
   void BindAccessibilityProviderCallback();
-  
+ 
 public:
   XComponentBase(std::string id);
   ~XComponentBase();
@@ -41,6 +41,7 @@ public:
   void OnDispatchTouchEvent(OH_NativeXComponent* component, void* window);
   void OnDispatchMouseEvent(OH_NativeXComponent* component, void* window);
   void OnDispatchMouseWheelEvent(mouseWheelEvent event);
+  void OnDispatchMouseLeaveEvent(OH_NativeXComponent* component);
 
   void RegisterArkUIAccessibilityService(
        OH_NativeXComponent* nativeXComponent);
