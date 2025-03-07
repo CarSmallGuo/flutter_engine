@@ -95,7 +95,6 @@ void OhosAccessibilityBridge::UpdateSemantics(
     // Iteratively update the essential properties of the nodes
     UpdateIteratively(visitedIds);
 
-    FML_DLOG(INFO) << "before -> g_flutterSemanticsTree size: " << g_flutterSemanticsTree.size();
     // detele the remain useless nodes from the semantics tree
     for (auto it = g_flutterSemanticsTree.begin(); 
         it != g_flutterSemanticsTree.end();) {
@@ -106,7 +105,6 @@ void OhosAccessibilityBridge::UpdateSemantics(
             ++it;
         }
     }
-    FML_DLOG(INFO) << "after -> g_flutterSemanticsTree size: " << g_flutterSemanticsTree.size();
 
     // if the screen reader starts (touch guide state is true),
     // sending the a11y event and draw the green rect 
@@ -131,7 +129,7 @@ void OhosAccessibilityBridge::DoScroll(SemanticsNodeExtend nodeEx)
 {
     FML_DLOG(INFO) << "DoScroll -> node.id=" << nodeEx.id;
     auto* elementInfo = OH_ArkUI_CreateAccessibilityElementInfo();
-
+ 
     FlutterSetElementInfoProperties(elementInfo, static_cast<int64_t>(nodeEx.id));
     FlutterScrollExecution(nodeEx, elementInfo); 
 
@@ -152,18 +150,15 @@ void OhosAccessibilityBridge::FlutterScrollExecution(
     ArkUI_AccessibilityElementInfo* elementInfoFromList)
 {
     if (node.scrollChildren > 0) {
-        int32_t itemCount = node.scrollChildren;
         ARKUI_ACCESSIBILITY_CALL_CHECK(
-            OH_ArkUI_AccessibilityElementInfoSetItemCount(elementInfoFromList, itemCount)
+            OH_ArkUI_AccessibilityElementInfoSetItemCount(elementInfoFromList, node.scrollChildren)
         );
-        int32_t startItemIndex = node.scrollIndex;
         ARKUI_ACCESSIBILITY_CALL_CHECK(
-            OH_ArkUI_AccessibilityElementInfoSetStartItemIndex(elementInfoFromList, startItemIndex)
+            OH_ArkUI_AccessibilityElementInfoSetStartItemIndex(elementInfoFromList, node.scrollIndex)
         );
         // set current focused node index
-        int32_t currItemIndex = accessibilityFocusedNode.id;
         ARKUI_ACCESSIBILITY_CALL_CHECK(
-            OH_ArkUI_AccessibilityElementInfoSetCurrentItemIndex(elementInfoFromList, currItemIndex)
+            OH_ArkUI_AccessibilityElementInfoSetCurrentItemIndex(elementInfoFromList, accessibilityFocusedNode.id)
         );
         // count the current scroll node's visible children
         int visibleChildren = 0;
@@ -174,9 +169,9 @@ void OhosAccessibilityBridge::FlutterScrollExecution(
                 visibleChildren += 1;
             }
         }
-        int32_t endItemIndex = node.scrollIndex + visibleChildren - 1;
         ARKUI_ACCESSIBILITY_CALL_CHECK(
-            OH_ArkUI_AccessibilityElementInfoSetEndItemIndex(elementInfoFromList, endItemIndex)
+            OH_ArkUI_AccessibilityElementInfoSetEndItemIndex(
+                elementInfoFromList, node.scrollIndex + visibleChildren - 1)
         );
     }
 }
@@ -434,6 +429,7 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
     ArkUI_AccessibilityElementInfo* elementInfoFromList,
     int64_t elementId)
 {
+    CHECK_NULL_PTR_RET_VOID(elementInfoFromList, FlutterSetElementInfoProperties);
     auto flutterNode = GetFlutterSemanticsNode(static_cast<int32_t>(elementId > 0 ? elementId : 0));
 
     ARKUI_ACCESSIBILITY_CALL_CHECK(
@@ -465,13 +461,11 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
     ARKUI_ACCESSIBILITY_CALL_CHECK(
         OH_ArkUI_AccessibilityElementInfoSetParentId(elementInfoFromList, parentId)
     );
-    FML_DLOG(INFO) << "SetElementInfo GetParentId = " << parentId;
     
     std::string text = flutterNode.label + flutterNode.value;
     ARKUI_ACCESSIBILITY_CALL_CHECK(
         OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(elementInfoFromList, text.c_str())
     );
-    FML_DLOG(INFO) << "SetElementInfo SetAccessibilityText = " << text;
 
     ARKUI_ACCESSIBILITY_CALL_CHECK(
         OH_ArkUI_AccessibilityElementInfoSetContents(elementInfoFromList, text.c_str())
@@ -489,9 +483,6 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
         int64_t childNodeIds[childCount];
         for (int32_t i = 0; i < childCount; i++) {
             childNodeIds[i] = static_cast<int64_t>(childrenIdsVec[i]);
-            FML_DLOG(INFO) << "SetElementInfo -> elementid=" << elementId
-                           << " childCount=" << childCount
-                           << " childNodeIds=" << childNodeIds[i];
         }
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetChildNodeIds(elementInfoFromList, childCount, childNodeIds)
@@ -501,110 +492,71 @@ void OhosAccessibilityBridge::FlutterSetElementInfoProperties(
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfoFromList, true)
         );
-        FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
-                       << " OH_ArkUI_AccessibilityElementInfoSetEnabled -> true";
     }
     if (IsNodeClickable(flutterNode)) {
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfoFromList, true)
         );
-        FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
-                       << " OH_ArkUI_AccessibilityElementInfoSetClickable -> true";
     }
     if (IsNodeFocusable(flutterNode)) {
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetFocusable(elementInfoFromList, true)
         );
-        FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
-                       << " OH_ArkUI_AccessibilityElementInfoSetFocusable -> true";
     }
     if (IsNodeFocused(flutterNode)) {
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetFocused(elementInfoFromList, true)
         );
-        FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
-                       << " OH_ArkUI_AccessibilityElementInfoSetAccessibilityFocused -> true";
     }
     if (IsNodePassword(flutterNode)) {
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetIsPassword(elementInfoFromList, true)
         );
-        FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
-                       << " OH_ArkUI_AccessibilityElementInfoSetIsPassword -> true";
     }
     if (IsNodeCheckable(flutterNode)) {
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetCheckable(elementInfoFromList, true)
         );
-        FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
-                       << " OH_ArkUI_AccessibilityElementInfoSetCheckable -> true";
     }
     if (IsNodeChecked(flutterNode)) {
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetChecked(elementInfoFromList, true)
         );
-        FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
-                       << " OH_ArkUI_AccessibilityElementInfoSetChecked -> true";
     }
     if (IsNodeVisible(flutterNode)) {
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetVisible(elementInfoFromList, true)
         );
-        FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
-                       << " OH_ArkUI_AccessibilityElementInfoSetVisible -> true";
     }
     if (IsNodeSelected(flutterNode)) {
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetSelected(elementInfoFromList, true)
         );
-        FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
-                       << " OH_ArkUI_AccessibilityElementInfoSetSelected -> true";
     }
     if (IsNodeScrollable(flutterNode)) {
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetScrollable(elementInfoFromList, true)
         );
-        FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
-                       << " OH_ArkUI_AccessibilityElementInfoSetScrollable -> true";
     }
     if (IsTextField(flutterNode)) {
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetEditable(elementInfoFromList, true)
         );
-        FML_DLOG(INFO) << "flutterNode.id=" << flutterNode.id
-                       << " OH_ArkUI_AccessibilityElementInfoSetEditable -> true";
     }
     if (IsNodeHasLongPress(flutterNode)) {
         ARKUI_ACCESSIBILITY_CALL_CHECK(
             OH_ArkUI_AccessibilityElementInfoSetLongClickable(elementInfoFromList, true)
         );
-        FML_DLOG(INFO)
-            << "flutterNode.id=" << flutterNode.id
-            << " OH_ArkUI_AccessibilityElementInfoSetLongClickable -> true";
     }
-
     std::string componentTypeName = GetNodeComponentType(flutterNode);
-    FML_DLOG(INFO) << "SetElementInfo componentTypeName = "
-                    << componentTypeName;
     ARKUI_ACCESSIBILITY_CALL_CHECK(
         OH_ArkUI_AccessibilityElementInfoSetComponentType(
             elementInfoFromList, elementId < 1 ? ROOT_WIDGET_NAME : componentTypeName.c_str())
     );
-    FML_DLOG(INFO) << "SetElementInfo SetComponentType: "
-                   << componentTypeName;
-
-    /**
-     * 无障碍重要性，用于控制某个组件是否可被无障碍辅助服务所识别。支持的值为（默认值：“auto”）：
-     * “auto”：根据组件不同会转换为“yes”或者“no”
-     * “yes”：当前组件可被无障碍辅助服务所识别
-     * “no”：当前组件不可被无障碍辅助服务所识别
-     * “no-hide-descendants”：当前组件及其所有子组件不可被无障碍辅助服务所识别
-     */
     ARKUI_ACCESSIBILITY_CALL_CHECK(
         OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel(
             elementInfoFromList, componentTypeName != OTHER_WIDGET_NAME ? "yes" : "no"); 
     );
-    // 无障碍组，设置为true时表示该组件及其所有子组件为一整个可以选中的组件，无障碍服务将不再关注其子组件内容。默认值：false
     ARKUI_ACCESSIBILITY_CALL_CHECK(
         OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup(elementInfoFromList, false);
     );
@@ -1213,12 +1165,7 @@ std::string OhosAccessibilityBridge::GetNodeComponentType(
         return SEEKBAR_WIDGET_NAME;
     }
     if (node.HasFlag(FLAGS_::kHasImplicitScrolling)) {
-        if (node.HasAction(ACTIONS_::kScrollLeft) ||
-            node.HasAction(ACTIONS_::kScrollRight)) {
-            return SCROLL_WIDGET_NAME;
-        } else {
-            return SCROLL_WIDGET_NAME;
-        }
+        return SCROLL_WIDGET_NAME;
     }
     if ((!node.label.empty() || !node.tooltip.empty() || !node.hint.empty())) {
         return TEXT_WIDGET_NAME;
