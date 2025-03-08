@@ -60,8 +60,7 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
-          // 保证获取xcomponentid之后再使用无障碍
-          this.flutterView?.onTouchGuideIsOpen();
+          // when xcomponent onload then search accessibility is open
           this.flutterView?.onAccessibilityIsOpen();
         })
         .onDestroy(() => {
@@ -156,8 +155,7 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
-          // 保证获取xcomponentid之后再使用无障碍
-          this.flutterView?.onTouchGuideIsOpen();
+          // when xcomponent onload then search accessibility is open
           this.flutterView?.onAccessibilityIsOpen();
         })
         .onDestroy(() => {

@@ -11,12 +11,11 @@
 #include "flutter/shell/common/run_configuration.h"
 #include "flutter/shell/common/thread_host.h"
 #include "flutter/shell/platform/ohos/ohos_display.h"
-
 #include "flutter/shell/platform/ohos/ohos_logging.h"
-
 #include <sys/resource.h>
 #include <sys/time.h>
 #include <qos/qos.h>
+#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
 
 namespace flutter {
 
@@ -327,6 +326,24 @@ std::optional<RunConfiguration> OHOSShellHolder::BuildRunConfiguration(
     }
   }
   return config;
+}
+
+int32_t OHOSShellHolder::ExecuteAccessibilityAction(
+  int64_t elementId,
+  ArkUI_Accessibility_ActionType action,
+  ArkUI_AccessibilityActionArguments* actionArguments,
+  int32_t requestId)
+{
+    FML_LOG(INFO) << "OHOSShellHolder::ExecuteAccessibilityAction()";
+    // post the ohos callback thread to flutter main thread
+    fml::TaskRunner::RunNowOrPostTask(
+      shell_->GetTaskRunners().GetPlatformTaskRunner(),
+      [elementId, action, actionArguments, requestId]() {
+        OhosAccessibilityBridge::GetInstance()->
+          ExecuteAccessibilityAction(elementId, action, actionArguments, requestId);
+      }
+    );
+    return ARKUI_ACCESSIBILITY_NATIVE_RESULT_SUCCESSFUL;
 }
 
 }  // namespace flutter

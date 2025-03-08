@@ -17,7 +17,8 @@
 #include "napi/native_api.h"
 #include "napi_common.h"
 #include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
-#include "flutter/shell/platform/ohos/utils/ddl_utils.h"
+#include "flutter/shell/platform/ohos/utils/ohos_utils.h"
+#include "ohos_shell_holder.h"
 namespace flutter {
 
 class XComponentBase
@@ -42,8 +43,13 @@ public:
   void OnDispatchMouseEvent(OH_NativeXComponent* component, void* window);
   void OnDispatchMouseWheelEvent(mouseWheelEvent event);
 
-  void RegisterArkUIAccessibilityService(
-       OH_NativeXComponent* nativeXComponent);
+  // Accessibility
+  void RegisterArkUIAccessibilityService(OH_NativeXComponent* nativeXComponent);
+  int32_t OhosExecuteAction(
+    int64_t elementId,
+    ArkUI_Accessibility_ActionType action,
+    ArkUI_AccessibilityActionArguments* actionArguments,
+    int32_t requestId);
 
   OH_NativeXComponent_TouchEvent touchEvent_;
   OH_NativeXComponent_Callback callback_;
@@ -60,6 +66,7 @@ public:
   uint64_t height_;
   OhosTouchProcessor ohosTouchProcessor_;
   ArkUI_AccessibilityProvider* accessibilityProvider_;
+  OHOSShellHolder* shellHolder_;
 };
 
 class XComponentAdapter {
@@ -75,6 +82,7 @@ class XComponentAdapter {
   void OnMouseWheel(std::string& id, mouseWheelEvent event);
 
   ArkUI_AccessibilityProvider* GetAccessibilityProvider();
+  XComponentBase* GetCurrentXcomponent();
 
  public:
   std::map<std::string, XComponentBase*> xcomponetMap_;

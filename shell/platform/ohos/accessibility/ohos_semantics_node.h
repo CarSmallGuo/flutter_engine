@@ -17,8 +17,9 @@ namespace flutter {
 typedef flutter::SemanticsFlags FLAGS_;
 typedef flutter::SemanticsAction ACTIONS_;
 
-class OHWidgetName {
+class UIViewerName {
 public:
+    // these widget names will be shown on the UIViewer
     static constexpr const char* kRootWidgetName = "root";
     static constexpr const char* kOtherWidgetName = "View";
     static constexpr const char* kTextWidgetName = "Text";
@@ -35,7 +36,6 @@ public:
     static constexpr const char* kSwitchWidgetName = "Toggle";
     static constexpr const char* kSeekbarWidgetName = "SeekBar";
 };
-
 struct AbsoluteRect {
     float left;
     float top;
@@ -49,26 +49,9 @@ struct AbsoluteRect {
         return AbsoluteRect{left, top, right, bottom};
     }
 };
-
 struct SemanticsNodeExtend : flutter::SemanticsNode {
 
     const int32_t ARKUI_ACCESSIBILITY_ROOT_PARENT_ID = -2100000;
-
-    const char* ROOT_WIDGET_NAME = "root";
-    const char* OTHER_WIDGET_NAME = "View";
-    const char* TEXT_WIDGET_NAME = "Text";
-    const char* EDIT_TEXT_WIDGET_NAME = "TextInput";
-    const char* EDIT_MULTILINE_TEXT_WIDGET_NAME = "TextArea";
-    const char* IMAGE_WIDGET_NAME = "Image";
-    const char* SCROLL_WIDGET_NAME = "Scroll";
-    const char* BUTTON_WIDGET_NAME = "Button";
-    const char* LINK_WIDGET_NAME = "Link";
-    const char* SLIDER_WIDGET_NAME = "Slider";
-    const char* HEADER_WIDGET_NAME = "Header";
-    const char* RADIO_BUTTON_WIDGET_NAME = "Radio";
-    const char* CHECK_BOX_WIDGET_NAME = "Checkbox";
-    const char* SWITCH_WIDGET_NAME = "Toggle";
-    const char* SEEKBAR_WIDGET_NAME = "SeekBar";
 
     static constexpr int32_t kFocusableFlags =
         static_cast<int32_t>(FLAGS_::kHasCheckedState) |
@@ -105,7 +88,7 @@ struct SemanticsNodeExtend : flutter::SemanticsNode {
     bool idChanged = false;
     bool isExist = false;
     
-    const char* componentType = OHWidgetName::kOtherWidgetName;
+    const char* componentType = UIViewerName::kOtherWidgetName;
     SkM44 globalTransform = SkM44{};
     AbsoluteRect absoluteRect = AbsoluteRect::MakeEmpty();
     int32_t parentId = 0;
@@ -121,7 +104,7 @@ struct SemanticsNodeExtend : flutter::SemanticsNode {
     std::string previousValue;
     std::string previousLabel;
 
-    int32_t visibleChildrenNum = 0;
+    int32_t scrollEndIndex = 0;
     SemanticsNodeExtend* accessibilityFocusedNode = nullptr;
     SemanticsNodeExtend* parentNode = nullptr;
     SemanticsNodeExtend* previousNode = nullptr;
@@ -131,12 +114,8 @@ struct SemanticsNodeExtend : flutter::SemanticsNode {
     std::vector<ArkUI_AccessibleAction> operationActions;
     ArkUI_AccessibilityElementInfo* elementInfo = nullptr;
 
-    SemanticsNodeExtend() {
-        elementInfo = OH_ArkUI_CreateAccessibilityElementInfo();
-    }
-    ~SemanticsNodeExtend() {
-        OH_ArkUI_DestoryAccessibilityElementInfo(elementInfo);
-    }
+    SemanticsNodeExtend();
+    ~SemanticsNodeExtend();
 
     bool HasPrevAction(SemanticsAction action) const {
         return (previousActions & this->actions) != 0;

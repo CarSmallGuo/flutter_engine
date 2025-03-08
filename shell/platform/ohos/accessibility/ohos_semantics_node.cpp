@@ -8,7 +8,18 @@
 
 namespace flutter {
 
-void SemanticsNodeExtend::UpdatetSemanticsNodeExtend(flutter::SemanticsNode& node) {
+SemanticsNodeExtend::SemanticsNodeExtend()
+{
+    // each flutter node is mapped with an elementInfo
+    this->elementInfo = OH_ArkUI_CreateAccessibilityElementInfo();
+}
+SemanticsNodeExtend::~SemanticsNodeExtend()
+{
+    OH_ArkUI_DestoryAccessibilityElementInfo(elementInfo);
+}
+
+void SemanticsNodeExtend::UpdatetSemanticsNodeExtend(flutter::SemanticsNode& node)
+{
     isExist = true;
     hadPreviousConfig = true;
 
@@ -26,8 +37,8 @@ void SemanticsNodeExtend::UpdatetSemanticsNodeExtend(flutter::SemanticsNode& nod
         hint = std::move(node.hint);
         tooltip = std::move(node.tooltip);
         if ((!label.empty() || !tooltip.empty() || !hint.empty()) &&
-            componentType == OHWidgetName::kOtherWidgetName) {
-            componentType = OHWidgetName::kTextWidgetName;
+            componentType == UIViewerName::kOtherWidgetName) {
+            componentType = UIViewerName::kTextWidgetName;
         }
         contentChanged = true;
     }
@@ -103,77 +114,86 @@ void SemanticsNodeExtend::UpdateRecursively(
     SkM44& fatherTransform,
     bool needUpdate)
 {
-  visitorId.insert(this->id);
-  if (rectChanged) { needUpdate = true; }
-  if (needUpdate) {
-    auto [left, top, right, bottom] = rect;
-    globalTransform = SkM44(fatherTransform, transform);
+    visitorId.insert(this->id);
+    if (rectChanged) { needUpdate = true; }
+    if (needUpdate) {
+        auto [left, top, right, bottom] = rect;
+        globalTransform = SkM44(fatherTransform, transform);
 
-    SkPoint points[4] = {
-        SkPoint::Make(left, top),     // top-left point
-        SkPoint::Make(right, top),    // top-right point
-        SkPoint::Make(right, bottom), // bottom-right point
-        SkPoint::Make(left, bottom)   // bottom-left point
-    };
+        SkPoint points[4] = {
+            SkPoint::Make(left, top),     // top-left point
+            SkPoint::Make(right, top),    // top-right point
+            SkPoint::Make(right, bottom), // bottom-right point
+            SkPoint::Make(left, bottom)   // bottom-left point
+        };
 
-    for (auto& point : points) {
-        SkV4 vector = globalTransform.map(point.x(), point.y(), 0, 1);
-        point = SkPoint::Make(vector.x / vector.w, vector.y / vector.w);
+        for (auto& point : points) {
+            SkV4 vector = globalTransform.map(point.x(), point.y(), 0, 1);
+            point = SkPoint::Make(vector.x / vector.w, vector.y / vector.w);
+        }
+
+        SkRect globalRect;
+        bool checkResult = globalRect.setBoundsCheck(points, 4);
+        if (!checkResult) {
+            FML_DLOG(WARNING) << "RelativeRectToScreenRect -> Transformed points can't make a rect ";
+        }
+        globalRect.setBounds(points, 4);
+
+        SetAbsoluteRect(globalRect.left(),  globalRect.top(),
+                        globalRect.right(), globalRect.bottom());
+        rectChanged = true;
     }
 
-    SkRect globalRect;
-    bool checkResult = globalRect.setBoundsCheck(points, 4);
-    if (!checkResult) {
-        FML_DLOG(WARNING) << "RelativeRectToScreenRect -> Transformed points can't make a rect ";
+    SemanticsNodeExtend* prevNode = nullptr;
+    int32_t visibleChildrenNum = 0;
+    std::vector<int64_t> exist_children;
+    for (auto& childNode : childrenInTraversalOrderList) {
+        if (!childNode->isExist) {
+            // some child is not updated by UpdateSemantics.
+            continue;
+        }
+        if (childNode->IsVisible()) {
+            ++visibleChildrenNum;
+        }
+        // update parent elementInfo
+        if (!childNode->parentNode || childNode->parentNode->id != id) {
+            childNode->parentNode = this;
+            childNode->parentId = this->id;
+            childNode->parentChanged = true;
+        }
+        if (prevNode) {
+            prevNode->nextNode = childNode;
+        }
+        childNode->previousNode = prevNode;
+        childNode->nextNode = nullptr;
+        prevNode = childNode;
+      
+        // update children elementInfo
+        exist_children.emplace_back(childNode->id);
+        childNode->UpdateRecursively(visitorId, globalTransform, needUpdate);
+        childNode->SetElementInfoProperties();
     }
-    globalRect.setBounds(points, 4);
+    // update scroll end index
+    scrollEndIndex = scrollIndex + visibleChildrenNum - 1;
 
-    SetAbsoluteRect(globalRect.left(),  globalRect.top(),
-                    globalRect.right(), globalRect.bottom());
-    rectChanged = true;
-  }
-
-  int previousNodeId = -1;
-  std::vector<int64_t> exist_children;
-  for (auto& childNode : childrenInTraversalOrderList) {
-    if (!childNode->isExist) {
-        // some child is not updated by UpdateSemantics.
-        continue;
+    if (exist_children != existChildrenInTraversalOrder) {
+        existChildrenInTraversalOrder = std::move(exist_children);
+        childrenChanged = true;
     }
-    if (childNode->IsVisible()) {
-        ++visibleChildrenNum;
-    }
-    // update parent elementInfo
-    if (!childNode->parentNode || childNode->parentNode->id != id) {
-        childNode->parentNode = this;
-        childNode->parentId = this->id;
-        childNode->parentChanged = true;
-    }
-    // update children elementInfo
-    childNode->previousNodeId = previousNodeId;
-    previousNodeId = childNode->id;
-    exist_children.emplace_back(childNode->id);
-    childNode->UpdateRecursively(visitorId, globalTransform, needUpdate);
-    childNode->SetElementInfoProperties();
-  }
-
-  if (exist_children != existChildrenInTraversalOrder) {
-    existChildrenInTraversalOrder = std::move(exist_children);
-    childrenChanged = true;
-  }
 }
 
 void SemanticsNodeExtend::SetElementInfoProperties(
-    ArkUI_AccessibilityElementInfo* elementInfo) {
-  if (!elementInfo) { return; }
-  FillElementInfoWithId(elementInfo);
-  FillElementInfoWithProperty(elementInfo);
-  FillElementInfoWithContent(elementInfo);
-  FillElementInfoWithChildren(elementInfo);
-  FillElementInfoWithParent(elementInfo);
-  FillElementInfoWithScroll(elementInfo);
-  FillElementInfoWithRect(elementInfo);
-  FillElementInfoWithSelect(elementInfo);
+    ArkUI_AccessibilityElementInfo* elementInfo)
+{
+    if (!elementInfo) { return; }
+    FillElementInfoWithId(elementInfo);
+    FillElementInfoWithProperty(elementInfo);
+    FillElementInfoWithContent(elementInfo);
+    FillElementInfoWithChildren(elementInfo);
+    FillElementInfoWithParent(elementInfo);
+    FillElementInfoWithScroll(elementInfo);
+    FillElementInfoWithRect(elementInfo);
+    FillElementInfoWithSelect(elementInfo);
 }
 
 void SemanticsNodeExtend::SetElementInfoProperties() {
@@ -223,125 +243,176 @@ void SemanticsNodeExtend::SetElementInfoProperties() {
 }
 
 void SemanticsNodeExtend::FillElementInfoWithId(
-    ArkUI_AccessibilityElementInfo* elementInfo) {
-  OH_ArkUI_AccessibilityElementInfoSetElementId(elementInfo, id);
-  OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup(elementInfo, false);
+    ArkUI_AccessibilityElementInfo* elementInfo)
+{
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetElementId(elementInfo, id)
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup(elementInfo, false)
+    );
+    bool needRecognized = componentType != UIViewerName::kOtherWidgetName &&
+                          componentType != UIViewerName::kRootWidgetName;
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel(elementInfo, needRecognized ? "yes" : "no");
+    );
 }
 
 void SemanticsNodeExtend::FillElementInfoWithProperty(
-    ArkUI_AccessibilityElementInfo* elementInfo) {
-  OH_ArkUI_AccessibilityElementInfoSetOperationActions(elementInfo, operationActions.size(),operationActions.data());
-  OH_ArkUI_AccessibilityElementInfoSetComponentType(elementInfo, componentType);
-  OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfo, IsEnabled());
-  OH_ArkUI_AccessibilityElementInfoSetFocusable(elementInfo, IsFocusable());
-  OH_ArkUI_AccessibilityElementInfoSetFocused(elementInfo, IsFocused());
-  OH_ArkUI_AccessibilityElementInfoSetSelected(elementInfo, IsSelected());
-  OH_ArkUI_AccessibilityElementInfoSetVisible(elementInfo, IsVisible());
-  OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfo, IsClickable());
-  OH_ArkUI_AccessibilityElementInfoSetLongClickable(elementInfo, IsHasLongPress());
-  OH_ArkUI_AccessibilityElementInfoSetCheckable(elementInfo, IsCheckable());
-  OH_ArkUI_AccessibilityElementInfoSetChecked(elementInfo, IsChecked());
-  OH_ArkUI_AccessibilityElementInfoSetScrollable(elementInfo, IsScrollable());
-  OH_ArkUI_AccessibilityElementInfoSetEditable(elementInfo, IsEditable());
-  OH_ArkUI_AccessibilityElementInfoSetIsPassword(elementInfo, IsPassword());
+    ArkUI_AccessibilityElementInfo* elementInfo)
+{
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetComponentType(elementInfo, componentType)
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetEnabled(elementInfo, IsEnabled())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetFocusable(elementInfo, IsFocusable())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetFocused(elementInfo, IsFocused())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetSelected(elementInfo, IsSelected())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetVisible(elementInfo, IsVisible())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetClickable(elementInfo, IsClickable())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetLongClickable(elementInfo, IsHasLongPress())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetCheckable(elementInfo, IsCheckable())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetChecked(elementInfo, IsChecked())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetScrollable(elementInfo, IsScrollable())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetEditable(elementInfo, IsEditable())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetIsPassword(elementInfo, IsPassword())
+    );
+    if (operationActions.empty()) { return; }
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetOperationActions(
+            elementInfo, operationActions.size(), operationActions.data())
+    );
 }
 
 void SemanticsNodeExtend::FillElementInfoWithContent(
     ArkUI_AccessibilityElementInfo* elementInfo)
 {
     std::string text = label + value;
-    OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(elementInfo, text.c_str());
-    OH_ArkUI_AccessibilityElementInfoSetContents(elementInfo, text.c_str());
-    OH_ArkUI_AccessibilityElementInfoSetHintText(elementInfo, hint.c_str());
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(elementInfo, text.c_str())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetContents(elementInfo, text.c_str())
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetHintText(elementInfo, hint.c_str())
+    );
 }
 
 void SemanticsNodeExtend::FillElementInfoWithChildren(
     ArkUI_AccessibilityElementInfo* elementInfo)
 {
-  // childrenInTraversalOrderList may less then childrenInTraversalOrder
-  OH_ArkUI_AccessibilityElementInfoSetChildNodeIds(
-      elementInfo, existChildrenInTraversalOrder.size(),
-      existChildrenInTraversalOrder.data());
+    // childrenInTraversalOrderList may less then childrenInTraversalOrder
+    if (existChildrenInTraversalOrder.empty()) { return; }
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetChildNodeIds(
+            elementInfo, existChildrenInTraversalOrder.size(),
+            existChildrenInTraversalOrder.data())
+    );
 }
 
 void SemanticsNodeExtend::FillElementInfoWithParent(
     ArkUI_AccessibilityElementInfo* elementInfo)
 {
-  if (id == 0) {
-    OH_ArkUI_AccessibilityElementInfoSetParentId(elementInfo, ARKUI_ACCESSIBILITY_ROOT_PARENT_ID);
-  } else {
-    OH_ArkUI_AccessibilityElementInfoSetParentId(elementInfo, parentId);
-  }
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetParentId(
+            elementInfo, id != 0 ? parentId : ARKUI_ACCESSIBILITY_ROOT_PARENT_ID)
+    );
 }
 
 void SemanticsNodeExtend::FillElementInfoWithScroll(
     ArkUI_AccessibilityElementInfo* elementInfo)
 {
-  if (scrollChildren > 0) {
-    OH_ArkUI_AccessibilityElementInfoSetItemCount(elementInfo, scrollChildren);
-    OH_ArkUI_AccessibilityElementInfoSetStartItemIndex(elementInfo, scrollIndex);
-    // auto* currentFocusedNode = 
-    //     OhosAccessibilityBridge::GetInstance()->accessibilityFocusedNode;
-    // if (currentFocusedNode) {
-    //     OH_ArkUI_AccessibilityElementInfoSetCurrentItemIndex(elementInfo, currentFocusedNode->id);
-    // }
-    OH_ArkUI_AccessibilityElementInfoSetEndItemIndex(elementInfo, scrollIndex + visibleChildrenNum - 1);
-    // OH_ArkUI_AccessibilityElementInfoSetAccessibilityOffset(elementInfo, scrollPosition);
-  }
+    if (scrollChildren <= 0) { return; }
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetItemCount(elementInfo, scrollChildren)
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetStartItemIndex(elementInfo, scrollIndex)
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetEndItemIndex(elementInfo, scrollEndIndex)
+    );
 }
 
 void SemanticsNodeExtend::FillElementInfoWithRect(
     ArkUI_AccessibilityElementInfo* elementInfo)
 {
-  ArkUI_AccessibleRect rect = {
-      static_cast<int32_t>(absoluteRect.left),
-      static_cast<int32_t>(absoluteRect.top),
-      static_cast<int32_t>(absoluteRect.right),
-      static_cast<int32_t>(absoluteRect.bottom),
-  };
-  OH_ArkUI_AccessibilityElementInfoSetScreenRect(elementInfo, &rect);
+    ArkUI_AccessibleRect rect = {
+        static_cast<int32_t>(absoluteRect.left),
+        static_cast<int32_t>(absoluteRect.top),
+        static_cast<int32_t>(absoluteRect.right),
+        static_cast<int32_t>(absoluteRect.bottom),
+    };
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetScreenRect(elementInfo, &rect)
+    );
 }
 
 void SemanticsNodeExtend::FillElementInfoWithSelect(
     ArkUI_AccessibilityElementInfo* elementInfo)
 {
-  if (textSelectionBase != -1 && textSelectionExtent != -1) {
-    OH_ArkUI_AccessibilityElementInfoSetSelectedTextStart(elementInfo,
-                                                          textSelectionBase);
-    OH_ArkUI_AccessibilityElementInfoSetSelectedTextEnd(elementInfo,
-                                                        textSelectionExtent);
-  }
+    if (textSelectionBase == -1 || textSelectionExtent == -1) { return; }
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetSelectedTextStart(elementInfo, textSelectionBase)
+    );
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetSelectedTextEnd(elementInfo, textSelectionExtent)
+    );
 }
 
 void SemanticsNodeExtend::ObtainElementInfoOperationActions()
 {
     operationActions.clear();
     if (HasAction(ACTIONS_::kTap)) {
-      operationActions.push_back(
-        {ArkUI_Accessibility_ActionType::
-            ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK,
-         "click action"});
+        operationActions.push_back(
+            {ArkUI_Accessibility_ActionType::
+                ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK,
+            "click action"});
     }
     if (HasAction(ACTIONS_::kLongPress)) {
-      operationActions.push_back({ArkUI_Accessibility_ActionType::
-                               ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_LONG_CLICK,
-                           "longPress action"});
+        operationActions.push_back({ArkUI_Accessibility_ActionType::
+                                ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_LONG_CLICK,
+                            "longPress action"});
     }
     if (HasAction(ACTIONS_::kScrollUp) || 
         HasAction(ACTIONS_::kScrollLeft) ||
         HasAction(ACTIONS_::kIncrease)) {
-      operationActions.push_back(
-          {ArkUI_Accessibility_ActionType::
-               ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_FORWARD,
-           "scrollForward action"});
+        operationActions.push_back(
+            {ArkUI_Accessibility_ActionType::
+                ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_FORWARD,
+            "scrollForward action"});
     }
     if (HasAction(ACTIONS_::kScrollDown) ||
         HasAction(ACTIONS_::kScrollRight) ||
         HasAction(ACTIONS_::kDecrease)) {
-      operationActions.push_back(
-          {ArkUI_Accessibility_ActionType::
-               ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD,
-           "scrollBackward action"});
+        operationActions.push_back(
+            {ArkUI_Accessibility_ActionType::
+                ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SCROLL_BACKWARD,
+            "scrollBackward action"});
     }
     if (HasAction(ACTIONS_::kSetText)) {
         operationActions.push_back({ArkUI_Accessibility_ActionType::
@@ -349,24 +420,24 @@ void SemanticsNodeExtend::ObtainElementInfoOperationActions()
                              "setText action"});
     }
     if (HasAction(ACTIONS_::kSetSelection)) {
-      operationActions.push_back({ArkUI_Accessibility_ActionType::
-                               ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SELECT_TEXT,
-                           "setSelection action"});
+        operationActions.push_back({ArkUI_Accessibility_ActionType::
+                                ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_SELECT_TEXT,
+                            "setSelection action"});
     }
     if (HasAction(ACTIONS_::kCopy)) {
-      operationActions.push_back({ArkUI_Accessibility_ActionType::
-                               ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_COPY,
-                           "copy action"});
+        operationActions.push_back({ArkUI_Accessibility_ActionType::
+                                ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_COPY,
+                            "copy action"});
     }
     if (HasAction(ACTIONS_::kCut)) {
-      operationActions.push_back({ArkUI_Accessibility_ActionType::
-                               ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CUT,
-                           "cut action"});
+        operationActions.push_back({ArkUI_Accessibility_ActionType::
+                                ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CUT,
+                            "cut action"});
     }
     if (HasAction(ACTIONS_::kPaste)) {
-      operationActions.push_back({ArkUI_Accessibility_ActionType::
-                               ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_PASTE,
-                           "paste action"});
+        operationActions.push_back({ArkUI_Accessibility_ActionType::
+                                ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_PASTE,
+                            "paste action"});
     }
     operationActions.push_back({
         ArkUI_Accessibility_ActionType::
@@ -376,43 +447,42 @@ void SemanticsNodeExtend::ObtainElementInfoOperationActions()
         ArkUI_Accessibility_ActionType::
         ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS,
         "clearFoucs action"});
-
 }
 
 void SemanticsNodeExtend::UpdateComponetType() {
     if (id == 0) {
-      componentType = OHWidgetName::kRootWidgetName;
+        componentType = UIViewerName::kRootWidgetName;
     } else if (HasFlag(FLAGS_::kIsButton)) {
-      componentType = OHWidgetName::kButtonWidgetName;
+        componentType = UIViewerName::kButtonWidgetName;
     } else if (HasFlag(FLAGS_::kIsTextField)) {
-      componentType = OHWidgetName::kEditTextWidgetName;
+        componentType = UIViewerName::kEditTextWidgetName;
     } else if (HasFlag(FLAGS_::kIsMultiline)) {
-      componentType = OHWidgetName::kEditMultilineTextWidgetName;
+        componentType = UIViewerName::kEditMultilineTextWidgetName;
     } else if (HasFlag(FLAGS_::kIsLink)) {
-      componentType = OHWidgetName::kLinkWidgetName;
+        componentType = UIViewerName::kLinkWidgetName;
     } else if (HasFlag(FLAGS_::kIsSlider) || HasAction(ACTIONS_::kIncrease) ||
                HasAction(ACTIONS_::kDecrease)) {
-      componentType = OHWidgetName::kSliderWidgetName;
+        componentType = UIViewerName::kSliderWidgetName;
     } else if (HasFlag(FLAGS_::kIsHeader)) {
-      componentType = OHWidgetName::kHeaderWidgetName;
+        componentType = UIViewerName::kHeaderWidgetName;
     } else if (HasFlag(FLAGS_::kIsImage)) {
-      componentType = OHWidgetName::kImageWidgetName;
+        componentType = UIViewerName::kImageWidgetName;
     } else if (HasFlag(FLAGS_::kHasCheckedState)) {
       if (HasFlag(FLAGS_::kIsInMutuallyExclusiveGroup)) {
-        componentType = OHWidgetName::kRadioButtonWidgetName;
+          componentType = UIViewerName::kRadioButtonWidgetName;
       } else {
-        componentType = OHWidgetName::kCheckBoxWidgetName;
+          componentType = UIViewerName::kCheckBoxWidgetName;
       }
     } else if (HasFlag(FLAGS_::kHasToggledState)) {
-      componentType = OHWidgetName::kSwitchWidgetName;
+        componentType = UIViewerName::kSwitchWidgetName;
     } else if (HasAction(ACTIONS_::kIncrease) || HasAction(ACTIONS_::kDecrease)) {
-      componentType = OHWidgetName::kSeekbarWidgetName;
+        componentType = UIViewerName::kSeekbarWidgetName;
     } else if (HasFlag(FLAGS_::kHasImplicitScrolling)) {
-      componentType = OHWidgetName::kScrollWidgetName;
+        componentType = UIViewerName::kScrollWidgetName;
     } else if ((!label.empty() || !tooltip.empty() || !hint.empty())) {
-      componentType = OHWidgetName::kTextWidgetName;
+        componentType = UIViewerName::kTextWidgetName;
     } else {
-      componentType = OHWidgetName::kOtherWidgetName;
+        componentType = UIViewerName::kOtherWidgetName;
     }
 }
 

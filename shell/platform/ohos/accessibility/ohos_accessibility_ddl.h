@@ -7,7 +7,7 @@
 #define OHOS_ACCESSIBILITY_DDL_H
 #include <arkui/native_interface_accessibility.h>
 #include <ace/xcomponent/native_interface_xcomponent.h>
-#include "flutter/shell/platform/ohos/utils/ddl_utils.h"
+#include "flutter/shell/platform/ohos/utils/ohos_utils.h"
 
 namespace flutter {
 

@@ -37,7 +37,6 @@ public:
 
     int64_t native_shell_holder_id_;
     bool isFlutterNavigated_;
-    bool isTouchGuideOn_;
     
     SemanticsNodeExtend* accessibilityFocusedNode = nullptr;
     std::unordered_map<int32_t, SemanticsNodeExtend*> flutterSemanticsTree;
@@ -57,7 +56,6 @@ public:
     void OnTooltip(std::unique_ptr<char[]>& message);
 
     SemanticsNodeExtend* GetOrAddSemanticsNode(int32_t id);
-    int32_t GetParentId(SemanticsNodeExtend* node);
 
     int32_t FindAccessibilityNodeInfosById(
         int64_t elementId,
@@ -96,31 +94,18 @@ public:
         std::unique_ptr<char[]>& message,
         ArkUI_AccessibilityEventType eventType);
 
-    void RelativeRectToScreenRect(SemanticsNodeExtend* node);
-    const AbsoluteRect& GetAbsoluteScreenRect(SemanticsNodeExtend* flutterNode);
-    void SetAbsoluteScreenRect(SemanticsNodeExtend* flutterNode,
-                               float left,
-                               float top,
-                               float right,
-                               float bottom);
-
-    // SemanticsNodeExtend UpdatetSemanticsNodeExtend(flutter::SemanticsNode node);
-
-    void FlutterScrollExecution(
-        SemanticsNodeExtend* node,
-        ArkUI_AccessibilityElementInfo* elementInfoFromList);
-    
     void ClearFlutterSemanticsCaches();
 
 private:
-    OhosAccessibilityBridge();
     bool isAccessibilityEnabled_;
     static std::unique_ptr<OhosAccessibilityBridge> bridgeInstance_;
     std::shared_ptr<NativeAccessibilityChannel> nativeAccessibilityChannel_;
     std::shared_ptr<OhosAccessibilityFeatures> accessibilityFeatures_;
 
-    // SemanticsNodeExtend* inputFocusedNode;
-    // SemanticsNodeExtend* lastInputFocusedNode;
+    static const int32_t ROOT_NODE_ID = 0;
+    const char* ARKUI_ACTION_ARG_SET_TEXT = "setText";
+    const char* ARKUI_ACTION_ARG_SELECT_TEXT_START = "selectTextBegin";
+    const char* ARKUI_ACTION_ARG_SELECT_TEXT_END = "selectTextEnd";
     
     // function pointers from libflutter_accessibility.so
     GetElemFunc OH_ArkUI_AddAndGetAccessibilityElementInfo;
@@ -163,97 +148,36 @@ private:
     SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetEditable;
     SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup;
 
-    static const int32_t ARKUI_ACCESSIBILITY_ROOT_PARENT_ID = -2100000;
-    static const int32_t RET_ERROR_STATE_CODE = -1;
-    static const int32_t ROOT_NODE_ID = 0;
-    
-    const char* ARKUI_ACTION_ARG_SET_TEXT = "setText";
-    const char* ARKUI_ACTION_ARG_SELECT_TEXT_START = "selectTextBegin";
-    const char* ARKUI_ACTION_ARG_SELECT_TEXT_END = "selectTextEnd";
-    
-    const char* ROOT_WIDGET_NAME = "root";
-    const std::string OTHER_WIDGET_NAME = "View";
-    const std::string TEXT_WIDGET_NAME = "Text";
-    const std::string EDIT_TEXT_WIDGET_NAME = "TextInput";
-    const std::string EDIT_MULTILINE_TEXT_WIDGET_NAME = "TextArea";
-    const std::string IMAGE_WIDGET_NAME = "Image";
-    const std::string SCROLL_WIDGET_NAME = "Scroll";
-    const std::string BUTTON_WIDGET_NAME = "Button";
-    const std::string LINK_WIDGET_NAME = "Link";
-    const std::string SLIDER_WIDGET_NAME = "Slider";
-    const std::string HEADER_WIDGET_NAME = "Header";
-    const std::string RADIO_BUTTON_WIDGET_NAME = "Radio";
-    const std::string CHECK_BOX_WIDGET_NAME = "Checkbox";
-    const std::string SWITCH_WIDGET_NAME = "Toggle";
-    const std::string SEEKBAR_WIDGET_NAME = "SeekBar";
+    OhosAccessibilityBridge();
 
-    static const int32_t FOCUSABLE_FLAGS =
-        static_cast<int32_t>(FLAGS_::kHasCheckedState) |
-        static_cast<int32_t>(FLAGS_::kIsChecked) |
-        static_cast<int32_t>(FLAGS_::kIsSelected) |
-        static_cast<int32_t>(FLAGS_::kIsTextField) |
-        static_cast<int32_t>(FLAGS_::kIsFocused) |
-        static_cast<int32_t>(FLAGS_::kHasEnabledState) |
-        static_cast<int32_t>(FLAGS_::kIsEnabled) |
-        static_cast<int32_t>(FLAGS_::kIsInMutuallyExclusiveGroup) |
-        static_cast<int32_t>(FLAGS_::kHasToggledState) |
-        static_cast<int32_t>(FLAGS_::kIsToggled) |
-        static_cast<int32_t>(FLAGS_::kHasToggledState) |
-        static_cast<int32_t>(FLAGS_::kIsFocusable) |
-        static_cast<int32_t>(FLAGS_::kIsSlider);
-
-    static const int32_t SCROLLABLE_ACTIONS =
-        static_cast<int32_t>(ACTIONS_::kScrollUp) |
-        static_cast<int32_t>(ACTIONS_::kScrollDown) |
-        static_cast<int32_t>(ACTIONS_::kScrollLeft) |
-        static_cast<int32_t>(ACTIONS_::kScrollRight);
-
-    void FlutterSetElementInfoProperties(
-        ArkUI_AccessibilityElementInfo* elementInfoFromList,
-        SemanticsNodeExtend* flutterNode);
-    void FlutterSetElementInfoOperationActions(
-        ArkUI_AccessibilityElementInfo* elementInfoFromList,
-        SemanticsNodeExtend* node);
-    void BuildArkUISemanticsTree(
+    void BuildArkuiElementInfoTree(
         SemanticsNodeExtend* flutterNode,
         ArkUI_AccessibilityElementInfo* elementInfoFromList,
         ArkUI_AccessibilityElementInfoList* elementList);
 
-    std::string GetNodeComponentType(SemanticsNodeExtend* node);
+    void DynamicLoadAccessibilityLibrary();
+    void DynamicLoadSetElemIntFunc();
+    void DynamicLoadSetElemStringFunc();
+    void DynamicLoadSetElemBoolFunc();
+
     flutter::SemanticsAction ArkuiActionsToFlutterActions(
         ArkUI_Accessibility_ActionType arkui_action);
-
-    void UpdateIteratively(std::unordered_set<int32_t>& visitedIds);
-    SkPoint ApplyTransform(SkPoint& point, const SkM44& transform);
-    
-    bool HasScrolled(SemanticsNodeExtend* flutterNode);
-    void DoScroll(SemanticsNodeExtend* nodeEx);
-    bool HasChangedLabel(SemanticsNodeExtend* flutterNode);
-
-    void RequestFocusWhenPageUpdate(int32_t requestFocusId);
-    void DynamicLoadAccessibilityLibrary();
-
-    void PerformClickAction(int64_t elementId,
-                            ArkUI_Accessibility_ActionType action,
+        
+    void PerformClickAction(ArkUI_Accessibility_ActionType action,
                             SemanticsNodeExtend* flutterNode);
-    void PerformLongClickAction(int64_t elementId,
-                                ArkUI_Accessibility_ActionType action,
+    void PerformLongClickAction(ArkUI_Accessibility_ActionType action,
                                 SemanticsNodeExtend* flutterNode);
     void PerformGainFocusnAction(ArkUI_Accessibility_ActionType action,
                                  SemanticsNodeExtend* flutterNode);
-    void PerformClearFocusAction(int64_t elementId,
-                                 ArkUI_Accessibility_ActionType action,
+    void PerformClearFocusAction(ArkUI_Accessibility_ActionType action,
                                  SemanticsNodeExtend* flutterNode);
-    void PerformScrollUpAction(int64_t elementId,
-                               ArkUI_Accessibility_ActionType action,
+    void PerformScrollUpAction(ArkUI_Accessibility_ActionType action,
                                SemanticsNodeExtend* flutterNode);
-    void PerformScrollDownAction(int64_t elementId,
-                                 ArkUI_Accessibility_ActionType action,
+    void PerformScrollDownAction(ArkUI_Accessibility_ActionType action,
                                  SemanticsNodeExtend* flutterNode);
-    void PerformClipboardAction(int64_t elementId,
-                                const ArkUI_Accessibility_ActionType& action);
-    void PerformInvalidAction(int64_t elementId,
-                              ArkUI_Accessibility_ActionType action,
+    void PerformClipboardAction(ArkUI_Accessibility_ActionType action,
+                                SemanticsNodeExtend* flutterNode);
+    void PerformInvalidAction(ArkUI_Accessibility_ActionType action,
                               SemanticsNodeExtend* flutterNode);
     void PerformSetText(SemanticsNodeExtend* flutterNode,
                         ArkUI_Accessibility_ActionType action,

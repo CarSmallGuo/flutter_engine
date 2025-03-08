@@ -81,7 +81,6 @@ source_set("flutter_ohos_sources") {
              "./accessibility/ohos_accessibility_features.h",
              "./accessibility/native_accessibility_channel.h",
              "./accessibility/ohos_accessibility_ddl.h",
-             "./utils/ddl_utils.h",
              "./utils/ohos_utils.h",
              "./utils/arkui_accessibility_constant.h"
            ]

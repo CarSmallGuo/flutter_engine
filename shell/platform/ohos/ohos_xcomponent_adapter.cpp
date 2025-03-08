@@ -196,7 +196,6 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
       // 将当前要销毁的xcomponent对应的无障碍provider指针置nullptr
       it->second->accessibilityProvider_ = nullptr;
       // delete the semantics tree of the destroyed xcomponent
-      // OhosAccessibilityBridge::GetInstance()->g_flutterSemanticsTreeXComponents.erase(it->first);
       it = XComponentAdapter::GetInstance()->xcomponetMap_.erase(it);
     } else {
       ++it;
@@ -244,12 +243,7 @@ int32_t FindAccessibilityNodeInfosById(
     int32_t requestId,
     ArkUI_AccessibilityElementInfoList* elementList)
 {
-  auto start = std::chrono::high_resolution_clock::now(); // 记录开始时间
   OhosAccessibilityBridge::GetInstance()->FindAccessibilityNodeInfosById(elementId, mode, requestId, elementList);
-  auto end = std::chrono::high_resolution_clock::now(); // 记录结束时间
-  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-  FML_DLOG(INFO)  << "FindAccessibilityNodeInfosById() -> Elapsed time: " << elapsed.count() << " ms"; // 输出耗时 
-
   FML_DLOG(INFO) << "accessibilityProviderCallback_.FindAccessibilityNodeInfosById";
   return 0;
 }
@@ -297,13 +291,13 @@ int32_t ExecuteAccessibilityAction(
     ArkUI_AccessibilityActionArguments* actionArguments,
     int32_t requestId)
 {
-  auto start = std::chrono::high_resolution_clock::now(); // 记录开始时间
-  OhosAccessibilityBridge::GetInstance()->ExecuteAccessibilityAction(elementId, action, actionArguments, requestId);
-  auto end = std::chrono::high_resolution_clock::now(); // 记录结束时间
-  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-  FML_DLOG(INFO)  << "ExecuteAccessibilityAction() -> Elapsed time: " << elapsed.count() << " ms"; // 输出耗时 
-
   LOGD("accessibilityProviderCallback_.ExecuteAccessibilityAction");
+  auto xcompBase = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
+  if (xcompBase) {
+    return xcompBase->OhosExecuteAction(elementId, action, actionArguments, requestId);
+  } else {
+    return ARKUI_ACCESSIBILITY_NATIVE_RESULT_FAILED;
+  }
   return 0;
 }
 
@@ -338,6 +332,7 @@ void XComponentBase::BindAccessibilityProviderCallback() {
 XComponentBase::XComponentBase(std::string id){
   id_ = id;
   isEngineAttached_ = false;
+  shellHolder_ = nullptr;
 }
 
 XComponentBase::~XComponentBase() {}
@@ -348,6 +343,8 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
       "shellholderId:%{public}s",
       id_.c_str(), shellholderId.c_str());
   shellholderId_ = shellholderId;
+  // obtain the shell holder pointer
+  shellHolder_ = reinterpret_cast<OHOSShellHolder*>(std::stoll(shellholderId_));
   isEngineAttached_ = true;
   if (window_ != nullptr) {
     PlatformViewOHOSNapi::SurfaceCreated(std::stoll(shellholderId_), window_);
@@ -367,6 +364,7 @@ void XComponentBase::DetachFlutterEngine() {
     LOGE("DetachFlutterEngine XComponentBase is not attached");
   }
   shellholderId_ = "";
+  shellHolder_ = nullptr;
   isEngineAttached_ = false;
 }
 
@@ -415,7 +413,7 @@ void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
     BindXComponentCallback();
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
-    // register the OH_ArkUI accessibility callbacks
+    // register the OH_ArkUI accessibility callbacks (only API-13+ supported) 
     if (OH_GetSdkApiVersion() < 13) { return; }
     RegisterArkUIAccessibilityService(nativeXComponent_);
   }
@@ -558,4 +556,28 @@ void XComponentBase::OnDispatchMouseWheelEvent(mouseWheelEvent event)
         LOGE("XComponentManger::DispatchMouseWheelEvent XComponentBase is not attached");
     }
 }
+
+XComponentBase* XComponentAdapter::GetCurrentXcomponent()
+{
+    auto iter = xcomponetMap_.find(currentXComponentId_);
+    if (iter != xcomponetMap_.end()) {
+        return xcomponetMap_[currentXComponentId_];
+    }
+    return nullptr;
+}
+
+int32_t XComponentBase::OhosExecuteAction(
+  int64_t elementId,
+  ArkUI_Accessibility_ActionType action,
+  ArkUI_AccessibilityActionArguments* actionArguments,
+  int32_t requestId)
+{
+    if (shellHolder_) {
+        return shellHolder_->ExecuteAccessibilityAction(
+            elementId, action, actionArguments, requestId);
+    } else {
+        return ARKUI_ACCESSIBILITY_NATIVE_RESULT_FAILED;
+    }
+}
+
 }  // namespace flutter
