@@ -64,6 +64,13 @@ class OHOSShellHolder {
     return shell_->GetVsyncWaiter();
   }
 
+  // accessibility
+  int32_t ExecuteAccessibilityAction(
+    int64_t elementId,
+    ArkUI_Accessibility_ActionType action,
+    ArkUI_AccessibilityActionArguments* actionArguments,
+    int32_t requestId);
+
  private:
   std::optional<RunConfiguration> BuildRunConfiguration(
       const std::string& entrypoint,

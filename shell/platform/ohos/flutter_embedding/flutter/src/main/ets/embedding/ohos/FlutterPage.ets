@@ -60,20 +60,8 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
-          // 当xcomponent窗口部分显示或完全隐藏时触发回调
-          this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
-            { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
-            (ratioInc: boolean, ratio: number) => {
-              if (ratioInc) {
-                Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
-                           " ratioInc: " + ratioInc + " ratio: " + ratio);
-                flutter.nativeGetXComponentId(this.viewId);
-                // 保证获取xcomponentid之后再使用无障碍
-                this.flutterView?.onTouchGuideIsOpen();
-                this.flutterView?.onAccessibilityIsOpen();
-              }
-            }
-          )
+          // when xcomponent onload then search accessibility is open
+          this.flutterView?.onAccessibilityIsOpen();
         })
         .onDestroy(() => {
           Log.d(TAG, "XComponent onDestroy ");
@@ -167,20 +155,8 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
-          // 当xcomponent窗口部分显示或完全隐藏时触发回调
-          this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
-            { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
-            (ratioInc: boolean, ratio: number) => {
-              if (ratioInc) {
-                Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
-                            " ratioInc: " + ratioInc + " ratio: " + ratio);
-                flutter.nativeGetXComponentId(this.viewId);
-                // 保证获取xcomponentid之后再使用无障碍
-                this.flutterView?.onTouchGuideIsOpen();
-                this.flutterView?.onAccessibilityIsOpen();
-              }
-            }
-          )
+          // when xcomponent onload then search accessibility is open
+          this.flutterView?.onAccessibilityIsOpen();
         })
         .onDestroy(() => {
           Log.d(TAG, "XComponent onDestroy ");
