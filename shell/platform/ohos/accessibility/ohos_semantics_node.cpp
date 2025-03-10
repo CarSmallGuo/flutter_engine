@@ -120,6 +120,7 @@ void SemanticsNodeExtend::UpdateRecursively(
         auto [left, top, right, bottom] = rect;
         globalTransform = SkM44(fatherTransform, transform);
 
+        int pointsNum = 4;
         SkPoint points[4] = {
             SkPoint::Make(left, top),     // top-left point
             SkPoint::Make(right, top),    // top-right point
@@ -133,11 +134,11 @@ void SemanticsNodeExtend::UpdateRecursively(
         }
 
         SkRect globalRect;
-        bool checkResult = globalRect.setBoundsCheck(points, 4);
+        bool checkResult = globalRect.setBoundsCheck(points, pointsNum);
         if (!checkResult) {
             FML_DLOG(WARNING) << "RelativeRectToScreenRect -> Transformed points can't make a rect ";
         }
-        globalRect.setBounds(points, 4);
+        globalRect.setBounds(points, pointsNum);
 
         SetAbsoluteRect(globalRect.left(),  globalRect.top(),
                         globalRect.right(), globalRect.bottom());
@@ -225,8 +226,6 @@ void SemanticsNodeExtend::SetElementInfoProperties() {
     if (!hasInit || scrollChanged) {
       FillElementInfoWithScroll(elementInfo);
       hasUpdated = true;
-      // scroll event need sent, so we don't make it false.
-      // scrollChanged = false;
     }
     if (!hasInit || rectChanged) {
       FillElementInfoWithRect(elementInfo);
@@ -236,8 +235,6 @@ void SemanticsNodeExtend::SetElementInfoProperties() {
     if (!hasInit || selectChanged) {
       FillElementInfoWithSelect(elementInfo);
       hasUpdated = true;
-      // select event need sent, so we don't make it false.
-      // selectChanged = false;
     }
     hasInit = true;
 }

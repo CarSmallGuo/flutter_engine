@@ -21,9 +21,9 @@ using LIBHANDLE = void*;
 #define LOAD_ERROR() dlerror()
 
 #define ARKUI_SUCCEED_CODE 0
-#define ARKUI_FAILED_CODE -1
-#define ARKUI_BAD_PARAM_CODE -2
-#define ARKUI_OOM_CODE  -3
+#define ARKUI_FAILED_CODE (-1)
+#define ARKUI_BAD_PARAM_CODE (-2)
+#define ARKUI_OOM_CODE  (-3)
 
 #define ARKUI_ACCESSIBILITY_CALL_CHECK(X)                                 \
     do {                                                                  \
@@ -36,7 +36,7 @@ using LIBHANDLE = void*;
 
 #define CHECK_DLL_NULL_PTR(func)                                      \
     do {                                                              \
-        if (func == nullptr) {                                        \
+        if ((func) == nullptr) {                                      \
             LOGE("Error: Function %{public}s is nullptr, %{public}s", \
                 #func, LOAD_ERROR());                                 \
         }                                                             \
@@ -44,7 +44,7 @@ using LIBHANDLE = void*;
 
 #define CHECK_NULL_PTR(PARAM, FUNC)                            \
     do {                                                       \
-        if (PARAM == nullptr) {                                \
+        if ((PARAM) == nullptr) {                              \
             LOGE("Error: %{public}s -> %{public}s is nullptr", \
                 #FUNC, #PARAM);                                \
         }                                                      \
@@ -52,7 +52,7 @@ using LIBHANDLE = void*;
 
 #define CHECK_NULL_PTR_WITH_RET(PARAM, FUNC)                   \
     do {                                                       \
-        if (PARAM == nullptr) {                                \
+        if ((PARAM) == nullptr) {                              \
             LOGE("Error: %{public}s -> %{public}s is nullptr", \
                 #FUNC, #PARAM);                                \
             return ARKUI_FAILED_CODE;                          \
@@ -61,7 +61,7 @@ using LIBHANDLE = void*;
 
 #define CHECK_NULL_PTR_RET_VOID(PARAM, FUNC)                   \
     do {                                                       \
-        if (PARAM == nullptr) {                                \
+        if ((PARAM) == nullptr) {                              \
             LOGE("Error: %{public}s -> %{public}s is nullptr", \
                 #FUNC, #PARAM);                                \
             return;                                            \

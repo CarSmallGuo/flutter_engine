@@ -44,10 +44,6 @@ struct AbsoluteRect {
     static constexpr AbsoluteRect MakeEmpty() {
         return AbsoluteRect{0.0, 0.0, 0.0, 0.0};
     }
-    static constexpr AbsoluteRect MakeRect(
-        float left, float top, float right, float bottom) {
-        return AbsoluteRect{left, top, right, bottom};
-    }
 };
 struct SemanticsNodeExtend : flutter::SemanticsNode {
 

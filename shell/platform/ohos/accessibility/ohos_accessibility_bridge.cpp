@@ -645,7 +645,7 @@ void OhosAccessibilityBridge::SendAccessibilityEvent(
     CHECK_NULL_PTR(eventInfo, SendAccessibilityEvent);
 
 
-    auto* flutterNode = GetOrAddSemanticsNode((int32_t)elementId);
+    auto* flutterNode = GetOrAddSemanticsNode(static_cast<int32_t>(elementId));
     if (flutterNode) {
         ARKUI_ACCESSIBILITY_CALL_CHECK(OH_ArkUI_AccessibilityEventSetElementInfo(eventInfo, flutterNode->elementInfo));
         flutterNode->hasUpdated = false;
