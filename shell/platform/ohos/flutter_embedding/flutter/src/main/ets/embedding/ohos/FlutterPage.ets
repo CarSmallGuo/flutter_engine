@@ -268,7 +268,7 @@ export struct FlutterPage {
   @State checkKeyboard: boolean = true;
   @State checkGesture: boolean = true;
   @State checkMouseWheel: boolean = true;
-  @State paddingTop?: number = undefined;
+  @Prop @Watch("onPaddingChange")paddingTop?: number = undefined;
   @StorageLink('nodeWidth') storageLinkWidth: number = 0;
   @StorageLink('nodeHeight') storageLinkHeight: number = 0;
   @State rootDvModel: DVModelChildren | undefined = undefined
@@ -307,5 +307,9 @@ export struct FlutterPage {
     } else {
       this.defaultPage();
     }
+  }
+
+  onPaddingChange() {
+    this.flutterView?.setPaddingTop(this.paddingTop);
   }
 }
