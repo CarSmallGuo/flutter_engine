@@ -186,6 +186,7 @@ export class FlutterView {
   private checkFullScreen: boolean = true;
   private checkKeyboard: boolean = true;
   private checkGesture: boolean = true;
+  private paddingTop?: number;
   private systemAvoidArea: window.AvoidArea;
   private navigationAvoidArea: window.AvoidArea;
   private gestureAvoidArea: window.AvoidArea;
@@ -513,13 +514,17 @@ export class FlutterView {
     let isUseFullScreen = FlutterManager.getInstance().getFullScreenListener().useFullScreen();
     let isLayoutFullScreen = this.mainWindow?.getWindowProperties().isLayoutFullScreen;
     if (this.checkFullScreen && (setFullScreen || isLayoutFullScreen || isUseFullScreen)) { // 全屏显示
-      this.viewportMetrics.physicalViewPaddingTop =
-        this.systemAvoidArea?.topRect.height ?? this.viewportMetrics.physicalViewPaddingTop;
+      if (this.paddingTop != undefined) {
+        this.viewportMetrics.physicalViewPaddingTop = this.paddingTop;
+      } else {
+        this.viewportMetrics.physicalViewPaddingTop =
+          this.systemAvoidArea?.topRect.height ?? this.viewportMetrics.physicalViewPaddingTop;
+      }
       this.viewportMetrics.physicalViewPaddingBottom =
         this.navigationAvoidArea?.bottomRect.height ?? this.viewportMetrics.physicalViewPaddingBottom;
     } else { // 非全屏显示（保持规避效果）
       // 顶部状态栏和底部导航栏规避为0，无平滑过渡效果
-      this.viewportMetrics.physicalViewPaddingTop = 0;
+      this.viewportMetrics.physicalViewPaddingTop = this.paddingTop ?? 0;
       this.viewportMetrics.physicalViewPaddingBottom = 0;
     }
 
@@ -666,6 +671,10 @@ export class FlutterView {
     this.checkGesture = check
   }
 
+  setPaddingTop(paddingTop?: number) {
+    this.paddingTop = paddingTop;
+    this.onAreaChange(null);
+  }
 }
 
 export interface FirstFrameListener {
