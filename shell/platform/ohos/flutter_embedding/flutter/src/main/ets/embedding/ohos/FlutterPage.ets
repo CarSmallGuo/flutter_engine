@@ -255,6 +255,9 @@ export struct FlutterPage {
 
   aboutToAppear() {
     this.flutterView = FlutterManager.getInstance().getFlutterView(this.viewId);
+    if (!this.flutterView) {
+      Log.e(TAG, "getFlutterView failed. viewId is " + this.viewId.toString());
+    }
     this.flutterView?.addFirstFrameListener(this)
 
     this.flutterView?.setCheckFullScreen(this.checkFullScreen)
@@ -262,7 +265,7 @@ export struct FlutterPage {
     this.flutterView?.setCheckGesture(this.checkGesture)
     this.flutterView?.setPaddingTop(this.paddingTop)
 
-    this.rootDvModel = this.flutterView!!.getDVModel().children
+    this.rootDvModel = this.flutterView?.getDVModel().children
     getContext().eventHub.on(OHOS_FLUTTER_PAGE_UPDATE, () => {
       this.isNeedUpdate = true;
     })
