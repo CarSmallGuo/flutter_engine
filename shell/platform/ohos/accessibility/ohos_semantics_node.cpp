@@ -248,11 +248,6 @@ void SemanticsNodeExtend::FillElementInfoWithId(
     ARKUI_ACCESSIBILITY_CALL_CHECK(
         OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup(elementInfo, false)
     );
-    bool needRecognized = componentType != UIViewerName::kOtherWidgetName &&
-                          componentType != UIViewerName::kRootWidgetName;
-    ARKUI_ACCESSIBILITY_CALL_CHECK(
-        OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel(elementInfo, needRecognized ? "yes" : "no");
-    );
 }
 
 void SemanticsNodeExtend::FillElementInfoWithProperty(
