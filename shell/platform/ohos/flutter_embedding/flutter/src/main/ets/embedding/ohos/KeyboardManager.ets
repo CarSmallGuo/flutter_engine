@@ -20,6 +20,7 @@ import KeyEmbedderResponder from './KeyEmbedderResponder';
 import { BinaryMessenger } from '../../plugin/common/BinaryMessenger';
 import { KeyEventHandler } from './KeyEventHandler';
 import HashSet from '@ohos.util.HashSet';
+import { KeyCode } from '@kit.InputKit';
 
 export default class KeyboardManager {
   private keyEventChannel: KeyEventChannel | null = null;
@@ -38,11 +39,19 @@ export default class KeyboardManager {
   onKeyPreIme(event: KeyEvent) : boolean {
     this.keyEmbedderResponder.handleKeyEvent(event);
 
-    this.keyEventChannel?.sendFlutterKeyEvent(new FlutterKeyEvent(event), event.type == KeyType.Up, {
-      onFrameworkResponse: (isEventHandled: boolean): void => {
+    /*
+     * TODO：
+     * If the delete event is sent to the Flutter framework, both the Flutter framework and input method may perform
+     * the delete operation, resulting in multiple deletions.
+     * Temporarily prevent from sending deletion events until the aforementioned issues are resolved.
+     */
+    if((event.keyCode != KeyCode.KEYCODE_DEL && event.keyCode != KeyCode.KEYCODE_FORWARD_DEL)) {
+      this.keyEventChannel?.sendFlutterKeyEvent(new FlutterKeyEvent(event), event.type == KeyType.Up, {
+        onFrameworkResponse: (isEventHandled: boolean): void => {
 
-      }
-    })
+        }
+      })
+    }
     return false;
   }
 
