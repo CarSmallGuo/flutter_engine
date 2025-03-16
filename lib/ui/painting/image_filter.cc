@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 #include "flutter/lib/ui/painting/image_filter.h"
-
+#include "flutter/impeller/renderer/context.h"
 #include "flutter/lib/ui/floating_point.h"
 #include "flutter/lib/ui/painting/matrix.h"
 #include "flutter/lib/ui/ui_dart_state.h"
@@ -56,6 +56,12 @@ void ImageFilter::initBlur(double sigma_x,
                            DlTileMode tile_mode) {
   filter_ = DlBlurImageFilter::Make(SafeNarrow(sigma_x), SafeNarrow(sigma_y),
                                     tile_mode);
+}
+
+void ImageFilter::initSetHdr(int hdr, bool is_image) {
+  if (is_image) {
+    impeller::Context::hdr_ = hdr;
+  }
 }
 
 void ImageFilter::initDilate(double radius_x, double radius_y) {

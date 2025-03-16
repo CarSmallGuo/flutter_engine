@@ -6,7 +6,7 @@
 
 #include "impeller/core/capture.h"
 
-int impeller::Context::hdr_;
+int impeller::Context::hdr_ = 0;
 
 namespace impeller {
 

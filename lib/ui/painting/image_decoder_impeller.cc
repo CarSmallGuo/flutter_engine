@@ -206,7 +206,6 @@ DecompressResult ImageDecoderImpeller::DecompressTexture(
                 SkColorSpace::MakeRGB(SkNamedTransferFn::kHLG, rec2020_matrix));
 
     FML_DLOG(INFO) << "is wide gamut";
-    impeller::Context::hdr_ = 1;
   } else {
     image_info =
         base_image_info.makeWH(decode_size.width(), decode_size.height())
@@ -215,7 +214,6 @@ DecompressResult ImageDecoderImpeller::DecompressTexture(
             .makeAlphaType(alpha_type);
 
     FML_DLOG(INFO) << "not wide gamut";
-    impeller::Context::hdr_ = 0;
   }
 
   const auto pixel_format =
