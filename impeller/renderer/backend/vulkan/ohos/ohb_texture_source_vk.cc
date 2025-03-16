@@ -61,17 +61,13 @@ static TextureDescriptor CreateTextureDescriptorFromNativeWindowBuffer(
   OH_NativeBuffer_GetColorSpace(native_buffer, &color_space);
 
   if (nativebuffer_config.format == NATIVEBUFFER_PIXEL_FMT_YCBCR_P010) {
-    FML_DLOG(ERROR) << "ENTER HDR";
     if (color_space == OH_COLORSPACE_DISPLAY_BT2020_PQ) {
       impeller::Context::hdr_ = 2;
-      FML_DLOG(ERROR) << "ENTER HDR 2";
     } else if (color_space == OH_COLORSPACE_BT2020_HLG_LIMIT) {
       impeller::Context::hdr_ = 1;
-      FML_DLOG(ERROR) << "ENTER HDR 1";
     }
   } else {
     impeller::Context::hdr_ = 0;
-    FML_DLOG(ERROR) << "ENTER HDR 0";
   }
 
   descriptor.format = ToPixelFormat(nativebuffer_config.format);
