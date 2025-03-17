@@ -446,7 +446,8 @@ void PlatformViewOHOS::OnPreEngineRestart() const {
 // |PlatformView|
 std::unique_ptr<VsyncWaiter> PlatformViewOHOS::CreateVSyncWaiter() {
   FML_DLOG(INFO) << "CreateVSyncWaiter";
-  return std::make_unique<VsyncWaiterOHOS>(task_runners_, enable_frame_cache_);
+  return std::make_unique<VsyncWaiterOHOS>(task_runners_, napi_facade_,
+                                           enable_frame_cache_);
 }
 
 // |PlatformView|

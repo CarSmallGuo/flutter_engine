@@ -20,13 +20,16 @@
 #include <native_vsync/native_vsync.h>
 #include "flutter/fml/macros.h"
 #include "flutter/shell/common/vsync_waiter.h"
+#include "napi/platform_view_ohos_napi.h"
 
 namespace flutter {
 
 class VsyncWaiterOHOS final : public VsyncWaiter {
  public:
-  explicit VsyncWaiterOHOS(const flutter::TaskRunners& task_runners,
-                           std::shared_ptr<bool>& enable_frame_cache);
+  explicit VsyncWaiterOHOS(
+      const flutter::TaskRunners& task_runners,
+      const std::shared_ptr<PlatformViewOHOSNapi>& napi_facade,
+      std::shared_ptr<bool>& enable_frame_cache);
 
   int64_t GetVsyncPeriod();
 
@@ -42,7 +45,8 @@ class VsyncWaiterOHOS final : public VsyncWaiter {
                                      fml::TimePoint frame_start_time,
                                      fml::TimePoint frame_target_time);
 
-  OH_NativeVSync* vsyncHandle;
+  std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;
+  OH_NativeVSync* vsync_handle_;
   std::shared_ptr<bool> enable_frame_cache_;
   FML_DISALLOW_COPY_AND_ASSIGN(VsyncWaiterOHOS);
 };
