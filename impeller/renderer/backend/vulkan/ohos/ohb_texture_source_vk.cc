@@ -61,13 +61,17 @@ static TextureDescriptor CreateTextureDescriptorFromNativeWindowBuffer(
   OH_NativeBuffer_GetColorSpace(native_buffer, &color_space);
 
   if (nativebuffer_config.format == NATIVEBUFFER_PIXEL_FMT_YCBCR_P010) {
-    if (color_space == OH_COLORSPACE_DISPLAY_BT2020_PQ) {
-      impeller::Context::hdr_ = 2;
-    } else if (color_space == OH_COLORSPACE_BT2020_HLG_LIMIT) {
-      impeller::Context::hdr_ = 1;
+    if (!impeller::Context::is_image_) {
+      if (color_space == OH_COLORSPACE_DISPLAY_BT2020_PQ) {
+        impeller::Context::hdr_ = 2;
+      } else if (color_space == OH_COLORSPACE_BT2020_HLG_LIMIT) {
+        impeller::Context::hdr_ = 1;
+      }
     }
   } else {
-    impeller::Context::hdr_ = 0;
+    if (!impeller::Context::is_image_) {
+      impeller::Context::hdr_ = 0;
+    }
   }
 
   descriptor.format = ToPixelFormat(nativebuffer_config.format);

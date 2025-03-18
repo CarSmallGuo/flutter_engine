@@ -59,8 +59,11 @@ void ImageFilter::initBlur(double sigma_x,
 }
 
 void ImageFilter::initSetHdr(int hdr, bool is_image) {
+  impeller::Context::is_image_ = is_image;
   if (is_image) {
-    impeller::Context::hdr_ = hdr;
+    if (hdr >= 0) {
+      impeller::Context::hdr_ = hdr;
+    }
   }
 }
 

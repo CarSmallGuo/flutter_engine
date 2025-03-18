@@ -285,12 +285,6 @@ void PlatformViewOHOS::UpdateDisplaySize(int width, int height) {
   }
 }
 
-// void PlatformViewOHOS::UpdateDisplayHdr(int hdr) {
-//   if (display_hdr_ != hdr) {
-//     display_hdr_ = hdr;
-//   }
-// }
-
 // |PlatformView|
 void PlatformViewOHOS::NotifyDestroyed() {
   LOGI("PlatformViewOHOS NotifyDestroyed enter");

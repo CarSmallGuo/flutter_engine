@@ -101,6 +101,7 @@ class Context {
   virtual bool IsValid() const = 0;
 
   static int hdr_;
+  static bool is_image_;
 
   //----------------------------------------------------------------------------
   /// @brief      Get the capabilities of Impeller context. All optionally
