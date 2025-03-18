@@ -93,14 +93,14 @@ OHOSExternalTexture::~OHOSExternalTexture() {
 void OHOSExternalTexture::Paint(PaintContext& context,
                                 const SkRect& bounds,
                                 bool freeze,
-                                DlImageSampling sampling) {
+                                const SkSamplingOptions& sampling) {
   if (state_ == AttachmentState::kDetached) {
     FML_LOG(INFO) << "paint state is kDetached";
     return;
   }
 
   SkRect new_bounds = bounds;
-  sk_sp<flutter::DlImage> draw_dl_image;
+  sk_sp<SkImage> draw_dl_image;
 
   if (bounds != old_draw_bounds_) {
     draw_size_has_changed_ = true;
@@ -142,19 +142,20 @@ void OHOSExternalTexture::Paint(PaintContext& context,
   }
 
   if (draw_dl_image) {
-    DlAutoCanvasRestore auto_restore(context.canvas, true);
+    // DlAutoCanvasRestore auto_restore(context.canvas, true);
+    SkAutoCanvasRestore autoRestore(context.canvas, true);
     SkM44 new_transform;
     GetNewTransformBound(new_transform, new_bounds);
-    context.canvas->Transform(new_transform);
-    context.canvas->DrawImageRect(
+    context.canvas->concat(new_transform);
+    context.canvas->drawImageRect(
         draw_dl_image,                                 // image
         SkRect::Make(draw_dl_image->bounds()),         // source rect
         new_bounds,                                    // destination rect
         sampling,                                      // sampling
-        context.paint,                                 // paint
-        flutter::DlCanvas::SrcRectConstraint::kStrict  // enforce edges
+        context.sk_paint,                                 // paint TODOTEST
+        SkCanvas::SrcRectConstraint::kStrict_SrcRectConstraint  // enforce edges
     );
-    context.canvas->Flush();
+    context.canvas->flush();
   } else {
     // ready for fix black background issue when external texture is not ready.
     // note: it may be incorrect because the background color should be set in
@@ -385,7 +386,7 @@ SkRect OHOSExternalTexture::UpdateWindowSize(OHNativeWindowBuffer* buffer) {
   OH_NativeBuffer_Config config = {0, 0};
   OH_NativeBuffer* native_buffer = nullptr;
   int ret = OH_NativeBuffer_FromNativeWindowBuffer(buffer, &native_buffer);
-  if (native_buffer != nullptr) {
+  if (ret == 0 && native_buffer != nullptr) {
     OH_NativeBuffer_GetConfig(native_buffer, &config);
     producer_nativewindow_width_ = config.width;
     producer_nativewindow_height_ = config.height;
@@ -508,7 +509,7 @@ OHNativeWindowBuffer* OHOSExternalTexture::GetConsumerNativeBuffer(
   return now_nw_buffer;
 }
 
-sk_sp<flutter::DlImage> OHOSExternalTexture::GetNextDrawImage(
+sk_sp<SkImage> OHOSExternalTexture::GetNextDrawImage(
     PaintContext& context,
     const SkRect& bounds) {
   int fence_fd = -1;
@@ -655,7 +656,7 @@ uint64_t OHOSExternalTexture::Reset(bool need_surfaceId) {
 bool OHOSExternalTexture::CreatePixelMapBuffer(int width,
                                                int height,
                                                int pixel_format) {
-  int fence_fd = -1;
+  // int fence_fd = -1;
   DestroyPixelMapBuffer();
 
   int window_format = PixelMapToWindowFormat((PIXEL_FORMAT)pixel_format);

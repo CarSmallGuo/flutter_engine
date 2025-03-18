@@ -30,8 +30,8 @@
 #include "third_party/skia/include/core/SkImage.h"
 #include "third_party/skia/include/gpu/GrBackendSurface.h"
 #include "third_party/skia/include/gpu/GrDirectContext.h"
-#include "third_party/skia/include/gpu/ganesh/SkImageGanesh.h"
-#include "third_party/skia/include/gpu/ganesh/gl/GrGLBackendSurface.h"
+// #include "third_party/skia/include/gpu/ganesh/SkImageGanesh.h"
+// #include "third_party/skia/include/gpu/ganesh/gl/GrGLBackendSurface.h"
 
 namespace flutter {
 
@@ -138,7 +138,7 @@ void OHOSExternalTextureGL::GPUResourceDestroy() {
   }
 }
 
-sk_sp<flutter::DlImage> OHOSExternalTextureGL::CreateDlImage(
+sk_sp<SkImage> OHOSExternalTextureGL::CreateDlImage(
     PaintContext& context,
     const SkRect& bounds,
     NativeBufferKey key,
@@ -160,20 +160,22 @@ sk_sp<flutter::DlImage> OHOSExternalTextureGL::CreateDlImage(
   }
   GrGLTextureInfo textureInfo = {
       GL_TEXTURE_EXTERNAL_OES, unique_texture.get().texture_name, GL_RGBA8_OES};
-  auto backendTexture =
-      GrBackendTextures::MakeGL(1, 1, skgpu::Mipmapped::kNo, textureInfo);
+  // auto backendTexture =
+  //     GrBackendTextures::MakeGL(1, 1, skgpu::Mipmapped::kNo, textureInfo);
+      GrBackendTexture backendTexture(1, 1, GrMipMapped::kNo, textureInfo);
   gl_resources_[key] = GlResource{std::move(unique_eglimage),
                                   std::move(unique_texture), UniqueEGLSync()};
 
-  sk_sp<SkImage> image = SkImages::BorrowTextureFrom(
+  // sk_sp<SkImage> image = SkImages::BorrowTextureFrom(
+  sk_sp<SkImage> image = SkImage::MakeFromTexture(
       context.gr_context, backendTexture, kTopLeft_GrSurfaceOrigin,
       kRGBA_8888_SkColorType, kPremul_SkAlphaType, nullptr);
-  sk_sp<flutter::DlImage> dl_image = DlImage::Make(image);
+  // sk_sp<flutter::DlImage> dl_image = DlImage::Make(image);
 
   // lru: oldest resource need earse
   now_key_ = key;
-  gl_resources_.erase(image_lru_.AddImage(dl_image, key));
-  return dl_image;
+  gl_resources_.erase(image_lru_.AddImage(image, key));
+  return image;
 }
 
 OHOSUniqueEGLImageKHR OHOSExternalTextureGL::CreateEGLImage(

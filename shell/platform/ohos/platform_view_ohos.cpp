@@ -21,6 +21,10 @@
 
 namespace flutter {
 
+// This global map's key is (PlatformViewOHOS-ptr + texture_id) because there
+// may be many platformViews.
+std::map<uint64_t, PlatformViewOHOS*> g_texture_platformview_map;
+
 OhosSurfaceFactoryImpl::OhosSurfaceFactoryImpl(
     const std::shared_ptr<OHOSContext>& context,
     bool enable_impeller)
@@ -112,10 +116,10 @@ PlatformViewOHOS::~PlatformViewOHOS() {
   for (auto const &it : external_texture_gl_) {
     if (it.second != nullptr) {
       FML_LOG(INFO) << " nativeImage of textureId " << it.first << " will destroy";
-      if (it.second->nativeImage_ != nullptr) {
-        OH_NativeImage_Destroy(&(it.second->nativeImage_));
-        it.second->nativeImage_ = nullptr;
-      }
+      // if (it.second->nativeImage_ != nullptr) { //TODOTEST
+      //   OH_NativeImage_Destroy(&(it.second->nativeImage_));
+      //   it.second->nativeImage_ = nullptr;
+      // }
     }
   }
   external_texture_gl_.clear();
@@ -412,13 +416,13 @@ void PlatformViewOHOS::RegisterExternalTextureByImage(int64_t texture_id,
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
     auto iter = external_texture_gl_.find(texture_id);
     if (iter != external_texture_gl_.end()) {
-      iter->second->DispatchImage(image);
+      // iter->second->DispatchImage(image); //TODOTEST
     } else {
-      std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl =
-          std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_, delegate_, task_runners_);
-      external_texture_gl_[texture_id] = ohos_external_gl;
-      RegisterTexture(ohos_external_gl);
-      ohos_external_gl->DispatchImage(image);
+      auto extrenal_texture = CreateExternalTexture(texture_id);
+      if (extrenal_texture != nullptr) {
+        //extrenal_texture->SetPixelMapAsProducer(pixelMap, pixelMap_native_buffer); //TODOTEST
+      }
+      // ohos_external_gl->DispatchImage(image); //TODOTEST
     }
   }
 }
@@ -429,33 +433,76 @@ PointerDataDispatcherMaker PlatformViewOHOS::GetDispatcherMaker() {
   };
 }
 
-uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id)
-{
-  FML_DLOG(INFO) << "PlatformViewOHOS::RegisterExternalTexture, texture_id=" << texture_id;
-  uint64_t surface_id = 0;
-  int ret = -1;
-  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
-    std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl =
-        std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_, delegate_, task_runners_);
-    ohos_external_gl->nativeImage_ =
-        OH_NativeImage_Create(texture_id, GL_TEXTURE_EXTERNAL_OES);
-    if (ohos_external_gl->nativeImage_ == nullptr) {
-      FML_DLOG(ERROR) << "Error with OH_NativeImage_Create";
-      return surface_id;
-    }
-    ret = OH_NativeImage_GetSurfaceId(ohos_external_gl->nativeImage_,
-                                      &surface_id);
-    ohos_external_gl->first_update_ = false;
-    if (ret != 0) {
-      FML_DLOG(ERROR) << "Error with OH_NativeImage_GetSurfaceId";
-      return surface_id;
-    }
-    external_texture_gl_[texture_id] = ohos_external_gl;
-    RegisterTexture(ohos_external_gl);
-    MarkTextureFrameAvailable(texture_id);
+void PlatformViewOHOS::OnNativeImageFrameAvailable(void* data) {
+  uint64_t ptexture_id = (uint64_t)data;
+  //std::lock_guard<std::mutex> lock(g_map_mutex); //TODOTEST
+  if (g_texture_platformview_map.find(ptexture_id) ==
+      g_texture_platformview_map.end()) {
+    return;
   }
-  return surface_id;
+  PlatformViewOHOS* platform = g_texture_platformview_map[ptexture_id];
+
+  if (platform == nullptr || platform->ohos_surface_ == nullptr) {
+    FML_LOG(ERROR) << "OnNativeImageFrameAvailable NotifyDstroyed, will not "
+                      "MarkTextureFrameAvailable";
+    return;
+  }
+
+  // Note: RunNowOrPostTask may get dead lock when running in platform thread.
+  platform->task_runners_.GetPlatformTaskRunner()->PostTask([ptexture_id]() {
+    // std::lock_guard<std::mutex> lock(g_map_mutex); //TODOTEST
+    if (g_texture_platformview_map.find(ptexture_id) ==
+        g_texture_platformview_map.end()) {
+      return;
+    }
+    PlatformViewOHOS* platform = g_texture_platformview_map[ptexture_id];
+    uint64_t texture_id = ptexture_id - (uint64_t)platform;
+    platform->MarkTextureFrameAvailable(texture_id);
+  });
 }
+
+std::shared_ptr<OHOSExternalTexture> PlatformViewOHOS::CreateExternalTexture(
+  int64_t texture_id) {
+  uint64_t context_frame_data = (uint64_t)this + (uint64_t)texture_id;
+  OH_OnFrameAvailableListener listener;
+  listener.context = (void*)context_frame_data;
+  listener.onFrameAvailable = OnNativeImageFrameAvailable;
+  std::shared_ptr<OHOSExternalTextureGL> extrenal_texture = nullptr;
+  FML_LOG(INFO) << " RegisterExternalTexture api type "
+                << int(ohos_context_->RenderingApi()) << " texture_id "
+                << texture_id;
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    extrenal_texture =
+        std::make_shared<OHOSExternalTextureGL>(texture_id, listener);
+  }
+  // else if (ohos_context_->RenderingApi() ==
+  //           OHOSRenderingAPI::kImpellerVulkan) {
+  //   extrenal_texture = std::make_shared<OHOSExternalTextureVulkan>(
+  //       std::static_pointer_cast<impeller::ContextVK>(
+  //           ohos_context_->GetImpellerContext()),
+  //       texture_id, listener);
+  // }
+  if (extrenal_texture && extrenal_texture->GetProducerSurfaceId() != 0 &&
+      extrenal_texture->GetProducerWindowId() != 0) {
+    //std::lock_guard<std::mutex> lock(g_map_mutex); //TODOTEST
+    g_texture_platformview_map[context_frame_data] = this;
+    //all_external_texture_[texture_id] = extrenal_texture;
+    external_texture_gl_[texture_id] = extrenal_texture;
+    RegisterTexture(extrenal_texture);
+  }
+  return extrenal_texture;
+}
+
+uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id) {
+  auto extrenal_texture = CreateExternalTexture(texture_id);
+  if (extrenal_texture == nullptr) {
+    return 0;
+  } else {
+    return extrenal_texture->GetProducerSurfaceId();
+  }
+  return 0;
+}
+
 
 void PlatformViewOHOS::SetTextureBufferSize(
     int64_t texture_id,
@@ -465,8 +512,18 @@ void PlatformViewOHOS::SetTextureBufferSize(
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
     auto iter = external_texture_gl_.find(texture_id);
     if (iter != external_texture_gl_.end()) {
-      iter->second->setTextureBufferSize(width, height);
+      iter->second->SetProducerWindowSize(width, height);
     }
+  }
+}
+
+void PlatformViewOHOS::NotifyTextureResizing(int64_t texture_id,
+    int32_t width,
+    int32_t height) {
+  FML_LOG(INFO) << "PlatformViewOHOS::NotifyTextureResizing";
+  if (external_texture_gl_.find(texture_id) != external_texture_gl_.end()) {
+    auto external_texture = external_texture_gl_[texture_id];
+    external_texture->NotifyResizing(width, height);
   }
 }
 
@@ -475,24 +532,17 @@ void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id) {
                  << texture_id;
   external_texture_gl_.erase(texture_id);
   UnregisterTexture(texture_id);
+  g_texture_platformview_map.erase((uint64_t)this + (uint64_t)texture_id);
 }
 
 void PlatformViewOHOS::RegisterExternalTextureByPixelMap(
     int64_t texture_id,
     NativePixelMap* pixelMap) {
-  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
-    auto iter = external_texture_gl_.find(texture_id);
-    if (iter != external_texture_gl_.end()) {
-      iter->second->DispatchPixelMap(pixelMap);
-    } else {
-      std::shared_ptr<OHOSExternalTextureGL> ohos_external_gl =
-          std::make_shared<OHOSExternalTextureGL>(texture_id, ohos_surface_, delegate_, task_runners_);
-      external_texture_gl_[texture_id] = ohos_external_gl;
-      RegisterTexture(ohos_external_gl);
-      ohos_external_gl->DispatchPixelMap(pixelMap);
-    }
-    MarkTextureFrameAvailable(texture_id);
+  auto extrenal_texture = CreateExternalTexture(texture_id);
+  if (extrenal_texture != nullptr) {
+    extrenal_texture->SetPixelMapAsProducer(pixelMap, nullptr); // pixelMap_native_buffer); //TODOTEST
   }
+  // MarkTextureFrameAvailable(texture_id); //TODOTEST
 }
 
 void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(
@@ -501,7 +551,7 @@ void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
     auto iter = external_texture_gl_.find(texture_id);
     if (iter != external_texture_gl_.end()) {
-      iter->second->DispatchBackGroundPixelMap(pixelMap);
+      // iter->second->DispatchBackGroundPixelMap(pixelMap); //TODOTEST
     }
   }
 }
@@ -512,7 +562,7 @@ void PlatformViewOHOS::SetExternalTextureBackGroundColor(
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
     auto iter = external_texture_gl_.find(texture_id);
     if (iter != external_texture_gl_.end()) {
-      iter->second->DispatchBackGroundColor(color);
+      // iter->second->DispatchBackGroundColor(color); //TODOTEST
     }
   }
 }
