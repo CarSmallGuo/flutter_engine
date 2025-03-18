@@ -144,25 +144,58 @@ export class ListenableEditingState {
   }
 
   handleInsertTextEvent(text: string): void {
+    const isPair = (input: string): boolean => {
+      const pairSymbols = new Map([
+        // English symbols
+        ['(', ')'],
+        ['"', '"'],
+        ['[', ']'],
+        ['<', '>'],
+        ['{', '}'],
+        ['［', '］'],
+        // Chinese symbols
+        ['｛', '｝'],
+        ['（', '）'],
+        ['“', '”'],
+        ['‘', '’'],
+        ['〖', '〗'],
+        ['【', '】'],
+        ['《', '》'],
+        ['〔', '〕'],
+        ['〈', '〉'],
+        ['「', '」'],
+        ['『', '』']
+      ]);
+      return input.length === 2 && pairSymbols.has(input[0]) && pairSymbols.get(input[0]) === input[1];
+    };
+
     let start =
       this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
     let end = this.mSelectionStartCache > this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
     const length = text.length;
     this.replace(start, end, text, 0, length);
 
-    if (this.mStringCache.length == this.mSelectionStartCache) {
-      //Insert text one by one
-      let tempStr: string = this.mStringCache.substring(0, start) + text + this.mStringCache.substring(end);
-      this.mStringCache = tempStr;
-      this.setSelectionStart(this.mStringCache.length);
-      this.setSelectionEnd(this.mStringCache.length);
-    } else if (this.mStringCache.length > this.mSelectionStartCache) {
-      //Insert text in the middle of string
-      let tempStr: string = this.mStringCache.substring(0, start) + text + this.mStringCache.substring(end);
-      this.mStringCache = tempStr;
-      this.mSelectionStartCache = start + text.length;
-      this.mSelectionEndCache = this.mSelectionStartCache;
+    if (isPair(text)) {
+      this.mStringCache = this.mStringCache.substring(0, start) + text + this.mStringCache.substring(end);
+      // Set the cursor position in the middle
+      this.setSelectionStart(start + 1);
+      this.setSelectionEnd(start + 1);
+    } else {
+      if (this.mStringCache.length == this.mSelectionStartCache) {
+        //Insert text one by one
+        let tempStr: string = this.mStringCache.substring(0, start) + text + this.mStringCache.substring(end);
+        this.mStringCache = tempStr;
+        this.setSelectionStart(this.mStringCache.length);
+        this.setSelectionEnd(this.mStringCache.length);
+      } else if (this.mStringCache.length > this.mSelectionStartCache) {
+        //Insert text in the middle of string
+        let tempStr: string = this.mStringCache.substring(0, start) + text + this.mStringCache.substring(end);
+        this.mStringCache = tempStr;
+        this.mSelectionStartCache = start + text.length;
+        this.mSelectionEndCache = this.mSelectionStartCache;
+      }
     }
+
     if (this.mListeners == null) {
       Log.e(TAG, "mListeners is null");
       return;
