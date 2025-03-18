@@ -65,6 +65,10 @@ export class FlutterRenderer implements TextureRegistry {
     this.flutterNapi.setTextureBufferSize(textureId, width, height);
   }
 
+  notifyTextureResizing(textureId: number, width: number, height: number): void {
+    this.flutterNapi.notifyTextureResizing(textureId, width, height);
+  }
+
   unregisterTexture(textureId: number): void {
     this.flutterNapi.unregisterTexture(textureId);
   }
