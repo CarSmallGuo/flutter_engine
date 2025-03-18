@@ -1,147 +1,115 @@
 /*
- * Copyright 2013 The Flutter Authors. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE file.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-#ifndef OHOS_EXTERNAL_TEXTURE_GL_H
-#define OHOS_EXTERNAL_TEXTURE_GL_H
+#ifndef FLUTTER_SHELL_PLATFORM_OHOS_OHOS_EXTERNAL_TEXTURE_GL_H_
+#define FLUTTER_SHELL_PLATFORM_OHOS_OHOS_EXTERNAL_TEXTURE_GL_H_
 
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#include <GLES3/gl3.h>
+#include "ohos_external_texture.h"
 
-#include <multimedia/image_framework/image/pixelmap_native.h>
-#include <multimedia/image_framework/image_mdk.h>
-#include <multimedia/image_framework/image_pixel_map_mdk.h>
-#include <native_buffer/native_buffer.h>
-#include <native_window/external_window.h>
-#include <native_image/native_image.h>
+#include "flutter/impeller/toolkit/egl/image.h"
+#include "flutter/impeller/toolkit/gles/texture.h"
 
-#include "flutter/common/graphics/texture.h"
-#include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
-#include "flutter/shell/platform/ohos/ohos_surface_gl_skia.h"
-#include "flutter/shell/platform/ohos/surface/ohos_surface.h"
-#include "flutter/shell/common/platform_view.h"
-
-// maybe now unused
 namespace flutter {
 
-// Represents an external texture for OHOS platform, using std::weak_ptr to avoid circular reference.
-class OHOSExternalTextureGL : public flutter::Texture, public std::enable_shared_from_this<OHOSExternalTextureGL> {
+struct OHOSEGLImageKHRWithDisplayTraits;
+struct EGLSyncKHRTraits;
+struct GlResource;
+
+using OHOSUniqueEGLImageKHR =
+    fml::UniqueObject<impeller::EGLImageKHRWithDisplay,
+                      OHOSEGLImageKHRWithDisplayTraits>;
+using UniqueEGLSync = fml::UniqueObject<EGLSyncKHR, EGLSyncKHRTraits>;
+
+class OHOSExternalTextureGL : public OHOSExternalTexture {
  public:
-  explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface);
-  explicit OHOSExternalTextureGL(int64_t id, const std::shared_ptr<OHOSSurface>& ohos_surface,
-    PlatformView::Delegate& delegate, const TaskRunners& task_runners);
+  explicit OHOSExternalTextureGL(int64_t id,
+                                 OH_OnFrameAvailableListener listener);
 
   ~OHOSExternalTextureGL() override;
 
-  PlatformView::Delegate& delegate_;
+  static PFNEGLCREATESYNCKHRPROC eglCreateSyncKHR_;
+  static PFNEGLDUPNATIVEFENCEFDANDROIDPROC eglDupNativeFenceFDANDROID_;
+  static PFNEGLDESTROYSYNCKHRPROC eglDestroySyncKHR_;
+  static PFNEGLWAITSYNCKHRPROC eglWaitSyncKHR_;
+  static PFNEGLCREATEIMAGEKHRPROC eglCreateImageKHR_;
+  static PFNGLEGLIMAGETARGETTEXTURE2DOESPROC glEGLImageTargetTexture2DOES_;
+  static PFNEGLDESTROYIMAGEKHRPROC eglDestroyImageKHR_;
 
-  const TaskRunners& task_runners_;
+  static void InitEGLFunPtr();
 
-  OH_NativeImage *nativeImage_;
+ protected:
+  void SetGPUFence(OHNativeWindowBuffer* window_buffer, int* fence_fd) override;
+  void WaitGPUFence(int fence_fd) override;
+  void GPUResourceDestroy() override;
 
-  OH_NativeImage *backGroundNativeImage_;
-
-  bool first_update_ = false;
-
-  void Paint(PaintContext& context,
-             const SkRect& bounds,
-             bool freeze,
-             const SkSamplingOptions& sampling) override;
-
-  void OnGrContextCreated() override;
-
-  void OnGrContextDestroyed() override;
-
-  void MarkNewFrameAvailable() override;
-
-  void OnTextureUnregistered() override;
-
-  void DispatchImage(ImageNative* image);
-
-  void setBackground(int32_t width, int32_t height);
-
-  GrGLTextureInfo GetGrGLTextureInfo();
-
-  void setTextureBufferSize(int32_t width, int32_t height);
-
-  void DispatchPixelMap(NativePixelMap* pixelMap);
-
-  void DispatchBackGroundPixelMap(NativePixelMap* pixelMap);
-
-  void DispatchBackGroundColor(uint32_t color);
+  sk_sp<flutter::DlImage> CreateDlImage(
+      PaintContext& context,
+      const SkRect& bounds,
+      NativeBufferKey key,
+      OHNativeWindowBuffer* nw_buffer) override;
 
  private:
-  void Attach();
+  std::unordered_map<NativeBufferKey, GlResource> gl_resources_;
+  NativeBufferKey now_key_;
 
-  void Update();
-
-  void Detach();
-
-  void Hide();
-
-  void Show();
-
-  void UpdateTransform(OH_NativeImage *image);
-
-  EGLDisplay GetPlatformEglDisplay(EGLenum platform, void *native_display, const EGLint *attrib_list);
-
-  bool CheckEglExtension(const char *extensions, const char *extension);
-
-  void HandlePixelMapBuffer(NativePixelMap* pixelMap, OHNativeWindowBuffer* buffer);
-
-  void ProducePixelMapToNativeImage();
-
-  void ProduceColorToBackGroundImage(int32_t width, int32_t height);
-
-  void ProducePixelMapToBackGroundImage();
-
-  enum class AttachmentState { uninitialized, attached, detached, hide };
-
-  AttachmentState state_;
-
-  GLuint texture_name_ = 0;
-
-  GLuint backGroundTextureName_ = 0;
-
-  std::shared_ptr<OHOSSurface> ohos_surface_;
-
-  SkMatrix transform;
-
-  OHNativeWindow *nativeWindow_;
-
-  OHNativeWindow *backGroundNativeWindow_;
-
-  NativePixelMap* backGroundPixelMap_;
-
-  uint32_t backGroundColor_ = 0xFFFFFFFF;  //  white color
-
-  NativePixelMap* pixelMap_;
-
-  ImageNative* lastImage_;
-
-  bool isEmulator_;
-
-  OhosPixelMapInfos pixelMapInfo;
-
-  int fenceFd = -1;
-
-  int backGroundFenceFd = -1;
-
-  EGLContext eglContext_;
-  EGLDisplay eglDisplay_;
+  // void UpdateTransform();
+  OHOSUniqueEGLImageKHR CreateEGLImage(OHNativeWindowBuffer* nw_buffer);
 
   FML_DISALLOW_COPY_AND_ASSIGN(OHOSExternalTextureGL);
+};
 
-  void* display_;
-  void* draw_surface_;
-  void* read_surface_;
-  void* context_;
+// ohos' sdk don't have eglDestroyImageKHR symbol, so we manually get the
+// eglDestroyImageKHR address.
+struct OHOSEGLImageKHRWithDisplayTraits {
+  static impeller::EGLImageKHRWithDisplay InvalidValue() {
+    return {EGL_NO_IMAGE_KHR, EGL_NO_DISPLAY};
+  }
 
-  bool IsContextCurrent();
+  static bool IsValid(const impeller::EGLImageKHRWithDisplay& value) {
+    return value != InvalidValue();
+  }
+
+  static void Free(impeller::EGLImageKHRWithDisplay image) {
+    if (OHOSExternalTextureGL::eglDestroyImageKHR_) {
+      OHOSExternalTextureGL::eglDestroyImageKHR_(image.display, image.image);
+    }
+  }
+};
+
+struct EGLSyncKHRTraits {
+  static EGLSyncKHR InvalidValue() { return EGL_NO_SYNC_KHR; }
+
+  static bool IsValid(const EGLSyncKHR& value) {
+    return value != InvalidValue();
+  }
+
+  static void Free(EGLSyncKHR sync) {
+    if (OHOSExternalTextureGL::eglDestroySyncKHR_) {
+      EGLDisplay disp = eglGetCurrentDisplay();
+      OHOSExternalTextureGL::eglDestroySyncKHR_(disp, sync);
+    }
+  }
+};
+
+struct GlResource {
+  OHOSUniqueEGLImageKHR egl_image;
+  impeller::UniqueGLTexture texture;
+  UniqueEGLSync wait_sync;
+  UniqueEGLSync signal_sync;
 };
 
 }  // namespace flutter
-#endif
+
+#endif  // FLUTTER_SHELL_PLATFORM_OHOS_OHOS_EXTERNAL_TEXTURE_GL_H_
