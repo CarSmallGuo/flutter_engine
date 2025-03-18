@@ -41,26 +41,12 @@ OHOSImageGenerator::OHOSImageGenerator(OH_ImageSourceNative* image_source)
   if (is_hdr_) {
     origin_image_info_ = SkImageInfo::Make(
         width, height, kRGBA_1010102_SkColorType, kOpaque_SkAlphaType);
-
-    const skcms_Matrix3x3 dcip3_matrix = {{{1.2249f, -0.2247f, 0.000f},
-                                           {-0.0420f, 1.0419f, 0.000f},
-                                           {-0.0197f, -0.0786f, 1.0979f}}};
-
-    const skcms_Matrix3x3 rec2020_matrix = {
-        {{0.636958f, 0.144617f, 0.168881f},
-         {0.262700f, 0.677998f, 0.059302f},
-         {0.000000f, 0.028073f, 1.060985f}}};
-
     origin_image_info_.makeColorSpace(
         SkColorSpace::MakeRGB(SkNamedTransferFn::kHLG, rec2020_matrix));
   } else {
     origin_image_info_ = SkImageInfo::Make(
         width, height, kRGBA_8888_SkColorType, kOpaque_SkAlphaType);
   }
-
-  FML_LOG(INFO) << "origin size:" << std::to_string(width) << "*"
-                << std::to_string(height) << "->"
-                << "image_source_hdr:" << std::to_string(is_hdr_);
 
   // this is used for gif.
   OH_ImageSourceNative_GetFrameCount(image_source, &frame_count_);
@@ -238,11 +224,11 @@ OHOSImageGenerator::CreatePixelMap(int width, int height, int frame_index) {
       OH_ImageSourceNative_CreatePixelmap(image_source_, opts, &pixelmap);
   if (pixelmap && err_code == IMAGE_SUCCESS) {
     auto image_pixelmap = std::make_shared<PixelMapOHOS>(pixelmap);
-    FML_LOG(INFO) << "Create Pixelmap size:"
-                  << std::to_string(image_pixelmap->width_) << "*"
-                  << std::to_string(image_pixelmap->height_) << " stride "
-                  << std::to_string(image_pixelmap->row_stride_) << " format "
-                  << std::to_string(image_pixelmap->pixel_format_);
+    FML_DLOG(INFO) << "Create Pixelmap size:"
+                   << std::to_string(image_pixelmap->width_) << "*"
+                   << std::to_string(image_pixelmap->height_) << " stride "
+                   << std::to_string(image_pixelmap->row_stride_) << " format "
+                   << std::to_string(image_pixelmap->pixel_format_);
     return image_pixelmap;
   } else {
     FML_LOG(ERROR) << "Create Pixelmap from Image source failed:" << err_code
