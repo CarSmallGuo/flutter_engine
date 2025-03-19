@@ -40,7 +40,7 @@ class OHOSExternalTexture : public flutter::Texture {
   void Paint(PaintContext& context,
              const SkRect& bounds,
              bool freeze,
-             DlImageSampling sampling) override;
+             const SkSamplingOptions&) override;
 
   void OnGrContextCreated() override;
 
@@ -89,7 +89,7 @@ class OHOSExternalTexture : public flutter::Texture {
   virtual void WaitGPUFence(int fence_fd) { close(fence_fd); }
   virtual void GPUResourceDestroy() = 0;
 
-  virtual sk_sp<flutter::DlImage> CreateDlImage(
+  virtual sk_sp<SkImage> CreateDlImage(
       PaintContext& context,
       const SkRect& bounds,
       NativeBufferKey key,
@@ -98,7 +98,7 @@ class OHOSExternalTexture : public flutter::Texture {
   ImageLRU image_lru_ = ImageLRU();
 
  private:
-  sk_sp<flutter::DlImage> GetNextDrawImage(PaintContext& context,
+  sk_sp<SkImage> GetNextDrawImage(PaintContext& context,
                                            const SkRect& bounds);
 
   bool CopyDataToPixelMapBuffer(const unsigned char* src,
@@ -150,7 +150,7 @@ class OHOSExternalTexture : public flutter::Texture {
 
   SkMatrix transform_;
 
-  sk_sp<flutter::DlImage> old_dl_image_;
+  sk_sp<SkImage> old_dl_image_;
   SkRect old_buffer_bounds_ = {};
   SkRect old_draw_bounds_ = {};
   int size_change_frames_ = 0;

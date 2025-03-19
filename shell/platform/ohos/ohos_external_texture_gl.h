@@ -54,7 +54,7 @@ class OHOSExternalTextureGL : public OHOSExternalTexture {
   void WaitGPUFence(int fence_fd) override;
   void GPUResourceDestroy() override;
 
-  sk_sp<flutter::DlImage> CreateDlImage(
+  sk_sp<SkImage> CreateDlImage(
       PaintContext& context,
       const SkRect& bounds,
       NativeBufferKey key,
