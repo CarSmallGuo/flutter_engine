@@ -54,7 +54,7 @@ class OHOSExternalTextureGL : public OHOSExternalTexture {
   void WaitGPUFence(int fence_fd) override;
   void GPUResourceDestroy() override;
 
-  sk_sp<flutter::DlImage> CreateDlImage(
+  sk_sp<SkImage> CreateDlImage(
       PaintContext& context,
       const SkRect& bounds,
       NativeBufferKey key,
@@ -64,7 +64,6 @@ class OHOSExternalTextureGL : public OHOSExternalTexture {
   std::unordered_map<NativeBufferKey, GlResource> gl_resources_;
   NativeBufferKey now_key_;
 
-  // void UpdateTransform();
   OHOSUniqueEGLImageKHR CreateEGLImage(OHNativeWindowBuffer* nw_buffer);
 
   FML_DISALLOW_COPY_AND_ASSIGN(OHOSExternalTextureGL);
