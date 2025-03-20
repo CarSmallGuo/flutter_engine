@@ -174,12 +174,11 @@ void OHOSExternalTexture::Paint(PaintContext& context,
     );
     context.canvas->flush();
   } else {
-    // ready for fix black background issue when external texture is not ready.
-    // note: it may be incorrect because the background color should be set in
-    // dart DlAutoCanvasRestore auto_restore(context.canvas, true); DlPaint
-    // paint; paint.setColor(DlColor::kWhite());
-    // context.canvas->DrawRect(bounds, paint);
-    FML_LOG(INFO) << "No DlImage available for ImageExternalTexture to paint.";
+    SkAutoCanvasRestore autoRestore(context.canvas, true);
+    SkPaint paint;
+    paint.setColor(backGroundColor_);
+    context.canvas->drawRect(bounds, paint);
+    FML_LOG(INFO) << "No DlImage available to paint, draw background color.";
   }
 }
 
@@ -376,6 +375,11 @@ bool OHOSExternalTexture::SetPixelMapAsProducer(
   }
 
   return end_ret;
+}
+
+void OHOSExternalTexture::SetBackgroundColor(uint32_t color)
+{
+  backGroundColor_ = color;
 }
 
 void OHOSExternalTexture::ReleaseWindowBuffer(OH_NativeImage* native_image,

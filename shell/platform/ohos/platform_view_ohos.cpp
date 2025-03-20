@@ -584,6 +584,10 @@ void PlatformViewOHOS::SetExternalTextureBackGroundColor(
   if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
     auto iter = external_texture_gl_.find(texture_id);
     if (iter != external_texture_gl_.end()) {
+      auto external_texture = external_texture_gl_[texture_id];
+      FML_LOG(INFO) << "SetExternalTextureBackGroundColor " << texture_id
+                    << "color:0x" << std::hex << color;
+      external_texture->SetBackgroundColor(color);
     }
   }
 }
