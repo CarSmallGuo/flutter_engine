@@ -533,7 +533,7 @@ export default class FlutterNapi {
     this.ensureRunningOnMainThread();
     if (this.isAttached()) {
       Log.i(TAG, "setFlutterNavigationAction: " + isNavigate);
-      flutter.nativeGetFlutterNavigationAction(isNavigate);
+      flutter.nativeSetFlutterNavigationAction(isNavigate);
     } else {
       Log.w(TAG, "setFlutterNavigationAction is detached !");
     }
