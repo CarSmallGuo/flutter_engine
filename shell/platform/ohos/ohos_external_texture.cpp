@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "ohos_external_texture.h"
 
 #include <GLES2/gl2.h>
@@ -20,6 +35,9 @@ namespace flutter {
 
 #define MAX_DELAYED_FRAMES 3
 #define MAX_SIZE_CHANGE_FRAMES 10
+#define BUFFERQUEUE_SIZE_LIMIT 100
+#define CACHED_FRAME_LIMIT 5
+#define FRAME_RATE 60
 
 static int PixelMapToWindowFormat(PIXEL_FORMAT pixel_format) {
   switch (pixel_format) {
@@ -93,14 +111,14 @@ OHOSExternalTexture::~OHOSExternalTexture() {
 void OHOSExternalTexture::Paint(PaintContext& context,
                                 const SkRect& bounds,
                                 bool freeze,
-                                DlImageSampling sampling) {
+                                const SkSamplingOptions& sampling) {
   if (state_ == AttachmentState::kDetached) {
     FML_LOG(INFO) << "paint state is kDetached";
     return;
   }
 
   SkRect new_bounds = bounds;
-  sk_sp<flutter::DlImage> draw_dl_image;
+  sk_sp<SkImage> draw_dl_image;
 
   if (bounds != old_draw_bounds_) {
     draw_size_has_changed_ = true;
@@ -142,19 +160,19 @@ void OHOSExternalTexture::Paint(PaintContext& context,
   }
 
   if (draw_dl_image) {
-    DlAutoCanvasRestore auto_restore(context.canvas, true);
+    SkAutoCanvasRestore autoRestore(context.canvas, true);
     SkM44 new_transform;
     GetNewTransformBound(new_transform, new_bounds);
-    context.canvas->Transform(new_transform);
-    context.canvas->DrawImageRect(
+    context.canvas->concat(new_transform);
+    context.canvas->drawImageRect(
         draw_dl_image,                                 // image
         SkRect::Make(draw_dl_image->bounds()),         // source rect
         new_bounds,                                    // destination rect
         sampling,                                      // sampling
-        context.paint,                                 // paint
-        flutter::DlCanvas::SrcRectConstraint::kStrict  // enforce edges
+        context.sk_paint,                                 // paint
+        SkCanvas::SrcRectConstraint::kStrict_SrcRectConstraint  // enforce edges
     );
-    context.canvas->Flush();
+    context.canvas->flush();
   } else {
     // ready for fix black background issue when external texture is not ready.
     // note: it may be incorrect because the background color should be set in
@@ -166,8 +184,8 @@ void OHOSExternalTexture::Paint(PaintContext& context,
 }
 
 void OHOSExternalTexture::MarkNewFrameAvailable() {
-  if (now_new_frame_seq_num_ - now_paint_frame_seq_num_ > 5 ||
-      now_paint_frame_seq_num_ % 60 == 0) {
+  if (now_new_frame_seq_num_ - now_paint_frame_seq_num_ > CACHED_FRAME_LIMIT ||
+      now_paint_frame_seq_num_ % FRAME_RATE == 0) {
     FML_LOG(INFO) << " OHOSExternalTexture::MarkNewFrameAvailable avail-seq "
                   << now_new_frame_seq_num_ << " paint-seq "
                   << now_paint_frame_seq_num_;
@@ -178,7 +196,7 @@ void OHOSExternalTexture::MarkNewFrameAvailable() {
     int buffer_queue_size = 0;
     int ret = OH_NativeWindow_NativeWindowHandleOpt(
         producer_nativewindow_, GET_BUFFERQUEUE_SIZE, &buffer_queue_size);
-    if (ret != 0 || buffer_queue_size > 100) {
+    if (ret != 0 || buffer_queue_size > BUFFERQUEUE_SIZE_LIMIT) {
       FML_LOG(INFO) << " MarkNewFrameAvailable get error buffer queue size "
                     << buffer_queue_size << " ret " << ret;
       return;
@@ -385,7 +403,7 @@ SkRect OHOSExternalTexture::UpdateWindowSize(OHNativeWindowBuffer* buffer) {
   OH_NativeBuffer_Config config = {0, 0};
   OH_NativeBuffer* native_buffer = nullptr;
   int ret = OH_NativeBuffer_FromNativeWindowBuffer(buffer, &native_buffer);
-  if (native_buffer != nullptr) {
+  if (ret == 0 && native_buffer != nullptr) {
     OH_NativeBuffer_GetConfig(native_buffer, &config);
     producer_nativewindow_width_ = config.width;
     producer_nativewindow_height_ = config.height;
@@ -415,7 +433,7 @@ OHNativeWindowBuffer* OHOSExternalTexture::GetConsumerNativeBuffer(
     now_paint_frame_seq_num_ = (int64_t)now_new_frame_seq_num_;
     return nullptr;
   }
-  if (*fence_fd <= 0 && now_paint_frame_seq_num_ % 60 == 0) {
+  if (*fence_fd <= 0 && now_paint_frame_seq_num_ % FRAME_RATE == 0) {
     FML_DLOG(INFO) << "get not null native_window_buffer but inValid fence_fd: "
                    << *fence_fd;
   }
@@ -478,9 +496,9 @@ OHNativeWindowBuffer* OHOSExternalTexture::GetConsumerNativeBuffer(
   while (now_paint_frame_seq_num_ + MAX_DELAYED_FRAMES <
          now_new_frame_seq_num_) {
     OHNativeWindowBuffer* nw_buffer = nullptr;
-    int ret = OH_NativeImage_AcquireNativeWindowBuffer(native_image_source_,
+    int result = OH_NativeImage_AcquireNativeWindowBuffer(native_image_source_,
                                                        &nw_buffer, fence_fd);
-    if (nw_buffer != nullptr && ret == 0) {
+    if (nw_buffer != nullptr && result == 0) {
       FML_LOG(INFO) << "external_texture skip one frame: "
                     << last_native_window_buffer_ << " fence_fd "
                     << last_fence_fd_;
@@ -508,7 +526,7 @@ OHNativeWindowBuffer* OHOSExternalTexture::GetConsumerNativeBuffer(
   return now_nw_buffer;
 }
 
-sk_sp<flutter::DlImage> OHOSExternalTexture::GetNextDrawImage(
+sk_sp<SkImage> OHOSExternalTexture::GetNextDrawImage(
     PaintContext& context,
     const SkRect& bounds) {
   int fence_fd = -1;
@@ -655,7 +673,7 @@ uint64_t OHOSExternalTexture::Reset(bool need_surfaceId) {
 bool OHOSExternalTexture::CreatePixelMapBuffer(int width,
                                                int height,
                                                int pixel_format) {
-  int fence_fd = -1;
+  // int fence_fd = -1;
   DestroyPixelMapBuffer();
 
   int window_format = PixelMapToWindowFormat((PIXEL_FORMAT)pixel_format);
@@ -919,11 +937,6 @@ void OHOSExternalTexture::GetNewTransformBound(SkM44& transform,
   // orientation.
   float matrix[16];
   OH_NativeImage_GetTransformMatrixV2(native_image_source_, matrix);
-  // for (int i = 0; i < 4; i++) {
-  //   FML_LOG(INFO) << matrix[i*4+0] << " " << matrix[i*4+1]
-  //                 << " " << matrix[i*4+2] << " "
-  //                 << matrix[i*4+3];
-  // }
 
   SkM44 transform_origin = SkM44::ColMajor(matrix);
 
@@ -955,11 +968,6 @@ void OHOSExternalTexture::GetNewTransformBound(SkM44& transform,
   // range.
   transform_end.setRC(0, 3, transform_end.rc(0, 3) * bounds.width());
   transform_end.setRC(1, 3, transform_end.rc(1, 3) * bounds.height());
-  // for (int i = 0; i < 4; i++) {
-  //   FML_LOG(INFO) << transform_end.rc(0, i) << " " << transform_end.rc(1, i)
-  //                 << " " << transform_end.rc(2, i) << " "
-  //                 << transform_end.rc(3, i);
-  // }
 
   // If a 90-degree rotation is applied, the width and height of the vertex
   // range need to be swapped.
