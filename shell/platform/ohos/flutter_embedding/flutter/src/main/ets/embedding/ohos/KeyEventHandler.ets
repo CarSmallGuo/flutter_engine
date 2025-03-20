@@ -52,6 +52,18 @@ export class KeyEventHandler {
     KeyCode.KEYCODE_SHIFT_LEFT,
     KeyCode.KEYCODE_SHIFT_RIGHT,
   ]);
+  private static numPadKeys: Set<KeyCode> = new Set<KeyCode>([
+    KeyCode.KEYCODE_NUMPAD_0,
+    KeyCode.KEYCODE_NUMPAD_1,
+    KeyCode.KEYCODE_NUMPAD_2,
+    KeyCode.KEYCODE_NUMPAD_3,
+    KeyCode.KEYCODE_NUMPAD_4,
+    KeyCode.KEYCODE_NUMPAD_5,
+    KeyCode.KEYCODE_NUMPAD_6,
+    KeyCode.KEYCODE_NUMPAD_7,
+    KeyCode.KEYCODE_NUMPAD_8,
+    KeyCode.KEYCODE_NUMPAD_9,
+  ]);
   private static keyTextMap: Map<KeyCode, KeyText> = new Map([
     [KeyCode.KEYCODE_0, new KeyText('0', ')')],
     [KeyCode.KEYCODE_1, new KeyText('1', '!')],
@@ -114,11 +126,13 @@ export class KeyEventHandler {
     [KeyCode.KEYCODE_NUMPAD_7, new KeyText('7', '')],
     [KeyCode.KEYCODE_NUMPAD_8, new KeyText('8', '')],
     [KeyCode.KEYCODE_NUMPAD_9, new KeyText('9', '')],
+    [KeyCode.KEYCODE_NUMPAD_DOT, new KeyText('.', '')],
   ]);
 
   private textInputPlugin?: TextInputPlugin;
   private isShiftMode: boolean = false;
   private isCombinationMode: boolean = false;
+  private isNumLockMode: boolean = false;
 
   constructor(textInputPlugin?: TextInputPlugin) {
     this.textInputPlugin = textInputPlugin;
@@ -142,9 +156,13 @@ export class KeyEventHandler {
         this.isCombinationMode = true;
       } else if (KeyEventHandler.shiftKeys.has(event.keyCode)) {
         this.isShiftMode = true;
-      } else {
+      } else if (KeyCode.KEYCODE_NUM_LOCK === event.keyCode) {
+        this.isNumLockMode = !this.isNumLockMode;
+      }
+      else {
         // Ctrl/Alt 键按下的状态，不输入字符（字母/数字/符号）
-        if (!this.isCombinationMode) {
+        // 小键盘锁定下，不输入小键盘数字
+        if (!this.isCombinationMode && !(this.isNumLockMode && KeyEventHandler.numPadKeys.has(event.keyCode))) {
           this.textInputPlugin?.getEditingState().handleInsertTextEvent(this.getKeyText(event));
         }
       }
