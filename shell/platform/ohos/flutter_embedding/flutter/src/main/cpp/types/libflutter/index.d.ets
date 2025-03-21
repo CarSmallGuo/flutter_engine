@@ -154,7 +154,7 @@ export const nativeGetShellHolderId: (nativeShellHolderId: number) => void;
 
 export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;
 
-export const nativeGetFlutterNavigationAction: (isNavigate: boolean) => void;
+export const nativeSetFlutterNavigationAction: (isNavigate: boolean) => void;
 
 
 export const nativeUnicodeIsEmoji: (code: number) => number;

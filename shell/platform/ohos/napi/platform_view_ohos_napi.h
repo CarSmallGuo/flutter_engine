@@ -235,7 +235,7 @@ class PlatformViewOHOSNapi {
   static napi_value nativeSetFontWeightScale(
       napi_env env,
       napi_callback_info info);
-  static napi_value nativeGetFlutterNavigationAction(
+  static napi_value nativeSetFlutterNavigationAction(
       napi_env env,
       napi_callback_info info);
 

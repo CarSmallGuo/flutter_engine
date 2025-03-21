@@ -167,8 +167,8 @@ static napi_value Init(napi_env env, napi_value exports) {
           "nativeLookupCallbackInformation",
           flutter::PlatformViewOHOSNapi::nativeLookupCallbackInformation),
       DECLARE_NAPI_FUNCTION(
-          "nativeGetFlutterNavigationAction",
-          flutter::PlatformViewOHOSNapi::nativeGetFlutterNavigationAction),
+          "nativeSetFlutterNavigationAction",
+          flutter::PlatformViewOHOSNapi::nativeSetFlutterNavigationAction),
       DECLARE_NAPI_FUNCTION(
           "nativeUnicodeIsEmoji",
           flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmoji),

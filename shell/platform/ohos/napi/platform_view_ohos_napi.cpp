@@ -2178,7 +2178,7 @@ napi_value PlatformViewOHOSNapi::nativeLookupCallbackInformation(napi_env env, n
   return result;
 }
  
-napi_value PlatformViewOHOSNapi::nativeGetFlutterNavigationAction(napi_env env, napi_callback_info info) {
+napi_value PlatformViewOHOSNapi::nativeSetFlutterNavigationAction(napi_env env, napi_callback_info info) {
   napi_status ret;
   size_t argc = 1;
   napi_value args[1] = {nullptr};
@@ -2187,14 +2187,14 @@ napi_value PlatformViewOHOSNapi::nativeGetFlutterNavigationAction(napi_env env, 
   bool isNavigate;
   ret = napi_get_value_bool(env, args[0], &isNavigate);
   if (ret != napi_ok) {
-    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeGetFlutterNavigationAction "
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi::nativeSetFlutterNavigationAction "
                        "napi_get_value_bool error:"
                     << ret;
     return nullptr;
   }
 
   OhosAccessibilityBridge::GetInstance()->isFlutterNavigated_ = isNavigate;
-  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeGetFlutterNavigationAction -> "<<isNavigate;
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetFlutterNavigationAction -> "<<isNavigate;
   return nullptr;
 }
 
