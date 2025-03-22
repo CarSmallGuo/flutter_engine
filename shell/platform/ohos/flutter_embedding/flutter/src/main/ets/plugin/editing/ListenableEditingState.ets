@@ -168,16 +168,18 @@ export class ListenableEditingState {
   }
 
   updateTextInputState(state: TextEditState): void {
-    this.beginBatchEdit();
-    this.setStringCache(state.text);
-    if (state.hasSelection()) {
-      this.setSelectionStart(state.selectionStart);
-      this.setSelectionEnd(state.selectionEnd);
-    } else {
-      this.setSelectionStart(0);
-      this.setSelectionEnd(0);
+    if (this.mSelectionStartCache === this.mSelectionEndCache && state.selectionStart === state.selectionEnd) {
+      this.beginBatchEdit();
+      this.setStringCache(state.text);
+      if (state.hasSelection()) {
+        this.setSelectionStart(state.selectionStart);
+        this.setSelectionEnd(state.selectionEnd);
+      } else {
+        this.setSelectionStart(0);
+        this.setSelectionEnd(0);
+      }
+      this.endBatchEdit();
     }
-    this.endBatchEdit();
   }
 
   beginBatchEdit(): void {
