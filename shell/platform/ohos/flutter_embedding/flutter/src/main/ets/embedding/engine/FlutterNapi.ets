@@ -278,7 +278,9 @@ export default class FlutterNapi {
     return []
   }
 
-  // 3.7标记遗弃，下一版本删除（历史遗留，无实际作用）
+  /**
+   * @deprecated 下一版本删除
+   */ 
   decodeImage(buffer: ArrayBuffer, imageGeneratorAddress: number): void {
     if (buffer) {
       Log.d(TAG, "called decodeImage=" + buffer.byteLength)
@@ -371,7 +373,9 @@ export default class FlutterNapi {
     flutter.nativeAccessibilityStateChange(this.nativeShellHolderId!, state);
   }
 
-  // 3.7标记遗弃，下一版本删除（历史遗留，无实际作用）
+  /**
+   * @deprecated 下一版本删除
+   */ 
   touchGuideStateChange(state: Boolean): void {
     this.ensureRunningOnMainThread();
     flutter.nativeTouchGuideStateChange(state);
@@ -451,7 +455,9 @@ export default class FlutterNapi {
     this.nativeShellHolderId = null;
   }
 
-  // 3.7标记遗弃，下一版本删除（历史遗留，无实际作用）
+  /**
+   * @deprecated 下一版本删除
+   */ 
   initNativeImage(textureId: number, aImage: image.Image) {
     Log.d(TAG, "called initNativeImage ");
     if (!this.isAttached()) {
@@ -484,7 +490,9 @@ export default class FlutterNapi {
     flutter.nativeSetTextureBackGroundPixelMap(this.nativeShellHolderId!, textureId, pixelMap);
   }
 
-  // 3.22无需该接口，该功能关闭
+  /**
+   * @deprecated 3.22该功能关闭
+   */ 
   setTextureBackGroundColor(textureId: number, color: number): void {
     Log.d(TAG, "called setTextureBackGroundColor ");
     flutter.nativeSetTextureBackGroundColor(this.nativeShellHolderId!, textureId, color);
@@ -524,7 +532,9 @@ export default class FlutterNapi {
     }
   }
 
-  //3.7标记遗弃，下一版本删除（历史遗留，无实际作用）
+  /**
+   * @deprecated 下一版本删除
+   */ 
   //native c++ get the shell holder id
   getShellHolderId(): void {
     this.ensureRunningOnMainThread();
@@ -573,7 +583,9 @@ export default class FlutterNapi {
     return Boolean(flutter.nativeUnicodeIsRegionalIndicatorSymbol(code));
   }
 
-  // 3.22无需该接口，该功能关闭
+  /**
+   * @deprecated 3.22该功能关闭
+   */ 
   SetDVsyncSwitch(isEnable: boolean): void {
     flutter.nativeSetDVsyncSwitch(this.nativeShellHolderId!, isEnable);
   }
