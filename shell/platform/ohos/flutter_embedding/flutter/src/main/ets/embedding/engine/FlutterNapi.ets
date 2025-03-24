@@ -604,6 +604,7 @@ export default class FlutterNapi {
     }
   }
 
+  //该接口为无功能接口，配合外部调用
   setTextureBackGroundColor(textureId: number, color: number): void {}
 
   registerTexture(textureId: number): number {
@@ -706,6 +707,7 @@ export default class FlutterNapi {
     return Boolean(flutter.nativeUnicodeIsRegionalIndicatorSymbol(code));
   }
 
+  //该接口为无功能接口，配合外部调用
   SetDVsyncSwitch(isEnable: boolean): void {}
 
   setFontWeightScale(fontWeightScale: number): void {
