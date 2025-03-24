@@ -604,6 +604,8 @@ export default class FlutterNapi {
     }
   }
 
+  setTextureBackGroundColor(textureId: number, color: number): void {}
+
   registerTexture(textureId: number): number {
     Log.d(TAG, "called registerTexture ");
     if (!this.nativeShellHolderId) {
@@ -703,6 +705,8 @@ export default class FlutterNapi {
   static unicodeIsRegionalIndicatorSymbol(code: number): boolean {
     return Boolean(flutter.nativeUnicodeIsRegionalIndicatorSymbol(code));
   }
+
+  SetDVsyncSwitch(isEnable: boolean): void {}
 
   setFontWeightScale(fontWeightScale: number): void {
     this.ensureRunningOnMainThread();
