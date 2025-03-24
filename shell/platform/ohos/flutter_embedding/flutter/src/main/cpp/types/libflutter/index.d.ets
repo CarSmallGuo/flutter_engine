@@ -130,7 +130,7 @@ export const nativeRegisterPixelMap: (nativeShellHolderId: number, textureId: nu
 
 export const nativeSetTextureBackGroundPixelMap: (nativeShellHolderId: number, textureId: number, pixelMap: PixelMap) => void;
 
-//无功能接口，外界纹理首帧颜色自定义，3.22无需该接口
+//无功能接口，外界纹理首帧颜色自定义，3.22无需此接口
 export const nativeSetTextureBackGroundColor: (nativeShellHolderId: number, textureId: number, color: number) => void => () => {};
 
 export const nativeRegisterTexture: (nativeShellHolderId: number, textureId: number) => number;
