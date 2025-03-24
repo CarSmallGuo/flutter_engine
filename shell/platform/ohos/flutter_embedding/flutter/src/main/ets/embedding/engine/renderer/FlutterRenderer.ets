@@ -85,6 +85,8 @@ export class FlutterRenderer implements TextureRegistry {
     }
     return receiver;
   }
+
+  //3.7标记遗弃，下一版本删除（历史遗留，无实际作用）
   private registerImage(textureId: number, surfaceTextureWrapper: SurfaceTextureWrapper): void {
     let receiver = surfaceTextureWrapper.getImageReceiver();
     receiver.on('imageArrival', () => {
@@ -117,6 +119,7 @@ export class SurfaceTextureRegistryEntry implements SurfaceTextureEntry {
     this.textureId = id;
   }
 
+  //3.7标记遗弃，下一版本删除（历史遗留，无实际作用）
   getImageReceiver(): image.ImageReceiver {
     return this.surfaceTextureWrapper!.getImageReceiver();
   }
