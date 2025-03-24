@@ -130,6 +130,9 @@ export const nativeRegisterPixelMap: (nativeShellHolderId: number, textureId: nu
 
 export const nativeSetTextureBackGroundPixelMap: (nativeShellHolderId: number, textureId: number, pixelMap: PixelMap) => void;
 
+//外界纹理首帧颜色自定义，3.22无需该接口，定义为无功能接口
+export const nativeSetTextureBackGroundColor: (nativeShellHolderId: number, textureId: number, color: number) => void => () => {};
+
 export const nativeRegisterTexture: (nativeShellHolderId: number, textureId: number) => number;
 
 export const nativeGetTextureWindowId: (nativeShellHolderId: number, textureId: number) => number;
@@ -182,3 +185,6 @@ export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightS
 export const nativeSetFlutterNavigationAction: (nativeShellHolderId: number, isNavigate: boolean) => void;
 
 export const nativeUpdateCurrentXComponentId: (xcomponent_id: string) => void;
+
+//功能已关闭，无实际作用，补充无功能接口
+export const nativeSetDVsyncSwitch: (nativeShellHolderId: number, isEnable: boolean) => void => () => {};
