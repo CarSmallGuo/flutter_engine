@@ -6,8 +6,10 @@ import FlutterNapi from '../../../ets/embedding/engine/FlutterNapi';
 import { ByteBuffer } from '../../../ets/util/ByteBuffer';
 import { FlutterCallbackInformation } from '../../../ets/view/FlutterCallbackInformation';
 
+//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
 export const getContext: (a: number) => napiContext;
 
+//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
 export class napiContext {
   onPageShow(): void;
 
@@ -79,6 +81,7 @@ export const nativeSetViewportMetrics: (nativeShellHolderId: number, devicePixel
                                         , systemGestureInsetLeft: number, physicalTouchSlop: number, displayFeaturesBounds: Array<number>
                                         , displayFeaturesType: Array<number>, displayFeaturesState: Array<number>) => void;
 
+//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
 export const nativeImageDecodeCallback: (width: number, height: number, imageGeneratorPointer: number, pixelMap : image.PixelMap | null) => void;
 
 export const nativeGetSystemLanguages: (nativeShellHolderId: number, languages: Array<string>) => void;
@@ -99,7 +102,9 @@ export const nativeXComponentDispatchMouseWheel: (nativeShellHolderId: number,
 
 
 // send updateSemantics and updateCustomAccessibilityActions from ets to c++
+//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
 export const nativeUpdateSemantics: (buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]) => void;
+//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
 export const nativeUpdateCustomAccessibilityActions: (buffer: ByteBuffer, strings: string[]) => void;
 
 
@@ -111,6 +116,7 @@ export const nativeDestroy: (
   nativeShellHolderId: number
 ) => void;
 
+//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
 export const nativeInitNativeImage: (nativeShellHolderId: number, textureId: number, aImage: image.Image) => void;
 
 export const nativeUnregisterTexture: (nativeShellHolderId: number, textureId: number) => void;
@@ -138,13 +144,17 @@ export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number,
 
 export const nativeAccessibilityStateChange: (nativeShellHolderId: number, state: Boolean) => void;
 
-export const nativeAccessibilityAnnounce: (message: string) => void;
+//3.22接口参数变动，更改参数与3.22保持一致
+export const nativeAccessibilityAnnounce: (nativeShellHolderId: number, message: string) => void;
 
-export const nativeAccessibilityOnTap: (nodeId: number) => void;
+//3.22接口参数变动，更改参数与3.22保持一致
+export const nativeAccessibilityOnTap: (nativeShellHolderId: number, nodeId: number) => void;
 
-export const nativeAccessibilityOnLongPress: (nodeId: number) => void;
+//3.22接口参数变动，更改参数与3.22保持一致
+export const nativeAccessibilityOnLongPress: (nativeShellHolderId: number, nodeId: number) => void;
 
-export const nativeAccessibilityOnTooltip: (message: string) => void;
+//3.22接口参数变动，更改参数与3.22保持一致
+export const nativeAccessibilityOnTooltip: (nativeShellHolderId: number, message: string) => void;
 
 export const nativeSetSemanticsEnabled: (nativeShellHolderId: number, enabled: boolean) => void;
 
@@ -152,10 +162,10 @@ export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightS
 
 export const nativeGetShellHolderId: (nativeShellHolderId: number) => void;
 
+//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
 export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;
 
 export const nativeSetFlutterNavigationAction: (isNavigate: boolean) => void;
-
 
 export const nativeUnicodeIsEmoji: (code: number) => number;
 
@@ -167,8 +177,11 @@ export const nativeUnicodeIsVariationSelector: (code: number) => number;
 
 export const nativeUnicodeIsRegionalIndicatorSymbol: (code: number) => number;
 
+//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
 export const nativeGetXComponentId: (id: string) => number;
 
+ //功能已关闭，无实际作用
 export const nativeSetDVsyncSwitch: (nativeShellHolderId: number, isEnable: boolean) => void;
 
+//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
 export const nativeTouchGuideStateChange: (state: Boolean) => void;
