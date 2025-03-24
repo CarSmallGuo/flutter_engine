@@ -484,6 +484,7 @@ export default class FlutterNapi {
     flutter.nativeSetTextureBackGroundPixelMap(this.nativeShellHolderId!, textureId, pixelMap);
   }
 
+  // 3.22无需该接口，该功能关闭
   setTextureBackGroundColor(textureId: number, color: number): void {
     Log.d(TAG, "called setTextureBackGroundColor ");
     flutter.nativeSetTextureBackGroundColor(this.nativeShellHolderId!, textureId, color);
@@ -572,6 +573,7 @@ export default class FlutterNapi {
     return Boolean(flutter.nativeUnicodeIsRegionalIndicatorSymbol(code));
   }
 
+  // 3.22无需该接口，该功能关闭
   SetDVsyncSwitch(isEnable: boolean): void {
     flutter.nativeSetDVsyncSwitch(this.nativeShellHolderId!, isEnable);
   }
