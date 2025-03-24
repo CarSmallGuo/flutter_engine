@@ -21,6 +21,8 @@ const TAG = "ListenableEditingState";
 export class ListenableEditingState {
   private TextInputChannel: TextInputChannel | null = null;
   private client: number = 0
+  private isDeleting: boolean = false
+  private deleteTimes: number = 0
   //Cache used to storage software keyboard input action
   private mStringCache: string;
   private mSelectionStartCache: number = 0;
@@ -123,9 +125,9 @@ export class ListenableEditingState {
   }
 
   notifyListener(listener: EditingStateWatcher,
-                 textChanged: boolean,
-                 selectionChanged: boolean,
-                 composingChanged: boolean): void {
+    textChanged: boolean,
+    selectionChanged: boolean,
+    composingChanged: boolean): void {
     this.mChangeNotificationDepth++;
     listener.didChangeEditingState(textChanged, selectionChanged, composingChanged);
     this.mChangeNotificationDepth--;
@@ -168,6 +170,14 @@ export class ListenableEditingState {
   }
 
   updateTextInputState(state: TextEditState): void {
+    if (this.isDeleting) {
+      if (state.selectionStart !== state.selectionEnd) {
+        this.isDeleting = false;
+      } else if (this.deleteTimes === 1) {
+        return
+      }
+      this.deleteTimes += 1
+    }
     this.beginBatchEdit();
     this.setStringCache(state.text);
     if (state.hasSelection()) {
@@ -251,7 +261,8 @@ export class ListenableEditingState {
     if (length === 0) {
       return;
     }
-
+    this.isDeleting = true;
+    this.deleteTimes = 0;
     let start =
       this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
     let end = this.mSelectionStartCache > this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
