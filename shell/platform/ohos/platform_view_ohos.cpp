@@ -822,6 +822,7 @@ void PlatformViewOHOS::SetAccessibleNavigation(bool isAccessibleNavigation) {
         ~static_cast<int32_t>(AccessibilityFeatureFlag::kAccessibleNavigation);
   }
   SetAccessibilityFeatures(accessibility_feature_flags_);
+  accessibility_feature_flags_ = 0;
 }
 
 void PlatformViewOHOS::SetBoldText(double fontWeightScale) {
@@ -836,6 +837,7 @@ void PlatformViewOHOS::SetBoldText(double fontWeightScale) {
         static_cast<int32_t>(AccessibilityFeatureFlag::kBoldText);
   }
   SetAccessibilityFeatures(accessibility_feature_flags_);
+  accessibility_feature_flags_ = 0;
 }
 
 void PlatformViewOHOS::SimulateTouchEvent(SemanticsNodeExtend* node) {
