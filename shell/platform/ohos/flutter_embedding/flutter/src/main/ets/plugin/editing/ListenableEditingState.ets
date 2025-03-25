@@ -18,9 +18,17 @@ import { FlutterTextUtils } from './TextUtils';
 
 const TAG = "ListenableEditingState";
 
+enum DeleteStates {
+  START = 1,
+  DELETING = 2,
+  MOVING = 3,
+  END = 0
+}
+
 export class ListenableEditingState {
   private TextInputChannel: TextInputChannel | null = null;
   private client: number = 0
+  private deleteState: DeleteStates = DeleteStates.END
   //Cache used to storage software keyboard input action
   private mStringCache: string;
   private mSelectionStartCache: number = 0;
@@ -168,6 +176,7 @@ export class ListenableEditingState {
   }
 
   updateTextInputState(state: TextEditState): void {
+    this.deleteState = DeleteStates.MOVING;
     this.beginBatchEdit();
     this.setStringCache(state.text);
     if (state.hasSelection()) {
@@ -247,10 +256,21 @@ export class ListenableEditingState {
     }
   }
 
+  
+  startDeleting() {
+    this.deleteState = DeleteStates.START
+  }
+
+  endDeletion() {
+    this.deleteState = DeleteStates.END
+  }
+
   handleDeleteEvent(leftOrRight: boolean, length: number): void {
-    if (length === 0) {
+    if (length === 0 || this.deleteState !== DeleteStates.START) {
       return;
     }
+
+    this.deleteState = DeleteStates.DELETING;
 
     let start =
       this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
