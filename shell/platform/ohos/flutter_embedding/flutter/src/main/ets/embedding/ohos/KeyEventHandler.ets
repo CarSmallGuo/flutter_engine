@@ -132,6 +132,14 @@ export class KeyEventHandler {
     return '';
   }
 
+  startDeleting() {
+    this.textInputPlugin?.getEditingState().startDeleting();
+  }
+
+  endDeletion() {
+    this.textInputPlugin?.getEditingState().endDeletion();
+  }
+
   handleKeyEvent(event: KeyEvent) {
     Log.i(TAG, JSON.stringify({
       "name": "handleKeyEvent",
