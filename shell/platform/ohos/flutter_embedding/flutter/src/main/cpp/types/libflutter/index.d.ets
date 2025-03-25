@@ -116,7 +116,9 @@ export const nativeDestroy: (
   nativeShellHolderId: number
 ) => void;
 
-//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
+  /**
+   * @deprecated 下一版本删除
+   */ 
 export const nativeInitNativeImage: (nativeShellHolderId: number, textureId: number, aImage: image.Image) => void;
 
 export const nativeUnregisterTexture: (nativeShellHolderId: number, textureId: number) => void;
@@ -162,7 +164,9 @@ export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightS
 
 export const nativeGetShellHolderId: (nativeShellHolderId: number) => void;
 
-//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
+  /**
+   * @deprecated 下一版本删除
+   */ 
 export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;
 
 export const nativeSetFlutterNavigationAction: (isNavigate: boolean) => void;
@@ -177,12 +181,18 @@ export const nativeUnicodeIsVariationSelector: (code: number) => number;
 
 export const nativeUnicodeIsRegionalIndicatorSymbol: (code: number) => number;
 
-//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
+  /**
+   * @deprecated 下一版本删除
+   */ 
 export const nativeGetXComponentId: (id: string) => number;
 
- //功能已关闭，无实际作用
+  /**
+   * @deprecated 功能已关闭，无实际作用
+   */ 
 export const nativeSetDVsyncSwitch: (nativeShellHolderId: number, isEnable: boolean) => void;
 
-//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
+  /**
+   * @deprecated 下一版本删除
+   */ 
 export const nativeTouchGuideStateChange: (state: Boolean) => void;
 
