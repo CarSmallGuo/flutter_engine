@@ -6,10 +6,14 @@ import FlutterNapi from '../../../ets/embedding/engine/FlutterNapi';
 import { ByteBuffer } from '../../../ets/util/ByteBuffer';
 import { FlutterCallbackInformation } from '../../../ets/view/FlutterCallbackInformation';
 
-//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
+  /**
+   * @deprecated 下一版本删除
+   */ 
 export const getContext: (a: number) => napiContext;
 
-//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
+  /**
+   * @deprecated 下一版本删除
+   */ 
 export class napiContext {
   onPageShow(): void;
 
@@ -81,7 +85,9 @@ export const nativeSetViewportMetrics: (nativeShellHolderId: number, devicePixel
                                         , systemGestureInsetLeft: number, physicalTouchSlop: number, displayFeaturesBounds: Array<number>
                                         , displayFeaturesType: Array<number>, displayFeaturesState: Array<number>) => void;
 
-//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
+  /**
+   * @deprecated 下一版本删除
+   */ 
 export const nativeImageDecodeCallback: (width: number, height: number, imageGeneratorPointer: number, pixelMap : image.PixelMap | null) => void;
 
 export const nativeGetSystemLanguages: (nativeShellHolderId: number, languages: Array<string>) => void;
@@ -102,9 +108,13 @@ export const nativeXComponentDispatchMouseWheel: (nativeShellHolderId: number,
 
 
 // send updateSemantics and updateCustomAccessibilityActions from ets to c++
-//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
+  /**
+   * @deprecated 下一版本删除
+   */ 
 export const nativeUpdateSemantics: (buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]) => void;
-//3.7标志遗弃，下一版本删除,为历史遗留无实际作用
+  /**
+   * @deprecated 下一版本删除
+   */ 
 export const nativeUpdateCustomAccessibilityActions: (buffer: ByteBuffer, strings: string[]) => void;
 
 
