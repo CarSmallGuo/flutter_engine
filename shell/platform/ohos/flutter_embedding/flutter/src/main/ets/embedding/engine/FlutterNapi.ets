@@ -370,11 +370,6 @@ export default class FlutterNapi {
     flutter.nativeAccessibilityStateChange(this.nativeShellHolderId!, state);
   }
 
-  touchGuideStateChange(state: Boolean): void {
-    this.ensureRunningOnMainThread();
-    flutter.nativeTouchGuideStateChange(state);
-  }
-
   setLocalizationPlugin(localizationPlugin: LocalizationPlugin | null): void {
     this.localizationPlugin = localizationPlugin;
   }
@@ -511,14 +506,6 @@ export default class FlutterNapi {
     }
   }
 
-  //native c++ get the shell holder id
-  getShellHolderId(): void {
-    this.ensureRunningOnMainThread();
-    if (this.isAttached()) {
-      flutter.nativeGetShellHolderId(this.nativeShellHolderId!);
-    }
-  }
-
   setFontWeightScale(fontWeightScale: number): void {
     this.ensureRunningOnMainThread();
     if (this.isAttached()) {
@@ -529,11 +516,11 @@ export default class FlutterNapi {
     }
   }
 
-  setFlutterNavigationAction(isNavigate: boolean): void {
+  setFlutterNavigationAction(shellHolderId: number, isNavigate: boolean): void {
     this.ensureRunningOnMainThread();
     if (this.isAttached()) {
       Log.i(TAG, "setFlutterNavigationAction: " + isNavigate);
-      flutter.nativeGetFlutterNavigationAction(isNavigate);
+      flutter.nativeSetFlutterNavigationAction(shellHolderId, isNavigate);
     } else {
       Log.w(TAG, "setFlutterNavigationAction is detached !");
     }
@@ -565,9 +552,5 @@ export default class FlutterNapi {
 }
 
 export interface AccessibilityDelegate {
-  updateCustomAccessibilityActions(buffer: ByteBuffer, strings: string[]): void;
-
-  updateSemantics(buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]): void;
-
   accessibilityStateChange(state: Boolean): void;
 }

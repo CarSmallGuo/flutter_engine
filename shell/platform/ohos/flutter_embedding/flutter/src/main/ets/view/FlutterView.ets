@@ -206,13 +206,8 @@ export class FlutterView {
     this.mainWindow?.on('windowSizeChange', this.windowSizeChangeCallback);
     this.mainWindow?.on('avoidAreaChange', this.avoidAreaChangeCallback);
     this.mainWindow?.on('windowStatusChange', this.windowStatusChangeCallback);
-
-    //监听系统无障碍服务状态改变
-    accessibility.on('accessibilityStateChange', (data: boolean) => {
-      Log.i(TAG, `subscribe accessibility state change, result: ${JSON.stringify(data)}`);
-      this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(data);
-    });
     this.mainWindow?.on('keyboardHeightChange', this.keyboardHeightChangeCallback);
+    accessibility.on('accessibilityStateChange', this.accessibilityStateChangeCallback);
     this.systemAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
     this.navigationAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR);
     this.gestureAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM_GESTURE);
@@ -288,6 +283,11 @@ export class FlutterView {
     if (this.isAttachedToFlutterEngine()) {
       this.onAreaChange(null);
     }
+  }
+
+  private accessibilityStateChangeCallback = (data: boolean) => {
+    Log.i(TAG, `subscribe accessibility state change, result: ${JSON.stringify(data)}`);
+    this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(data);
   }
 
   private avoidAreaChangeCallback = (data: window.AvoidAreaOptions) => {
@@ -370,9 +370,7 @@ export class FlutterView {
       this.mainWindow?.off('windowSizeChange', this.windowSizeChangeCallback);
       this.mainWindow?.off('avoidAreaChange', this.avoidAreaChangeCallback);
       this.mainWindow?.off('windowStatusChange', this.windowStatusChangeCallback);
-      accessibility.off('accessibilityStateChange', (data: boolean) => {
-        Log.i(TAG, `unsubscribe accessibility state change, result: ${JSON.stringify(data)}`);
-      });
+      accessibility.off('accessibilityStateChange', this.accessibilityStateChangeCallback);
       this.mainWindow?.off('keyboardHeightChange', this.keyboardHeightChangeCallback);
       display.off('foldStatusChange', (status: display.FoldStatus) => {
         Log.d(TAG, `foldStatusChange listner destory`);
@@ -415,6 +413,10 @@ export class FlutterView {
     this.flutterEngine?.getFlutterNapi()?.updateRefreshRate(this.displayInfo!.refreshRate)
     flutterEngine.getPlatformViewsController()?.attachToView(this);
     this.updateViewportMetrics()
+
+    if (accessibility.isOpenAccessibilitySync()) {
+      this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(true);
+    }
 
     let newArea: Area | null = {
       width: px2vp(this.displayInfo!.width),
@@ -493,14 +495,6 @@ export class FlutterView {
     if (this.isAttachedToFlutterEngine()) {
       this.flutterEngine!!.getFlutterNapi().xComponentDetachFlutterEngine(this.id)
     }
-  }
-
-  onAccessibilityIsOpen() {
-    let accessibilityState: boolean = accessibility.isOpenAccessibilitySync();
-    if(accessibilityState) {
-      this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(accessibilityState)
-    }
-    Log.i(TAG, `accessibility isOpen state -> ${JSON.stringify(accessibilityState)}`);
   }
 
   onAreaChange(newArea: Area | null, setFullScreen: boolean = false) {

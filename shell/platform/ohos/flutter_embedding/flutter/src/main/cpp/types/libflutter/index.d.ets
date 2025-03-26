@@ -98,11 +98,6 @@ export const nativeXComponentDispatchMouseWheel: (nativeShellHolderId: number,
                                                   ) => void;
 
 
-// send updateSemantics and updateCustomAccessibilityActions from ets to c++
-export const nativeUpdateSemantics: (buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]) => void;
-export const nativeUpdateCustomAccessibilityActions: (buffer: ByteBuffer, strings: string[]) => void;
-
-
 /**
  * Detaches flutterNapi和engine之间的关联
  * 这个方法执行前提是flutterNapi已经和engine关联
@@ -129,31 +124,7 @@ export const nativeDecodeUtf8: (array: Uint8Array) => string;
 
 export const nativeSetTextureBufferSize: (nativeShellHolderId: number, textureId: number, width: number, height: number) => void;
 
-/**
- * accessibiltyChannel中的
- */
-export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number, responseId: number) => void;
-
-export const nativeAccessibilityStateChange: (nativeShellHolderId: number, state: Boolean) => void;
-
-export const nativeAccessibilityAnnounce: (message: string) => void;
-
-export const nativeAccessibilityOnTap: (nodeId: number) => void;
-
-export const nativeAccessibilityOnLongPress: (nodeId: number) => void;
-
-export const nativeAccessibilityOnTooltip: (message: string) => void;
-
-export const nativeSetSemanticsEnabled: (nativeShellHolderId: number, enabled: boolean) => void;
-
-export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightScale: number) => void;
-
-export const nativeGetShellHolderId: (nativeShellHolderId: number) => void;
-
 export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;
-
-export const nativeGetFlutterNavigationAction: (isNavigate: boolean) => void;
-
 
 export const nativeUnicodeIsEmoji: (code: number) => number;
 
@@ -165,8 +136,25 @@ export const nativeUnicodeIsVariationSelector: (code: number) => number;
 
 export const nativeUnicodeIsRegionalIndicatorSymbol: (code: number) => number;
 
-export const nativeGetXComponentId: (id: string) => number;
-
 export const nativeSetDVsyncSwitch: (nativeShellHolderId: number, isEnable: boolean) => void;
 
-export const nativeTouchGuideStateChange: (state: Boolean) => void;
+// accessibility
+export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number, responseId: number) => void;
+
+export const nativeAccessibilityStateChange: (nativeShellHolderId: number, state: Boolean) => void;
+
+export const nativeAccessibilityAnnounce: (nativeShellHolderId: number, message: string) => void;
+
+export const nativeAccessibilityOnTap: (nativeShellHolderId: number, nodeId: number) => void;
+
+export const nativeAccessibilityOnLongPress: (nativeShellHolderId: number, nodeId: number) => void;
+
+export const nativeAccessibilityOnTooltip: (nativeShellHolderId: number, message: string) => void;
+
+export const nativeSetSemanticsEnabled: (nativeShellHolderId: number, enabled: boolean) => void;
+
+export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightScale: number) => void;
+
+export const nativeSetFlutterNavigationAction: (nativeShellHolderId: number, isNavigate: boolean) => void;
+
+export const nativeUpdateCurrentXComponentId: (xcomponent_id: string) => void;

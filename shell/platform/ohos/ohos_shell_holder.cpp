@@ -161,6 +161,10 @@ OHOSShellHolder::OHOSShellHolder(
   }
 
   platform_view_ = weak_platform_view;
+  // accessibility
+  bridge_ = std::make_shared<SemanticsBridge>();
+  bridge_mutex_ = std::make_shared<std::mutex>();
+  platform_view_->SetSemanticsBridge(bridge_, bridge_mutex_);
   FML_DCHECK(platform_view_);
 }
 
@@ -182,6 +186,10 @@ OHOSShellHolder::OHOSShellHolder(
   FML_DCHECK(shell_->IsSetup());
   FML_DCHECK(platform_view_);
   FML_DCHECK(thread_host_);
+  // accessibility
+  bridge_ = std::make_shared<SemanticsBridge>();
+  bridge_mutex_ = std::make_shared<std::mutex>();
+  platform_view_->SetSemanticsBridge(bridge_, bridge_mutex_);
 }
 
 OHOSShellHolder::~OHOSShellHolder() {

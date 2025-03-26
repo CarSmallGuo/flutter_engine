@@ -27,7 +27,6 @@ import appRecovery from '@ohos.app.ability.appRecovery';
 import FlutterManager from './FlutterManager';
 import { FlutterView } from '../../view/FlutterView';
 import ApplicationInfoLoader from '../engine/loader/ApplicationInfoLoader';
-import { AccessibilityManager } from '../../view/AccessibilityBridge';
 
 const TAG = "FlutterAbility";
 
@@ -42,7 +41,6 @@ export class FlutterAbility extends UIAbility implements Host {
   private flutterView: FlutterView | null = null;
   private mainWindow?: window.Window | null;
   private errorManagerId:number = 0;
-  private accessibilityManager?: AccessibilityManager | null;
 
   getFlutterView(): FlutterView | null {
     return this.flutterView;

@@ -277,16 +277,16 @@ void PlatformViewOHOS::UpdateAssetResolverByType(
 void PlatformViewOHOS::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
-    // if (bridge_->provider_ohos_ == nullptr) {
-    //   semantics_queue_.push(std::make_pair(update, actions));
-    //   FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics is called when "
-    //                     "bridge_.provider_ohos_ is nullptr ";
-    //   return;
-    // } else if (!semantics_queue_.empty()) {
-    //   FML_DLOG(WARNING)
-    //       << "PlatformViewOHOS::UpdateSemantics has unhandled calls";
-    // }
-    // std::lock_guard<std::mutex> lock(*bridge_mutex_);
+    if (bridge_->provider_ohos_ == nullptr) {
+      semantics_queue_.push(std::make_pair(update, actions));
+      FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics is called when "
+                        "bridge_.provider_ohos_ is nullptr ";
+      return;
+    } else if (!semantics_queue_.empty()) {
+      FML_DLOG(WARNING)
+          << "PlatformViewOHOS::UpdateSemantics has unhandled calls";
+    }
+    std::lock_guard<std::mutex> lock(*bridge_mutex_);
     bridge_->UpdateNodeTree(update);
 }
 
