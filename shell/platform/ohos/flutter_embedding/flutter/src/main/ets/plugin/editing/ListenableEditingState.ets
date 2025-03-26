@@ -26,7 +26,6 @@ const TAG = "ListenableEditingState";
 
 enum DeleteStates {
   START = 1,
-  DELETING = 2,
   MOVING = 3,
   END = 0
 }
@@ -288,7 +287,6 @@ export class ListenableEditingState {
 
     if (leftOrRight == false && this.leftDeleteState === DeleteStates.START) {
       //delete left
-      this.leftDeleteState = DeleteStates.DELETING
       if (start == 0 && end == 0) {
         return;
       }
@@ -309,7 +307,6 @@ export class ListenableEditingState {
       this.mSelectionEndCache = this.mSelectionStartCache;
     } else if (leftOrRight == true && this.rightDeleteState === DeleteStates.START) {
       //delete right
-      this.rightDeleteState = DeleteStates.DELETING
       if (start == this.mStringCache.length) {
         return;
       }
