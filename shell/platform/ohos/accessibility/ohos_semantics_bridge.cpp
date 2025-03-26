@@ -17,6 +17,7 @@
  #include <arkui/native_interface_accessibility.h>
  #include <cassert>
  #include <string>
+ #include "flutter/shell/platform/ohos/utils/ohos_utils.h"
  
  namespace flutter {
  
@@ -112,14 +113,20 @@
    }
    auto event = OH_ArkUI_CreateAccessibilityEventInfo();
    if (node) {
-     OH_ArkUI_AccessibilityEventSetElementInfo(event, node->elementInfo);
+     ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityEventSetElementInfo(event, node->elementInfo);
+     );
      node->hasUpdated = false;
    }
-   OH_ArkUI_AccessibilityEventSetEventType(event, type);
+   ARKUI_ACCESSIBILITY_CALL_CHECK(
+       OH_ArkUI_AccessibilityEventSetEventType(event, type);
+   );
    if (type ==
            ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_ANNOUNCE_FOR_ACCESSIBILITY &&
        message != nullptr) {
-     OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility(event, message);
+     ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility(event, message);
+     );
    }
    if (provider_ohos_) {
      auto callback = [](int32_t errorCode) {

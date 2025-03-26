@@ -415,16 +415,20 @@ static std::vector<uint8_t> GetAccessibilitySelectText(
     ArkUI_AccessibilityActionArguments* args,
     SemanticsNodeExtend* node) {
   char* textSelectBase = nullptr;
-  OH_ArkUI_FindAccessibilityActionArgumentByKey(
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+    OH_ArkUI_FindAccessibilityActionArgumentByKey(
       args, ARKUI_ACTION_ARG_SELECT_TEXT_START, &textSelectBase);
+  );
   if (textSelectBase == nullptr) {
     LOGE("PerformSelectText -> textSelectBase get null value");
     return {};
   }
 
   char* textSelectExtent = nullptr;
-  OH_ArkUI_FindAccessibilityActionArgumentByKey(
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+    OH_ArkUI_FindAccessibilityActionArgumentByKey(
       args, ARKUI_ACTION_ARG_SELECT_TEXT_END, &textSelectExtent);
+  );
   if (textSelectExtent == nullptr) {
     LOGE("PerformSelectText -> textSelectExtent get null value");
     return {};
@@ -459,8 +463,9 @@ static std::vector<uint8_t> GetAccessibilitySetText(
     ArkUI_AccessibilityActionArguments* args,
     SemanticsNodeExtend* node) {
   char* newText = nullptr;
-  OH_ArkUI_FindAccessibilityActionArgumentByKey(args, ARKUI_ACTION_ARG_SET_TEXT,
-                                                &newText);
+  ARKUI_ACCESSIBILITY_CALL_CHECK(
+    OH_ArkUI_FindAccessibilityActionArgumentByKey(args, ARKUI_ACTION_ARG_SET_TEXT, &newText);
+  );
   if (newText == nullptr) {
     LOGE(
         "PerformSetText -> OH_ArkUI_FindAccessibilityActionArgumentByKey get "
