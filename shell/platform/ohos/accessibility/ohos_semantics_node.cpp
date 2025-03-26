@@ -4,6 +4,7 @@
  * found in the LICENSE_HW file.
  */
 #include "ohos_semantics_node.h"
+#include "flutter/shell/platform/ohos/utils/ohos_utils.h"
 
 namespace flutter {
 
