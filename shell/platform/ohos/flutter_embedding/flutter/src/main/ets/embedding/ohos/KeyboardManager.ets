@@ -30,7 +30,9 @@ export default class KeyboardManager {
     })
     //del物理按键会触发输入法的delete回调，一定时序下会导致多次删除
     if(event.type == KeyType.Down && (event.keyCode == KeyCode.KEYCODE_DEL || event.keyCode == KeyCode.KEYCODE_FORWARD_DEL)){
-      return true;
+      this.keyEventHandler.startDeleting(event.keyCode)
+    } else if (event.type == KeyType.Up && (event.keyCode == KeyCode.KEYCODE_DEL || event.keyCode == KeyCode.KEYCODE_FORWARD_DEL)) {
+      this.keyEventHandler.endDeletion(event.keyCode)
     }
     return false;
   }
