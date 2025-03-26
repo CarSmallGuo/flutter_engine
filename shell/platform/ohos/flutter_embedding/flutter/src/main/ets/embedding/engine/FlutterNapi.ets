@@ -604,6 +604,9 @@ export default class FlutterNapi {
     }
   }
 
+  //添加新接口
+  setTextureBackGroundColor(textureId: number, color: number): void {}
+
   registerTexture(textureId: number): number {
     Log.d(TAG, "called registerTexture ");
     if (!this.nativeShellHolderId) {
@@ -703,6 +706,9 @@ export default class FlutterNapi {
   static unicodeIsRegionalIndicatorSymbol(code: number): boolean {
     return Boolean(flutter.nativeUnicodeIsRegionalIndicatorSymbol(code));
   }
+
+  //添加新接口
+  SetDVsyncSwitch(isEnable: boolean): void {}
 
   setFontWeightScale(fontWeightScale: number): void {
     this.ensureRunningOnMainThread();
