@@ -278,6 +278,9 @@ export default class FlutterNapi {
     return []
   }
 
+  /**
+   * @deprecated 废弃接口，后续版本删除
+   */ 
   decodeImage(buffer: ArrayBuffer, imageGeneratorAddress: number): void {
     if (buffer) {
       Log.d(TAG, "called decodeImage=" + buffer.byteLength)
@@ -370,6 +373,9 @@ export default class FlutterNapi {
     flutter.nativeAccessibilityStateChange(this.nativeShellHolderId!, state);
   }
 
+  /**
+   * @deprecated 废弃接口，后续版本删除
+   */ 
   touchGuideStateChange(state: Boolean): void {
     this.ensureRunningOnMainThread();
     flutter.nativeTouchGuideStateChange(state);
@@ -449,6 +455,9 @@ export default class FlutterNapi {
     this.nativeShellHolderId = null;
   }
 
+  /**
+   * @deprecated 废弃接口，后续版本删除
+   */ 
   initNativeImage(textureId: number, aImage: image.Image) {
     Log.d(TAG, "called initNativeImage ");
     if (!this.isAttached()) {
@@ -481,6 +490,9 @@ export default class FlutterNapi {
     flutter.nativeSetTextureBackGroundPixelMap(this.nativeShellHolderId!, textureId, pixelMap);
   }
 
+  /**
+   * @deprecated 废弃接口，后续版本删除
+   */ 
   setTextureBackGroundColor(textureId: number, color: number): void {
     Log.d(TAG, "called setTextureBackGroundColor ");
     flutter.nativeSetTextureBackGroundColor(this.nativeShellHolderId!, textureId, color);
@@ -520,6 +532,9 @@ export default class FlutterNapi {
     }
   }
 
+  /**
+   * @deprecated 废弃接口，后续版本删除
+   */ 
   //native c++ get the shell holder id
   getShellHolderId(): void {
     this.ensureRunningOnMainThread();
@@ -568,6 +583,9 @@ export default class FlutterNapi {
     return Boolean(flutter.nativeUnicodeIsRegionalIndicatorSymbol(code));
   }
 
+  /**
+   * @deprecated 废弃接口，后续版本删除
+   */ 
   SetDVsyncSwitch(isEnable: boolean): void {
     flutter.nativeSetDVsyncSwitch(this.nativeShellHolderId!, isEnable);
   }

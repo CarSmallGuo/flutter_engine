@@ -76,6 +76,9 @@ export class FlutterRenderer implements TextureRegistry {
     throw new Error('Method not implemented.');
   }
 
+  /**
+   * @deprecated 废弃接口，后续版本删除
+   */ 
   private getImageReceiver(): image.ImageReceiver {
     let receiver: image.ImageReceiver = image.createImageReceiver(640, 480, 4, 8);
     if (receiver !== undefined) {
@@ -85,6 +88,10 @@ export class FlutterRenderer implements TextureRegistry {
     }
     return receiver;
   }
+
+  /**
+   * @deprecated 废弃接口，后续版本删除
+   */ 
   private registerImage(textureId: number, surfaceTextureWrapper: SurfaceTextureWrapper): void {
     let receiver = surfaceTextureWrapper.getImageReceiver();
     receiver.on('imageArrival', () => {
@@ -117,6 +124,9 @@ export class SurfaceTextureRegistryEntry implements SurfaceTextureEntry {
     this.textureId = id;
   }
 
+  /**
+   * @deprecated 废弃接口，后续版本删除
+   */ 
   getImageReceiver(): image.ImageReceiver {
     return this.surfaceTextureWrapper!.getImageReceiver();
   }
