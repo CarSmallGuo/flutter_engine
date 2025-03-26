@@ -26,8 +26,7 @@
 #include "flutter/shell/platform/ohos/surface/ohos_snapshot_surface_producer.h"
 #include "flutter/shell/platform/ohos/surface/ohos_surface.h"
 #include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
-#include "flutter/shell/platform/ohos/platform_view_ohos_delegate.h"
-#include "flutter/shell/platform/ohos/accessibility/native_accessibility_channel.h"
+#include "flutter/shell/platform/ohos/accessibility/ohos_semantics_bridge.h"
 
 namespace flutter {
 
@@ -134,12 +133,22 @@ class PlatformViewOHOS final : public PlatformView {
 
   void RunTask(OHOS_THREAD_TYPE type, const fml::closure& task);
 
+  // accessibitliy
+  void SetSemanticsBridge(std::shared_ptr<SemanticsBridge> bridge,
+                          std::shared_ptr<std::mutex> mutex);
+  void AccessibilityAnnounce(std::unique_ptr<char[]>& message);
+  void AccessibilityOnTap(int32_t nodeId);
+  void AccessibilityOnLongPress(int32_t nodeId);
+  void AccessibilityOnTooltip(std::unique_ptr<char[]>& message);
+  void OnAccessibilityStateChange(bool state);
+  void SetAccessibleNavigation(bool isAccessibleNavigation);
+  void SetBoldText(double fontWeightScale);
+
+  void SimulateTouchEvent(SemanticsNodeExtend* node);
+
  private:
   const std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;
   std::shared_ptr<OHOSContext> ohos_context_;
-
-  std::shared_ptr<PlatformViewOHOSDelegate> platform_view_ohos_delegate_;  
-  NativeAccessibilityChannel nativeAccessibilityChannel_;  
 
   std::shared_ptr<OHOSSurface> ohos_surface_;
   std::shared_ptr<PlatformMessageHandlerOHOS> platform_message_handler_;
@@ -148,6 +157,15 @@ class PlatformViewOHOS final : public PlatformView {
   std::map<int64_t, std::shared_ptr<OHOSExternalTextureGL>> external_texture_gl_;
 
   std::atomic<bool> isDestroyed_;
+
+  // accessibility
+  std::queue<std::pair<flutter::SemanticsNodeUpdates,
+                       flutter::CustomAccessibilityActionUpdates>>
+      semantics_queue_;
+  std::shared_ptr<SemanticsBridge> bridge_;
+  std::shared_ptr<std::mutex> bridge_mutex_;
+  int32_t accessibility_feature_flags_ = 0;
+  bool is_accessibility_navigation_ = false;
 
   bool GetDestroyed();
 

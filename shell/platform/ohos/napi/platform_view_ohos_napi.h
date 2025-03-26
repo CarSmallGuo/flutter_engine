@@ -20,7 +20,6 @@
 #include "flutter/shell/common/run_configuration.h"
 #include "flutter/shell/platform/ohos/napi_common.h"
 #include "napi/native_api.h"
-#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_features.h"
 
 // class for all c++ to call js function
 namespace flutter {
@@ -202,39 +201,8 @@ class PlatformViewOHOSNapi {
       napi_callback_info info);
   static napi_value nativeXComponentDispatchMouseWheel(napi_env env,
                                                        napi_callback_info info);
-  /**
-   * ets call c++
-   */
-  static napi_value nativeUpdateSemantics(napi_env env,
-                                          napi_callback_info info);
-  static napi_value nativeUpdateCustomAccessibilityActions(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeAccessibilityStateChange(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeAccessibilityAnnounce(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeAccessibilityOnTap(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeAccessibilityOnLongPress(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeAccessibilityOnTooltip(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeSetSemanticsEnabled(napi_env env, napi_callback_info info);
   static napi_value nativeEncodeUtf8(napi_env env, napi_callback_info info);
   static napi_value nativeDecodeUtf8(napi_env env, napi_callback_info info);
-
-  static napi_value nativeSetFontWeightScale(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeGetFlutterNavigationAction(
-      napi_env env,
-      napi_callback_info info);
 
   static napi_value nativeLookupCallbackInformation(
       napi_env env,
@@ -270,6 +238,27 @@ class PlatformViewOHOSNapi {
   static napi_value nativeSetDVsyncSwitch(
       napi_env env,
       napi_callback_info info);
+
+  static napi_value nativeAccessibilityStateChange(napi_env env,
+                                                   napi_callback_info info);
+  static napi_value nativeAccessibilityAnnounce(napi_env env,
+                                                napi_callback_info info);
+  static napi_value nativeAccessibilityOnTap(napi_env env,
+                                             napi_callback_info info);
+  static napi_value nativeAccessibilityOnLongPress(napi_env env,
+                                                   napi_callback_info info);
+  static napi_value nativeAccessibilityOnTooltip(napi_env env,
+                                                 napi_callback_info info);
+  static napi_value nativeSetSemanticsEnabled(napi_env env,
+                                              napi_callback_info info);
+  static napi_value nativeSetFlutterNavigationAction(napi_env env,
+                                                     napi_callback_info info);
+
+  static napi_value nativeSetFontWeightScale(napi_env env,
+                                             napi_callback_info info);
+
+  static napi_value nativeUpdateCurrentXComponentId(napi_env env,
+                                                    napi_callback_info info);
 
  private:
   static napi_env env_;

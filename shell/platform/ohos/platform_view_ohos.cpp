@@ -15,7 +15,6 @@
 #include "napi_common.h"
 #include "ohos_external_texture_gl.h"
 #include "ohos_logging.h"
-#include "flutter/shell/platform/ohos/platform_view_ohos_delegate.h"
 #include <GLES2/gl2ext.h>
 
 
@@ -278,9 +277,17 @@ void PlatformViewOHOS::UpdateAssetResolverByType(
 void PlatformViewOHOS::UpdateSemantics(
     flutter::SemanticsNodeUpdates update,
     flutter::CustomAccessibilityActionUpdates actions) {
-    FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics()";
-    auto nativeAccessibilityChannel_ = std::make_shared<NativeAccessibilityChannel>();
-    nativeAccessibilityChannel_->UpdateSemantics(std::move(update), std::move(actions));
+    if (bridge_->provider_ohos_ == nullptr) {
+      semantics_queue_.push(std::make_pair(update, actions));
+      FML_DLOG(INFO) << "PlatformViewOHOS::UpdateSemantics is called when "
+                        "bridge_.provider_ohos_ is nullptr ";
+      return;
+    } else if (!semantics_queue_.empty()) {
+      FML_DLOG(WARNING)
+          << "PlatformViewOHOS::UpdateSemantics has unhandled calls";
+    }
+    std::lock_guard<std::mutex> lock(*bridge_mutex_);
+    bridge_->UpdateNodeTree(update);
 }
 
 // |PlatformView|
@@ -549,5 +556,123 @@ void PlatformViewOHOS::RunTask(OHOS_THREAD_TYPE type, const fml::closure& task)
 
   fml::TaskRunner::RunNowOrPostTask(TaskRunnerPtr, task);
 }
+
+void PlatformViewOHOS::SetSemanticsBridge(
+    std::shared_ptr<SemanticsBridge> bridge,
+    std::shared_ptr<std::mutex> mutex) {
+  bridge_ = std::move(bridge);
+  bridge_mutex_ = std::move(mutex);
+}
+
+void PlatformViewOHOS::AccessibilityAnnounce(std::unique_ptr<char[]>& message) {
+  std::lock_guard<std::mutex> lock(*bridge_mutex_);
+  bridge_->Announce(message);
+}
+
+void PlatformViewOHOS::AccessibilityOnTap(int32_t nodeId) {
+  std::lock_guard<std::mutex> lock(*bridge_mutex_);
+  bridge_->OnTap(nodeId);
+}
+
+void PlatformViewOHOS::AccessibilityOnLongPress(int32_t nodeId) {
+  std::lock_guard<std::mutex> lock(*bridge_mutex_);
+  bridge_->OnLongPress(nodeId);
+}
+
+void PlatformViewOHOS::AccessibilityOnTooltip(
+    std::unique_ptr<char[]>& message) {
+  std::lock_guard<std::mutex> lock(*bridge_mutex_);
+  bridge_->OnTooltip(message);
+}
+
+void PlatformViewOHOS::OnAccessibilityStateChange(bool state) {
+  if (state) {
+    SetSemanticsEnabled(true);
+    std::lock_guard<std::mutex> lock(*bridge_mutex_);
+    bridge_->OnAccessibilityStateChange(state);
+  } else {
+    SetAccessibleNavigation(false);
+    SetSemanticsEnabled(false);
+  }
+}
+
+void PlatformViewOHOS::SetAccessibleNavigation(bool isAccessibleNavigation) {
+  std::lock_guard<std::mutex> lock(*bridge_mutex_);
+  bridge_->OnAccessibilityNavigation(isAccessibleNavigation);
+
+  if (is_accessibility_navigation_ == isAccessibleNavigation) {
+    return;
+  }
+  is_accessibility_navigation_ = isAccessibleNavigation;
+  if (is_accessibility_navigation_) {
+    accessibility_feature_flags_ |=
+        static_cast<int32_t>(AccessibilityFeatureFlag::kAccessibleNavigation);
+    FML_DLOG(INFO) << "SetAccessibleNavigation -> accessibilityFeatureFlags: "
+                   << accessibility_feature_flags_;
+  } else {
+    accessibility_feature_flags_ &=
+        ~static_cast<int32_t>(AccessibilityFeatureFlag::kAccessibleNavigation);
+  }
+  SetAccessibilityFeatures(accessibility_feature_flags_);
+}
+
+void PlatformViewOHOS::SetBoldText(double fontWeightScale) {
+  bool shouldBold = fontWeightScale > 1.0;
+  if (shouldBold) {
+    accessibility_feature_flags_ |=
+        static_cast<int32_t>(AccessibilityFeatureFlag::kBoldText);
+    FML_DLOG(INFO) << "SetBoldText -> accessibilityFeatureFlags: "
+                   << accessibility_feature_flags_;
+  } else {
+    accessibility_feature_flags_ &=
+        static_cast<int32_t>(AccessibilityFeatureFlag::kBoldText);
+  }
+  SetAccessibilityFeatures(accessibility_feature_flags_);
+}
+
+void PlatformViewOHOS::SimulateTouchEvent(SemanticsNodeExtend* node) {
+  const int numTouchPoints = 1;
+  const float simulatePressure = 0.05;
+  PointerData pointerData;
+
+  pointerData.Clear();
+  pointerData.embedder_id = 0;
+  pointerData.change = PointerData::Change::kDown;
+  pointerData.physical_y =
+      (node->absoluteRect.top + node->absoluteRect.bottom) / 2;
+  pointerData.physical_x =
+      (node->absoluteRect.left + node->absoluteRect.right) / 2;
+  pointerData.physical_delta_x = 0.0;
+  pointerData.physical_delta_y = 0.0;
+  pointerData.device = 0;
+  pointerData.pointer_identifier = 0;
+  pointerData.signal_kind = PointerData::SignalKind::kNone;
+  pointerData.scroll_delta_x = 0.0;
+  pointerData.scroll_delta_y = 0.0;
+  pointerData.pressure = simulatePressure;
+  pointerData.pressure_max = 1.0;
+  pointerData.pressure_min = 0.0;
+  pointerData.kind = PointerData::DeviceKind::kTouch;
+  pointerData.buttons = kPointerButtonTouchContact;
+  pointerData.pan_x = 0.0;
+  pointerData.pan_y = 0.0;
+  pointerData.pan_delta_x = 0.0;
+  pointerData.pan_delta_y = 0.0;
+  pointerData.size = 0;
+  pointerData.scale = 1.0;
+  pointerData.rotation = 0.0;
+
+  std::unique_ptr<flutter::PointerDataPacket> downPacket =
+      std::make_unique<flutter::PointerDataPacket>(numTouchPoints);
+  downPacket->SetPointerData(0, pointerData);
+  DispatchPointerDataPacket(std::move(downPacket));
+  std::unique_ptr<flutter::PointerDataPacket> upPacket =
+      std::make_unique<flutter::PointerDataPacket>(numTouchPoints);
+  pointerData.change = PointerData::Change::kUp;
+  pointerData.buttons = 0;
+  upPacket->SetPointerData(0, pointerData);
+  DispatchPointerDataPacket(std::move(upPacket));
+}
+
 
 }  // namespace flutter

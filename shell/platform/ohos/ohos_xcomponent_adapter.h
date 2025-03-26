@@ -16,7 +16,6 @@
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "napi/native_api.h"
 #include "napi_common.h"
-#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_bridge.h"
 #include "flutter/shell/platform/ohos/utils/ohos_utils.h"
 #include "ohos_shell_holder.h"
 namespace flutter {
@@ -43,13 +42,38 @@ public:
   void OnDispatchMouseEvent(OH_NativeXComponent* component, void* window);
   void OnDispatchMouseWheelEvent(mouseWheelEvent event);
 
-  // Accessibility
-  void RegisterArkUIAccessibilityService(OH_NativeXComponent* nativeXComponent);
-  int32_t OhosExecuteAction(
-    int64_t elementId,
-    ArkUI_Accessibility_ActionType action,
-    ArkUI_AccessibilityActionArguments* actionArguments,
-    int32_t requestId);
+  // Accessibility callback
+  int32_t FindAccessibilityNodeInfosById(
+      int64_t elementId,
+      ArkUI_AccessibilitySearchMode mode,
+      int32_t requestId,
+      ArkUI_AccessibilityElementInfoList* elementList);
+  int32_t FindAccessibilityNodeInfosByText(
+      int64_t elementId,
+      const char* text,
+      int32_t requestId,
+      ArkUI_AccessibilityElementInfoList* elementList);
+  int32_t FindFocusedAccessibilityNode(
+      int64_t elementId,
+      ArkUI_AccessibilityFocusType focusType,
+      int32_t requestId,
+      ArkUI_AccessibilityElementInfo* elementinfo);
+  int32_t FindNextFocusAccessibilityNode(
+      int64_t elementId,
+      ArkUI_AccessibilityFocusMoveDirection direction,
+      int32_t requestId,
+      ArkUI_AccessibilityElementInfo* elementList);
+  int32_t ExecuteAccessibilityAction(
+      int64_t elementId,
+      ArkUI_Accessibility_ActionType action,
+      ArkUI_AccessibilityActionArguments* actionArguments,
+      int32_t requestId);
+  int32_t ClearFocusedFocusAccessibilityNode(int64_t elementId);
+  int32_t GetAccessibilityNodeCursorPosition(int64_t elementId,
+                                             int32_t requestId,
+                                             int32_t* index);
+  ArkUI_AccessibilityProvider* GetArkUIAccessibilityServiceProvider(
+      OH_NativeXComponent* nativeXComponent);
 
   OH_NativeXComponent_TouchEvent touchEvent_;
   OH_NativeXComponent_Callback callback_;
@@ -65,8 +89,8 @@ public:
   uint64_t width_;
   uint64_t height_;
   OhosTouchProcessor ohosTouchProcessor_;
-  ArkUI_AccessibilityProvider* accessibilityProvider_;
-  OHOSShellHolder* shellHolder_;
+  ArkUI_AccessibilityProvider* provider_;
+  OHOSShellHolder* shellholder_ptr_ = nullptr;
 };
 
 class XComponentAdapter {
@@ -81,15 +105,15 @@ class XComponentAdapter {
   void DetachFlutterEngine(std::string& id);
   void OnMouseWheel(std::string& id, mouseWheelEvent event);
 
-  ArkUI_AccessibilityProvider* GetAccessibilityProvider();
   XComponentBase* GetCurrentXcomponent();
+  void SetCurrentXcomponentId(std::string id);
 
  public:
   std::map<std::string, XComponentBase*> xcomponetMap_;
-  std::string currentXComponentId_;
-  std::mutex mutex_;
+  std::mutex xcomponentMap_mutex_;
 
  private:
+  std::string current_xcomponent_id_ = "";
   static XComponentAdapter mXComponentAdapter;
 };
 
