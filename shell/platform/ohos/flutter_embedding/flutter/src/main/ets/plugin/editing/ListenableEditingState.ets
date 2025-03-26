@@ -260,17 +260,17 @@ export class ListenableEditingState {
   
   startDeleting(code: number) {
     if (code === KeyCode.KEYCODE_FORWARD_DEL) {
-      this.leftDeleteState = DeleteStates.START
-    } else {
       this.rightDeleteState = DeleteStates.START
+    } else {
+      this.leftDeleteState = DeleteStates.START
     }
   }
 
   endDeletion(code: number) {
     if (code === KeyCode.KEYCODE_FORWARD_DEL) {
-      this.leftDeleteState = DeleteStates.END
-    } else {
       this.rightDeleteState = DeleteStates.END
+    } else {
+      this.leftDeleteState = DeleteStates.END
     }
   }
 
@@ -283,9 +283,9 @@ export class ListenableEditingState {
       this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
     let end = this.mSelectionStartCache > this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
 
-    if (leftOrRight == false && this.rightDeleteState === DeleteStates.START) {
+    if (leftOrRight == false && this.leftDeleteState === DeleteStates.START) {
       //delete left
-      this.rightDeleteState = DeleteStates.DELETING
+      this.leftDeleteState = DeleteStates.DELETING
       if (start == 0 && end == 0) {
         return;
       }
@@ -304,9 +304,9 @@ export class ListenableEditingState {
       let tempStr: string = this.mStringCache.slice(0, unicodeStart) + this.mStringCache.slice(end);
       this.mStringCache = tempStr;
       this.mSelectionEndCache = this.mSelectionStartCache;
-    } else if (leftOrRight == true && this.leftDeleteState === DeleteStates.START) {
+    } else if (leftOrRight == true && this.rightDeleteState === DeleteStates.START) {
       //delete right
-      this.leftDeleteState = DeleteStates.DELETING
+      this.rightDeleteState = DeleteStates.DELETING
       if (start == this.mStringCache.length) {
         return;
       }
