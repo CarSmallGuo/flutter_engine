@@ -554,6 +554,11 @@ int32_t OHOSShellHolder::ExecuteAction(
         if (!node) {
           return;
         }
+        // show on screen action which arkui didn't support,
+        // this action can make the next hidden sub-node show on screen in scroll widget
+        if (!node->IsShowOnScreen()) {
+          platform_view_->PlatformView::DispatchSemanticsAction(id, SemanticsAction::kShowOnScreen, {});
+        }
         if (flutter_action == ACTIONS_::kCustomAction) {
           bridge_->SendSemanticsEvent(
               node, ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_INVALID, nullptr);
