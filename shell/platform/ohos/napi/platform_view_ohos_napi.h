@@ -177,6 +177,9 @@ class PlatformViewOHOSNapi {
   static napi_value nativeSetTextureBackGroundPixelMap(napi_env env,
                                                        napi_callback_info info);
 
+  static napi_value nativeSetTextureBackGroundColor(napi_env env,
+                                                        napi_callback_info info);
+
   static napi_value nativeSetTextureBufferSize(napi_env env,
                                                napi_callback_info info);
 

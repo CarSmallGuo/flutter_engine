@@ -12,7 +12,7 @@ namespace flutter {
 struct DlColor {
  public:
   constexpr DlColor() : argb_(0xFF000000) {}
-  constexpr explicit DlColor(uint32_t argb) : argb_(argb) {}
+  constexpr DlColor(uint32_t argb) : argb_(argb) {}
 
   static constexpr uint8_t toAlpha(SkScalar opacity) { return toC(opacity); }
   static constexpr SkScalar toOpacity(uint8_t alpha) { return toF(alpha); }

@@ -153,6 +153,9 @@ static napi_value Init(napi_env env, napi_value exports) {
           "nativeSetTextureBackGroundPixelMap",
           flutter::PlatformViewOHOSNapi::nativeSetTextureBackGroundPixelMap),
       DECLARE_NAPI_FUNCTION(
+            "nativeSetTextureBackGroundColor",
+            flutter::PlatformViewOHOSNapi::nativeSetTextureBackGroundColor),
+      DECLARE_NAPI_FUNCTION(
           "nativeSetFontWeightScale",
           flutter::PlatformViewOHOSNapi::nativeSetFontWeightScale),
 
@@ -233,3 +236,4 @@ extern "C" __attribute__((constructor)) void RegisterEntryModule(void) {
 }
 
 //}
+

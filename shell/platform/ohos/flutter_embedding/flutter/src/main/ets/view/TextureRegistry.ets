@@ -35,6 +35,8 @@ export interface TextureRegistry {
   unregisterTexture(textureId: number): void;
 
   onTrimMemory(level: number): void;
+
+  setTextureBackGroundColor(textureId: number, color: number): void;
 }
 
 export interface SurfaceTextureEntry {

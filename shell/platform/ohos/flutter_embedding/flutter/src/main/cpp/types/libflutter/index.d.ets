@@ -136,6 +136,11 @@ export const nativeGetTextureWindowId: (nativeShellHolderId: number, textureId: 
 
 export const nativeSetExternalNativeImage: (nativeShellHolderId: number, textureId: number, native_image: number) => number;
 
+export const nativeSetTextureBackGroundPixelMap: (nativeShellHolderId: number, textureId: number, pixelMap: PixelMap) => void;
+
+//3.7移植至3.22
+export const nativeSetTextureBackGroundColor: (nativeShellHolderId: number, textureId: number, color: number) => void;
+
 export const nativeResetExternalTexture: (nativeShellHolderId: number, textureId: number, need_surfaceId: boolean) => number;
 
 export const nativeEncodeUtf8: (str: string) => Uint8Array;
@@ -182,3 +187,6 @@ export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightS
 export const nativeSetFlutterNavigationAction: (nativeShellHolderId: number, isNavigate: boolean) => void;
 
 export const nativeUpdateCurrentXComponentId: (xcomponent_id: string) => void;
+
+//3.7添加
+export const nativeSetDVsyncSwitch: (nativeShellHolderId: number, isEnable: boolean) => void;
