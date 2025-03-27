@@ -604,6 +604,11 @@ export default class FlutterNapi {
     }
   }
 
+  setTextureBackGroundColor(textureId: number, color: number): void {
+    Log.d(TAG, "called setTextureBackGroundColor ");
+    flutter.nativeSetTextureBackGroundColor(this.nativeShellHolderId!, textureId, color);
+  }
+
   registerTexture(textureId: number): number {
     Log.d(TAG, "called registerTexture ");
     if (!this.nativeShellHolderId) {
