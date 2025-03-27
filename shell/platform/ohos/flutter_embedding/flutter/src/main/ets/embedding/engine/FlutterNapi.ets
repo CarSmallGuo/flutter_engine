@@ -604,6 +604,15 @@ export default class FlutterNapi {
     }
   }
 
+  setTextureBackGroundColor(textureId: number, color: number): void {
+    Log.d(TAG, "called setTextureBackGroundColor ");
+    if (!this.isAttached()) {
+      Log.e(TAG, "setTextureBackGroundColor when napi is not attached");
+      return;
+    }
+    flutter.nativeSetTextureBackGroundColor(this.nativeShellHolderId!, textureId, color);
+  }
+
   registerTexture(textureId: number): number {
     Log.d(TAG, "called registerTexture ");
     if (!this.nativeShellHolderId) {
@@ -640,7 +649,7 @@ export default class FlutterNapi {
   }
 
   resetExternalTexture(textureId: number, need_surfaceId: boolean): number {
-    Log.d(TAG, "called resetExternalTexture ");
+    Log.d(TAG, "called resetExternalTexture");
     if (this.isAttached()) {
       if (!this.nativeShellHolderId) {
         Log.e(TAG, "this.nativeShellHolderId = " + this.nativeShellHolderId)
@@ -653,7 +662,7 @@ export default class FlutterNapi {
   }
 
   setTextureBufferSize(textureId: number, width: number, height: number): void {
-    Log.d(TAG, "called setTextureBufferSize ");
+    Log.d(TAG, "called setTextureBufferSize");
     if (!this.isAttached()) {
       Log.e(TAG, "setTextureBufferSize this.nativeShellHolderId:" + this.nativeShellHolderId)
       return;
