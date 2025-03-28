@@ -154,7 +154,7 @@ void OHOSExternalTexture::Paint(PaintContext& context,
   } else {
     DlAutoCanvasRestore autoRestore(context.canvas, true);
     DlPaint paint;
-    paint.setColor(backGroundColor_);
+    paint.setColor(DlColor::kRed());
     context.canvas->DrawRect(bounds, paint);
     FML_LOG(INFO) << "No DlImage available to paint, draw background color.";
   }
