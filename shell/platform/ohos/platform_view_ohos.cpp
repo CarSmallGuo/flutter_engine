@@ -178,10 +178,18 @@ void PlatformViewOHOS::NotifySurfaceWindowChanged(
 }
 
 void PlatformViewOHOS::NotifyChanged(const SkISize& size) {
-    //Do nothing, because SetViewportMetrics has notified window size change event
-    //If raster thread post task, Synchronization signal block application main thread
-    //(https://gitee.com/openharmony-sig/flutter_engine/issues/IBI4PK?from=project-issue)
-    return;
+  LOGI("PlatformViewOHOS NotifyChanged enter");
+  if (ohos_surface_) {
+    fml::TaskRunner::RunNowOrPostTask(
+        task_runners_.GetRasterTaskRunner(),
+        [surface = ohos_surface_.get(), size, this]() {
+          if (GetDestroyed()) {
+            LOGW("NotifyChanged, GetDestroyed is true, ignore this call.");
+          } else {
+            ohos_surface_.get()->OnScreenSurfaceResize(size);
+          }
+        });
+  }
 }
 
 bool PlatformViewOHOS::GetDestroyed() {
