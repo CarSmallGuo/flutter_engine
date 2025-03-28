@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <vector>
 #include "flutter/shell/platform/ohos/ohos_logging.h"
+#include "fml/logging.h"
 #include "ohos_semantics_tree.h"
 
 namespace flutter {
@@ -116,13 +117,14 @@ void SemanticsNodeExtend::FillElementInfoWithProperty(
 
 void SemanticsNodeExtend::FillElementInfoWithContent(
     ArkUI_AccessibilityElementInfo* info) {
-  OH_ArkUI_AccessibilityElementInfoSetContents(info, value.c_str());
   if (IsTextField()) {
     OH_ArkUI_AccessibilityElementInfoSetHintText(info, GetHintText().c_str());
+    OH_ArkUI_AccessibilityElementInfoSetContents(info, value.c_str());
   } else {
     contentString = GetAccessibilityText();
     OH_ArkUI_AccessibilityElementInfoSetAccessibilityText(
         info, contentString.c_str());
+    OH_ArkUI_AccessibilityElementInfoSetContents(info, contentString.c_str());
   }
 }
 
