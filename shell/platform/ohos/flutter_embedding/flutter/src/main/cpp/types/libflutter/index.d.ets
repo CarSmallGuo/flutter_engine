@@ -6,8 +6,14 @@ import FlutterNapi from '../../../ets/embedding/engine/FlutterNapi';
 import { ByteBuffer } from '../../../ets/util/ByteBuffer';
 import { FlutterCallbackInformation } from '../../../ets/view/FlutterCallbackInformation';
 
+/**
+ * @deprecated since 3.7
+ */
 export const getContext: (a: number) => napiContext;
 
+/**
+ * @deprecated since 3.7
+ */
 export class napiContext {
   onPageShow(): void;
 
@@ -79,6 +85,9 @@ export const nativeSetViewportMetrics: (nativeShellHolderId: number, devicePixel
                                         , systemGestureInsetLeft: number, physicalTouchSlop: number, displayFeaturesBounds: Array<number>
                                         , displayFeaturesType: Array<number>, displayFeaturesState: Array<number>) => void;
 
+/**
+ * @deprecated since 3.7
+ */
 export const nativeImageDecodeCallback: (width: number, height: number, imageGeneratorPointer: number, pixelMap : image.PixelMap | null) => void;
 
 export const nativeGetSystemLanguages: (nativeShellHolderId: number, languages: Array<string>) => void;
@@ -97,9 +106,15 @@ export const nativeXComponentDispatchMouseWheel: (nativeShellHolderId: number,
                                                   timestamp: number
                                                   ) => void;
 
-
+/**
+ * @deprecated since 3.7
+ */
 // send updateSemantics and updateCustomAccessibilityActions from ets to c++
 export const nativeUpdateSemantics: (buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]) => void;
+
+/**
+ * @deprecated since 3.7
+ */
 export const nativeUpdateCustomAccessibilityActions: (buffer: ByteBuffer, strings: string[]) => void;
 
 
@@ -111,6 +126,9 @@ export const nativeDestroy: (
   nativeShellHolderId: number
 ) => void;
 
+/**
+ * @deprecated since 3.7
+ */
 export const nativeInitNativeImage: (nativeShellHolderId: number, textureId: number, aImage: image.Image) => void;
 
 export const nativeUnregisterTexture: (nativeShellHolderId: number, textureId: number) => void;
@@ -150,8 +168,14 @@ export const nativeSetSemanticsEnabled: (nativeShellHolderId: number, enabled: b
 
 export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightScale: number) => void;
 
+/**
+ * @deprecated since 3.7
+ */
 export const nativeGetShellHolderId: (nativeShellHolderId: number) => void;
 
+/**
+ * @deprecated since 3.7
+ */
 export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;
 
 export const nativeSetFlutterNavigationAction: (isNavigate: boolean) => void;
@@ -167,8 +191,14 @@ export const nativeUnicodeIsVariationSelector: (code: number) => number;
 
 export const nativeUnicodeIsRegionalIndicatorSymbol: (code: number) => number;
 
+/**
+ * @deprecated since 3.7
+ */
 export const nativeGetXComponentId: (id: string) => number;
 
 export const nativeSetDVsyncSwitch: (nativeShellHolderId: number, isEnable: boolean) => void;
 
+/**
+ * @deprecated since 3.7
+ */
 export const nativeTouchGuideStateChange: (state: Boolean) => void;

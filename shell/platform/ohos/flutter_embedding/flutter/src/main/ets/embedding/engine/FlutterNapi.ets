@@ -278,6 +278,9 @@ export default class FlutterNapi {
     return []
   }
 
+  /**
+   * @deprecated since 3.7
+   */
   decodeImage(buffer: ArrayBuffer, imageGeneratorAddress: number): void {
     if (buffer) {
       Log.d(TAG, "called decodeImage=" + buffer.byteLength)
@@ -370,6 +373,9 @@ export default class FlutterNapi {
     flutter.nativeAccessibilityStateChange(this.nativeShellHolderId!, state);
   }
 
+  /**
+   * @deprecated since 3.7
+   */
   touchGuideStateChange(state: Boolean): void {
     this.ensureRunningOnMainThread();
     flutter.nativeTouchGuideStateChange(state);
@@ -449,6 +455,9 @@ export default class FlutterNapi {
     this.nativeShellHolderId = null;
   }
 
+  /**
+   * @deprecated since 3.7
+   */
   initNativeImage(textureId: number, aImage: image.Image) {
     Log.d(TAG, "called initNativeImage ");
     if (!this.isAttached()) {
@@ -520,6 +529,9 @@ export default class FlutterNapi {
     }
   }
 
+  /**
+   * @deprecated since 3.7
+   */
   //native c++ get the shell holder id
   getShellHolderId(): void {
     this.ensureRunningOnMainThread();
