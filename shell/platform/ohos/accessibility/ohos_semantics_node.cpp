@@ -298,15 +298,19 @@ void SemanticsNodeExtend::OHOSActionsUpdate() {
   // We need the isVisible check to allow the accessibility framework to perform
   // a scroll action when the Scroll component focuses on the next invisible
   // node.
+  // update: Now we will send showOnScreen action to bring the focused node on screen
+  // entirely so the node can gain focus no matter whether the node is visible.
+  // if (HasAction(ACTIONS_::kDidGainAccessibilityFocus) ||
+  //    (IsFocusable() && IsVisible()))
   if (HasAction(ACTIONS_::kDidGainAccessibilityFocus) ||
-      (IsFocusable() && IsVisible())) {
+      IsFocusable()) {
     ohActions.push_back(
         {ArkUI_Accessibility_ActionType::
              ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS,
          "获取焦点"});
   }
   if (HasAction(ACTIONS_::kDidLoseAccessibilityFocus) ||
-      (IsFocusable() && IsVisible())) {
+      IsFocusable()) {
     ohActions.push_back(
         {ArkUI_Accessibility_ActionType::
              ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS,
