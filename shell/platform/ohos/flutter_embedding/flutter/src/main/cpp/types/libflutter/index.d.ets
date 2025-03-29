@@ -124,7 +124,27 @@ export const nativeDecodeUtf8: (array: Uint8Array) => string;
 
 export const nativeSetTextureBufferSize: (nativeShellHolderId: number, textureId: number, width: number, height: number) => void;
 
+/**
+ * @deprecated since 3.7
+ */
+export const nativeGetShellHolderId: (nativeShellHolderId: number) => void;
+
+/**
+ * @deprecated since 3.7
+ */
 export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;
+
+/**
+ * @deprecated since 3.7
+ */
+export const nativeGetXComponentId: (id: string) => number;
+
+
+/**
+ * @deprecated since 3.7
+ */
+export const nativeTouchGuideStateChange: (state: Boolean) => void;
+
 
 export const nativeUnicodeIsEmoji: (code: number) => number;
 
@@ -137,6 +157,18 @@ export const nativeUnicodeIsVariationSelector: (code: number) => number;
 export const nativeUnicodeIsRegionalIndicatorSymbol: (code: number) => number;
 
 export const nativeSetDVsyncSwitch: (nativeShellHolderId: number, isEnable: boolean) => void;
+
+/**
+ * @deprecated since 3.7
+ */
+// send updateSemantics and updateCustomAccessibilityActions from ets to c++
+export const nativeUpdateSemantics: (buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]) => void;
+
+/**
+ * @deprecated since 3.7
+ */
+export const nativeUpdateCustomAccessibilityActions: (buffer: ByteBuffer, strings: string[]) => void;
+
 
 // accessibility
 export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number, responseId: number) => void;

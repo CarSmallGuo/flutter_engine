@@ -370,6 +370,25 @@ export default class FlutterNapi {
     flutter.nativeAccessibilityStateChange(this.nativeShellHolderId!, state);
   }
 
+  /**
+   * @deprecated since 3.7
+   */
+  touchGuideStateChange(state: Boolean): void {
+    this.ensureRunningOnMainThread();
+    flutter.nativeTouchGuideStateChange(state);
+  }
+
+  /**
+   * @deprecated since 3.7
+   */
+  //native c++ get the shell holder id
+  getShellHolderId(): void {
+    this.ensureRunningOnMainThread();
+    if (this.isAttached()) {
+      flutter.nativeGetShellHolderId(this.nativeShellHolderId!);
+    }
+  }
+
   setLocalizationPlugin(localizationPlugin: LocalizationPlugin | null): void {
     this.localizationPlugin = localizationPlugin;
   }
