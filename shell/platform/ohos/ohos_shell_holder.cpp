@@ -676,6 +676,8 @@ int32_t OHOSShellHolder::ExecuteAction(
         if (!node) {
           return;
         }
+
+        bool needShowOnScreen = false;
         if (flutter_action == ACTIONS_::kCustomAction) {
           bridge_->SendSemanticsEvent(
               node, ARKUI_ACCESSIBILITY_NATIVE_EVENT_TYPE_INVALID, nullptr);
@@ -717,7 +719,10 @@ int32_t OHOSShellHolder::ExecuteAction(
             }
             break;
           case ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS:
-            bridge_->GainAccessibilityFocus(id);
+            bridge_->GainAccessibilityFocus(id, &needShowOnScreen);
+            if (needShowOnScreen) {
+              platform_view_->DispatchSemanticsAction(id, ACTIONS_::kShowOnScreen, {});
+            }
             break;
           case ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS:
             bridge_->ClearAccessibilityFocus(id);
