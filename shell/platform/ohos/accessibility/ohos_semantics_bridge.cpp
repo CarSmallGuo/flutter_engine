@@ -25,7 +25,7 @@ void SemanticsBridge::UpdateNodeTree(flutter::SemanticsNodeUpdates& nodes) {
 
   for (auto node : update_nodes) {
     // if node perform scroll
-    if (node->scrollChanged && node->performScrollAction) {
+    if (node->scrollChanged) {
       std::string child_str = "";
       for (auto id : node->childrenInTraversalOrder) {
         child_str += std::to_string(id) + ",";
@@ -52,7 +52,6 @@ void SemanticsBridge::UpdateNodeTree(flutter::SemanticsNodeUpdates& nodes) {
                            nullptr);
         FML_DLOG(INFO) << node->id << " update scroll ";
         node->scrollChanged = false;
-        node->performScrollAction = false;
       }
     }
 
@@ -198,7 +197,7 @@ int32_t SemanticsBridge::ClearAccessibilityFocus(int32_t id) {
   return ARKUI_ACCESSIBILITY_NATIVE_RESULT_SUCCESSFUL;
 }
 
-int32_t SemanticsBridge::GainAccessibilityFocus(int32_t id) {
+int32_t SemanticsBridge::GainAccessibilityFocus(int32_t id, bool *needShowOnScreen) {
   if (tree_.SetAccessibilityFocusNode(id)) {
     auto node = tree_.FindNodeById(id);
     FML_DLOG(INFO) << "GainAccessibilityFocus " << id;
@@ -214,6 +213,9 @@ int32_t SemanticsBridge::GainAccessibilityFocus(int32_t id) {
     if (node == tree_.need_request_focused_node_) {
       tree_.need_request_focused_node_ = nullptr;
       tree_.focus_request_has_send_ = false;
+      *needShowOnScreen = false;
+    } else {
+      *needShowOnScreen = true;
     }
     return ARKUI_ACCESSIBILITY_NATIVE_RESULT_SUCCESSFUL;
   } else {

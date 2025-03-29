@@ -299,14 +299,14 @@ void SemanticsNodeExtend::OHOSActionsUpdate() {
   // a scroll action when the Scroll component focuses on the next invisible
   // node.
   if (HasAction(ACTIONS_::kDidGainAccessibilityFocus) ||
-      (IsFocusable() && IsVisible())) {
+      IsFocusable()) {
     ohActions.push_back(
         {ArkUI_Accessibility_ActionType::
              ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_GAIN_ACCESSIBILITY_FOCUS,
          "获取焦点"});
   }
   if (HasAction(ACTIONS_::kDidLoseAccessibilityFocus) ||
-      (IsFocusable() && IsVisible())) {
+      IsFocusable()) {
     ohActions.push_back(
         {ArkUI_Accessibility_ActionType::
              ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLEAR_ACCESSIBILITY_FOCUS,
