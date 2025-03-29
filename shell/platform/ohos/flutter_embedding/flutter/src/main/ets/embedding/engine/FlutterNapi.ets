@@ -278,6 +278,9 @@ export default class FlutterNapi {
     return []
   }
 
+  /**
+   * @deprecated since 3.7
+   */
   decodeImage(buffer: ArrayBuffer, imageGeneratorAddress: number): void {
     if (buffer) {
       Log.d(TAG, "called decodeImage=" + buffer.byteLength)
@@ -444,6 +447,9 @@ export default class FlutterNapi {
     this.nativeShellHolderId = null;
   }
 
+  /**
+   * @deprecated since 3.7
+   */
   initNativeImage(textureId: number, aImage: image.Image) {
     Log.d(TAG, "called initNativeImage ");
     if (!this.isAttached()) {
@@ -497,6 +503,15 @@ export default class FlutterNapi {
       return;
     }
     flutter.nativeSetTextureBufferSize(this.nativeShellHolderId!, textureId, width, height);
+  }
+
+  notifyTextureResizing(textureId: number, width: number, height: number): void {
+    Log.d(TAG, "called notifyTextureResizing ");
+    if (!this.isAttached()) {
+      Log.e(TAG, "notifyTextureResizing this.nativeShellHolderId:" + this.nativeShellHolderId)
+      return;
+    }
+    flutter.nativeNotifyTextureResizing(this.nativeShellHolderId!, textureId, width, height);
   }
 
   /** Dispatch Touch Event */
