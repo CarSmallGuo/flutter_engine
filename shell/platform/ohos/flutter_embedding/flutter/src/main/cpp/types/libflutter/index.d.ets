@@ -6,8 +6,14 @@ import FlutterNapi from '../../../ets/embedding/engine/FlutterNapi';
 import { ByteBuffer } from '../../../ets/util/ByteBuffer';
 import { FlutterCallbackInformation } from '../../../ets/view/FlutterCallbackInformation';
 
+/**
+ * @deprecated since 3.7
+ */
 export const getContext: (a: number) => napiContext;
 
+/**
+ * @deprecated since 3.7
+ */
 export class napiContext {
   onPageShow(): void;
 
@@ -79,6 +85,9 @@ export const nativeSetViewportMetrics: (nativeShellHolderId: number, devicePixel
                                         , systemGestureInsetLeft: number, physicalTouchSlop: number, displayFeaturesBounds: Array<number>
                                         , displayFeaturesType: Array<number>, displayFeaturesState: Array<number>) => void;
 
+/**
+ * @deprecated since 3.7
+ */
 export const nativeImageDecodeCallback: (width: number, height: number, imageGeneratorPointer: number, pixelMap : image.PixelMap | null) => void;
 
 export const nativeGetSystemLanguages: (nativeShellHolderId: number, languages: Array<string>) => void;
@@ -106,6 +115,9 @@ export const nativeDestroy: (
   nativeShellHolderId: number
 ) => void;
 
+/**
+ * @deprecated since 3.7
+ */
 export const nativeInitNativeImage: (nativeShellHolderId: number, textureId: number, aImage: image.Image) => void;
 
 export const nativeUnregisterTexture: (nativeShellHolderId: number, textureId: number) => void;

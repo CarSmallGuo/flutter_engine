@@ -21,6 +21,7 @@ export interface TextureRegistry {
   setTextureBufferSize(textureId: number, width: number, height: number): void;
   unregisterTexture(textureId: number): void;
   onTrimMemory(level: number) : void;
+  notifyTextureResizing(textureId: number, width: number, height: number): void;
 }
 
 export interface SurfaceTextureEntry {

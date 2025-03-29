@@ -86,18 +86,18 @@ export class ViewportMetrics {
 }
 
 export class DisplayFeature {
-  bounds: display.Rect[];
+  bound: display.Rect;
   type: DisplayFeatureType;
   state: DisplayFeatureState;
 
-  constructor(bounds: display.Rect[], type: DisplayFeatureType, state: DisplayFeatureState) {
-    this.bounds = bounds;
+  constructor(bound: display.Rect, type: DisplayFeatureType, state: DisplayFeatureState) {
+    this.bound = bound;
     this.type = type;
     this.state = state;
   }
 
-  getBounds(): display.Rect[] {
-    return this.bounds;
+  getBound(): display.Rect {
+    return this.bound;
   }
 
   getType(): DisplayFeatureType {
@@ -108,8 +108,8 @@ export class DisplayFeature {
     return this.state
   }
 
-  setBounds(bounds: display.Rect[]): void {
-    this.bounds = bounds;
+  setBound(bound: display.Rect): void {
+    this.bound = bound;
   }
 
   setType(type: DisplayFeatureType): void {
@@ -186,6 +186,7 @@ export class FlutterView {
   private checkFullScreen: boolean = true;
   private checkKeyboard: boolean = true;
   private checkGesture: boolean = true;
+  private paddingTop?: number;
   private systemAvoidArea: window.AvoidArea;
   private navigationAvoidArea: window.AvoidArea;
   private gestureAvoidArea: window.AvoidArea;
@@ -236,44 +237,36 @@ export class FlutterView {
 
   private async buildDisplayFeatures(foldStatus: display.FoldStatus) {
     let displayFeatures: ArrayList<DisplayFeature> = new ArrayList();
-    let bound: display.Rect[];
-    let state: DisplayFeatureState = DisplayFeatureState.UNKNOWN;
-    let type: DisplayFeatureType = DisplayFeatureType.FOLD;
-    const displayInfos = display.getDefaultDisplaySync();
-    if (display.isFoldable()) {
-      switch (foldStatus) {
-        case display.FoldStatus.FOLD_STATUS_EXPANDED:
-          type = DisplayFeatureType.FOLD;
-          state = DisplayFeatureState.POSTURE_FLAT;
-          break;
-        case display.FoldStatus.FOLD_STATUS_HALF_FOLDED:
-          type = DisplayFeatureType.FOLD;
-          state = DisplayFeatureState.POSTURE_HALF_OPENED;
-          break;
-        case display.FoldStatus.FOLD_STATUS_UNKNOWN:
-          type = DisplayFeatureType.UNKNOWN;
-          state = DisplayFeatureState.UNKNOWN;
-          break;
-        default:
-          state = DisplayFeatureState.UNKNOWN;
-          type = DisplayFeatureType.FOLD;
-          break;
-      }
-      const displays = await display.getAllDisplays();
-      for (let i = 0; i < displays.length; i++) {
-        let cutoutInfo = await displays[i].getCutoutInfo();
-        bound = cutoutInfo.boundingRects;
-        displayFeatures.add(new DisplayFeature(bound, type, state));
-      }
-      Log.d(TAG, `FOLD device displayFeatures is : ${JSON.stringify(displayFeatures)}`)
-    } else {
-      type = DisplayFeatureType.CUTOUT;
-      state = DisplayFeatureState.UNKNOWN;
-      let infos = await displayInfos?.getCutoutInfo();
-      bound = infos.boundingRects;
-      displayFeatures.add(new DisplayFeature(bound, type, state));
-      Log.d(TAG, `UNFold device displayFeatures is : ${JSON.stringify(displayFeatures)}`)
+    const displayInfo = display.getDefaultDisplaySync();
+    /*
+    There are some bugs about getCurrentFoldCreaseRegion:
+    * 1. the crease region area is inaccurate
+    * 2. the creaseRegion.displayId and displayInfo.id are always both 0, in which case it is unable to
+    * distinguish whether the crease region is on the current screen.
+    * So do not add FOLD feature until the bugs are fixed.
+    */
+    // if (display.isFoldable()) {
+    //   let state: DisplayFeatureState = DisplayFeatureState.UNKNOWN;
+    //   if (foldStatus == display.FoldStatus.FOLD_STATUS_EXPANDED) {
+    //     state = DisplayFeatureState.POSTURE_FLAT;
+    //   } else if (foldStatus == display.FoldStatus.FOLD_STATUS_HALF_FOLDED) {
+    //     state = DisplayFeatureState.POSTURE_HALF_OPENED;
+    //   } else {
+    //     state = DisplayFeatureState.UNKNOWN;
+    //   }
+    //   let creaseRegion: display.FoldCreaseRegion = display.getCurrentFoldCreaseRegion();
+    //   if (creaseRegion.displayId == displayInfo.id) {
+    //     for (let bound of creaseRegion.creaseRects) {
+    //       displayFeatures.add(new DisplayFeature(bound, DisplayFeatureType.FOLD, state));
+    //     }
+    //   }
+    // }
+
+    let cutoutInfos = await displayInfo?.getCutoutInfo();
+    for (let bound of cutoutInfos.boundingRects) {
+      displayFeatures.add(new DisplayFeature(bound, DisplayFeatureType.CUTOUT, DisplayFeatureState.UNKNOWN));
     }
+    Log.d(TAG, `device displayFeatures is : ${JSON.stringify(displayFeatures)}`);
     this.viewportMetrics.displayFeatures = displayFeatures;
     this.updateViewportMetrics();
   }
@@ -507,13 +500,17 @@ export class FlutterView {
     let isUseFullScreen = FlutterManager.getInstance().getFullScreenListener().useFullScreen();
     let isLayoutFullScreen = this.mainWindow?.getWindowProperties().isLayoutFullScreen;
     if (this.checkFullScreen && (setFullScreen || isLayoutFullScreen || isUseFullScreen)) { // 全屏显示
-      this.viewportMetrics.physicalViewPaddingTop =
-        this.systemAvoidArea?.topRect.height ?? this.viewportMetrics.physicalViewPaddingTop;
+      if (this.paddingTop != undefined) {
+        this.viewportMetrics.physicalViewPaddingTop = this.paddingTop;
+      } else {
+        this.viewportMetrics.physicalViewPaddingTop =
+          this.systemAvoidArea?.topRect.height ?? this.viewportMetrics.physicalViewPaddingTop;
+      }
       this.viewportMetrics.physicalViewPaddingBottom =
         this.navigationAvoidArea?.bottomRect.height ?? this.viewportMetrics.physicalViewPaddingBottom;
     } else { // 非全屏显示（保持规避效果）
       // 顶部状态栏和底部导航栏规避为0，无平滑过渡效果
-      this.viewportMetrics.physicalViewPaddingTop = 0;
+      this.viewportMetrics.physicalViewPaddingTop = this.paddingTop ?? 0;
       this.viewportMetrics.physicalViewPaddingBottom = 0;
     }
 
@@ -574,24 +571,16 @@ export class FlutterView {
     Log.i(TAG, 'updateViewportMetrics devicePixelRatio:' + this.viewportMetrics.devicePixelRatio);
 
     const displayFeatures = this.viewportMetrics.displayFeatures;
-    let boundCount = 0;
+    let displayFeatureBound: number[] = new Array(displayFeatures.length * 4);
+
+    let displayFeatureType: number[] = new Array(displayFeatures.length);
+    let displayFeatureStatus: number[] = new Array(displayFeatures.length);
     for (let i = 0; i < displayFeatures.length; i++) {
-      boundCount = boundCount + displayFeatures[i].getBounds().length;
-    }
-    let displayFeatureBound: number[] = new Array(boundCount * 4);
-    let displayFeatureType: number[] = new Array(boundCount ? displayFeatures.length : boundCount);
-    let displayFeatureStatus: number[] = new Array(boundCount ? displayFeatures.length : boundCount);
-    for (let i = 0; i < displayFeatures.length; i++) {
-      let singleFeatureBound = displayFeatures[i].getBounds();
-      if (singleFeatureBound.length === 0) {
-        continue;
-      }
-      for (let j = 0; j < singleFeatureBound.length; j++) {
-        displayFeatureBound[4 * i + 4 * j] = singleFeatureBound[j].left;
-        displayFeatureBound[4 * i + 4 * j + 1] = singleFeatureBound[j].top;
-        displayFeatureBound[4 * i + 4 * j + 2] = singleFeatureBound[j].width;
-        displayFeatureBound[4 * i + 4 * j + 3] = singleFeatureBound[j].height;
-      }
+      let singleFeatureBound = displayFeatures[i].getBound();
+      displayFeatureBound[4 * i] = singleFeatureBound.left;
+      displayFeatureBound[4 * i + 1] = singleFeatureBound.top
+      displayFeatureBound[4 * i + 2] = singleFeatureBound.width;
+      displayFeatureBound[4 * i + 3] = singleFeatureBound.height;
       displayFeatureType[i] = displayFeatures[i].getType();
       displayFeatureStatus[i] = displayFeatures[i].getState();
     }
@@ -660,6 +649,10 @@ export class FlutterView {
     this.checkGesture = check
   }
 
+  setPaddingTop(paddingTop?: number) {
+    this.paddingTop = paddingTop;
+    this.onAreaChange(null);
+  }
 }
 
 export interface FirstFrameListener {

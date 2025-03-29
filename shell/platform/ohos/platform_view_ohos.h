@@ -91,9 +91,15 @@ class PlatformViewOHOS final : public PlatformView {
       int64_t texture_id,
       ImageNative* image);
 
+  static void OnNativeImageFrameAvailable(void* data);
+
+  std::shared_ptr<OHOSExternalTexture> CreateExternalTexture(int64_t texture_id);
+
   uint64_t RegisterExternalTexture(int64_t texture_id);
 
   void SetTextureBufferSize(int64_t texture_id, int32_t width, int32_t height);
+
+  void NotifyTextureResizing(int64_t texture_id, int32_t width, int32_t height);
 
   void RegisterExternalTextureByPixelMap(int64_t texture_id, NativePixelMap* pixelMap);
   
