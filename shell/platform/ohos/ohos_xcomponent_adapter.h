@@ -111,10 +111,10 @@ class XComponentAdapter {
 
  public:
   std::map<std::string, XComponentBase*> xcomponetMap_;
+  std::string current_xcomponent_id_ = "";
   std::mutex xcomponentMap_mutex_;
 
  private:
-  std::string current_xcomponent_id_ = "";
   static XComponentAdapter mXComponentAdapter;
 };
 
