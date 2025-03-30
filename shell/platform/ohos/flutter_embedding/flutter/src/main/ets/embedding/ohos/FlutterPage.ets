@@ -60,8 +60,17 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
-          // when xcomponent onload then search accessibility is open
-          this.flutterView?.onAccessibilityIsOpen();
+          this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
+            { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
+            (isExpanding: boolean, currentRatio: number) => {
+              if (isExpanding) {
+                Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
+                  " isExpanding: " + isExpanding + " ratio: " + currentRatio);
+                flutter.nativeUpdateCurrentXComponentId(this.viewId);
+              }
+            }
+          )
+          Log.d(TAG, "XComponent onLoad ");
         })
         .onDestroy(() => {
           Log.d(TAG, "XComponent onDestroy ");
@@ -155,8 +164,17 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
-          // when xcomponent onload then search accessibility is open
-          this.flutterView?.onAccessibilityIsOpen();
+          this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
+            { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
+            (isExpanding: boolean, currentRatio: number) => {
+              if (isExpanding) {
+                Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
+                  " isExpanding: " + isExpanding + " ratio: " + currentRatio);
+                flutter.nativeUpdateCurrentXComponentId(this.viewId);
+              }
+            }
+          )
+          Log.d(TAG, "XComponent onLoad ");
         })
         .onDestroy(() => {
           Log.d(TAG, "XComponent onDestroy ");
