@@ -20,6 +20,10 @@ export class FlutterRenderer implements TextureRegistry {
   constructor(flutterNapi: FlutterNapi) {
     this.flutterNapi = flutterNapi;
   }
+
+  /**
+   * @deprecated since 3.7
+   */
   createSurfaceTexture(): SurfaceTextureEntry {
     let receiver: image.ImageReceiver = this.getImageReceiver();
     return this.registerSurfaceTexture(receiver);
@@ -39,6 +43,9 @@ export class FlutterRenderer implements TextureRegistry {
     return surfaceTextureRegistryEntry;
   }
 
+  /**
+   * @deprecated since 3.7
+   */
   registerSurfaceTexture(receiver: image.ImageReceiver): SurfaceTextureEntry {
     this.nextTextureId = this.nextTextureId + 1;
     let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.nextTextureId);
@@ -65,6 +72,10 @@ export class FlutterRenderer implements TextureRegistry {
     this.flutterNapi.setTextureBufferSize(textureId, width, height);
   }
 
+  notifyTextureResizing(textureId: number, width: number, height: number): void {
+    this.flutterNapi.notifyTextureResizing(textureId, width, height);
+  }
+
   unregisterTexture(textureId: number): void {
     this.flutterNapi.unregisterTexture(textureId);
   }
@@ -72,6 +83,9 @@ export class FlutterRenderer implements TextureRegistry {
     throw new Error('Method not implemented.');
   }
 
+  /**
+   * @deprecated since 3.7
+   */
   private getImageReceiver(): image.ImageReceiver {
     let receiver: image.ImageReceiver = image.createImageReceiver(640, 480, 4, 8);
     if (receiver !== undefined) {
@@ -81,6 +95,10 @@ export class FlutterRenderer implements TextureRegistry {
     }
     return receiver;
   }
+
+  /**
+   * @deprecated since 3.7
+   */
   private registerImage(textureId: number, surfaceTextureWrapper: SurfaceTextureWrapper): void {
     let receiver = surfaceTextureWrapper.getImageReceiver();
     receiver.on('imageArrival', () => {
@@ -113,6 +131,9 @@ export class SurfaceTextureRegistryEntry implements SurfaceTextureEntry {
     this.textureId = id;
   }
 
+  /**
+   * @deprecated since 3.7
+   */
   getImageReceiver(): image.ImageReceiver {
     return this.surfaceTextureWrapper!.getImageReceiver();
   }

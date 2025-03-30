@@ -128,9 +128,6 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION("nativeDecodeUtf8",
                             flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),
       DECLARE_NAPI_FUNCTION(
-          "nativeDecodeUtf8",
-          flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),
-      DECLARE_NAPI_FUNCTION(
           "nativeLookupCallbackInformation",
           flutter::PlatformViewOHOSNapi::nativeLookupCallbackInformation),
       DECLARE_NAPI_FUNCTION(
@@ -178,6 +175,15 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativeUpdateCurrentXComponentId",
           flutter::PlatformViewOHOSNapi::nativeUpdateCurrentXComponentId),
+      DECLARE_NAPI_FUNCTION(
+          "nativeGetXComponentId",
+          flutter::PlatformViewOHOSNapi::nativeGetXComponentId),
+      DECLARE_NAPI_FUNCTION(
+          "nativeSetDVsyncSwitch",
+          flutter::PlatformViewOHOSNapi::nativeSetDVsyncSwitch),
+      DECLARE_NAPI_FUNCTION(
+          "nativeNotifyTextureResizing",
+          flutter::PlatformViewOHOSNapi::nativeNotifyTextureResizing),
   };
 
   FML_DLOG(INFO) << "Init NAPI size=" << sizeof(desc) / sizeof(desc[0]);

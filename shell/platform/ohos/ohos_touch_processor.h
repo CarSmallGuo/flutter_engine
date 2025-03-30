@@ -30,7 +30,8 @@ public:
     void HandleMouseEvent(int64_t shell_holderID,
                             OH_NativeXComponent* component,
                             OH_NativeXComponent_MouseEvent mouseEvent,
-                            double offsetY);
+                            double offsetY,
+                            bool isLeave = false);
     void HandleVirtualTouchEvent(int64_t shell_holderID,
                                 OH_NativeXComponent* component,
                                 OH_NativeXComponent_TouchEvent* touchEvent);
