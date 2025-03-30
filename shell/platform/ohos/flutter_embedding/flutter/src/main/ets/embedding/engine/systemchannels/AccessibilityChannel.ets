@@ -28,7 +28,7 @@ export default class AccessibilityChannel implements MessageHandler<object>{
     private static CHANNEL_NAME = "flutter/accessibility";
     private channel: BasicMessageChannel<object>;
     private flutterNapi: FlutterNapi;
-    private handler: AccessibilityMessageHandler = new DefaultHandler();
+    private handler: AccessibilityMessageHandler;
     private nextReplyId: number = 1;
 
     onMessage(message: object, reply: Reply<object>): void {
@@ -85,6 +85,7 @@ export default class AccessibilityChannel implements MessageHandler<object>{
         this.channel = new BasicMessageChannel<object>(dartExecutor, AccessibilityChannel.CHANNEL_NAME, StandardMessageCodec.INSTANCE);
         this.channel.setMessageHandler(this);
         this.flutterNapi = flutterNapi;
+        this.handler = new DefaultHandler(this.flutterNapi);
     }
 
     onOhosAccessibilityEnabled(): void {
@@ -122,33 +123,32 @@ export interface AccessibilityMessageHandler extends AccessibilityDelegate {
 
 export class DefaultHandler implements AccessibilityMessageHandler {
   private static TAG = "AccessibilityMessageHandler";
+  private flutterNapi: FlutterNapi;
+
+  constructor(flutterNapi: FlutterNapi) {
+    this.flutterNapi = flutterNapi;
+  }
 
   announce(message: string): void {
     Log.i(DefaultHandler.TAG,  "handler announce.");
-    flutter.nativeAccessibilityAnnounce(message);
+    flutter.nativeAccessibilityAnnounce(this.flutterNapi.nativeShellHolderId!, message);
   }
 
   onTap(nodeId: number): void {
     Log.i(DefaultHandler.TAG,  "handler onTap.");
-    flutter.nativeAccessibilityOnTap(nodeId);
+    flutter.nativeAccessibilityOnTap(this.flutterNapi.nativeShellHolderId!, nodeId);
   }
 
   onLongPress(nodeId: number): void {
     Log.i(DefaultHandler.TAG,  "handler onLongPress.");
-    flutter.nativeAccessibilityOnLongPress(nodeId);
+    flutter.nativeAccessibilityOnLongPress(this.flutterNapi.nativeShellHolderId!, nodeId);
   }
 
   onTooltip(message: string): void {
     Log.i(DefaultHandler.TAG,  "handler onTooltip.");
-    flutter.nativeAccessibilityOnTooltip(message);
+    flutter.nativeAccessibilityOnTooltip(this.flutterNapi.nativeShellHolderId!, message);
   }
 
-  updateSemantics(buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]): void {
-    Log.i(DefaultHandler.TAG,  "handler updateSemantics");
-  }
-  updateCustomAccessibilityActions(buffer: ByteBuffer, strings: string[]): void {
-    Log.i(DefaultHandler.TAG,  "handler updateCustomAccessibilityActions");
-  }
   accessibilityStateChange(state: Boolean): void{
     Log.i(DefaultHandler.TAG,  "handler accessibilityStateChange");
   }

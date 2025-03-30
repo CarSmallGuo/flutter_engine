@@ -100,7 +100,15 @@ struct SemanticsNodeExtend : flutter::SemanticsNode {
     std::string previousValue;
     std::string previousLabel;
 
+    bool performScrollAction = false;
+    bool performSelectAction = false;
+    bool focusableInSubtree = false;
+    bool isAccessibilityFocued = false;
     int32_t scrollEndIndex = 0;
+    int32_t scrollCurrentIndex = -1;
+    int32_t scrollVisibleNum = 0;
+    int32_t scrollVisibleEndIndex = 0;
+    std::string contentString = "";
     SemanticsNodeExtend* accessibilityFocusedNode = nullptr;
     SemanticsNodeExtend* parentNode = nullptr;
     SemanticsNodeExtend* previousNode = nullptr;

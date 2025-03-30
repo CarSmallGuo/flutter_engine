@@ -4,7 +4,7 @@
  * found in the LICENSE_HW file.
  */
 #include "ohos_semantics_node.h"
-#include "ohos_accessibility_bridge.h"
+#include "flutter/shell/platform/ohos/utils/ohos_utils.h"
 
 namespace flutter {
 
@@ -146,7 +146,11 @@ void SemanticsNodeExtend::UpdateRecursively(
     }
 
     SemanticsNodeExtend* prevNode = nullptr;
-    int32_t visibleChildrenNum = 0;
+    int visible_num = 0;
+    focusableInSubtree = IsFocusable();
+    int last_visible_index = 0;
+    int child_index = 0;
+  
     std::vector<int64_t> exist_children;
     for (auto& childNode : childrenInTraversalOrderList) {
         if (!childNode->isExist) {
@@ -154,8 +158,13 @@ void SemanticsNodeExtend::UpdateRecursively(
             continue;
         }
         if (childNode->IsVisible()) {
-            ++visibleChildrenNum;
+            ++visible_num;
+            last_visible_index = child_index;
         }
+        if (childNode->isAccessibilityFocued) {
+            scrollCurrentIndex = child_index;
+        }
+        child_index++;
         // update parent elementInfo
         if (!childNode->parentNode || childNode->parentNode->id != id) {
             childNode->parentNode = this;
@@ -173,13 +182,33 @@ void SemanticsNodeExtend::UpdateRecursively(
         exist_children.emplace_back(childNode->id);
         childNode->UpdateRecursively(visitorId, globalTransform, needUpdate);
         childNode->SetElementInfoProperties();
+
+        focusableInSubtree = focusableInSubtree || childNode->focusableInSubtree;
     }
-    // update scroll end index
-    scrollEndIndex = scrollIndex + visibleChildrenNum - 1;
 
     if (exist_children != existChildrenInTraversalOrder) {
         existChildrenInTraversalOrder = std::move(exist_children);
         childrenChanged = true;
+    }
+
+    // Update scroll info: it need the visible child node num.
+    if (scrollChildren != 0 &&
+        (visible_num != scrollEndIndex - scrollIndex + 1 || scrollChanged)) {
+        scrollVisibleNum = visible_num;
+        scrollVisibleEndIndex = last_visible_index;
+
+        scrollEndIndex = scrollIndex + visible_num - 1;
+        scrollChanged = true;
+        if (scrollIndex + visible_num > scrollChildren) {
+        FML_DLOG(WARNING)
+            << "UpdateSelfRecurs+-ively -> Scroll index is out of bounds "
+            << scrollIndex << " visibleNum" << visible_num << " children "
+            << scrollChildren;
+        }
+        if (!childrenInHitTestOrder.size()) {
+        FML_DLOG(WARNING) << "UpdateSelfRecursively -> Had scrollChildren but no "
+                            "childrenInHitTestOrder";
+        }
     }
 }
 
