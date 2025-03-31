@@ -58,15 +58,6 @@ void ImageFilter::initBlur(double sigma_x,
                                     tile_mode);
 }
 
-void ImageFilter::initSetHdr(int hdr, bool is_image) {
-  impeller::Context::is_image_ = is_image;
-  if (is_image) {
-    if (hdr >= 0) {
-      impeller::Context::hdr_ = hdr;
-    }
-  }
-}
-
 void ImageFilter::initDilate(double radius_x, double radius_y) {
   filter_ =
       DlDilateImageFilter::Make(SafeNarrow(radius_x), SafeNarrow(radius_y));
