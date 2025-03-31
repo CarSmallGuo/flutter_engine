@@ -22,6 +22,7 @@
 #include "flutter/lib/ui/painting/fragment_shader.h"
 #include "flutter/lib/ui/painting/gradient.h"
 #include "flutter/lib/ui/painting/image.h"
+#include "flutter/lib/ui/painting/set_hdr.h"
 #include "flutter/lib/ui/painting/image_descriptor.h"
 #include "flutter/lib/ui/painting/image_filter.h"
 #include "flutter/lib/ui/painting/image_shader.h"
@@ -85,6 +86,8 @@ typedef CanvasPath Path;
   V(PictureRecorder::Create)                                       \
   V(SceneBuilder::Create)                                          \
   V(SemanticsUpdateBuilder::Create)                                \
+  V(SetHdr2::Create)                                               \
+  V(SetHdr2::initSetHdr)                                           \
   /* Other */                                                      \
   V(FontCollection::LoadFontFromList)                              \
   V(ImageDescriptor::initEncoded)                                  \
@@ -208,7 +211,6 @@ typedef CanvasPath Path;
   V(ImageFilter, initColorFilter)                   \
   V(ImageFilter, initComposeFilter)                 \
   V(ImageFilter, initMatrix)                        \
-  V(ImageFilter, initSetHdr)                        \
   V(ImageShader, dispose)                           \
   V(ImageShader, initWithImage)                     \
   V(ImmutableBuffer, dispose)                       \
