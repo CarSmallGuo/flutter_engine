@@ -7,7 +7,6 @@
 
 #include "flutter/lib/ui/dart_wrapper.h"
 #include "third_party/tonic/typed_data/typed_list.h"
-
 namespace tonic {
 class DartLibraryNatives;
 }  // namespace tonic
@@ -19,7 +18,6 @@ class SetHdr : public RefCountedDartWrappable<SetHdr> {
   FML_FRIEND_MAKE_REF_COUNTED(SetHdr);
 
  public:
-  
   ~SetHdr();
   static void initSetHdr(int hdr, bool is_image);
   static void Create(Dart_Handle wrapper);

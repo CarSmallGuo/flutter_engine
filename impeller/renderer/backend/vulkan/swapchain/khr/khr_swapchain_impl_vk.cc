@@ -80,13 +80,13 @@ static bool ContainsFormat(const std::vector<vk::SurfaceFormatKHR>& formats,
 static std::optional<vk::SurfaceFormatKHR> ChooseSurfaceFormat(
     const std::vector<vk::SurfaceFormatKHR>& formats,
     PixelFormat preference) {
-  if(impeller::Context::enable_hdr_) {
+  if (impeller::Context::enable_hdr_) {
     if (impeller::Context::hdr_ == 2) {  // video PQ
-    const auto colorspace = vk::ColorSpaceKHR::eHdr10St2084EXT;
-    const auto vk_preference =
-        vk::SurfaceFormatKHR{vk::Format::eA2B10G10R10UnormPack32, colorspace};
-    FML_DLOG(WARNING) << "enter eHdr10St2084EXT!";
-    return vk_preference;
+      const auto colorspace = vk::ColorSpaceKHR::eHdr10St2084EXT;
+      const auto vk_preference =
+          vk::SurfaceFormatKHR{vk::Format::eA2B10G10R10UnormPack32, colorspace};
+      FML_DLOG(WARNING) << "enter eHdr10St2084EXT!";
+      return vk_preference;
     }
 
     if (ToVKImageFormat(preference) == vk::Format::eA2B10G10R10UnormPack32) {
@@ -97,7 +97,7 @@ static std::optional<vk::SurfaceFormatKHR> ChooseSurfaceFormat(
       return vk_preference;
     }
   }
-  
+
   const auto colorspace = vk::ColorSpaceKHR::eSrgbNonlinear;
   const auto vk_preference =
       vk::SurfaceFormatKHR{ToVKImageFormat(preference), colorspace};
