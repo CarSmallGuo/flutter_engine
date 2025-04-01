@@ -224,7 +224,7 @@ OHOSImageGenerator::CreatePixelMap(int width, int height, int frame_index) {
   OH_DecodingOptions_SetDesiredSize(opts, &size);
   // OH_DecodingOptions_SetPixelFormat(opts, PIXEL_FORMAT_RGBA_1010102);
 
-  if(!impeller::Context::enable_hdr_) {
+  if (!impeller::Context::enable_hdr_) {
     OH_DecodingOptions_SetPixelFormat(opts, PIXEL_FORMAT_RGBA_8888);
     OH_DecodingOptions_SetDesiredDynamicRange(opts, IMAGE_DYNAMIC_RANGE_SDR);
   } else {
