@@ -3689,31 +3689,6 @@ base class _ColorFilter extends NativeFieldWrapperClass1 {
   external void _initSrgbToLinearGamma();
 }
 
-class SetHdr {
-  SetHdr({this.hdr = 0, this.is_image = true}) {
-    _SetHdr(hdr:hdr, is_image:is_image);
-  }
-
-  int hdr = 0;
-  bool is_image = true;
-}
-
-base class _SetHdr extends NativeFieldWrapperClass1 {
-  _SetHdr({required this.hdr, required this.is_image}) {
-    _constructor();
-    _initSetHdr(hdr, is_image);
-  }
-
-  int hdr = 0;
-  bool is_image = true;
-
-  @Native<Void Function(Pointer<Void>, Int32, Bool)>(symbol: 'SetHdr2::initSetHdr')
-  external void _initSetHdr(int hdr, bool is_image);
-
-  @Native<Void Function(Handle)>(symbol: 'SetHdr2::Create')
-  external void _constructor();
-}
-
 /// A filter operation to apply to a raster image.
 ///
 /// See also:

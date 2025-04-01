@@ -14,6 +14,7 @@
 #include <string>
 
 #include <multimedia/image_framework/image_pixel_map_napi.h>
+#include "flutter/impeller/renderer/context.h"
 #include "fml/logging.h"
 #include "fml/trace_event.h"
 #include "include/core/SkAlphaType.h"
@@ -38,7 +39,7 @@ OHOSImageGenerator::OHOSImageGenerator(OH_ImageSourceNative* image_source)
   OH_ImageSourceInfo_GetDynamicRange(info, &is_hdr_);
   OH_ImageSourceInfo_Release(info);
 
-  if (is_hdr_) {
+  if (is_hdr_ && impeller::Context::enable_hdr_) {
     origin_image_info_ = SkImageInfo::Make(
         width, height, kRGBA_1010102_SkColorType, kOpaque_SkAlphaType);
     origin_image_info_.makeColorSpace(
@@ -214,8 +215,14 @@ OHOSImageGenerator::CreatePixelMap(int width, int height, int frame_index) {
   OH_DecodingOptions_SetDesiredSize(opts, &size);
   // OH_DecodingOptions_SetPixelFormat(opts, PIXEL_FORMAT_RGBA_1010102);
 
+  if(!impeller::Context::enable_hdr_) {
+    OH_DecodingOptions_SetPixelFormat(opts, PIXEL_FORMAT_RGBA_8888);
+    OH_DecodingOptions_SetDesiredDynamicRange(opts, IMAGE_DYNAMIC_RANGE_SDR);
+  } else {
+    OH_DecodingOptions_SetDesiredDynamicRange(opts, IMAGE_DYNAMIC_RANGE_AUTO);
+  }
+
   // HDR requires the RGBA1010102 format and will need future support.
-  OH_DecodingOptions_SetDesiredDynamicRange(opts, IMAGE_DYNAMIC_RANGE_AUTO);
   OH_DecodingOptions_SetIndex(opts, frame_index);
 
   OH_PixelmapNative* pixelmap = nullptr;

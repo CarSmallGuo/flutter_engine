@@ -14,20 +14,21 @@ class DartLibraryNatives;
 
 namespace flutter {
 
-class SetHdr2 : public RefCountedDartWrappable<SetHdr2> {
+class SetHdr : public RefCountedDartWrappable<SetHdr> {
   DEFINE_WRAPPERTYPEINFO();
-  FML_FRIEND_MAKE_REF_COUNTED(SetHdr2);
+  FML_FRIEND_MAKE_REF_COUNTED(SetHdr);
 
  public:
   
-  ~SetHdr2();
+  ~SetHdr();
   static void initSetHdr(int hdr, bool is_image);
   static void Create(Dart_Handle wrapper);
+  static void enableHdr(bool enable_hdr);
 
   static void RegisterNatives(tonic::DartLibraryNatives* natives);
 
  private:
-  SetHdr2();
+  SetHdr();
 };
 
 }  // namespace flutter

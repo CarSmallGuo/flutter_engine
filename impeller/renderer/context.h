@@ -102,6 +102,7 @@ class Context {
 
   static int hdr_;
   static bool is_image_;
+  static bool enable_hdr_;
 
   //----------------------------------------------------------------------------
   /// @brief      Get the capabilities of Impeller context. All optionally
