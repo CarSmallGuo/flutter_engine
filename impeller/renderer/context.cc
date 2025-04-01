@@ -6,9 +6,6 @@
 
 #include "impeller/core/capture.h"
 
-int impeller::Context::hdr_ = 0;
-bool impeller::Context::is_image_ = 1;
-
 namespace impeller {
 
 Context::~Context() = default;
@@ -18,5 +15,9 @@ Context::Context() : capture(CaptureContext::MakeInactive()) {}
 bool Context::UpdateOffscreenLayerPixelFormat(PixelFormat format) {
   return false;
 }
+
+int Context::hdr_ = 0;
+bool Context::is_image_ = true;
+bool Context::enable_hdr_ = false;
 
 }  // namespace impeller

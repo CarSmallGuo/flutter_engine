@@ -86,8 +86,9 @@ typedef CanvasPath Path;
   V(PictureRecorder::Create)                                       \
   V(SceneBuilder::Create)                                          \
   V(SemanticsUpdateBuilder::Create)                                \
-  V(SetHdr2::Create)                                               \
-  V(SetHdr2::initSetHdr)                                           \
+  V(SetHdr::Create)                                                \
+  V(SetHdr::initSetHdr)                                            \
+  V(SetHdr::enableHdr)                                             \
   /* Other */                                                      \
   V(FontCollection::LoadFontFromList)                              \
   V(ImageDescriptor::initEncoded)                                  \

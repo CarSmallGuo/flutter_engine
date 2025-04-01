@@ -16,15 +16,15 @@
 
 namespace flutter {
 
-IMPLEMENT_WRAPPERTYPEINFO(ui, SetHdr2);
+IMPLEMENT_WRAPPERTYPEINFO(ui, SetHdr);
 
-void SetHdr2::Create(Dart_Handle wrapper) {
+void SetHdr::Create(Dart_Handle wrapper) {
   //UIDartState::ThrowIfUIOperationsProhibited();
-  auto res = fml::MakeRefCounted<SetHdr2>();
+  auto res = fml::MakeRefCounted<SetHdr>();
   res->AssociateWithDartWrapper(wrapper);
 }
 
-void SetHdr2::initSetHdr(int hdr, bool is_image) {
+void SetHdr::initSetHdr(int hdr, bool is_image) {
   impeller::Context::is_image_ = is_image;
   FML_DLOG(ERROR) << "is_image= " << impeller::Context::is_image_;
   if (is_image) {
@@ -35,7 +35,11 @@ void SetHdr2::initSetHdr(int hdr, bool is_image) {
   }
 }
 
-SetHdr2::SetHdr2() {}
-SetHdr2::~SetHdr2() {}
+void SetHdr::enableHdr(bool enable_hdr) {
+  impeller::Context::enable_hdr_ = enable_hdr;
+}
+
+SetHdr::SetHdr() {}
+SetHdr::~SetHdr() {}
 
 }  // namespace flutter
