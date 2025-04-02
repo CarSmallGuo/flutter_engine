@@ -47,7 +47,7 @@ if (type != Dart_Timeline_Event_Begin && strcmp(name, OHOS_FILTER_NAME_SCENE) ==
 realNumber = 0;
 
 if (type == Dart_Timeline_Event_Async_Begin) {
-int vsync_transitions_missed = std::stoi(argument_value[2]);
+int vsync_transitions_missed = std::stoi(argument_values[2]);
 if (vsync_transitions_missed > 2) {
 SendHiAppEventParam(timestamp_micros, argument_values);
 }
@@ -144,7 +144,7 @@ void OHOSTraceEventEnd(void) {
 void SendHiAppEventParam(int64_t timestamp_micros, const char** argument_values)
 {
     flutter::CreateProcessorFunc processorFunc = flutter::OhosHiappEventDDL::DLLoadCreateProcessorFunc("OH_HiappEvent_CreateProcessor");
-    if (ProcessorFunc == nullptr) {
+    if (processorFunc == nullptr) {
         FML_LOG(ERROR) << "Failed to DLLoadCreateProcessorFunc";
     }
 
@@ -153,7 +153,7 @@ void SendHiAppEventParam(int64_t timestamp_micros, const char** argument_values)
         FML_LOG(ERROR) << "Failed to DLLoadSetReportRouteFunc";
     }
 
-    flutter::SetReportPolicFunc policFunc = flutter::OhosHiappEventDDL::DLLoadSetReportPolicFunc("OH_HiappEvent_SetReportPolic");
+    flutter::setReportPolicFunc policFunc = flutter::OhosHiappEventDDL::DLLoadSetReportPoliceFunc("OH_HiappEvent_SetReportPolic");
     if (policFunc == nullptr) {
         FML_LOG(ERROR) << "Failed to DLLoadSetReportRouteFunc";
     }
@@ -168,7 +168,7 @@ void SendHiAppEventParam(int64_t timestamp_micros, const char** argument_values)
         FML_LOG(ERROR) << "Failed to DLLoadAddFunc";
     }
 
-    HiAppEvent_Processor* processor = reinterpret_cast<HiAppEvent_Processor*>(ProcessorFunc("xperfbridge"));
+    HiAppEvent_Processor* processor = reinterpret_cast<HiAppEvent_Processor*>(processorFunc("xperfbridge"));
     routeFunc(processor, "com_huawei_hmos_sdk_ocg", "test");
     policFunc(processor, 1, 1, true, true);
     reportEventFunc(processor, "PERFORMSNCE", "OTHER_JANK", true);
@@ -178,7 +178,7 @@ void SendHiAppEventParam(int64_t timestamp_micros, const char** argument_values)
         FML_LOG(ERROR) << "processorId error";
     }
 
-    int64_t time_tmp = std::stoll(argument_value[0]);
+    int64_t time_tmp = std::stoll(argument_values[0]);
     time_tmp = time_tmp / 1000;
 
     int64_t lastest_time_tmp = std::stoll(argument_values[1]);
