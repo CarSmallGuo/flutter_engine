@@ -236,6 +236,17 @@ void TraceTimelineEvent(TraceArg category_group,
                         const std::vector<std::string>& values);
 
 #if defined(FML_OS_OHOS)
+
+void OHOSTraceTimelineEvent(TraceArg category_group,
+  TraceArg name,
+  int64_t timestamp_micros,
+  TraceIDArg id,
+  Dart_Timeline_Event_Type type,
+  intptr_t argument_count,
+  const char** argument_names,
+  const char** argument_values);
+
+
 void OHOSTraceTimelineEvent(TraceArg category_group,
                             TraceArg name,
                             TraceIDArg id,
@@ -245,6 +256,9 @@ void OHOSTraceTimelineEvent(TraceArg category_group,
                             const char** argument_values);
 
 void OHOSTraceEventEnd(void);
+
+void SendHiAppEventParam(int64_t timestamp_micros, const char** argument_values);
+
 #endif // FML_OS_OHOS
 
 inline std::string TraceToString(const char* string) {
