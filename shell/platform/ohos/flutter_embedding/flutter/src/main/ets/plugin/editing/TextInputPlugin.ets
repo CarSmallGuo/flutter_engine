@@ -18,6 +18,7 @@ import Log from '../../util/Log';
 import { EditingStateWatcher, ListenableEditingState } from './ListenableEditingState';
 import Any from '../common/Any';
 import { inputDevice } from '@kit.InputKit';
+import { PointerDeviceKind } from '../../embedding/ohos/OhosTouchProcessor';
 
 /// 临时规避缺少newline对应枚举问题
 const NEWLINE_KEY_TYPE: number = 8;
@@ -73,6 +74,9 @@ export default class TextInputPlugin implements EditingStateWatcher {
   }
 }
 
+const INPUT_TYPE_NAME =
+  ['NONE', 'TEXT', 'MULTILINE', 'NUMBER', 'PHONE', 'DATETIME', 'EMAIL_ADDRESS', 'URL', 'VISIBLE_PASSWORD']
+
 class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private static TAG = "TextInputMethodHandlerImpl";
   private textConfig: inputMethod.TextConfig;
@@ -122,8 +126,17 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   setClient(textInputClientId: number, configuration: Configuration | null): void {
-    Log.d(TextInputMethodHandlerImpl.TAG, "textInputClientId: " + textInputClientId);
     this.setTextInputClient(textInputClientId, configuration);
+  }
+
+  updateConfig(configuration: Configuration | null) {
+    if (configuration) {
+      this.configuration = configuration;
+      if (configuration.inputType) {
+        this.textConfig.inputAttribute.textInputType = INPUT_TYPE_NAME.indexOf(configuration.inputType.type) - 1
+        this.textConfig.inputAttribute.enterKeyType = configuration.inputAction as Any;
+      }
+    }
   }
 
   setPlatformViewClient(id: number, usesVirtualDisplay: boolean): void {
@@ -152,6 +165,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   private async showTextInput(): Promise<void> {
     if (this.keyboardStatus == inputMethod.KeyboardStatus.SHOW) {
+      await this.inputMethodController.showTextInput(this.getRequestReason());
       return;
     }
     await this.attach(true);
@@ -168,9 +182,26 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   async attach(showKeyboard: boolean): Promise<void> {
     try {
-      await this.inputMethodController.attach(showKeyboard, this.textConfig);
+      await this.inputMethodController.attach(showKeyboard, this.textConfig, this.getRequestReason());
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to attach:" + JSON.stringify(err));
+    }
+  }
+
+  getRequestReason() : inputMethod.RequestKeyboardReason {
+    let deviceKind : PointerDeviceKind = this.configuration?.deviceKind ?? PointerDeviceKind.UNKNOWN
+    Log.i(TextInputMethodHandlerImpl.TAG, "getRequestReason: deviceKind=" + deviceKind);
+    switch (deviceKind) {
+      case PointerDeviceKind.TOUCH:
+        return inputMethod.RequestKeyboardReason.TOUCH;
+      case PointerDeviceKind.MOUSE:
+        return inputMethod.RequestKeyboardReason.MOUSE;
+      case PointerDeviceKind.STYLUS:
+      case PointerDeviceKind.INVERTED_STYLUS:
+      case PointerDeviceKind.TRACKPAD:
+        return inputMethod.RequestKeyboardReason.OTHER;
+      default:
+        return inputMethod.RequestKeyboardReason.NONE;
     }
   }
 
@@ -211,8 +242,6 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   setTextInputClient(client: number, configuration: Configuration | null): void {
-    const INPUT_TYPE_NAME =
-      ['NONE', 'TEXT', 'MULTILINE', 'NUMBER', 'PHONE', 'DATETIME', 'EMAIL_ADDRESS', 'URL', 'VISIBLE_PASSWORD']
     if (configuration) {
       this.configuration = configuration;
       if (configuration.inputType) {
