@@ -30,6 +30,8 @@ static PixelFormat ToPixelFormat(int32_t format) {
       return PixelFormat::kR8G8B8A8UNormInt;
     case OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_BGRA_8888:
       return PixelFormat::kB8G8R8A8UNormInt;
+    case OH_NativeBuffer_Format::NATIVEBUFFER_PIXEL_FMT_RGBA_1010102:
+      return PixelFormat::kR10G10B10A2;
     default:
       // Not understood by the rest of Impeller. Use a placeholder but create
       // the native image and image views using the right external format.
@@ -249,6 +251,7 @@ OHBTextureSourceVK::OHBTextureSourceVK(
   FML_LOG(INFO) << "onb_format  " << int(onb_format.format) << " external "
                 << int(onb_format.externalFormat) << " allocSize "
                 << onb_props.get().allocationSize;
+
   auto image = CreateVkImage(device, native_buffer, onb_format);
   if (!image) {
     FML_LOG(ERROR) << "create vkimage faile";

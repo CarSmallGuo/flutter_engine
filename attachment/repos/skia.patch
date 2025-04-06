@@ -703,6 +703,7 @@ index 0000000000..176023660e
 +#define GL_FRAMEBUFFER                    0x8D40
 +#define GL_RENDERBUFFER                   0x8D41
 +#define GL_RGBA4                          0x8056
++#define GL_RGB10_A2                       0x8059
 +#define GL_RGB5_A1                        0x8057
 +#define GL_RGB565                         0x8D62
 +#define GL_DEPTH_COMPONENT16              0x81A5
