@@ -28,6 +28,7 @@
 #include "ohos_shell_holder.h"
 #include "shell/common/shell.h"
 #include "types.h"
+#include  <arkui/ui_input_event.h>
 namespace flutter {
 
 bool g_isMouseLeftActive = false;
@@ -253,6 +254,18 @@ void DispatchTouchEventCB(OH_NativeXComponent* component, void* window) {
   }
 }
 
+void DispatchAxisEventCB(OH_NativeXComponent* component,
+                         ArkUI_UIInputEvent* event,
+                         ArkUI_UIInputEvent_Type type) {
+  std::lock_guard<std::mutex> lock(
+      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
+  for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
+    if (it.second->nativeXComponent_ == component) {
+      it.second->OnDispatchAxisEvent(component, event, type);
+    }
+  }
+}
+
 void DispatchMouseEventCB(OH_NativeXComponent* component, void* window) {
   std::lock_guard<std::mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
@@ -275,6 +288,7 @@ void DispatchHoverEventCB(OH_NativeXComponent* component, bool isHover) {
 }
 
 void XComponentBase::OnDispatchMouseLeaveEvent(OH_NativeXComponent* component) {
+  FML_DLOG(DEBUG) << "OnDispatchMouseLeaveEvent";
   if (window_ != nullptr) {
     OH_NativeXComponent_MouseEvent mouseEvent;
     int32_t ret =
@@ -514,6 +528,9 @@ void XComponentBase::SetNativeXComponent(
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_,
                                                    &mouseCallback_);
+    OH_NativeXComponent_RegisterUIInputEventCallback(nativeXComponent_,
+                                                     DispatchAxisEventCB,
+                                                     ARKUI_UIINPUTEVENT_TYPE_AXIS);
   }
 }
 
@@ -657,8 +674,24 @@ void XComponentBase::OnDispatchTouchEvent(OH_NativeXComponent* component,
   }
 }
 
+void XComponentBase::OnDispatchAxisEvent(OH_NativeXComponent* component,
+                                         ArkUI_UIInputEvent* event,
+                                         ArkUI_UIInputEvent_Type type) {
+  if (type != ARKUI_UIINPUTEVENT_TYPE_AXIS) {
+    LOGE("OnDispatchAxisEvent: Unhandled event type %d", type);
+    return;
+  }
+  if (is_engine_attached_) {
+    ohosTouchProcessor_.HandleAxisEvent(std::stoll(shellholderId_),
+                                        component, event);
+  } else {
+    LOGE("XComponentManger::DispatchAxisEvent XComponentBase is not attached");
+  }
+}
+
 void XComponentBase::OnDispatchMouseEvent(OH_NativeXComponent* component,
                                           void* window) {
+  FML_DLOG(DEBUG) << "OnDispatchMouseEvent";
   OH_NativeXComponent_MouseEvent mouseEvent;
   int32_t ret =
       OH_NativeXComponent_GetMouseEvent(component, window, &mouseEvent);
@@ -678,6 +711,7 @@ void XComponentBase::OnDispatchMouseEvent(OH_NativeXComponent* component,
 }
 
 void XComponentBase::OnDispatchMouseWheelEvent(mouseWheelEvent event) {
+  FML_DLOG(DEBUG) << "OnDispatchMouseWheelEvent";
   std::string shell_holder_str = std::to_string(event.shellHolder);
   if (shell_holder_str != shellholderId_) {
     return;

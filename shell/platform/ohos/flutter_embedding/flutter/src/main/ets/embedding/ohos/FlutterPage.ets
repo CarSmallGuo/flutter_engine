@@ -211,18 +211,18 @@ export struct FlutterPage {
       });
       Log.d(TAG, "onDrop");
     })
-    .gesture(
-      PanGesture(this.panOption)
-        .onActionStart((event: GestureEvent) => {
-          this.flutterView?.onMouseWheel("actionStart", event);
-        })
-        .onActionUpdate((event: GestureEvent) => {
-          this.flutterView?.onMouseWheel("actionUpdate", event);
-        })
-        .onActionEnd((event: GestureEvent) => {
-          this.flutterView?.onMouseWheel("actionEnd", event);
-        })
-    )
+    // .gesture(
+    //   PanGesture(this.panOption)
+    //     .onActionStart((event: GestureEvent) => {
+    //       this.flutterView?.onMouseWheel("actionStart", event);
+    //     })
+    //     .onActionUpdate((event: GestureEvent) => {
+    //       this.flutterView?.onMouseWheel("actionUpdate", event);
+    //     })
+    //     .onActionEnd((event: GestureEvent) => {
+    //       this.flutterView?.onMouseWheel("actionEnd", event);
+    //     })
+    // )
   }
 
   @State showSplashScreen: boolean = true;

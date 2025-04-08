@@ -123,7 +123,7 @@ test_fixtures("file_fixtures") {
     "texture_lookup.frag",
   ]
   if (host_os == "mac") {
-    fixtures += [ "/System/Library/Fonts/Apple Color Emoji.ttc" ]
+    fixtures += [ "/Users/mtchannn/Resource/Apple Color Emoji.ttc" ]
   }
   fixtures +=
       filter_include(get_target_outputs(":runtime_stages"), [ "*.iplr" ]) +

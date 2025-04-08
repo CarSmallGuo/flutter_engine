@@ -18,6 +18,17 @@ PointerDataPacket::PointerDataPacket(uint8_t* data, size_t num_bytes)
 PointerDataPacket::~PointerDataPacket() = default;
 
 void PointerDataPacket::SetPointerData(size_t i, const PointerData& data) {
+  FML_DLOG(DEBUG) << "SetPointerData: "
+                  << "size: " << data.size << ", "
+                  << "device: " << data.device << ", "
+                  << "change: " << static_cast<int64_t>(data.change) << ", "
+                  << "signal_kind: " << static_cast<int64_t>(data.signal_kind) << ", "
+                  << "kind: " << static_cast<int64_t>(data.kind) << ", "
+                  << "embedder_id: " << data.embedder_id << ", "
+                  << "pressure: " << data.pressure << ", "
+                  << "buttons: " << data.buttons << ", "
+                  << "physical_x: " << data.physical_x << ", "
+                  << "physical_y: " << data.physical_y << ", ";
   FML_DCHECK(i < GetLength());
   memcpy(&data_[i * sizeof(PointerData)], &data, sizeof(PointerData));
 }
