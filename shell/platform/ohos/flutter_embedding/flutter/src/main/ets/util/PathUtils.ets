@@ -21,6 +21,8 @@ import Log from './Log';
  */
 const TAG: string = "PathUtils";
 
+// api18 流水线测试
+
 export default class PathUtils {
   static getFilesDir(context: common.Context): string {
     return context.filesDir;
