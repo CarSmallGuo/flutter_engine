@@ -28,6 +28,7 @@
 #include "ohos_shell_holder.h"
 #include "shell/common/shell.h"
 #include "types.h"
+#include <arkui/ui_input_event.h>
 namespace flutter {
 
 bool g_isMouseLeftActive = false;
@@ -249,6 +250,18 @@ void DispatchTouchEventCB(OH_NativeXComponent* component, void* window) {
   for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
     if (it.second->nativeXComponent_ == component) {
       it.second->OnDispatchTouchEvent(component, window);
+    }
+  }
+}
+
+void DispatchAxisEventCB(OH_NativeXComponent* component,
+                         ArkUI_UIInputEvent* event,
+                         ArkUI_UIInputEvent_Type type) {
+  std::lock_guard<std::mutex> lock(
+      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
+  for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
+    if (it.second->nativeXComponent_ == component) {
+      it.second->OnDispatchAxisEvent(component, event, type);
     }
   }
 }
@@ -514,6 +527,9 @@ void XComponentBase::SetNativeXComponent(
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_,
                                                    &mouseCallback_);
+    OH_NativeXComponent_RegisterUIInputEventCallback(nativeXComponent_,
+                                                     DispatchAxisEventCB,
+                                                     ARKUI_UIINPUTEVENT_TYPE_AXIS);
   }
 }
 
@@ -653,6 +669,18 @@ void XComponentBase::OnDispatchTouchEvent(OH_NativeXComponent* component,
       LOGE(
           "XComponentManger::DispatchTouchEvent XComponentBase is not "
           "attached");
+    }
+  }
+}
+
+void XComponentBase::OnDispatchAxisEvent(OH_NativeXComponent* component,
+                                         ArkUI_UIInputEvent* event,
+                                         ArkUI_UIInputEvent_Type type) {
+  if (type == ARKUI_UIINPUTEVENT_TYPE_AXIS) {
+    if (is_engine_attached_) {
+      ohosTouchProcessor_.HandleAxisEvent(std::stoll(shellholderId_), component, event);
+    } else {
+      LOGE("XComponentManger::DispatchAxisEvent XComponentBase is not attached");
     }
   }
 }
