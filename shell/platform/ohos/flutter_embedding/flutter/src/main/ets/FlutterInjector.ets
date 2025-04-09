@@ -24,6 +24,7 @@ export default class FlutterInjector {
   /**
    * 初始化
    */
+  // api18流水线测试
   private constructor() {
     this.flutterLoader = new FlutterLoader(this.getFlutterNapi());
   }
