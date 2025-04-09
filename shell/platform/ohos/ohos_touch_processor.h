@@ -11,6 +11,7 @@
 #include <string>
 #include "flutter/lib/ui/window/pointer_data.h"
 #include "napi_common.h"
+#include <arkui/ui_input_event.h>
 
 namespace flutter {
 
@@ -27,6 +28,18 @@ public:
     void HandleTouchEvent(int64_t shell_holderID,
                             OH_NativeXComponent* component,
                             OH_NativeXComponent_TouchEvent* touchEvent);
+    void HandleAxisEvent(int64_t shell_holderID,
+                         OH_NativeXComponent* component,
+                         ArkUI_UIInputEvent* event);
+    void HandleFlingEvent(int64_t shell_holderID,
+                          OH_NativeXComponent* component,
+                          ArkUI_UIInputEvent* event);
+    void HandlePinchEvent(int64_t shell_holderID,
+                          OH_NativeXComponent* component,
+                          ArkUI_UIInputEvent* event);
+    void HandleScaleEvent(int64_t shell_holderID,
+                          OH_NativeXComponent* component,
+                          ArkUI_UIInputEvent* event);
     void HandleMouseEvent(int64_t shell_holderID,
                             OH_NativeXComponent* component,
                             OH_NativeXComponent_MouseEvent mouseEvent,
