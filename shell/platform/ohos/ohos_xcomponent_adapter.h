@@ -24,6 +24,7 @@
 #include "napi/native_api.h"
 #include "napi_common.h"
 #include "ohos_shell_holder.h"
+#include <arkui/ui_input_event.h>
 namespace flutter {
 
 class XComponentBase {
@@ -45,6 +46,7 @@ class XComponentBase {
   void OnSurfaceChanged(OH_NativeXComponent* component, void* window);
   void OnSurfaceDestroyed(OH_NativeXComponent* component, void* window);
   void OnDispatchTouchEvent(OH_NativeXComponent* component, void* window);
+  void OnDispatchAxisEvent(OH_NativeXComponent* component, ArkUI_UIInputEvent* event, ArkUI_UIInputEvent_Type type);
   void OnDispatchMouseEvent(OH_NativeXComponent* component, void* window);
   void OnDispatchMouseWheelEvent(mouseWheelEvent event);
   void OnDispatchMouseLeaveEvent(OH_NativeXComponent* component);
