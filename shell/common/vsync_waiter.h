@@ -34,6 +34,8 @@ class VsyncWaiter : public std::enable_shared_from_this<VsyncWaiter> {
   // For DVsync control
   virtual void DisableDVsync() {}
   virtual void EnableDVsync() {}
+  virtual void DisableDVsyncWithoutFling() {}
+  virtual void EnableDVsyncWithoutFling() {}
  protected:
   // On some backends, the |FireCallback| needs to be made from a static C
   // method.

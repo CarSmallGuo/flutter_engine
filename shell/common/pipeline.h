@@ -107,6 +107,7 @@ class Pipeline {
   ~Pipeline() = default;
 
   bool IsValid() const { return empty_.IsValid() && available_.IsValid(); }
+  int GetInflight() const { return inflight_.load(); }
 
   ProducerContinuation Produce() {
     if (!empty_.TryWait()) {

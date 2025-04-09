@@ -86,6 +86,13 @@ void Animator::BeginFrame(
     // instead of asking the pipeline for a fresh continuation.
     producer_continuation_ = layer_tree_pipeline_->Produce();
 
+    int inflight = layer_tree_pipeline_->GetInflight();
+    if (inflight >= (int)DVSYNC_BUFFER_COUNT) {
+      waiter_->DisableDVsyncWithoutFling();
+    } else {
+      waiter_->EnableDVsyncWithoutFling();
+    }
+
     if (!producer_continuation_) {
       // If we still don't have valid continuation, the pipeline is currently
       // full because the consumer is being too slow. Try again at the next

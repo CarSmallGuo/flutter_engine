@@ -44,6 +44,12 @@ void VsyncWaiterOHOS::AwaitVSync() {
   }
   auto* weak_this = new std::weak_ptr<VsyncWaiter>(shared_from_this());
   OH_NativeVSync* handle = vsyncHandle;
+  if (inScrollingStatus == false) {
+    if (dvsyncEnabled == true) {
+      dvsyncEnabled = false;
+      SetDvsyncSwitch(false);
+    }
+  }
 
   fml::TaskRunner::RunNowOrPostTask(
       task_runners_.GetUITaskRunner(), [weak_this, handle]() {
@@ -99,6 +105,7 @@ int VsyncWaiterOHOS::GetRefreshRate(void)
 void VsyncWaiterOHOS::DisableDVsync() {
   if (dvsyncEnabled.load()) {
     SetDvsyncSwitch(false);
+    inScrollingStatus.store(false);
     dvsyncEnabled.store(false);
   }
 }
@@ -106,9 +113,27 @@ void VsyncWaiterOHOS::DisableDVsync() {
 void VsyncWaiterOHOS::EnableDVsync() {
   if (!dvsyncEnabled.load()) {
     SetDvsyncSwitch(true);
+    inScrollingStatus.store(true);
     dvsyncEnabled.store(true);
   }
 }
+
+void VsyncWaiterOHOS::DisableDVsyncWithoutFling() {
+  if (dvsyncEnabled == true) {
+    dvsyncEnabled = false;
+    TRACE_EVENT0("DisableDVsyncWithoutFling", "");
+    SetDvsyncSwitch(false);
+  }
+}
+
+void VsyncWaiterOHOS::EnableDVsyncWithoutFling() {
+  if (dvsyncEnabled == false && inScrollingStatus == true) {
+    dvsyncEnabled = true;
+    TRACE_EVENT0("EnableDVsyncWithoutFling", "");
+    SetDvsyncSwitch(true);
+  }
+}
+
 
 void VsyncWaiterOHOS::SetDvsyncSwitch(bool enableDvsync) {
   if (apiVersion_ == 0) {

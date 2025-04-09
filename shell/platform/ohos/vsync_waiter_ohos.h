@@ -27,6 +27,8 @@ public:
     int GetRefreshRate(void);
     void DisableDVsync() override;
     void EnableDVsync() override;
+    void DisableDVsyncWithoutFling() {}
+    void EnableDVsyncWithoutFling() {}
 
 private:
     // |VsyncWaiter|
@@ -39,6 +41,7 @@ private:
     void SetDvsyncSwitch(bool enableDvsync);
 
     std::atomic<bool> dvsyncEnabled{false};
+    std::atomic<bool> inScrollingStatus{false};
     thread_local static bool firstCall;
     OH_NativeVSync* vsyncHandle;
     NativeDvsyncFunc nativeDvsyncFunc_ = nullptr;
