@@ -454,11 +454,6 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
     LOGE("OnSurfaceCreated XComponentBase is not attached");
   }
 
-  FML_LOG(ERROR) << "--> cjand";
-  HiAppEvent_Processor* cjand = OH_HiAppEvent_CreateProcessor("cjand");
-  if(cjand == nullptr){
-    FML_LOG(ERROR) << "cjand == nullptr";
-  }
   fml::hiappevent::OhosHiappEventDDL* hiAppeventHandler = fml::hiappevent::OhosHiappEventDDL::GetInstance();
   if(hiAppeventHandler != nullptr){
     hiAppeventHandler->init();

@@ -1,15 +1,8 @@
 #include "ohos_hiappevent.h"
 
-#include <unistd.h>
 #include <dlfcn.h>
 #include <deviceinfo.h>
 #include "flutter/fml/logging.h"
-
-using LIBHANDLE = void* ;
-#define LOAD_LIB(libPath) dlopen(libPath, RTLD_LAZY | RTLD_LOCAL)
-#define CLOSE_LIB(libHandle) dlclose(libHandle)
-#define LOAD_SYM(libHandle,symbol) dlsym(libHandle, symbol)
-#define LOAD_ERROR() dlerror()
 
 namespace fml{
 
