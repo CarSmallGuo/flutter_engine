@@ -19,6 +19,8 @@
 #include "ohos_shell_holder.h"
 #include "shell/common/shell.h"
 #include "types.h"
+#include "flutter/fml/platform/ohos/hiappevent/ohos_hiappevent.h"
+
 namespace flutter {
 
 const int32_t OHOS_API_VERSION = OH_GetSdkApiVersion();
@@ -481,6 +483,11 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
     PlatformViewOHOSNapi::SurfaceCreated(std::stoll(shellholderId_), window_,
                                          width_, height_);
     is_surface_present_ = true;
+  }
+
+  fml::hiappevent::OhosHiappEventDDL* hiAppeventHandler = fml::hiappevent::OhosHiappEventDDL::GetInstance();
+  if(hiAppeventHandler != nullptr){
+    hiAppeventHandler->init();
   }
 }
 
