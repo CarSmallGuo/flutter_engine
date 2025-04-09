@@ -18,6 +18,7 @@ namespace fml{
         using AddInt64Param = ParamList(*)(ParamList list, const char* name, int64_t num);
         using Write = int(*)(const char* domain, const char* name, enum EventType type, const ParamList list);
         using DestroyParamList = void(*)(ParamList list);
+        using DestroyProcessor = void(*)(HiAppEvent_Processor* processor);
 
         typedef struct  MissedFrameInfo{
             int64_t timestamp_micros;
@@ -55,6 +56,8 @@ namespace fml{
                 AddInt64Param addInt64Param_ = nullptr;
                 Write write_ = nullptr;
                 DestroyParamList destroyParamList_ = nullptr;
+                DestroyProcessor destroyProcessor_ = nullptr;
+                
 
                 int apiVrsion_ = 0;
 

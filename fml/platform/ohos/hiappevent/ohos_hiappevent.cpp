@@ -107,6 +107,12 @@ namespace fml{
                     FML_LOG(ERROR) << "destroyParamList_ error";
                     break;
                 }
+
+                destroyProcessor_ = reinterpret_cast<DestroyProcessor>(dlsym(libhiappevent_ndk_handler_, "OH_HiAppEvent_DestroyProcessor"));
+                if (destroyProcessor_ == nullptr) {
+                    FML_LOG(ERROR) << "destroyProcessor_ error";
+                    break;
+                }
                 isValid_ = true;
             }while (0);   
             return;
@@ -116,7 +122,7 @@ namespace fml{
         {
 
             if (!isValid_) {
-                FML_LOG(ERROR) << "isValid_ false1";
+                FML_LOG(ERROR) << "reportMissedFrameEvent isValid_ false";
                 return;
             }
 
@@ -138,13 +144,14 @@ namespace fml{
         void OhosHiappEventDDL::flush(void)
         {
             if (!isValid_) {
-                FML_LOG(ERROR) << "isValid_ false2";
+                FML_LOG(ERROR) << "flush isValid_ false";
                 return;
             }
 
             HiAppEvent_Processor* processor = reinterpret_cast<HiAppEvent_Processor*>(createProcessorFunc_("xperfbridge"));
             if(processor == nullptr){
-                FML_LOG(ERROR)<<"PROCESSOR == NULLPTR";
+                FML_LOG(ERROR)<<"processor == nullptr";
+                destroyProcessor_(processor);
                 return;
             }
 
@@ -195,6 +202,7 @@ namespace fml{
                 destroyParamList_(list);
             }
 
+            destroyProcessor_(processor);
             MissedFrameInfos.clear();
         }
     }; //namespace hiappevent
