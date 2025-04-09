@@ -1,15 +1,9 @@
 #include "ohos_hiappevent.h"
 
-#include <unistd.h>
 #include <dlfcn.h>
 #include <deviceinfo.h>
 #include "flutter/fml/logging.h"
 
-using LIBHANDLE = void* ;
-#define LOAD_LIB(libPath) dlopen(libPath, RTLD_LAZY | RTLD_LOCAL)
-#define CLOSE_LIB(libHandle) dlclose(libHandle)
-#define LOAD_SYM(libHandle,symbol) dlsym(libHandle, symbol)
-#define LOAD_ERROR() dlerror()
 
 namespace fml{
 
@@ -136,8 +130,8 @@ namespace fml{
             MissedFrameInfo info;
             info.timestamp_micros = timestamp_micros;
             info.time_tmp = std::stoll(argument_values[0]);
-            info.lastest_time_tmp = std::stoll(argment_values[0]);
-            info.vsync_transitions_missed = std::stoi(argment_values[2]);
+            info.lastest_time_tmp = std::stoll(argument_values[0]);
+            info.vsync_transitions_missed = std::stoi(argument_values[2]);
             MissedFrameInfos.push_back(info);
         }
 
@@ -184,7 +178,7 @@ namespace fml{
 
                 int64_t vsyncStartTime = time_tmp - frame_budget_micros;
 
-                ParamList list = OH_HiAppEvent_CreateParmList();
+                ParamList list = OH_HiAppEvent_CreateParamList();
                 if(list == nullptr){
                     FML_LOG(ERROR)<<"list error";
                     return;

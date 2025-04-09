@@ -64,7 +64,7 @@ namespace fml{
 
                 bool isInit_ = false;
 
-                std::vector<MissedFrameInfos> MissedFrameInfos;
+                std::vector<MissedFrameInfo> MissedFrameInfos;
 
             };
 
