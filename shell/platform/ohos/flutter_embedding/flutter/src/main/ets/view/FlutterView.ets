@@ -19,6 +19,7 @@ import PlatformView, { Params } from '../plugin/platform/PlatformView';
 import { JSON } from '@kit.ArkTS';
 import { accessibility } from '@kit.AccessibilityKit';
 import TextInputPlugin from '../plugin/editing/TextInputPlugin';
+import { deviceInfo } from '@kit.BasicServicesKit';
 
 const TAG = "FlutterViewTag";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
@@ -615,7 +616,9 @@ export class FlutterView {
   }
 
   onMouseWheel(eventType: string, event: PanGestureEvent) {
-    this.flutterEngine?.getFlutterNapi()?.xComponentDisPatchMouseWheel(this.id, eventType, event);
+    if (deviceInfo.sdkApiVersion <= 15) {
+      this.flutterEngine?.getFlutterNapi()?.xComponentDisPatchMouseWheel(this.id, eventType, event);
+    }
   }
 
   addFirstFrameListener(listener: FirstFrameListener) {
