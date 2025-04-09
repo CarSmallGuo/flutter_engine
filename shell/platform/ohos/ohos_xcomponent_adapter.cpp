@@ -249,6 +249,18 @@ void DispatchMouseEventCB(OH_NativeXComponent* component, void* window)
     }
 }
 
+void DispatchAxisEventCB(OH_NativeXComponent* component,
+                         ArkUI_UIInputEvent* event,
+                         ArkUI_UIInputEvent_Type type) {
+  std::lock_guard<std::mutex> lock(
+      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
+  for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
+    if (it.second->nativeXComponent_ == component) {
+      it.second->OnDispatchAxisEvent(component, event, type);
+    }
+  }
+}
+
 void DispatchHoverEventCB(OH_NativeXComponent* component, bool isHover)
 {
     LOGD("XComponentManger::DispatchHoverEventCB");
@@ -480,6 +492,9 @@ void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
     BindXComponentCallback();
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
+    OH_NativeXComponent_RegisterUIInputEventCallback(nativeXComponent_,
+                                                     DispatchAxisEventCB,
+                                                     ARKUI_UIINPUTEVENT_TYPE_AXIS);
   }
 }
 
@@ -620,6 +635,18 @@ void XComponentBase::OnDispatchMouseEvent(OH_NativeXComponent* component, void* 
         return;
     }
     LOGE("XComponentManger::DispatchMouseEvent XComponentBase is not attached");
+}
+
+void XComponentBase::OnDispatchAxisEvent(OH_NativeXComponent* component,
+                                         ArkUI_UIInputEvent* event,
+                                         ArkUI_UIInputEvent_Type type) {
+  if (type == ARKUI_UIINPUTEVENT_TYPE_AXIS) {
+    if (isEngineAttached_) {
+      ohosTouchProcessor_.HandleAxisEvent(std::stoll(shellholderId_), component, event);
+    } else {
+      LOGE("XComponentManger::DispatchAxisEvent XComponentBase is not attached");
+    }
+  }
 }
 
 void XComponentBase::OnDispatchMouseWheelEvent(mouseWheelEvent event)
