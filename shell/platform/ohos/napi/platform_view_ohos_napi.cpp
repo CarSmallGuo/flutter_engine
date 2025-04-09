@@ -2041,8 +2041,10 @@ napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callba
 
   if (isEnable) {
     LOGD("EnableDVsync");
+    vsync_waiter_ohos->EnableDVsync();
   } else {
     LOGD("DisableDVsync");
+    vsync_waiter_ohos->DisableDVsync();
   }
 
   napi_create_int32(env, 0, &result);
