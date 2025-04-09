@@ -155,7 +155,7 @@ namespace fml{
                 return;
             }
 
-            setReportRouteFunc_(processor,"com_huawei_hmos_sdk_ocg","test");
+            setReportRouteFunc_(processor,"flutter","test");
             setReportPoliceFunc_(processor,1,1,true,true);
             setReportEventFunc_(processor,"PERFORMANCE","OTHER_JANK",true);
 
