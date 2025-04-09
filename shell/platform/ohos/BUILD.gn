@@ -69,8 +69,7 @@ bin_to_assembly("icudtl_asm") {
   executable = false
 }
 
-source_set("flutter_ohos_sources") {
-  public = _public_headers + [
+source_set("flutter_ohos_sources") {  public = _public_headers + [
              "napi_common.h",
              "ohos_xcomponent_adapter.h",
              "./napi/platform_view_ohos_napi.h",
