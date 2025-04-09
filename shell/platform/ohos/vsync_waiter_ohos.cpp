@@ -103,17 +103,17 @@ int VsyncWaiterOHOS::GetRefreshRate(void)
 }
 
 void VsyncWaiterOHOS::DisableDVsync() {
+  inScrollingStatus.store(false);
   if (dvsyncEnabled.load()) {
     SetDvsyncSwitch(false);
-    inScrollingStatus.store(false);
     dvsyncEnabled.store(false);
   }
 }
 
 void VsyncWaiterOHOS::EnableDVsync() {
+  inScrollingStatus.store(true);
   if (!dvsyncEnabled.load()) {
     SetDvsyncSwitch(true);
-    inScrollingStatus.store(true);
     dvsyncEnabled.store(true);
   }
 }
