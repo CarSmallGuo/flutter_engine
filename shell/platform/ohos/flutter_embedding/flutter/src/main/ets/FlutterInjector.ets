@@ -10,6 +10,7 @@ import FlutterLoader from './embedding/engine/loader/FlutterLoader';
 /**
  * flutter相关主要类的单例持有，帮助实现自身和其他类的实例化管理
  */
+// api18 3.7.12流水线测试
 export default class FlutterInjector {
   private static instance: FlutterInjector;
 
