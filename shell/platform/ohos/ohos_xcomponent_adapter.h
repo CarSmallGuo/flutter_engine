@@ -42,6 +42,7 @@ public:
   void OnDispatchMouseEvent(OH_NativeXComponent* component, void* window);
   void OnDispatchMouseWheelEvent(mouseWheelEvent event);
   void OnDispatchMouseLeaveEvent(OH_NativeXComponent* component);
+  void OnUIInputAxisEvent(ArkUI_UIInputEvent* event);
 
   // Accessibility callback
   int32_t FindAccessibilityNodeInfosById(
