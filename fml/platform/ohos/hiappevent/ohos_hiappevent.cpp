@@ -1,5 +1,6 @@
 #include "ohos_hiappevent.h"
 
+#include <thread>
 #include <dlfcn.h>
 #include <deviceinfo.h>
 #include "flutter/fml/logging.h"
@@ -19,28 +20,14 @@ namespace fml{
 
         OhosHiappEventDDL::OhosHiappEventDDL(void)
         {
-
+            apiVrsion_ = OH_GetSdkApiVersion();
             return;
         }
 
         OhosHiappEventDDL::~OhosHiappEventDDL() = default;
 
-
-        void OhosHiappEventDDL::init(void)
+        void OhosHiappEventDDL::apiGet(void)
         {
-            apiVrsion_ = OH_GetSdkApiVersion();
-            if (apiVrsion_ < 18) {
-                FML_LOG(ERROR) << "apiVrsion error" << apiVrsion_;
-                return;
-            }
-
-            if (isInit_) {
-                FML_LOG(INFO) << "Initialization has been completed";
-                return;
-            }
-
-            isInit_ = true;
-
             libhiappevent_ndk_handler_ = dlopen(HiAppEvent_LIB_NAME, RTLD_LAZY | RTLD_LOCAL);
             if (libhiappevent_ndk_handler_ == nullptr) {
                 FML_LOG(ERROR) << "dlopen libhiappevent_ndk_handler_ failed";
@@ -118,6 +105,26 @@ namespace fml{
             return;
         }
 
+        void OhosHiappEventDDL::init(void)
+        {
+
+            if (apiVrsion_ < 18) {
+                FML_LOG(ERROR) << "apiVrsion error" << apiVrsion_;
+                return;
+            }
+
+            if (isInit_) {
+                FML_LOG(INFO) << "Initialization has been completed";
+                return;
+            }
+
+            std::thread hiappeventThread(&OhosHiappEventDDL::apiGet, this);
+            hiappeventThread.join();
+            isInit_ = true;
+
+            return;
+        }
+
         void OhosHiappEventDDL::reportMissedFrameEvent(int64_t timestamp_micros, const char** argument_values)
         {
 
@@ -155,13 +162,14 @@ namespace fml{
                 return;
             }
 
-            setReportRouteFunc_(processor,"flutter","test");
+            setReportRouteFunc_(processor,"flutter",nullptr);
             setReportPoliceFunc_(processor,1,1,true,true);
             setReportEventFunc_(processor,"PERFORMANCE","OTHER_JANK",true);
 
             int64_t processorId = addFunc_(processor);
             if(processorId <= 0){
                 FML_LOG(ERROR)<<"processorId error";
+                destroyProcessor_(processor);
                 return;
             }
 
@@ -177,6 +185,7 @@ namespace fml{
                 int64_t timestamp_micros = (*it).timestamp_micros;
                 if(timestamp_micros < time_tmp) {
                     FML_LOG(ERROR) << "report error";
+                    destroyProcessor_(processor);
                     return;
                 }
 
@@ -188,6 +197,7 @@ namespace fml{
                 ParamList list = OH_HiAppEvent_CreateParamList();
                 if(list == nullptr){
                     FML_LOG(ERROR)<<"list error";
+                    destroyProcessor_(processor);
                     return;
                 }
                 addStringParam_(list,"frameworkName","FLUTTER");
