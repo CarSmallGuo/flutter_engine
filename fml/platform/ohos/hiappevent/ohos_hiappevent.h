@@ -43,6 +43,8 @@ namespace fml{
 
                 void flush(void);
 
+                void apiGet(void);
+
             private:
 
                 void* libhiappevent_ndk_handler_ = nullptr;
