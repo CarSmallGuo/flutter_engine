@@ -53,10 +53,14 @@
      if (type != Dart_Timeline_Event_Begin && strcmp(name, OHOS_FILTER_NAME_SCENE) == 0) {
          // Trace 'SceneDisplayLag' have inconsistent parameters. It's not good to watch.
          realNumber = 0;
- 
-         int vsync_transitions_missed = std::stoi(argument_values[2]);
-         if(vsync_transitions_missed > 2){
-             fml::hiappevent::OhosHiappEventDDL::GetInstance()->reportMissedFrameEvent(timestamp_micros, argument_values);
+
+         if (argument_count >= 3) {
+            int vsync_transitions_missed = std::stoi(argument_values[2]);
+            if(vsync_transitions_missed > 2){
+                fml::hiappevent::OhosHiappEventDDL::GetInstance()->reportMissedFrameEvent(timestamp_micros,
+                                                                                          argument_values,
+                                                                                          argument_count);
+            }
          }
      }
  
