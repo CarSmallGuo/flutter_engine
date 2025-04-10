@@ -53,10 +53,16 @@ void OHOSTraceTimelineEvent(TraceArg category_group,
 
          // Trace 'SceneDisplayLag' have inconsistent parameters. It's not good to watch.
          realNumber = 0;
+
+
          if (type == Dart_Timeline_Event_Async_begin) {
+            if (argument_count >= 3) {
             int vsync_transitions_missed = std::stoi(argument_values[2]);
             if(vsync_transitions_missed > 2) {
-                fml::hiappevent::OhosHiappEventDDL::GetInstance()->reportMissedFrameEvent(timestamp_micros, argument_values);
+                fml::hiappevent::OhosHiappEventDDL::GetInstance()->reportMissedFrameEvent(timestamp_micros, 
+                                                                                          argument_values,
+                                                                                          argument_count);
+            }
             }
          }
     }
