@@ -32,6 +32,8 @@ public:
                             OH_NativeXComponent_MouseEvent mouseEvent,
                             double offsetY,
                             bool isLeave = false);
+    void HandlePanZooomEvent(int64_t shell_holderID,
+                            ArkUI_UIInputEvent *event);
     void HandleVirtualTouchEvent(int64_t shell_holderID,
                                 OH_NativeXComponent* component,
                                 OH_NativeXComponent_TouchEvent* touchEvent);
@@ -53,6 +55,8 @@ private:
                                 OH_NativeXComponent_TouchPointToolType toolType,
                                 OH_NativeXComponent* component,
                                 OH_NativeXComponent_TouchEvent* touchEvent);
+    double panX_;  //The cumulative movement in the x direction of an axis event
+    double panY_;
 };
 }  // namespace flutter
 #endif  // XComponent_OhosTouchProcessor_H
