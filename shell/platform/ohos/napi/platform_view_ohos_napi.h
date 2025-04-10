@@ -160,6 +160,9 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);  // 应用下发系统语言设置
 
+  static napi_value nativeInitNativeImage(napi_env env,
+                                          napi_callback_info info);
+
   static napi_value nativeUnregisterTexture(napi_env env,
                                             napi_callback_info info);
 

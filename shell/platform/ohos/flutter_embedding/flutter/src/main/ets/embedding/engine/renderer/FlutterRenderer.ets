@@ -18,6 +18,7 @@ import { BusinessError } from '@ohos.base';
 import { SurfaceTextureEntry, TextureRegistry } from '../../../view/TextureRegistry';
 import { FlutterAbility } from '../../ohos/FlutterAbility';
 import FlutterNapi from '../FlutterNapi';
+import { SurfaceTextureWrapper } from './SurfaceTextureWrapper';
 import Log from '../../../util/Log';
 
 const TAG = "FlutterRenderer"
@@ -28,6 +29,14 @@ export class FlutterRenderer implements TextureRegistry {
 
   constructor(flutterNapi: FlutterNapi) {
     this.flutterNapi = flutterNapi;
+  }
+
+  /**
+   * @deprecated since 3.7
+   */
+  createSurfaceTexture(): SurfaceTextureEntry {
+    let receiver: image.ImageReceiver = this.getImageReceiver();
+    return this.registerSurfaceTexture(receiver);
   }
 
   getTextureId(): number {
@@ -47,6 +56,17 @@ export class FlutterRenderer implements TextureRegistry {
     return surfaceTextureRegistryEntry;
   }
 
+  /**
+   * @deprecated since 3.7
+   */
+  registerSurfaceTexture(receiver: image.ImageReceiver): SurfaceTextureEntry {
+    let nextTextureId: number = FlutterRenderer.globalTextureId + 1;
+    FlutterRenderer.globalTextureId = FlutterRenderer.globalTextureId + 1;
+    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(nextTextureId);
+    surfaceTextureRegistryEntry.setImageReceiver(receiver);
+    this.registerImage(surfaceTextureRegistryEntry.getTextureId(), surfaceTextureRegistryEntry.textureWrapper());
+    return surfaceTextureRegistryEntry;
+  }
 
   registerPixelMap(pixelMap: PixelMap): number {
     let nextTextureId: number = this.getTextureId();
@@ -88,16 +108,65 @@ export class FlutterRenderer implements TextureRegistry {
   onTrimMemory(level: number) {
     throw new Error('Method not implemented.');
   }
+
+  /**
+   * @deprecated since 3.7
+   */
+  private getImageReceiver(): image.ImageReceiver {
+    let receiver: image.ImageReceiver = image.createImageReceiver(640, 480, 4, 8);
+    if (receiver !== undefined) {
+      Log.i(TAG, '[camera test] ImageReceiver is ok');
+    } else {
+      Log.i(TAG, '[camera test] ImageReceiver is not ok');
+    }
+    return receiver;
+  }
+
+  /**
+   * @deprecated since 3.7
+   */
+  private registerImage(textureId: number, surfaceTextureWrapper: SurfaceTextureWrapper): void {
+    let receiver = surfaceTextureWrapper.getImageReceiver();
+    receiver.on('imageArrival', () => {
+      receiver.readNextImage((err: BusinessError, nextImage: image.Image) => {
+        if (err || nextImage === undefined) {
+          return;
+        }
+        this.flutterNapi.initNativeImage(textureId, nextImage);
+        Log.i(TAG, "[camera test] format: " + nextImage.format);
+        nextImage.release((err : BusinessError) =>{
+          if (err != undefined) {
+            Log.i(TAG, 'Failed to release the image source instance.');
+          } else {
+            Log.i(TAG, 'Succeeded in releasing the image source instance.');
+          }
+        });
+      })
+    })
+  }
+
 }
 
 export class SurfaceTextureRegistryEntry implements SurfaceTextureEntry {
   private textureId: number = 0;
   private surfaceId: number = 0;
   private nativeWindowId: number = 0;
+  private surfaceTextureWrapper: SurfaceTextureWrapper | null = null;
   private released: boolean = false;
 
   constructor(id: number) {
     this.textureId = id;
+  }
+
+  /**
+   * @deprecated since 3.7
+   */
+  getImageReceiver(): image.ImageReceiver {
+    return this.surfaceTextureWrapper!.getImageReceiver();
+  }
+
+  setImageReceiver(receiver: image.ImageReceiver): void {
+    this.surfaceTextureWrapper = new SurfaceTextureWrapper(receiver);
   }
 
   getTextureId(): number {
@@ -118,6 +187,10 @@ export class SurfaceTextureRegistryEntry implements SurfaceTextureEntry {
 
   setNativeWindowId(nativeWindowId: number): void {
     this.nativeWindowId = nativeWindowId;
+  }
+
+  textureWrapper(): SurfaceTextureWrapper {
+    return this.surfaceTextureWrapper!;
   }
 
   release() {

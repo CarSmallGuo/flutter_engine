@@ -574,6 +574,18 @@ export default class FlutterNapi {
     this.readyForHandleMessage = false;
   }
 
+  /**
+   * @deprecated since 3.7
+   */
+  initNativeImage(textureId: number, aImage: image.Image) {
+    Log.d(TAG, "called initNativeImage ");
+    if (!this.isAttached()) {
+      Log.e(TAG, "initNativeImage this.nativeShellHolderId:" + this.nativeShellHolderId)
+      return;
+    }
+    flutter.nativeInitNativeImage(this.nativeShellHolderId!, textureId, aImage);
+  }
+
   unregisterTexture(textureId: number): void {
     Log.d(TAG, "called unregisterTexture ");
     if (!this.nativeShellHolderId) {

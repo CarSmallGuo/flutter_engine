@@ -123,6 +123,10 @@ export const nativeDestroy: (
   nativeShellHolderId: number
 ) => void;
 
+/**
+ * @deprecated since 3.7
+ */
+export const nativeInitNativeImage: (nativeShellHolderId: number, textureId: number, aImage: image.Image) => void;
 
 export const nativeUnregisterTexture: (nativeShellHolderId: number, textureId: number) => void;
 

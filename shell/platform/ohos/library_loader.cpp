@@ -119,6 +119,9 @@ static napi_value Init(napi_env env, napi_value exports) {
           "nativeXComponentDispatchMouseWheel",
           flutter::PlatformViewOHOSNapi::nativeXComponentDispatchMouseWheel),
       DECLARE_NAPI_FUNCTION(
+          "nativeInitNativeImage",
+          flutter::PlatformViewOHOSNapi::nativeInitNativeImage),
+      DECLARE_NAPI_FUNCTION(
           "nativeRegisterTexture",
           flutter::PlatformViewOHOSNapi::nativeRegisterTexture),
       DECLARE_NAPI_FUNCTION(

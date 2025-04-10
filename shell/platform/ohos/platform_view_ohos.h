@@ -177,6 +177,9 @@ class PlatformViewOHOS final : public PlatformView {
 
   void SimulateTouchEvent(SemanticsNodeExtend* node);
 
+  void RegisterExternalTextureByImage(int64_t texture_id,
+                                      ImageNative* image);
+
  private:
   const std::shared_ptr<PlatformViewOHOSNapi> napi_facade_;
   std::shared_ptr<OHOSContext> ohos_context_;

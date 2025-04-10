@@ -1552,6 +1552,24 @@ napi_value PlatformViewOHOSNapi::nativeGetSystemLanguages(
   return nullptr;
 }
 
+napi_value PlatformViewOHOSNapi::nativeInitNativeImage(
+  napi_env env,
+  napi_callback_info info) {
+FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeInitNativeImage";
+size_t argc = 3;
+napi_value args[3] = {nullptr};
+int64_t shell_holder;
+int64_t textureId;
+NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
+NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
+NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
+ImageNative* imageNative = OH_Image_InitImageNative(env, args[2]);
+// std::unique_ptr<ImageNative> uImage;
+OHOS_SHELL_HOLDER->GetPlatformView()->RegisterExternalTextureByImage(
+    textureId, imageNative);
+return nullptr;
+}
+
 napi_value PlatformViewOHOSNapi::nativeRegisterTexture(
     napi_env env,
     napi_callback_info info) {

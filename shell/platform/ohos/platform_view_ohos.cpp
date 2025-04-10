@@ -555,6 +555,19 @@ void PlatformViewOHOS::FireFirstFrameCallback(bool is_preload) {
   napi_facade_->FlutterViewOnFirstFrame(is_preload);
 }
 
+void PlatformViewOHOS::RegisterExternalTextureByImage(int64_t texture_id,
+                                                      ImageNative* image) {
+  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
+    auto iter = all_external_texture_.find(texture_id);
+    if (iter == all_external_texture_.end()) {
+      auto extrenal_texture = CreateExternalTexture(texture_id);
+      if (extrenal_texture != nullptr) {
+        FML_LOG(ERROR) << "PlatformViewOHOS::RegisterExternalTextureByImage failed.";
+      }
+    }
+  }
+}
+
 PointerDataDispatcherMaker PlatformViewOHOS::GetDispatcherMaker() {
   return [](DefaultPointerDataDispatcher::Delegate& delegate) {
     return std::make_unique<SmoothPointerDataDispatcher>(delegate);
