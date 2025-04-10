@@ -132,6 +132,7 @@ void Animator::BeginFrame(
             TRACE_EVENT0("flutter", "BeginFrame idle callback");
             self->delegate_.OnAnimatorNotifyIdle(
                 now + fml::TimeDelta::FromMilliseconds(100));
+            self->waiter_->DisableDVsyncWithoutFling();
           }
         },
         kNotifyIdleTaskWaitTime);
