@@ -1,16 +1,7 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.	
- * Licensed under the Apache License, Version 2.0 (the "License");	
- * you may not use this file except in compliance with the License.	
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2021-2024 Huawei Device Co., Ltd. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE_HW file.
  */
 
 #include "flutter/fml/trace_event.h"
@@ -36,7 +27,8 @@ void OHOSTraceTimelineEvent(TraceArg category_group,
                             Dart_Timeline_Event_Type type,
                             intptr_t argument_count,
                             const char** argument_names,
-                            const char** argument_values) {
+                            const char** argument_values)
+{
     if (type != Dart_Timeline_Event_Begin && type != Dart_Timeline_Event_Async_Begin &&
         type != Dart_Timeline_Event_Async_End && type != Dart_Timeline_Event_Flow_Begin &&
         type != Dart_Timeline_Event_Flow_End) {
@@ -52,7 +44,7 @@ void OHOSTraceTimelineEvent(TraceArg category_group,
     if (type != Dart_Timeline_Event_Begin && strcmp(name, OHOS_FILTER_NAME_SCENE) == 0) {
         // Trace 'SceneDisplayLag' have inconsistent parameters. It's not good to watch.
         realNumber = 0;
-        if ((type == Dart_Timeline_Event_Async_begin) && (argument_count >= 3)) {
+        if ((type == Dart_Timeline_Event_Async_Begin) && (argument_count >= 3)) {
             int vsync_transitions_missed = std::stoi(argument_values[2]);
             if (vsync_transitions_missed > 2) {
                 fml::hiappevent::OhosHiappEventDDL::GetInstance()->ReportJANKEvent(
@@ -96,7 +88,8 @@ void OHOSTraceTimelineEvent(TraceArg category_group,
                             Dart_Timeline_Event_Type type,
                             intptr_t argument_count,
                             const char** argument_names,
-                            const char** argument_values) {
+                            const char** argument_values)
+{
     if (type != Dart_Timeline_Event_Begin && type != Dart_Timeline_Event_Async_Begin &&
         type != Dart_Timeline_Event_Async_End && type != Dart_Timeline_Event_Flow_Begin &&
         type != Dart_Timeline_Event_Flow_End) {

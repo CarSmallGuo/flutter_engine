@@ -11,6 +11,7 @@
 #include <functional>
 #include "flutter/fml/logging.h"
 #include "accessibility/ohos_semantics_bridge.h"
+#include "flutter/fml/platform/ohos/hiappevent/ohos_hiappevent.h"
 
 namespace flutter {
 

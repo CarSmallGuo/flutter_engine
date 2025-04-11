@@ -6,9 +6,10 @@
 
 #include "ohos_hiappevent.h"
 
-#include <deviceinfo.h>
 #include <dlfcn.h>
 #include <thread>
+#include <unistd.h>
+#include <deviceinfo.h>
 #include "flutter/fml/logging.h"
 
 namespace fml {
@@ -18,7 +19,7 @@ namespace hiappevent {
 OhosHiappEventDDL* OhosHiappEventDDL::instance_ = nullptr;
 
 static constexpr char HiAppEvent_LIB_NAME[] = "libhiappevent_ndk.z.so";
-static const int Missed_Frame_Infos_Size = 20;
+static const int Missed_Frame_Infos_Size = 10;
 static const int Required_Api_Version = 18;
 static const int Argument_Size = 3;
 
@@ -159,7 +160,6 @@ void OhosHiappEventDDL::Flush(void)
         return;
     }
 
-    setReportRouteFunc_(processor, "flutter", nullptr);
     setReportPoliceFunc_(processor, 1, 1, true, true);
     setReportEventFunc_(processor, "PERFORMANCE", "OTHER_JANK", true);
 
