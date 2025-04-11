@@ -262,6 +262,7 @@ export struct FlutterPage {
   @State checkKeyboard: boolean = true;
   @State checkGesture: boolean = true;
   @State checkMouseWheel: boolean = true;
+  @State checkAiBar: boolean = true;
   @Prop @Watch("onPaddingChange")paddingTop?: number = undefined;
   @StorageLink('nodeWidth') storageLinkWidth: number = 0;
   @StorageLink('nodeHeight') storageLinkHeight: number = 0;
@@ -282,6 +283,7 @@ export struct FlutterPage {
     this.flutterView?.setCheckKeyboard(this.checkKeyboard)
     this.flutterView?.setCheckGesture(this.checkGesture)
     this.flutterView?.setPaddingTop(this.paddingTop)
+    this.flutterView?.setCheckAiBar(this.checkAiBar)
 
     this.rootDvModel = this.flutterView?.getDVModel().children
     getContext().eventHub.on(OHOS_FLUTTER_PAGE_UPDATE, () => {
