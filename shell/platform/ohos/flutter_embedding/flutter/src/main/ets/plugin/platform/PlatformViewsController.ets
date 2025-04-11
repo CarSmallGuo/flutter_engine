@@ -129,6 +129,7 @@ export default class PlatformViewsController implements PlatformViewsHandler {
       if (index > -1) {
         this.flutterView.getDVModel().children.splice(index, 1);
         platformView.onFlutterViewDetached();
+        platformView.onFlutterViewDetached();
       }
     }
     this.viewWrappers.delete(viewId);
