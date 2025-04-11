@@ -100,15 +100,15 @@ void TraceTimelineEvent(TraceArg category_group,
       const_cast<const char**>(c_names.data()),    // argument_names
       c_values.data()                              // argument_values
   );
-#if defined(FML_OS_OHOS)
-    OHOSTraceTimelineEvent(
-        category_group,
-        name, timestamp_micros,
-        identifier,
-        type,
-        argument_count,
-        const_cast<const char**>(c_names.data()),
-c_values.data());
+  #if defined(FML_OS_OHOS)
+  OHOSTraceTimelineEvent(category_group, 
+      name,
+      timestamp_micros, 
+      identifier,
+      type, 
+      argument_count, 
+      const_cast<const char**>(c_names.data()),
+      c_values.data());
 #endif
 }
 
