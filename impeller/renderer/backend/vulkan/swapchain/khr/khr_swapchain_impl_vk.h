@@ -78,9 +78,9 @@ class KHRSwapchainImplVK final
   bool enable_msaa_ = true;
   bool is_valid_ = false;
   int hdr_ = 0;
-  constexpr int kHDRPQ = 2;
-  constexpr int kHDRHLG = 1;
-  constexpr int kSDR = 0;
+  static constexpr int kHDRPQ = 2;
+  static constexpr int kHDRHLG = 1;
+  static constexpr int kSDR = 0;
 
   KHRSwapchainImplVK(const std::shared_ptr<Context>& context,
                      vk::UniqueSurfaceKHR surface,
