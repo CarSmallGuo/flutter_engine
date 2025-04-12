@@ -7,6 +7,7 @@
 #include "impeller/renderer/backend/vulkan/allocator_vk.h"
 #include "impeller/renderer/backend/vulkan/context_vk.h"
 #include "impeller/renderer/backend/vulkan/yuv_conversion_library_vk.h"
+#include "impeller/renderer/context.h"
 
 #include <native_buffer/native_buffer.h>
 
@@ -53,7 +54,28 @@ static TextureDescriptor CreateTextureDescriptorFromNativeWindowBuffer(
     return descriptor;
   }
   OH_NativeBuffer_GetConfig(native_buffer, &nativebuffer_config);
+  OH_NativeBuffer_ColorSpace color_space;
+  OH_NativeBuffer_GetColorSpace(native_buffer, &color_space);
+
+  if (impeller::Context::is_image_ == false) {
+    if (color_space == OH_COLORSPACE_DISPLAY_BT2020_PQ &&
+        impeller::Context::enable_hdr_) {
+      FML_DLOG(ERROR) << "color_space = OH_COLORSPACE_DISPLAY_BT2020_PQ";
+      impeller::Context::hdr_ = 2;
+    } else if (color_space == OH_COLORSPACE_BT2020_HLG_LIMIT &&
+               impeller::Context::enable_hdr_) {
+      FML_DLOG(ERROR) << "color_space = OH_COLORSPACE_BT2020_HLG_LIMIT";
+      impeller::Context::hdr_ = 1;
+    } else {
+      FML_DLOG(ERROR) << "default color_space = OH_COLORSPACE_BT709";
+      impeller::Context::hdr_ = 0;
+    }
+  }
+
   descriptor.format = ToPixelFormat(nativebuffer_config.format);
+  if (impeller::Context::hdr_ > 0) {
+    descriptor.format = PixelFormat::kR10G10B10A2;
+  }
   descriptor.size =
       ISize{nativebuffer_config.width, nativebuffer_config.height};
   descriptor.storage_mode = StorageMode::kDevicePrivate;
