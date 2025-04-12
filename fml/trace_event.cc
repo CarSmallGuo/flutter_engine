@@ -101,14 +101,14 @@ void TraceTimelineEvent(TraceArg category_group,
       c_values.data()                              // argument_values
   );
 #if defined(FML_OS_OHOS)
-    OHOSTraceTimelineEvent(
-        category_group,
-        name, timestamp_micros,
-        identifier,
-        type,
-        argument_count,
-        const_cast<const char**>(c_names.data()),
-c_values.data());
+  OHOSTraceTimelineEvent(category_group, 
+      name,
+      timestamp_micros, 
+      identifier,
+      type, 
+      argument_count, 
+      const_cast<const char**>(c_names.data()),
+      c_values.data());
 #endif
 }
 
@@ -147,8 +147,7 @@ void TraceEvent0(TraceArg category_group,
                        nullptr                     // argument_values
   );
 #if defined(FML_OS_OHOS)
-  OHOSTraceTimelineEvent(category_group, name, 0, Dart_Timeline_Event_Begin, 0,
-                         nullptr, nullptr);
+  OHOSTraceTimelineEvent(category_group, name, 0, Dart_Timeline_Event_Begin, 0, nullptr, nullptr);
 #endif
 }
 
@@ -171,8 +170,7 @@ void TraceEvent1(TraceArg category_group,
                        arg_values                  // argument_values
   );
 #if defined(FML_OS_OHOS)
-  OHOSTraceTimelineEvent(category_group, name, 0, Dart_Timeline_Event_Begin, 1,
-                         arg_names, arg_values);
+  OHOSTraceTimelineEvent(category_group, name, 0, Dart_Timeline_Event_Begin, 1, arg_names, arg_values);
 #endif
 }
 
@@ -197,8 +195,7 @@ void TraceEvent2(TraceArg category_group,
                        arg_values                  // argument_values
   );
 #if defined(FML_OS_OHOS)
-  OHOSTraceTimelineEvent(category_group, name, 0, Dart_Timeline_Event_Begin, 2,
-                         arg_names, arg_values);
+  OHOSTraceTimelineEvent(category_group, name, 0, Dart_Timeline_Event_Begin, 2, arg_names, arg_values);
 #endif
 }
 
@@ -234,8 +231,7 @@ void TraceEventAsyncBegin0(TraceArg category_group,
                        nullptr                           // argument_values
   );
 #if defined(FML_OS_OHOS)
-  OHOSTraceTimelineEvent(category_group, name, id,
-                         Dart_Timeline_Event_Async_Begin, 0, nullptr, nullptr);
+  OHOSTraceTimelineEvent(category_group, name, id, Dart_Timeline_Event_Async_Begin, 0, nullptr, nullptr);
 #endif
 }
 
@@ -253,8 +249,7 @@ void TraceEventAsyncEnd0(TraceArg category_group,
                        nullptr                         // argument_values
   );
 #if defined(FML_OS_OHOS)
-  OHOSTraceTimelineEvent(category_group, name, id,
-                         Dart_Timeline_Event_Async_End, 0, nullptr, nullptr);
+  OHOSTraceTimelineEvent(category_group, name, id, Dart_Timeline_Event_Async_End, 0, nullptr, nullptr);
 #endif
 }
 
@@ -278,9 +273,7 @@ void TraceEventAsyncBegin1(TraceArg category_group,
                        arg_values                        // argument_values
   );
 #if defined(FML_OS_OHOS)
-  OHOSTraceTimelineEvent(category_group, name, id,
-                         Dart_Timeline_Event_Async_Begin, 1, arg_names,
-                         arg_values);
+  OHOSTraceTimelineEvent(category_group, name, id, Dart_Timeline_Event_Async_Begin, 1, arg_names, arg_values);
 #endif
 }
 
@@ -302,9 +295,7 @@ void TraceEventAsyncEnd1(TraceArg category_group,
                        arg_values                      // argument_values
   );
 #if defined(FML_OS_OHOS)
-  OHOSTraceTimelineEvent(category_group, name, id,
-                         Dart_Timeline_Event_Async_End, 1, arg_names,
-                         arg_values);
+  OHOSTraceTimelineEvent(category_group, name, id, Dart_Timeline_Event_Async_End, 1, arg_names, arg_values);
 #endif
 }
 
@@ -380,8 +371,7 @@ void TraceEventFlowBegin0(TraceArg category_group,
                        nullptr                          // argument_values
   );
 #if defined(FML_OS_OHOS)
-  OHOSTraceTimelineEvent(category_group, name, id,
-                         Dart_Timeline_Event_Flow_Begin, 0, nullptr, nullptr);
+  OHOSTraceTimelineEvent(category_group, name, id, Dart_Timeline_Event_Flow_Begin, 0, nullptr, nullptr);
 #endif
 }
 
@@ -412,8 +402,7 @@ void TraceEventFlowEnd0(TraceArg category_group, TraceArg name, TraceIDArg id) {
                        nullptr                        // argument_values
   );
 #if defined(FML_OS_OHOS)
-  OHOSTraceTimelineEvent(category_group, name, id, Dart_Timeline_Event_Flow_End,
-                         0, nullptr, nullptr);
+  OHOSTraceTimelineEvent(category_group, name, id, Dart_Timeline_Event_Flow_End, 0, nullptr, nullptr);
 #endif
 }
 
