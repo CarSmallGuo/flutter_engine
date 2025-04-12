@@ -20,7 +20,12 @@
  #include "flutter/shell/platform/ohos/utils/ohos_utils.h"
  
  namespace flutter {
- 
+
+ SemanticsBridge::SemanticsBridge() {
+   // load the needed accessibility funtion ptr 
+   this->DynamicLoadAccessibilityLibrary();
+ }
+
  void SemanticsBridge::UpdateNodeTree(flutter::SemanticsNodeUpdates& nodes) {
    auto update_nodes = tree_.UpdateWithNodes(nodes);
  
@@ -275,6 +280,31 @@
  
  void SemanticsBridge::OnAccessibilityNavigation(bool is_nav) {
    has_navigationed_ = is_nav;
+ }
+
+  /**
+   * Dynamically load the ArkUI accessiblity C-API interface to 
+   * be compatible with API-12+ versions
+   */
+  void SemanticsBridge::DynamicLoadAccessibilityLibrary() {
+    OH_ArkUI_CreateAccessibilityEventInfo = 
+        OhosAccessibilityDDL::DLLoadCreateEventInfoFunc(ArkUIAccessibilityConstant::ARKUI_CREATE_EVENT);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_CreateAccessibilityEventInfo);
+    OH_ArkUI_DestoryAccessibilityEventInfo =
+      OhosAccessibilityDDL::DLLoadDestroyEventFunc(ArkUIAccessibilityConstant::ARKUI_DESTORY_EVENT);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_DestoryAccessibilityEventInfo);
+    OH_ArkUI_SendAccessibilityAsyncEvent =
+        OhosAccessibilityDDL::DLLoadSendAsyncEventFunc(ArkUIAccessibilityConstant::ARKUI_SEND_A11Y_EVENT);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_SendAccessibilityAsyncEvent);
+    OH_ArkUI_AccessibilityEventSetElementInfo =
+        OhosAccessibilityDDL::DLLoadSetEventElemFunc(ArkUIAccessibilityConstant::ARKUI_EVENT_SET_NODE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityEventSetElementInfo);
+    OH_ArkUI_AccessibilityEventSetEventType =
+        OhosAccessibilityDDL::DLLoadSetEventFunc(ArkUIAccessibilityConstant::ARKUI_SET_EVENT_TYPE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityEventSetEventType);
+    OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility =
+        OhosAccessibilityDDL::DLLoadSetEventStringFunc(ArkUIAccessibilityConstant::ARKUI_SET_ANNOUNCED_TEXT);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility);
  }
  
  }  // namespace flutter

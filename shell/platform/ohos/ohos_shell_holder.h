@@ -25,6 +25,8 @@
 #include "napi_common.h"
 #include "ohos_asset_provider.h"
 #include "ohos_image_generator.h"
+#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_ddl.h"
+#include "flutter/shell/platform/ohos/utils/arkui_accessibility_constant.h"
 
 namespace flutter {
 
@@ -101,9 +103,15 @@ class OHOSShellHolder {
   std::shared_ptr<ThreadHost> thread_host_;
   std::unique_ptr<Shell> shell_;
   uint64_t next_pointer_flow_id_ = 0;
-
+  
+  // accessibility
+  const char* ARKUI_ACTION_ARG_SET_TEXT = "setText";
+  const char* ARKUI_ACTION_ARG_SELECT_TEXT_START = "selectTextBegin";
+  const char* ARKUI_ACTION_ARG_SELECT_TEXT_END = "selectTextEnd";
   std::shared_ptr<SemanticsBridge> bridge_;
   std::shared_ptr<std::mutex> bridge_mutex_;
+  // function pointers from libflutter_accessibility.so
+  GetFindActionArgs OH_ArkUI_FindAccessibilityActionArgumentByKey;
 
   std::unique_ptr<OHOSAssetProvider> assetProvider_;
 
@@ -117,6 +125,14 @@ class OHOSShellHolder {
                   const fml::WeakPtr<PlatformViewOHOS>& platform_view);
 
   static void ThreadDestructCallback(void* value);
+
+  // accessibility
+  std::vector<uint8_t> GetAccessibilitySelectText(
+    ArkUI_AccessibilityActionArguments* args,
+    SemanticsNodeExtend* node);
+  std::vector<uint8_t> GetAccessibilitySetText(
+    ArkUI_AccessibilityActionArguments* args,
+    SemanticsNodeExtend* node);
 
   FML_DISALLOW_COPY_AND_ASSIGN(OHOSShellHolder);
 };

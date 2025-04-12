@@ -11,6 +11,8 @@
 #include <unordered_set>
 #include <vector>
 #include "flutter/lib/ui/semantics/semantics_node.h"
+#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_ddl.h"
+#include "flutter/shell/platform/ohos/utils/arkui_accessibility_constant.h"
 
 namespace flutter {
 
@@ -118,6 +120,38 @@ struct SemanticsNodeExtend : flutter::SemanticsNode {
     std::vector<ArkUI_AccessibleAction> operationActions;
     ArkUI_AccessibilityElementInfo* elementInfo = nullptr;
 
+    // function pointers from libflutter_accessibility.so
+    CreateElemInfoFunc OH_ArkUI_CreateAccessibilityElementInfo;
+    DestroyElemFunc OH_ArkUI_DestoryAccessibilityElementInfo;
+    SetElemChildFunc OH_ArkUI_AccessibilityElementInfoSetChildNodeIds;
+    SetElemOperActionsFunc OH_ArkUI_AccessibilityElementInfoSetOperationActions; 
+    SetElemSreenRectFunc OH_ArkUI_AccessibilityElementInfoSetScreenRect;
+    SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetElementId;
+    SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetParentId;
+    SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetStartItemIndex;
+    SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetEndItemIndex;
+    SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetItemCount; 
+    SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetSelectedTextStart;
+    SetElemIntFunc OH_ArkUI_AccessibilityElementInfoSetSelectedTextEnd;
+    SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetComponentType;
+    SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetContents;
+    SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetHintText; 
+    SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityText; 
+    SetElemStringFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel; 
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetCheckable; 
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetChecked; 
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetFocusable; 
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetFocused;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetVisible;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetSelected;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetClickable;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetLongClickable;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetEnabled;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetIsPassword;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetScrollable;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetEditable;
+    SetElemBoolFunc OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup;
+
     SemanticsNodeExtend();
     ~SemanticsNodeExtend();
 
@@ -212,6 +246,11 @@ struct SemanticsNodeExtend : flutter::SemanticsNode {
     bool IsShowOnScreen() {
         return HasAction(ACTIONS_::kShowOnScreen);
     }
+
+    void DynamicLoadAccessibilityLibrary();
+    void DynamicLoadSetElemIntFunc();
+    void DynamicLoadSetElemStringFunc();
+    void DynamicLoadSetElemBoolFunc();
 };
 
 }

@@ -19,6 +19,7 @@ import PlatformView, { Params } from '../plugin/platform/PlatformView';
 import { JSON } from '@kit.ArkTS';
 import { accessibility } from '@kit.AccessibilityKit';
 import TextInputPlugin from '../plugin/editing/TextInputPlugin';
+import { deviceInfo } from '@kit.BasicServicesKit';
 
 const TAG = "FlutterViewTag";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
@@ -280,7 +281,12 @@ export class FlutterView {
 
   private accessibilityStateChangeCallback = (data: boolean) => {
     Log.i(TAG, `subscribe accessibility state change, result: ${JSON.stringify(data)}`);
-    this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(data);
+    let sdkApiVersion: number = deviceInfo.sdkApiVersion;
+    if (sdkApiVersion >= 13) {
+      this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(data);
+    } else {
+      Log.w(TAG, "Flutter-ohos accessibility service is only supported at API-13+");
+    }
   }
 
   private avoidAreaChangeCallback = (data: window.AvoidAreaOptions) => {
@@ -408,7 +414,12 @@ export class FlutterView {
     this.updateViewportMetrics()
 
     if (accessibility.isOpenAccessibilitySync()) {
-      this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(true);
+      let sdkApiVersion: number = deviceInfo.sdkApiVersion;
+      if (sdkApiVersion >= 13) {
+        this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(true);
+      } else {
+        Log.w(TAG, "Flutter-ohos accessibility service is only supported at API-13+");
+      }
     }
 
     let newArea: Area | null = {

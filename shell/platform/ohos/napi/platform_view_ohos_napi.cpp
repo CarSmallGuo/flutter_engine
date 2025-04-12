@@ -2052,6 +2052,10 @@ napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callba
 napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
     napi_env env,
     napi_callback_info info) {
+  if (OH_GetSdkApiVersion() < 13) {
+    FML_DLOG(WARNING) << "PlatformViewOHOSNapi::nativeAccessibilityStateChange is only supported at API-13+";
+    return nullptr;
+  }
   size_t argc = 2;
   napi_value args[2] = {nullptr};
   int64_t shell_holder;
@@ -2068,6 +2072,10 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityStateChange(
 napi_value PlatformViewOHOSNapi::nativeAccessibilityAnnounce(
     napi_env env,
     napi_callback_info info) {
+  if (OH_GetSdkApiVersion() < 13) {
+    FML_DLOG(WARNING) << "PlatformViewOHOSNapi::nativeAccessibilityAnnounce is only supported at API-13+";
+    return nullptr;
+  }
   FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeAccessibilityAnnounce";
   size_t argc = 2;
   napi_value args[2] = {nullptr};
@@ -2090,6 +2098,10 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityAnnounce(
 napi_value PlatformViewOHOSNapi::nativeAccessibilityOnTap(
     napi_env env,
     napi_callback_info info) {
+  if (OH_GetSdkApiVersion() < 13) {
+    FML_DLOG(WARNING) << "PlatformViewOHOSNapi::nativeAccessibilityOnTap is only supported at API-13+";
+    return nullptr;
+  }
   FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeAccessibilityOnTap";
   size_t argc = 2;
   napi_value args[2] = {nullptr};
@@ -2107,6 +2119,10 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityOnTap(
 napi_value PlatformViewOHOSNapi::nativeAccessibilityOnLongPress(
     napi_env env,
     napi_callback_info info) {
+  if (OH_GetSdkApiVersion() < 13) {
+    FML_DLOG(WARNING) << "PlatformViewOHOSNapi::nativeAccessibilityOnLongPress is only supported at API-13+";
+    return nullptr;
+  }
   FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeAccessibilityOnTap";
   size_t argc = 2;
   napi_value args[2] = {nullptr};
@@ -2123,7 +2139,11 @@ napi_value PlatformViewOHOSNapi::nativeAccessibilityOnLongPress(
 napi_value PlatformViewOHOSNapi::nativeAccessibilityOnTooltip(
     napi_env env,
     napi_callback_info info) {
-  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeAccessibilityAnnounce";
+  if (OH_GetSdkApiVersion() < 13) {
+    FML_DLOG(WARNING) << "PlatformViewOHOSNapi::nativeAccessibilityOnTooltip is only supported at API-13+";
+    return nullptr;
+  }
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeAccessibilityOnTooltip";
   size_t argc = 2;
   napi_value args[2] = {nullptr};
   int64_t shell_holder;

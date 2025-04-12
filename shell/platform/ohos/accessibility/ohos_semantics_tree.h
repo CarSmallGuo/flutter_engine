@@ -24,7 +24,7 @@ namespace flutter {
 
 class SemanticsTree {
  public:
-  SemanticsTree() = default;
+  SemanticsTree();
   ~SemanticsTree();
 
   void ClearSemanticsTree();
@@ -68,6 +68,9 @@ class SemanticsTree {
   SemanticsNodeExtend* root_node_ = nullptr;
   SemanticsNodeExtend* input_focused_node_ = nullptr;
   SemanticsNodeExtend* last_input_focused_node_ = nullptr;
+
+  // Needed function pointer from libflutter_accessibility.so 
+  GetElemFunc OH_ArkUI_AddAndGetAccessibilityElementInfo;
 
   bool FillNodesRecursive(int32_t id,
                           const char* text,

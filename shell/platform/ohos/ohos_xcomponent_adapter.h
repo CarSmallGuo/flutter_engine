@@ -1,32 +1,33 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE_KHZG file.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 
 #ifndef OHOS_XCOMPONENT_ADAPTER_H
 #define OHOS_XCOMPONENT_ADAPTER_H
-#include <deviceinfo.h>
 #include <ace/xcomponent/native_interface_xcomponent.h>
 #include <arkui/native_interface_accessibility.h>
-#include <string>
+#include <deviceinfo.h>
 #include <map>
 #include <mutex>
-#include "flutter/shell/platform/ohos/ohos_touch_processor.h"
+#include <string>
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
+#include "flutter/shell/platform/ohos/ohos_touch_processor.h"
+#include "flutter/shell/platform/ohos/utils/ohos_utils.h"
 #include "napi/native_api.h"
 #include "napi_common.h"
-#include "flutter/shell/platform/ohos/utils/ohos_utils.h"
 #include "ohos_shell_holder.h"
+#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_ddl.h"
+#include "flutter/shell/platform/ohos/utils/arkui_accessibility_constant.h"
 namespace flutter {
 
-class XComponentBase
-{
-private:
+class XComponentBase {
+ private:
   void BindXComponentCallback();
   void BindAccessibilityProviderCallback();
- 
-public:
+
+ public:
   XComponentBase(std::string id);
   ~XComponentBase();
 
@@ -80,7 +81,7 @@ public:
   OH_NativeXComponent_Callback callback_;
   OH_NativeXComponent_MouseEvent_Callback mouseCallback_;
   ArkUI_AccessibilityProviderCallbacks accessibilityProviderCallback_;
-  
+
   std::string id_;
   std::string shellholderId_;
   bool isEngineAttached_;

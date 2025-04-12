@@ -9,6 +9,7 @@ import { FlutterView } from '../../view/FlutterView';
 import FlutterManager from './FlutterManager';
 import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
 import flutter from 'libflutter.so';
+import { deviceInfo } from '@kit.BasicServicesKit';
 const TAG = "FlutterPage";
 
 export const OHOS_FLUTTER_PAGE_UPDATE = "ohos_flutter_page_update";
@@ -60,16 +61,19 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
-          this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
-            { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
-            (isExpanding: boolean, currentRatio: number) => {
-              if (isExpanding) {
-                Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
-                  " isExpanding: " + isExpanding + " ratio: " + currentRatio);
-                flutter.nativeUpdateCurrentXComponentId(this.viewId);
+          let sdkApiVersion: number = deviceInfo.sdkApiVersion;
+          if (sdkApiVersion >= 13) {
+            this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
+              { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
+              (isExpanding: boolean, currentRatio: number) => {
+                if (isExpanding) {
+                  Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
+                    " isExpanding: " + isExpanding + " ratio: " + currentRatio);
+                  flutter.nativeUpdateCurrentXComponentId(this.viewId);
+                }
               }
-            }
-          )
+            )
+          }
           Log.d(TAG, "XComponent onLoad ");
         })
         .onDestroy(() => {
@@ -164,16 +168,19 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
-          this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
-            { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
-            (isExpanding: boolean, currentRatio: number) => {
-              if (isExpanding) {
-                Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
-                  " isExpanding: " + isExpanding + " ratio: " + currentRatio);
-                flutter.nativeUpdateCurrentXComponentId(this.viewId);
+          let sdkApiVersion: number = deviceInfo.sdkApiVersion;
+          if (sdkApiVersion >= 13) {
+            this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
+              { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
+              (isExpanding: boolean, currentRatio: number) => {
+                if (isExpanding) {
+                  Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
+                    " isExpanding: " + isExpanding + " ratio: " + currentRatio);
+                  flutter.nativeUpdateCurrentXComponentId(this.viewId);
+                }
               }
-            }
-          )
+            )
+          }
           Log.d(TAG, "XComponent onLoad ");
         })
         .onDestroy(() => {

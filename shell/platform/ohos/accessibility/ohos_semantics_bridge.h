@@ -21,7 +21,7 @@
  namespace flutter {
  class SemanticsBridge {
   public:
-   SemanticsBridge() = default;
+   SemanticsBridge();
  
    SemanticsTree tree_;
    ArkUI_AccessibilityProvider* provider_ohos_ = nullptr;
@@ -63,6 +63,18 @@
    void OnTooltip(std::unique_ptr<char[]>& message);
    void OnAccessibilityStateChange(bool state);
    void OnAccessibilityNavigation(bool is_nav);
+
+  private:
+    // Needed function pointers from libflutter_accessibility.so
+    CreateEventInfoFunc OH_ArkUI_CreateAccessibilityEventInfo;
+    DestroyEventFunc OH_ArkUI_DestoryAccessibilityEventInfo;
+    SendAsyncEventFunc OH_ArkUI_SendAccessibilityAsyncEvent;
+    SetEventElemFunc OH_ArkUI_AccessibilityEventSetElementInfo;
+    SetEventFunc OH_ArkUI_AccessibilityEventSetEventType;
+    SetEventStringFunc
+        OH_ArkUI_AccessibilityEventSetTextAnnouncedForAccessibility;
+        
+    void DynamicLoadAccessibilityLibrary();
  };
  }  // namespace flutter
  #endif  // FLUTTER_SHELL_PLATFORM_OHOS_ACCESSIBILITY_OHOS_SEMANTICS_BRIDGE_H_

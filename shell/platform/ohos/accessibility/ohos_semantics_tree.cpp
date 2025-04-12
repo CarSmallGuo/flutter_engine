@@ -21,6 +21,13 @@
  #include <vector>
  
  namespace flutter {
+
+ SemanticsTree::SemanticsTree() {
+    // load the needed accessibility function ptr
+    OH_ArkUI_AddAndGetAccessibilityElementInfo =
+        OhosAccessibilityDDL::DLLoadGetElemFunc(ArkUIAccessibilityConstant::ARKUI_GET_A11Y_NODE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AddAndGetAccessibilityElementInfo);
+ }
  
  SemanticsTree::~SemanticsTree() {
     ClearSemanticsTree();

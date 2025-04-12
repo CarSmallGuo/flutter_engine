@@ -164,7 +164,13 @@ OHOSShellHolder::OHOSShellHolder(
   // accessibility
   bridge_ = std::make_shared<SemanticsBridge>();
   bridge_mutex_ = std::make_shared<std::mutex>();
-  platform_view_->SetSemanticsBridge(bridge_, bridge_mutex_);
+  platform_view_->SetSemanticsBridge(bridge_, bridge_mutex_); 
+  if (OH_GetSdkApiVersion() >= 13) {
+    // load the needed accessibility function ptr
+    OH_ArkUI_FindAccessibilityActionArgumentByKey =
+      OhosAccessibilityDDL::DLLoadGetFindActionArgs(ArkUIAccessibilityConstant::ARKUI_FIND_ACTION_ARG_BY_KEY);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_FindAccessibilityActionArgumentByKey);
+  }
   FML_DCHECK(platform_view_);
 }
 
@@ -189,7 +195,13 @@ OHOSShellHolder::OHOSShellHolder(
   // accessibility
   bridge_ = std::make_shared<SemanticsBridge>();
   bridge_mutex_ = std::make_shared<std::mutex>();
-  platform_view_->SetSemanticsBridge(bridge_, bridge_mutex_);
+  platform_view_->SetSemanticsBridge(bridge_, bridge_mutex_); 
+  if (OH_GetSdkApiVersion() >= 13) {
+    // load the needed accessibility function ptr
+    OH_ArkUI_FindAccessibilityActionArgumentByKey =
+      OhosAccessibilityDDL::DLLoadGetFindActionArgs(ArkUIAccessibilityConstant::ARKUI_FIND_ACTION_ARG_BY_KEY);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_FindAccessibilityActionArgumentByKey);
+  }
 }
 
 OHOSShellHolder::~OHOSShellHolder() {
@@ -407,13 +419,12 @@ static ACTIONS_ ArkuiActionsToFlutterActions(
   }
 }
 
-static const char* ARKUI_ACTION_ARG_SET_TEXT = "setText";
-static const char* ARKUI_ACTION_ARG_SELECT_TEXT_START = "selectTextBegin";
-static const char* ARKUI_ACTION_ARG_SELECT_TEXT_END = "selectTextEnd";
-
-static std::vector<uint8_t> GetAccessibilitySelectText(
+std::vector<uint8_t> OHOSShellHolder::GetAccessibilitySelectText(
     ArkUI_AccessibilityActionArguments* args,
     SemanticsNodeExtend* node) {
+  if (OH_GetSdkApiVersion() < 13) {
+    return std::vector<uint8_t>{};
+  }
   char* textSelectBase = nullptr;
   ARKUI_ACCESSIBILITY_CALL_CHECK(
     OH_ArkUI_FindAccessibilityActionArgumentByKey(
@@ -459,9 +470,12 @@ static std::vector<uint8_t> GetAccessibilitySelectText(
   return encodedData;
 }
 
-static std::vector<uint8_t> GetAccessibilitySetText(
+std::vector<uint8_t> OHOSShellHolder::GetAccessibilitySetText(
     ArkUI_AccessibilityActionArguments* args,
     SemanticsNodeExtend* node) {
+  if (OH_GetSdkApiVersion() < 13) {
+    return std::vector<uint8_t>{};
+  }
   char* newText = nullptr;
   ARKUI_ACCESSIBILITY_CALL_CHECK(
     OH_ArkUI_FindAccessibilityActionArgumentByKey(args, ARKUI_ACTION_ARG_SET_TEXT, &newText);

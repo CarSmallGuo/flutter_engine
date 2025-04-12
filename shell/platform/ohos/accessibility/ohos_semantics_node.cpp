@@ -9,7 +9,9 @@
 namespace flutter {
 
 SemanticsNodeExtend::SemanticsNodeExtend()
-{
+{   
+    // load the needed accessibiltiy functon pointers
+    this->DynamicLoadAccessibilityLibrary();
     // each flutter node is mapped with an elementInfo
     this->elementInfo = OH_ArkUI_CreateAccessibilityElementInfo();
 }
@@ -321,6 +323,11 @@ void SemanticsNodeExtend::FillElementInfoWithProperty(
     ARKUI_ACCESSIBILITY_CALL_CHECK(
         OH_ArkUI_AccessibilityElementInfoSetIsPassword(elementInfo, IsPassword())
     );
+    /* Make sure the focusable node can be recognized */
+    ARKUI_ACCESSIBILITY_CALL_CHECK(
+        OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel(
+            elementInfo, IsFocusable() ? "yes" : "auto")
+    );
     if (operationActions.empty()) { return; }
     ARKUI_ACCESSIBILITY_CALL_CHECK(
         OH_ArkUI_AccessibilityElementInfoSetOperationActions(
@@ -505,6 +512,114 @@ void SemanticsNodeExtend::UpdateComponetType() {
     } else {
         componentType = UIViewerName::kOtherWidgetName;
     }
+}
+
+/**
+ * Dynamically load the ArkUI accessiblity C-API interface to 
+ * be compatible with API-12+ versions
+ */
+void SemanticsNodeExtend::DynamicLoadAccessibilityLibrary()
+{
+    DynamicLoadSetElemIntFunc();
+    DynamicLoadSetElemStringFunc();
+    DynamicLoadSetElemBoolFunc();
+    OH_ArkUI_CreateAccessibilityElementInfo =
+        OhosAccessibilityDDL::DLLoadCreateElemInfoFunc(ArkUIAccessibilityConstant::ARKUI_CREATE_NODE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_CreateAccessibilityElementInfo);
+    OH_ArkUI_DestoryAccessibilityElementInfo =
+        OhosAccessibilityDDL::DLLoadDestroyElemFunc(ArkUIAccessibilityConstant::ARKUI_DESTORY_NODE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_DestoryAccessibilityElementInfo);
+    OH_ArkUI_AccessibilityElementInfoSetOperationActions = 
+        OhosAccessibilityDDL::DLLoadSetElemOperActionsFunc(ArkUIAccessibilityConstant::ARKUI_SET_ACTIONS);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetOperationActions);
+    OH_ArkUI_AccessibilityElementInfoSetScreenRect = 
+        OhosAccessibilityDDL::DLLoadSetElemSreenRectFunc(ArkUIAccessibilityConstant::ARKUI_SET_SCREEN_RECT);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetScreenRect);
+    FML_DLOG(INFO) << "DynamicLoadAccessibilityLibrary is finished";
+}
+
+void SemanticsNodeExtend::DynamicLoadSetElemIntFunc()
+{
+    OH_ArkUI_AccessibilityElementInfoSetItemCount =
+        OhosAccessibilityDDL::DLLoadSetElemIntFunc(ArkUIAccessibilityConstant::ARKUI_SET_ITEM_COUNT);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetItemCount);
+    OH_ArkUI_AccessibilityElementInfoSetStartItemIndex =
+        OhosAccessibilityDDL::DLLoadSetElemIntFunc(ArkUIAccessibilityConstant::ARKUI_SET_START_ITEM_IDX);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetStartItemIndex);
+    OH_ArkUI_AccessibilityElementInfoSetEndItemIndex =
+        OhosAccessibilityDDL::DLLoadSetElemIntFunc(ArkUIAccessibilityConstant::ARKUI_SET_END_ITEM_IDX);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetEndItemIndex);
+    OH_ArkUI_AccessibilityElementInfoSetElementId =
+        OhosAccessibilityDDL::DLLoadSetElemIntFunc(ArkUIAccessibilityConstant::ARKUI_SET_NODE_ID);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetElementId);
+    OH_ArkUI_AccessibilityElementInfoSetParentId =
+        OhosAccessibilityDDL::DLLoadSetElemIntFunc(ArkUIAccessibilityConstant::ARKUI_SET_PARENT_ID);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetParentId);
+}
+
+void SemanticsNodeExtend::DynamicLoadSetElemStringFunc()
+{
+    OH_ArkUI_AccessibilityElementInfoSetAccessibilityText =
+        OhosAccessibilityDDL::DLLoadSetElemStringFunc(ArkUIAccessibilityConstant::ARKUI_SET_A11Y_TEXT);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetAccessibilityText);
+    OH_ArkUI_AccessibilityElementInfoSetContents =
+        OhosAccessibilityDDL::DLLoadSetElemStringFunc(ArkUIAccessibilityConstant::ARKUI_SET_CONTENTS);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetContents);
+    OH_ArkUI_AccessibilityElementInfoSetHintText =
+        OhosAccessibilityDDL::DLLoadSetElemStringFunc(ArkUIAccessibilityConstant::ARKUI_SET_HINT);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetHintText);
+    OH_ArkUI_AccessibilityElementInfoSetChildNodeIds =
+        OhosAccessibilityDDL::DLLoadSetElemChildFunc(ArkUIAccessibilityConstant::ARKUI_SET_CHILD_IDS);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetChildNodeIds); 
+    OH_ArkUI_AccessibilityElementInfoSetComponentType =
+        OhosAccessibilityDDL::DLLoadSetElemStringFunc(ArkUIAccessibilityConstant::ARKUI_SET_COMPONENT_TYPE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetComponentType);
+    OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel =
+        OhosAccessibilityDDL::DLLoadSetElemStringFunc(ArkUIAccessibilityConstant::ARKUI_SET_A11Y_LEVEL);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetAccessibilityLevel);
+}
+
+void SemanticsNodeExtend::DynamicLoadSetElemBoolFunc()
+{
+    OH_ArkUI_AccessibilityElementInfoSetEnabled =
+        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_ENABLED);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetEnabled);
+    OH_ArkUI_AccessibilityElementInfoSetClickable =
+        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_CLICKABLE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetClickable);
+    OH_ArkUI_AccessibilityElementInfoSetFocusable =
+        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_FOCUSABLE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetFocusable);
+    OH_ArkUI_AccessibilityElementInfoSetFocused =
+        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_FOCUSED);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetFocused);
+    OH_ArkUI_AccessibilityElementInfoSetIsPassword = 
+        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_IS_PASSWORD);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetIsPassword);
+    OH_ArkUI_AccessibilityElementInfoSetCheckable = 
+        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_CHECKABLE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetCheckable);
+    OH_ArkUI_AccessibilityElementInfoSetChecked = 
+        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_CHECKED);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetChecked);
+    OH_ArkUI_AccessibilityElementInfoSetVisible =
+        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_VISIBLE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetVisible);
+    OH_ArkUI_AccessibilityElementInfoSetSelected =
+        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_SELECTED);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetSelected);
+    OH_ArkUI_AccessibilityElementInfoSetScrollable =
+        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_SCROLLABLE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetScrollable);
+    OH_ArkUI_AccessibilityElementInfoSetEditable =
+        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_EDITABLE);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetEditable);
+    OH_ArkUI_AccessibilityElementInfoSetLongClickable =
+        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_LONG_PRESS);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetLongClickable);
+    OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup =
+        OhosAccessibilityDDL::DLLoadSetElemBoolFunc(ArkUIAccessibilityConstant::ARKUI_SET_A11Y_GROUP);
+    CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityElementInfoSetAccessibilityGroup);
 }
 
 }

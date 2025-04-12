@@ -11,7 +11,6 @@
 #include <functional>
 #include "flutter/fml/logging.h"
 #include "accessibility/ohos_semantics_bridge.h"
-
 namespace flutter {
 
 bool g_isMouseLeftActive = false;
@@ -487,12 +486,20 @@ ArkUI_AccessibilityProvider* XComponentBase::GetArkUIAccessibilityServiceProvide
     OH_NativeXComponent* nativeXComponent) {
   BindAccessibilityProviderCallback();
   ArkUI_AccessibilityProvider* provider = nullptr;
+
+  auto OH_NativeXComponent_GetNativeAccessibilityProvider =
+  OhosAccessibilityDDL::DLLoadGetNativeA11yProvider(ArkUIAccessibilityConstant::OH_GET_A11Y_PROVIDER);
+  CHECK_DLL_NULL_PTR(OH_NativeXComponent_GetNativeAccessibilityProvider);
   int32_t ret = OH_NativeXComponent_GetNativeAccessibilityProvider(
       nativeXComponent, &provider);
   if (ret != 0) {
     LOGE("OH_NativeXComponent_GetNativeAccessibilityProvider is failed");
     return nullptr;
   }
+
+  auto OH_ArkUI_AccessibilityProviderRegisterCallback =
+      OhosAccessibilityDDL::DLLoadRegisterFunc(ArkUIAccessibilityConstant::ARKUI_REGISTER_CALLBACK);
+  CHECK_DLL_NULL_PTR(OH_ArkUI_AccessibilityProviderRegisterCallback);
   ret = OH_ArkUI_AccessibilityProviderRegisterCallback(
       provider, &accessibilityProviderCallback_);
   if (ret != 0) {
@@ -525,8 +532,13 @@ void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component,
   if (ret) {
     LOGE("SetNativeWindowOpt failed:%{public}d", ret);
   }
-
-  provider_ = GetArkUIAccessibilityServiceProvider(nativeXComponent_);
+  
+  if (OH_GetSdkApiVersion() >= 13) {
+    provider_ = GetArkUIAccessibilityServiceProvider(nativeXComponent_);
+  } else {
+    provider_ = nullptr;
+  }
+  
   if (isEngineAttached_) {
     ret = OH_NativeWindow_NativeObjectReference(window);
     if (ret) {
