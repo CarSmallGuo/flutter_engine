@@ -82,7 +82,7 @@ static std::optional<vk::SurfaceFormatKHR> ChooseSurfaceFormat(
     PixelFormat preference) {
 #ifdef __OHOS__
   if (impeller::Context::enable_hdr_) {
-    if (impeller::Context::hdr_ == 2) {  // video PQ
+    if (impeller::Context::hdr_ == kHDRPQ) {  // video PQ
       const auto colorspace = vk::ColorSpaceKHR::eHdr10St2084EXT;
       const auto vk_preference =
           vk::SurfaceFormatKHR{vk::Format::eA2B10G10R10UnormPack32, colorspace};

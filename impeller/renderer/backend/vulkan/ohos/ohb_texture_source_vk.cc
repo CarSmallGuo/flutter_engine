@@ -61,14 +61,14 @@ static TextureDescriptor CreateTextureDescriptorFromNativeWindowBuffer(
     if (color_space == OH_COLORSPACE_DISPLAY_BT2020_PQ &&
         impeller::Context::enable_hdr_) {
       FML_DLOG(ERROR) << "color_space = OH_COLORSPACE_DISPLAY_BT2020_PQ";
-      impeller::Context::hdr_ = 2;
+      impeller::Context::hdr_ = kHDRPQ;
     } else if (color_space == OH_COLORSPACE_BT2020_HLG_LIMIT &&
                impeller::Context::enable_hdr_) {
       FML_DLOG(ERROR) << "color_space = OH_COLORSPACE_BT2020_HLG_LIMIT";
-      impeller::Context::hdr_ = 1;
+      impeller::Context::hdr_ = kHDRHLG;
     } else {
       FML_DLOG(ERROR) << "default color_space = OH_COLORSPACE_BT709";
-      impeller::Context::hdr_ = 0;
+      impeller::Context::hdr_ = kSDR;
     }
   }
 
