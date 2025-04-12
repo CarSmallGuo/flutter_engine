@@ -95,8 +95,14 @@ void TraceTimelineEvent(TraceArg category_group,
       c_values.data()                            // argument_values
   );
 #if defined(FML_OS_OHOS)
-  OHOSTraceTimelineEvent(category_group, name, 0, type, argument_count, const_cast<const char**>(c_names.data()),
-                          c_values.data());
+    OHOSTraceTimelineEvent(category_group, 
+        name,
+        timestamp_micros, 
+        identifier,
+        type, 
+        argument_count, 
+        const_cast<const char**>(c_names.data()),
+        c_values.data());
 #endif
 }
 
@@ -126,13 +132,7 @@ void TraceEvent0(TraceArg category_group, TraceArg name) {
                        nullptr                     // argument_values
   );
 #if defined(FML_OS_OHOS)
-  OHOSTraceTimelineEvent(
-      category_group, 
-      name, timestamp_micros, 
-      identifier, type, 
-      argument_count, 
-      const_cast<const char**>(c_names.data()),
-      c_values.data());
+  OHOSTraceTimelineEvent(category_group, name, 0, Dart_Timeline_Event_Begin, 0, nullptr, nullptr);
 #endif
 }
 

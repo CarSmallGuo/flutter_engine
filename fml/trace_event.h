@@ -238,6 +238,15 @@ void TraceTimelineEvent(TraceArg category_group,
 #if defined(FML_OS_OHOS)
 void OHOSTraceTimelineEvent(TraceArg category_group,
                             TraceArg name,
+                            int64_t timestamp_micros,
+                            TraceIDArg id,
+                            Dart_Timeline_Event_Type type,
+                            intptr_t argument_count,
+                            const char** argument_names,
+                            const char** argument_values);
+
+void OHOSTraceTimelineEvent(TraceArg category_group,
+                            TraceArg name,
                             TraceIDArg id,
                             Dart_Timeline_Event_Type type,
                             intptr_t argument_count,

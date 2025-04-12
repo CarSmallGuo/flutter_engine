@@ -11,6 +11,7 @@
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "ohos_logging.h"
 #include "types.h"
+#include "flutter/fml/platform/ohos/hiappevent/ohos_hiappevent.h"
 
 namespace flutter {
 
@@ -466,10 +467,10 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
     LOGE("OnSurfaceCreated XComponentBase is not attached");
   }
 
-  fml::hiappevent::OhosHiappEventDDL* hiAppeventHandler = fml::hiappevent::OhosHiappEventDDL::GetInstance();
-  if(hiAppeventHandler != nullptr){
-    hiAppeventHandler->init();
-  }
+    fml::hiappevent::OhosHiappEventDDL* hiAppeventHandler = fml::hiappevent::OhosHiappEventDDL::GetInstance();
+    if (hiAppeventHandler != nullptr) {
+        hiAppeventHandler->Init();
+    }
 }
 
 void XComponentBase::DetachFlutterEngine() {
