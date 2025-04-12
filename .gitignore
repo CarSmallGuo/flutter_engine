@@ -145,4 +145,3 @@ app.*.symbols
 
 # The gn-sdk from Chromium and managed by DEPS and gclient.
 /tools/fuchsia/gn-sdk
-shell/platform/ohos/flutter_embedding/flutter/libs/arm64-v8a/libflutter.so
