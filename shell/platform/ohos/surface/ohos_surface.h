@@ -8,6 +8,7 @@
 #define FLUTTER_SHELL_PLATFORM_OHOS_SURFACE_OHOS_SURFACE_H_
 
 #include <native_image/native_image.h>
+#include <native_buffer/native_buffer.h>
 #include <memory>
 #include "flutter/flow/surface.h"
 #include "flutter/shell/platform/ohos/context/ohos_context.h"
@@ -27,6 +28,9 @@ class OHOSSurface {
   virtual void TeardownOnScreenContext() = 0;
 
   virtual bool OnScreenSurfaceResize(const SkISize& size) = 0;
+  virtual bool OnScreenSurfaceHdrUpdate(const int hdr) {
+    return false;
+  }
 
   virtual bool ResourceContextMakeCurrent() = 0;
 
@@ -65,6 +69,7 @@ class OHOSSurface {
   std::shared_ptr<OHOSContext> ohos_context_;
   fml::RefPtr<OHOSNativeWindow> native_window_;
   SkISize window_size_ = {0, 0};
+  int window_hdr_ = -1;
 
  private:
   OH_NativeImage* offscreen_native_image_ = nullptr;
@@ -75,6 +80,7 @@ class OHOSSurface {
 
   int32_t offscreen_width_ = 0;
   int32_t offscreen_height_ = 0;
+  int offscreen_hdr_ = -1;
 
   // int32_t free_buffer_cnt_;
   // int32_t max_buffer_cnt_;

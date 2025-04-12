@@ -10,6 +10,7 @@ namespace flutter {
 constexpr int kPixelFmtRgba8888 = 12;
 constexpr int kPixelFmtRgba1010102 = 34;
 
+
 enum Locales {
   kLanguageIndex = 0,
   kRegionIndex,

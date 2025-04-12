@@ -42,6 +42,8 @@ class OHOSSurfaceVulkanImpeller : public GPUSurfaceVulkanDelegate,
   // |OHOSSurface|
   bool OnScreenSurfaceResize(const SkISize& size) override;
 
+  bool OnScreenSurfaceHdrUpdate(int hdr) override;
+
   // |OHOSSurface|
   bool ResourceContextMakeCurrent() override;
 
