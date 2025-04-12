@@ -1594,8 +1594,10 @@ void PlatformViewOHOSNapi::SurfaceChanged(int64_t shell_holder,
 void PlatformViewOHOSNapi::SurfaceDestroyed(int64_t shell_holder) {
   OHOS_SHELL_HOLDER->GetPlatformView()->NotifyDestroyed();
 
-  OHOS_SHELL_HOLDER->GetPlatformView()->RunTask(OHOS_THREAD_TYPE::OHOS_THREAD_TYPE_IO,[]{
-    fml::hiappevent::OhosHiappEventDDL::GetInstance()->flush();});
+    OHOS_SHELL_HOLDER->GetPlatformView()->RunTask(
+        OHOS_THREAD_TYPE::OHOS_THREAD_TYPE_IO,
+        []{ fml::hiappevent::OhosHiappEventDDL::GetInstance()->Flush(); }
+    );
 }
 
 void PlatformViewOHOSNapi::SetPlatformTaskRunner(
