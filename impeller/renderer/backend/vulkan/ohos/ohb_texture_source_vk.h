@@ -53,14 +53,15 @@ class OHBTextureSourceVK final : public TextureSourceVK {
   std::shared_ptr<YUVConversionVK> yuv_conversion_ = {};
   bool needs_yuv_conversion_ = false;
   bool is_valid_ = false;
-  static constexpr int kHDRPQ = 2;
-  static constexpr int kHDRHLG = 1;
-  static constexpr int kSDR = 0;
-
+  
   OHBTextureSourceVK(const OHBTextureSourceVK&) = delete;
 
   OHBTextureSourceVK& operator=(const OHBTextureSourceVK&) = delete;
 };
+
+static constexpr int kHDRPQ = 2;
+static constexpr int kHDRHLG = 1;
+static constexpr int kSDR = 0;
 
 }  // namespace impeller
 

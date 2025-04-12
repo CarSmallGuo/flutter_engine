@@ -78,10 +78,7 @@ class KHRSwapchainImplVK final
   bool enable_msaa_ = true;
   bool is_valid_ = false;
   int hdr_ = 0;
-  static constexpr int kHDRPQ = 2;
-  static constexpr int kHDRHLG = 1;
-  static constexpr int kSDR = 0;
-
+  
   KHRSwapchainImplVK(const std::shared_ptr<Context>& context,
                      vk::UniqueSurfaceKHR surface,
                      const ISize& size,
@@ -97,6 +94,10 @@ class KHRSwapchainImplVK final
 
   KHRSwapchainImplVK& operator=(const KHRSwapchainImplVK&) = delete;
 };
+
+static constexpr int kHDRPQ = 2;
+static constexpr int kHDRHLG = 1;
+static constexpr int kSDR = 0;
 
 }  // namespace impeller
 
