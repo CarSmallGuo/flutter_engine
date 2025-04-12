@@ -213,7 +213,6 @@ OHOSImageGenerator::CreatePixelMap(int width, int height, int frame_index) {
 
   Image_Size size = {(uint32_t)width, (uint32_t)height};
   OH_DecodingOptions_SetDesiredSize(opts, &size);
-  // OH_DecodingOptions_SetPixelFormat(opts, PIXEL_FORMAT_RGBA_8888);
 
   if (!impeller::Context::enable_hdr_) {
     OH_DecodingOptions_SetPixelFormat(opts, PIXEL_FORMAT_RGBA_8888);
