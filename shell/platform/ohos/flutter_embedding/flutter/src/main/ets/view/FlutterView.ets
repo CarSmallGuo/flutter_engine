@@ -500,7 +500,9 @@ export class FlutterView {
     // 根据是否全屏显示，设置标题栏高度（若全屏，则及时规避）
     let isUseFullScreen = FlutterManager.getInstance().getFullScreenListener().useFullScreen();
     let isLayoutFullScreen = this.mainWindow?.getWindowProperties().isLayoutFullScreen;
+    let fullScreen = false
     if (this.checkFullScreen && (setFullScreen || isLayoutFullScreen || isUseFullScreen)) { // 全屏显示
+      fullScreen = true
       if (this.paddingTop != undefined) {
         this.viewportMetrics.physicalViewPaddingTop = this.paddingTop;
       } else {
@@ -520,24 +522,24 @@ export class FlutterView {
     this.viewportMetrics.physicalViewPaddingRight =
       this.systemAvoidArea?.rightRect.width ?? this.viewportMetrics.physicalViewPaddingRight;
 
-    this.onKeyboardAreaChange()
-    this.onAiBarAreaChange()
-    this.onGestureAreaChange()
+    this.onKeyboardAreaChange(fullScreen)
+    this.onAiBarAreaChange(fullScreen)
+    this.onGestureAreaChange(fullScreen)
     this.updateViewportMetrics()
   }
 
   // At the bottom of the single-frame phone is an AI assistant wake-up bar
   // The area can lead to confusing gestures in repetitive areas without handled properly
   // physicalViewPaddingBottom is modified by this function which needs to be called after onKeyboardAreaChange
-  private onAiBarAreaChange() {
-    if (this.checkAiBar && this.navigationAvoidArea != null) {
+  private onAiBarAreaChange(fullScreen: boolean = false) {
+    if (this.checkAiBar && this.navigationAvoidArea != null && fullScreen) {
       this.viewportMetrics.physicalViewPaddingBottom =
         Math.max(this.navigationAvoidArea.bottomRect.height, this.viewportMetrics.physicalViewPaddingBottom)
     }
   }
 
-  private onKeyboardAreaChange() {
-    if (this.checkKeyboard) {
+  private onKeyboardAreaChange(fullScreen: boolean = false) {
+    if (this.checkKeyboard && fullScreen) {
       this.viewportMetrics.physicalViewInsetTop =
         this.keyboardAvoidArea?.topRect.height ?? this.viewportMetrics.physicalViewInsetTop
       this.viewportMetrics.physicalViewInsetLeft =
@@ -554,8 +556,8 @@ export class FlutterView {
     }
   }
 
-  private onGestureAreaChange() {
-    if (this.checkGesture) {
+  private onGestureAreaChange(fullScreen: boolean = false) {
+    if (this.checkGesture && fullScreen) {
       this.viewportMetrics.systemGestureInsetTop =
         this.gestureAvoidArea?.topRect.height ?? this.viewportMetrics.systemGestureInsetTop
       this.viewportMetrics.systemGestureInsetLeft =
@@ -664,7 +666,7 @@ export class FlutterView {
   setCheckAiBar(check: boolean) {
     this.checkAiBar = check
   }
-  
+
   setPaddingTop(paddingTop?: number) {
     this.paddingTop = paddingTop;
     this.onAreaChange(null);
