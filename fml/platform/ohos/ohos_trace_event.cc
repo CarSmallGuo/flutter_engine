@@ -19,6 +19,8 @@ static constexpr char OHOS_SCOPE[] = "::";
 static constexpr char OHOS_WHITESPACE[] = " ";
 static constexpr char OHOS_FILTER_NAME_SCENE[] = "SceneDisplayLag";
 static constexpr char OHOS_FILTER_NAME_POINTER[] = "PointerEvent";
+static const int Argument_Size = 3;
+static const int vsync_transitions_missed_Size = 2;
 
 void OHOSTraceTimelineEvent(TraceArg category_group,
                             TraceArg name,
@@ -44,9 +46,9 @@ void OHOSTraceTimelineEvent(TraceArg category_group,
     if (type != Dart_Timeline_Event_Begin && strcmp(name, OHOS_FILTER_NAME_SCENE) == 0) {
         // Trace 'SceneDisplayLag' have inconsistent parameters. It's not good to watch.
         realNumber = 0;
-        if ((type == Dart_Timeline_Event_Async_Begin) && (argument_count >= 3)) {
+        if ((type == Dart_Timeline_Event_Async_Begin) && (argument_count >= Argument_Size)) {
             int vsync_transitions_missed = std::stoi(argument_values[2]);
-            if (vsync_transitions_missed >= 2) {
+            if (vsync_transitions_missed >= vsync_transitions_missed_Size) {
                 fml::hiappevent::OhosHiappEventDDL::GetInstance()->ReportJANKEvent(
                     timestamp_micros, argument_values, argument_count);
             }
