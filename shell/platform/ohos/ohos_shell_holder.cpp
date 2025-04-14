@@ -629,5 +629,8 @@ int32_t OHOSShellHolder::GetAccessibilityNodeCursorPosition(int64_t elementId,
   return bridge_->GetAccessibilityNodeCursorPosition(elementId, index);
 }
 
+std::shared_ptr<PlatformViewOHOSNapi> OHOSShellHolder::GetNapiFacade() {
+  return napi_facade_;
+}
 
 }  // namespace flutter
