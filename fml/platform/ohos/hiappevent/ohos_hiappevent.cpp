@@ -16,18 +16,20 @@ namespace fml {
 
 namespace hiappevent {
 
-OhosHiappEventDDL* OhosHiappEventDDL::instance_ = nullptr;
+static std::shared_ptr<OhosHiappEventDDL> instance_ = nullptr;
+static std::once_flag instanceFlag_;
 
 static constexpr char HiAppEvent_LIB_NAME[] = "libhiappevent_ndk.z.so";
 static const int Missed_Frame_Infos_Size = 10;
 static const int Required_Api_Version = 18;
 static const int Argument_Size = 3;
+static const int vsync_transitions_missed_Size = 2;
 
-OhosHiappEventDDL* OhosHiappEventDDL::GetInstance()
+std::shared_ptr<OhosHiappEventDDL> OhosHiappEventDDL::GetInstance()
 {
-    if (instance_ == nullptr) {
-        instance_ = new OhosHiappEventDDL();
-    }
+    std::call_once(instanceFlag_, [&] {
+        instance_ = std::shared_ptr<OhosHiappEventDDL> (new OhosHiappEventDDL());
+    });
     return instance_;
 }
 
@@ -39,7 +41,7 @@ OhosHiappEventDDL::OhosHiappEventDDL(void)
 
 OhosHiappEventDDL::~OhosHiappEventDDL() = default;
 
-void OhosHiappEventDDL::DDLGet(void)
+void OhosHiappEventDDL::DDLInit(void)
 {
     libHiappeventHandler_ = dlopen(HiAppEvent_LIB_NAME, RTLD_LAZY | RTLD_LOCAL);
     if (libHiappeventHandler_ == nullptr) {
@@ -106,7 +108,7 @@ void OhosHiappEventDDL::Init(void)
         return;
     }
 
-    std::thread hiappeventThread(&OhosHiappEventDDL::DDLGet, this);
+    std::thread hiappeventThread(&OhosHiappEventDDL::DDLInit, this);
     hiappeventThread.join();
     isInit_ = true;
     return;
@@ -143,7 +145,7 @@ void OhosHiappEventDDL::ReportJANKEvent(int64_t endTimeMicros,
     info.endTimeMicros = endTimeMicros;
     info.targetTime = std::stoll(argumentValues[0]);
     info.lastestTargetTime = std::stoll(argumentValues[1]);
-    info.missedFrame = std::stoi(argumentValues[2]);
+    info.missedFrame = std::stoi(argumentValues[vsync_transitions_missed_Size]);
     MissedFrameInfos.push_back(info);
 }
 
