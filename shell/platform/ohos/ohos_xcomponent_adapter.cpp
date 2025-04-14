@@ -485,10 +485,11 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
     is_surface_present_ = true;
   }
 
-    fml::hiappevent::OhosHiappEventDDL* hiAppeventHandler = fml::hiappevent::OhosHiappEventDDL::GetInstance();
-    if (hiAppeventHandler != nullptr) {
-        hiAppeventHandler->Init();
-    }
+  std::shared_ptr<fml::hiappevent::OhosHiappEventDDL> hiAppeventHandler =
+      fml::hiappevent::OhosHiappEventDDL::GetInstance();
+  if (hiAppeventHandler != nullptr) {
+    hiAppeventHandler->Init();
+  }
 }
 
 void XComponentBase::PreDraw(std::string shellholderId, int width, int height) {

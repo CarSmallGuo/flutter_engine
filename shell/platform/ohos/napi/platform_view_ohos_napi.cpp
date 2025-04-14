@@ -1899,7 +1899,7 @@ void PlatformViewOHOSNapi::SurfaceDestroyed(int64_t shell_holder) {
   OHOS_SHELL_HOLDER->GetPlatformView()->NotifyDestroyed();
 
   OHOS_SHELL_HOLDER->GetPlatformView()->RunTask(
-    OHOS_THREAD_TYPE::OHOS_THREAD_TYPE_IO,
+    OhosThreadType::kIO,
     []{ fml::hiappevent::OhosHiappEventDDL::GetInstance()->Flush(); }
   );
 }
