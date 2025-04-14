@@ -87,12 +87,17 @@ used to filter file path.
                 <policyitem type="compatibility" name="OFL-1.1-no-RFN" path=".*" desc="友好许可证，不影响兼容性" />
                 <policyitem type="compatibility" name="Apache-2.0" path=".*" desc="不影响兼容性" />
                 <policyitem type="compatibility" name="BSDStyleLicense" path=".*" desc="不影响兼容性" />
+                <policyitem type="license" name="BSDStyleLicense" path=".*" group="defaultGroup" filefilter="defaultPolicyFilter" desc="不影响兼容性" />
+                <policyitem type="compatibility" name="BSD-3-Clause" path=".*" desc="不影响兼容性" />
+                <policyitem type="license" name="BSD-3-Clause" path=".*" desc="不影响兼容性"/>
+                <policyitem type="license" name="BSDStyleLicense" path=".*" desc="不影响兼容性"/>
             </policy>
         </policylist>
 
         <filefilterlist>
             <filefilter name="defaultFilter" desc="Files not to check">
                 <filteritem type="filename" name="*.iml|*.json|*.txt" desc="desc files" />
+                <filteritem type="filename" name="LICENSE_*" desc="LICENSE文件" />
                 <filteritem type="filename"
                     name="*.png|*.ico|*.jpg|*.ttf|*.enc|*.mp4|*.ttc|*.key|*.heic|*.res|*.gif|*.otf|*.compiled|*.webp"
                     desc="app resource files" />
@@ -107,6 +112,7 @@ used to filter file path.
                 <filteritem type="filepath" name="shell/platform/ohos/flutter_embedding/hvigor/hvigor-wrapper.js" desc="hvigor编译标准程序" />
                 <filteritem type="filepath" name="shell/platform/ohos/flutter_embedding/hvigorw" desc="hvigor编译标准程序" />
                 <filteritem type="filepath" name="shell/platform/ohos/flutter_embedding/hvigorw.bat" desc="hvigor编译标准程序" />
+                <filteritem type="filename" name="LICENSE" desc="LICENSE说明，不需要添加版权头"/>
             </filefilter>
             <filefilter name="defaultPolicyFilter"
                 desc="Filters for compatibility，license header policies">
