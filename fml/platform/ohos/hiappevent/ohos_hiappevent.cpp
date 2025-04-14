@@ -24,14 +24,11 @@ static const int Missed_Frame_Infos_Size = 10;
 static const int Required_Api_Version = 18;
 static const int Argument_Size = 3;
 
-OhosHiappEventDDL* OhosHiappEventDDL::GetInstance()
+std::shared_ptr<OhosHiappEventDDL> OhosHiappEventDDL::GetInstance()
 {
     std::call_once(instanceFlag_, [&] {
-
         instance_ = std::shared_ptr<OhosHiappEventDDL> (new OhosHiappEventDDL());
-        
     });
-
     return instance_;
 }
 
