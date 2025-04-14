@@ -46,7 +46,7 @@ public:
 
     void Init(void);
 
-    static OhosHiappEventDDL* GetInstance(void);
+    static std::shared_ptr<OhosHiappEventDDL> GetInstance(void);
 
     void ReportJANKEvent(int64_t endTimeMicros, const char** argumentValues, int argumentCount);
 
@@ -54,7 +54,7 @@ public:
 
 private:
 
-    void DDLGet(void);
+    void DDLInit(void);
 
     void* libHiappeventHandler_ = nullptr;
 
@@ -73,7 +73,7 @@ private:
 
     std::vector<MissedFrameInfo> MissedFrameInfos;
 
-    static OhosHiappEventDDL* instance_;
+
 };
 
 }; // namespace hiappevent
