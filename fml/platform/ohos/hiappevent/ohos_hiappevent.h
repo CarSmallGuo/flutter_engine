@@ -73,7 +73,6 @@ private:
 
     std::vector<MissedFrameInfo> MissedFrameInfos;
 
-    static OhosHiappEventDDL* instance_;
 };
 
 }; // namespace hiappevent
