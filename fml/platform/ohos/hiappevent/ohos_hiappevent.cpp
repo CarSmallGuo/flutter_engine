@@ -16,7 +16,8 @@ namespace fml {
 
 namespace hiappevent {
 
-OhosHiappEventDDL* OhosHiappEventDDL::instance_ = nullptr;
+static std::shared_ptr<OhosHiappEventDDL> instance_ = nullptr;
+static std::once_flag instanceFlag_;
 
 static constexpr char HiAppEvent_LIB_NAME[] = "libhiappevent_ndk.z.so";
 static const int Missed_Frame_Infos_Size = 10;
@@ -25,9 +26,12 @@ static const int Argument_Size = 3;
 
 OhosHiappEventDDL* OhosHiappEventDDL::GetInstance()
 {
-    if (instance_ == nullptr) {
-        instance_ = new OhosHiappEventDDL();
-    }
+    std::call_once(instanceFlag_, [&] {
+
+        instance_ = std::shared_ptr<OhosHiappEventDDL> (new OhosHiappEventDDL());
+        
+    });
+
     return instance_;
 }
 
@@ -39,7 +43,7 @@ OhosHiappEventDDL::OhosHiappEventDDL(void)
 
 OhosHiappEventDDL::~OhosHiappEventDDL() = default;
 
-void OhosHiappEventDDL::DDLGet(void)
+void OhosHiappEventDDL::DDLInit(void)
 {
     libHiappeventHandler_ = dlopen(HiAppEvent_LIB_NAME, RTLD_LAZY | RTLD_LOCAL);
     if (libHiappeventHandler_ == nullptr) {
@@ -106,7 +110,7 @@ void OhosHiappEventDDL::Init(void)
         return;
     }
 
-    std::thread hiappeventThread(&OhosHiappEventDDL::DDLGet, this);
+    std::thread hiappeventThread(&OhosHiappEventDDL::DDLInit, this);
     hiappeventThread.join();
     isInit_ = true;
     return;
