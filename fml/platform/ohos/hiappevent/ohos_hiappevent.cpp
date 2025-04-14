@@ -27,8 +27,10 @@ static const int Argument_Size = 3;
 OhosHiappEventDDL* OhosHiappEventDDL::GetInstance()
 {
     std::call_once(instanceFlag_, [&] {
+
         instance_ = std::shared_ptr<OhosHiappEventDDL> (new OhosHiappEventDDL());
-    })
+        
+    });
 
     return instance_;
 }
