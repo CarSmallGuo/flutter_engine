@@ -28,6 +28,8 @@
 #include "ohos_shell_holder.h"
 #include "shell/common/shell.h"
 #include "types.h"
+#include "flutter/fml/platform/ohos/hiappevent/ohos_hiappevent.h"
+
 namespace flutter {
 
 bool g_isMouseLeftActive = false;
@@ -464,6 +466,12 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
     PlatformViewOHOSNapi::SurfaceCreated(std::stoll(shellholderId_), window_,
                                          width_, height_);
     is_surface_present_ = true;
+  }
+
+  std::shared_ptr<fml::hiappevent::OhosHiappEventDDL> hiAppeventHandler =
+      fml::hiappevent::OhosHiappEventDDL::GetInstance();
+  if (hiAppeventHandler != nullptr) {
+    hiAppeventHandler->Init();
   }
 }
 
