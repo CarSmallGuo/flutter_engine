@@ -263,11 +263,14 @@ void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessageResponse(
         env_, (void*)data->GetMapping(), data->GetSize());
   }
 
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   status = fml::napi::InvokeJsMethod(
       env_, ref_napi_obj_, "handlePlatformMessageResponse", 2, callbackParam);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod fail ";
   }
+  napi_close_handle_scope(env_, scope);
 }
 
 void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessage(
@@ -311,9 +314,11 @@ void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessage(
   } else {
     callbackParam[3] = nullptr;
   }
-
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   status = fml::napi::InvokeJsMethod(env_, ref_napi_obj_,
                                      "handlePlatformMessage", 4, callbackParam);
+  napi_close_handle_scope(env_, scope);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod fail ";
   }
@@ -321,8 +326,11 @@ void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessage(
 
 void PlatformViewOHOSNapi::FlutterViewOnFirstFrame() {
   FML_DLOG(INFO) << "FlutterViewOnFirstFrame";
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   napi_status status = fml::napi::InvokeJsMethod(env_, ref_napi_obj_,
                                                  "onFirstFrame", 0, nullptr);
+  napi_close_handle_scope(env_, scope);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod onFirstFrame fail ";
   }
@@ -330,8 +338,11 @@ void PlatformViewOHOSNapi::FlutterViewOnFirstFrame() {
 
 void PlatformViewOHOSNapi::FlutterViewOnPreEngineRestart() {
   FML_DLOG(INFO) << "FlutterViewOnPreEngineRestart";
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   napi_status status = fml::napi::InvokeJsMethod(
       env_, ref_napi_obj_, "onPreEngineRestart", 0, nullptr);
+  napi_close_handle_scope(env_, scope);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod onPreEngineRestart fail ";
   }
@@ -424,8 +435,11 @@ void PlatformViewOHOSNapi::DecodeImage(int64_t imageGeneratorAddress,
         if (status != napi_ok) {
           FML_DLOG(ERROR) << "napi_create_int64 decodeImage fail ";
         }
+        napi_handle_scope scope;
+        napi_open_handle_scope(env_, &scope);
         status = fml::napi::InvokeJsMethod(env_, ref_napi_obj_, "decodeImage",
                                            2, callbackParam);
+        napi_close_handle_scope(env_, scope);
         if (status != napi_ok) {
           FML_DLOG(ERROR) << "InvokeJsMethod decodeImage fail ";
         }
@@ -448,9 +462,11 @@ void PlatformViewOHOSNapi::FlutterViewOnTouchEvent(
                             &stringItem);
     napi_set_element(env_, arrayString, i, stringItem);
   }
-
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   napi_status status = fml::napi::InvokeJsMethod(
       env_, ref_napi_obj_, "onTouchEvent", 1, &arrayString);
+  napi_close_handle_scope(env_, scope);
   if (status != napi_ok) {
     FML_LOG(ERROR) << "InvokeJsMethod onTouchEvent fail";
   }
@@ -503,8 +519,11 @@ napi_value PlatformViewOHOSNapi::nativeAttach(napi_env env,
 
 void PlatformViewOHOSNapi::GetShellHolderId() {
   FML_DLOG(INFO) << "GetShellHolderId";
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   napi_status status = fml::napi::InvokeJsMethod(env_, ref_napi_obj_,
                                                  "getShellHolderId", 0, nullptr);
+  napi_close_handle_scope(env_, scope);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod getShellHolderId fail ";
   }
@@ -1108,6 +1127,9 @@ napi_value PlatformViewOHOSNapi::nativeDestroy(napi_env env,
     LOGE("nativeDestroy napi_get_value_int64 error");
     return nullptr;
   }
+
+  std::shared_ptr<PlatformViewOHOSNapi> napi_facade = OHOS_SHELL_HOLDER->GetNapiFacade();
+  napi_delete_reference(env, napi_facade->ref_napi_obj_);
 
   LOGD("nativeDestroy shell_holder: %{public}ld", shell_holder);
 
@@ -1869,7 +1891,10 @@ napi_value PlatformViewOHOSNapi::nativeLookupCallbackInformation(napi_env env, n
   napi_create_string_utf8(env, cbInfo->class_name.c_str(), NAPI_AUTO_LENGTH, &callbackParam[1]);
   napi_create_string_utf8(env, cbInfo->library_path.c_str(), NAPI_AUTO_LENGTH, &callbackParam[2]);
 
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   ret = fml::napi::InvokeJsMethod(env, callbck_napi_obj, "init", 3, callbackParam);
+  napi_close_handle_scope(env_, scope);
   if (ret != napi_ok) {
     FML_DLOG(ERROR) << "nativeLookupCallbackInformation init fail ";
     napi_create_int32(env, -1, &result);
