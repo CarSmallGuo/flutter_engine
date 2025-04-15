@@ -41,7 +41,6 @@ typedef struct MissedFrameInfo {
 
 class OhosHiappEventDDL {
 public:
-    OhosHiappEventDDL(void);
     ~OhosHiappEventDDL();
 
     void Init(void);
@@ -53,6 +52,7 @@ public:
     void Flush(void);
 
 private:
+    OhosHiappEventDDL(void);
 
     void DDLInit(void);
 

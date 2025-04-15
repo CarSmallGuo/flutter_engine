@@ -23,6 +23,7 @@ static constexpr char HiAppEvent_LIB_NAME[] = "libhiappevent_ndk.z.so";
 static const int Missed_Frame_Infos_Size = 10;
 static const int Required_Api_Version = 18;
 static const int Argument_Size = 3;
+static const int vsync_transitions_missed_Size = 2;
 
 std::shared_ptr<OhosHiappEventDDL> OhosHiappEventDDL::GetInstance()
 {
@@ -144,7 +145,7 @@ void OhosHiappEventDDL::ReportJANKEvent(int64_t endTimeMicros,
     info.endTimeMicros = endTimeMicros;
     info.targetTime = std::stoll(argumentValues[0]);
     info.lastestTargetTime = std::stoll(argumentValues[1]);
-    info.missedFrame = std::stoi(argumentValues[2]);
+    info.missedFrame = std::stoi(argumentValues[vsync_transitions_missed_Size]);
     MissedFrameInfos.push_back(info);
 }
 
