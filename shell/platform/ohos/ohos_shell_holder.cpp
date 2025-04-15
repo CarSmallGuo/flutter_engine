@@ -134,9 +134,6 @@ static std::string CheckFontSource() {
     return "";
   }
   path = path.append(fileName);
-  if (OHOSLastFontPath.empty()) {
-    OHOSLastFontPath = path;
-  }
   return path;
 }
 
