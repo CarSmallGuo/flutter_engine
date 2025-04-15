@@ -11,6 +11,7 @@
 #include <functional>
 #include "flutter/fml/logging.h"
 #include "accessibility/ohos_semantics_bridge.h"
+#include "flutter/fml/platform/ohos/hiappevent/ohos_hiappevent.h"
 
 namespace flutter {
 
@@ -451,6 +452,12 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
     PlatformViewOHOSNapi::SurfaceCreated(std::stoll(shellholderId_), window_);
   } else {
     LOGE("OnSurfaceCreated XComponentBase is not attached");
+  }
+
+  std::shared_ptr<fml::hiappevent::OhosHiappEventDDL> hiAppeventHandler =
+      fml::hiappevent::OhosHiappEventDDL::GetInstance();
+  if (hiAppeventHandler != nullptr) {
+    hiAppeventHandler->Init();
   }
 }
 
