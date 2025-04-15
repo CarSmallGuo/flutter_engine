@@ -26,6 +26,7 @@ int64_t DefaultMicrosSource() {
 AsciiTrie gAllowlist;
 std::atomic<TimelineEventHandler> gTimelineEventHandler;
 std::atomic<TimelineMicrosSource> gTimelineMicrosSource = DefaultMicrosSource;
+static const int Argument_Size = 2;
 
 inline void FlutterTimelineEvent(const char* label,
                                  int64_t timestamp0,
@@ -190,12 +191,12 @@ void TraceEvent2(TraceArg category_group,
                        flow_id_count,  // flow_id_count
                        reinterpret_cast<const int64_t*>(flow_ids),  // flow_ids
                        Dart_Timeline_Event_Begin,  // event type
-                       2,                          // argument_count
+                       Argument_Size,                          // argument_count
                        arg_names,                  // argument_names
                        arg_values                  // argument_values
   );
 #if defined(FML_OS_OHOS)
-  OHOSTraceTimelineEvent(category_group, name, 0, Dart_Timeline_Event_Begin, 2, arg_names, arg_values);
+  OHOSTraceTimelineEvent(category_group, name, 0, Dart_Timeline_Event_Begin, Argument_Size, arg_names, arg_values);
 #endif
 }
 
