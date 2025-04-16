@@ -20,10 +20,13 @@ import Any from '../common/Any';
 import { inputDevice } from '@kit.InputKit';
 import { PointerDeviceKind } from '../../embedding/ohos/OhosTouchProcessor';
 import deviceInfo from '@ohos.deviceInfo';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 /// 临时规避缺少newline对应枚举问题
 const NEWLINE_KEY_TYPE: number = 8;
 const INPUT_SUPPORT_API = 15;
+const PREVIEW_TEXT_SUPPORT_API = 17;
+const sdkApiVersion: number = deviceInfo.sdkApiVersion;
 
 export default class TextInputPlugin implements EditingStateWatcher {
   private static TAG = "TextInputPlugin";
@@ -49,6 +52,24 @@ export default class TextInputPlugin implements EditingStateWatcher {
     return this.mTextInputHandler.mEditable;
   }
 
+  // do preview the text in the editing widget
+  didChangePreviewTextEditingState(inputTarget: InputTarget, editable: ListenableEditingState): void {
+    let stringCache: string = editable.getStringCache();
+    // obtain the start index of editing preview text
+    let startIdx: number = editable.getLeftIdxOfPreviewTextRange();
+    let leftStringCache  = stringCache.substring(0, startIdx);
+    let rightStringCache = stringCache.substring(startIdx, stringCache.length);
+    // concat the string cache and preview text and show on the TextField
+    let finalStringCache = leftStringCache + editable.getPreviewText() + rightStringCache;
+    // update the selection range
+    let newSelectionStart: number = startIdx + editable.getPreviewText().length;
+    let newSelectionEnd: number = startIdx + editable.getPreviewText().length;
+
+    this.textInputChannel.updateEditingState(inputTarget.id, finalStringCache,
+      newSelectionStart, newSelectionEnd,
+      editable.getComposingStart(), editable.getComposingEnd())
+  }
+
   didChangeEditingState(textChanged: boolean, selectionChanged: boolean, composingRegionChanged: boolean): void {
     let editable = this.mTextInputHandler.mEditable;
     let inputTarget = this.mTextInputHandler.inputTarget;
@@ -56,12 +77,13 @@ export default class TextInputPlugin implements EditingStateWatcher {
     if (configuration != null && configuration.enableDeltaModel) {
       this.textInputChannel.updateEditingStateWithDeltas(inputTarget.id, editable.extractBatchTextEditingDeltas());
       editable.clearBatchDeltas();
+    } else if (sdkApiVersion >= PREVIEW_TEXT_SUPPORT_API && editable.getPreviewText() != "") {
+      this.didChangePreviewTextEditingState(inputTarget, editable);
     } else {
       this.textInputChannel.updateEditingState(inputTarget.id, editable.getStringCache(),
         editable.getSelectionStart(), editable.getSelectionEnd(),
         editable.getComposingStart(), editable.getComposingEnd())
     }
-
   }
 
   detach(): void {
@@ -174,9 +196,45 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       "text:" + editingState.text + " selectionStart:" + editingState.selectionStart + " selectionEnd:"
         + editingState.selectionEnd + " composingStart:" + editingState.composingStart + " composingEnd" +
       editingState.composingEnd);
+    this.mEditable.setPreviewText("");
+    this.mEditable.setIsCursorIdxOutOfPreviewTextRange(false);
     this.mEditable.updateTextInputState(editingState);
-    this.inputMethodController.changeSelection(this.mEditable.getSelectionString(), this.mEditable.getSelectionStart(),
-      this.mEditable.getSelectionEnd());
+    if (sdkApiVersion >= PREVIEW_TEXT_SUPPORT_API) {
+      this.previewTextChangeSelection(editingState);
+    }
+  }
+
+  previewTextChangeSelection(editingState: TextEditState): void {
+    // if users only modify the cursor index without typing new preview text,
+    // clear the current preview text cache for avoiding inserting redundant preview text
+    // to insert at the current cursor position
+    let currCursorIndex: number = editingState.selectionStart;
+    let leftIdxOfPreviewText: number = this.mEditable.getLeftIdxOfPreviewTextRange();
+    let rightIdxOfPreviewText: number = this.mEditable.getRightIdxOfPreviewTextRange();
+
+    let isCursorIdxOutOfPreviewTextRange = (leftIdxOfPreviewText != rightIdxOfPreviewText) &&
+      (currCursorIndex < leftIdxOfPreviewText || currCursorIndex > rightIdxOfPreviewText)
+    // if user move the current cursor index out of editing preview text range,
+    // immediately inserting the first candidate word into the editing widget
+    if (isCursorIdxOutOfPreviewTextRange) {
+      try {
+        // change selection async callback
+        this.inputMethodController.changeSelection(editingState.text, leftIdxOfPreviewText, rightIdxOfPreviewText)
+          .then(() => {
+            // force the cursor position at the end of editing preview text
+            editingState.selectionStart = rightIdxOfPreviewText;
+            editingState.selectionEnd = rightIdxOfPreviewText;
+            // update TextInputState and reset the preview text state
+            this.mEditable.updateTextInputState(editingState);
+            this.mEditable.setPreviewText("");
+          })
+          .catch((err: BusinessError) => {
+            console.error(`Failed to previewTextChangeSelection: ${JSON.stringify(err)}`);
+          })
+      } catch (err) {
+        console.error(`Failed to previewTextChangeSelection: ${JSON.stringify(err)}`);
+      }
+    }
   }
 
   clearClient(): void {
@@ -208,6 +266,10 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   async attach(showKeyboard: boolean): Promise<void> {
     try {
+      // must register previewtext callbacks before attachment
+      if (sdkApiVersion >= PREVIEW_TEXT_SUPPORT_API) {
+        this.registerPreviewTextCallbacks();
+      }
       if (deviceInfo.sdkApiVersion >= INPUT_SUPPORT_API) {
         await this.inputMethodController.attach(showKeyboard, this.textConfig, this.getRequestReason());
       } else {
@@ -248,22 +310,24 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
         let isPhysicalKeyboard = false;
         for (let i = 0; i < ids.length; i++) {
           const type = inputDevice.getKeyboardTypeSync(ids[i]);
-          if (type == inputDevice.KeyboardType.ALPHABETIC_KEYBOARD || type == inputDevice.KeyboardType.DIGITAL_KEYBOARD) {
+          if (type == inputDevice.KeyboardType.ALPHABETIC_KEYBOARD ||
+            type == inputDevice.KeyboardType.DIGITAL_KEYBOARD) {
             isPhysicalKeyboard = true;
             break;
           }
         }
 
-        if(focusState && isPhysicalKeyboard && this.keyboardFocusState) {
+        if (focusState && isPhysicalKeyboard && this.keyboardFocusState) {
           this.cancelListenKeyBoardEvent();
-          this.inputMethodController.detach().then(async () =>{
+          this.inputMethodController.detach().then(async () => {
             await this.attach(true);
             this.listenKeyBoardEvent();
           })
         }
       })
     } catch (error) {
-      Log.e(TextInputMethodHandlerImpl.TAG, `Failed to query device. Code is ${error.code}, message is ${error.message}`)
+      Log.e(TextInputMethodHandlerImpl.TAG,
+        `Failed to query device. Code is ${error.code}, message is ${error.message}`)
     }
   }
 
@@ -308,6 +372,29 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       return true;
     }
     return this.configuration.inputType.type != this.inputTypeNone;
+  }
+
+  registerPreviewTextCallbacks(): void {
+    try {
+      this.inputMethodController.on("setPreviewText", this.setPreviewTextCallback)
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe setPreviewText:" + JSON.stringify(err));
+      this.unregisterPreviewTextCallbacks();
+      return;
+    }
+
+    try {
+      this.inputMethodController.on("finishTextPreview", this.finishPreviewTextCallback)
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe finishTextPreview:" + JSON.stringify(err));
+      this.unregisterPreviewTextCallbacks();
+      return;
+    }
+  }
+
+  unregisterPreviewTextCallbacks(): void {
+    this.inputMethodController?.off("setPreviewText", this.setPreviewTextCallback)
+    this.inputMethodController?.off("finishTextPreview", this.finishPreviewTextCallback);
   }
 
   listenKeyBoardEvent(): void {
@@ -371,21 +458,24 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.imcFlag = true;
   }
 
+  private setPreviewTextCallback = (text: string, range: inputMethod.Range) => {
+    this.mEditable.handleInsertPreviewTextEvent(text, range);
+  }
+  private finishPreviewTextCallback = () => {
+    this.mEditable.clearPreviewTextContents();
+    Log.d(TextInputMethodHandlerImpl.TAG, "finishPreviewTextCallback");
+  }
   private insertTextCallback = (text: string) => {
-    Log.d(TextInputMethodHandlerImpl.TAG, "insertText: " + text);
     this.mEditable.handleInsertTextEvent(text);
     this.inputMethodController.changeSelection(this.mEditable.getSelectionString(), this.mEditable.getSelectionStart(),
       this.mEditable.getSelectionEnd());
   }
-
   private deleteLeftCallback = (length: number) => {
     this.mEditable.handleDeleteEvent(false, length);
   }
-
   private deleteRightCallback = (length: number) => {
     this.mEditable.handleDeleteEvent(true, length);
   }
-
   private sendFunctionKeyCallback = (functionKey: inputMethod.FunctionKey) => {
     /// 临时规避缺少newline对应枚举类型问题
     if (functionKey.enterKeyType == NEWLINE_KEY_TYPE) {
@@ -393,14 +483,12 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     }
     this.mEditable.handleFunctionKey(functionKey);
   }
-
   private sendKeyboardStatusCallback = (state: inputMethod.KeyboardStatus) => {
     this.keyboardStatus = state;
     if (state == inputMethod.KeyboardStatus.HIDE && this.focusViewId) {
       this.plugin.textInputChannel.onConnectionClosed(this.inputTarget.id);
     }
   }
-
   private selectByRangeCallback = (range: inputMethod.Range) => {
     this.mEditable.handleSelectByRange(range);
   }
