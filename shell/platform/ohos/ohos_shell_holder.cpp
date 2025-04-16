@@ -24,6 +24,7 @@
 
 namespace flutter {
 
+static std::mutex font_path_mutex_;
 std::string OHOSLastFontPath = "";
 
 static void OHOSPlatformThreadConfigSetter(
@@ -138,6 +139,7 @@ static std::string CheckFontSource() {
 }
 
 static bool IsFontChanged(std::string currentPath) {
+  std::lock_guard<std::mutex> lock(font_path_mutex_);
   if (!currentPath.empty() && currentPath != OHOSLastFontPath) {
     OHOSLastFontPath = currentPath;
     return true;
@@ -413,6 +415,9 @@ void OHOSShellHolder::ReloadSystemFonts() {
   if (IsFontChanged(currentPath)) {
     SkFontMgr_OHOS* mgr = (SkFontMgr_OHOS*)(txt::GetDefaultFontManager().get());
     mgr->AddSystemFont(currentPath);
+  }
+  if (local_font_path_ != OHOSLastFontPath) {
+    local_font_path_ = OHOSLastFontPath;
     shell_->ReloadSystemFonts();
   }
 }
