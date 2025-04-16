@@ -16,6 +16,7 @@ import { TextEditingDelta } from './TextEditingDelta';
 import TextInputChannel from '../../embedding/engine/systemchannels/TextInputChannel';
 import { FlutterTextUtils } from './TextUtils';
 import { KeyCode } from '@kit.InputKit';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 const TAG = "ListenableEditingState";
 enum DeleteStates {
@@ -39,18 +40,23 @@ export class ListenableEditingState {
 
   private mListeners: ArrayList<EditingStateWatcher> = new ArrayList<EditingStateWatcher>();
   private mPendingListeners: ArrayList<EditingStateWatcher> = new ArrayList<EditingStateWatcher>();
-  private  mBatchTextEditingDeltas: ArrayList<TextEditingDelta> = new ArrayList<TextEditingDelta>();
+  private mBatchTextEditingDeltas: ArrayList<TextEditingDelta> = new ArrayList<TextEditingDelta>();
   private mChangeNotificationDepth: number = 0;
   private mBatchEditNestDepth: number = 0;
-
   private mTextWhenBeginBatchEdit: string;
   private mSelectionStartWhenBeginBatchEdit: number = 0;
   private mSelectionEndWhenBeginBatchEdit: number = 0;
   private mComposingStartWhenBeginBatchEdit: number = 0;
   private mComposingEndWhenBeginBatchEdit: number = 0;
+  // preview text
+  private mPreviewText: string;
+  private mPreviewTextStart: number = 0;
+  private mPreviewTextEnd: number = 0;
+  private mLeftIdxOfPreviewTextRange: number = 0;
+  private mRightIdxOfPreviewTextRange: number = 0;
+  private mIsCursorIdxOutOfPreviewTextRange: boolean = false;
 
-
-  constructor(TextInputChannel:TextInputChannel | null,client:number) {
+  constructor(TextInputChannel: TextInputChannel | null, client: number) {
     this.TextInputChannel = TextInputChannel;
     this.client = client
     this.mStringCache = "";
@@ -59,6 +65,7 @@ export class ListenableEditingState {
     this.mSelectionEndCache = 0;
     this.mComposingStartCache = -1;
     this.mComposingEndCache = -1;
+    this.mPreviewText = "";
   }
 
   extractBatchTextEditingDeltas(): ArrayList<TextEditingDelta> {
@@ -75,7 +82,8 @@ export class ListenableEditingState {
   }
 
   replace(start: number, end: number, tb: String, tbStart: number, tbEnd: number): void {
-    const placeIndex = this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
+    const placeIndex =
+      this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
 
     this.mBatchTextEditingDeltas.add(
       new TextEditingDelta(
@@ -117,6 +125,59 @@ export class ListenableEditingState {
     return this.mStringCache.substring(this.mSelectionStartCache, this.mSelectionEndCache);
   }
 
+  getPreviewText(): string {
+    return this.mPreviewText;
+  }
+
+  getPreviewTextStart(): number {
+    return this.mPreviewTextStart;
+  }
+
+  getPreviewTextEnd(): number {
+    return this.mPreviewTextEnd;
+  }
+
+  getRightIdxOfPreviewTextRange() : number {
+    return this.mRightIdxOfPreviewTextRange;
+  }
+
+  getLeftIdxOfPreviewTextRange() : number {
+    return this.mLeftIdxOfPreviewTextRange;
+  }
+
+  setPreviewText(previewText: string): void {
+    this.mPreviewText = previewText;
+  }
+
+  setPreviewTextStart(previewTextStart: number): void {
+    this.mPreviewTextStart = previewTextStart;
+  }
+
+  setPreviewTextEnd(previewTextEnd: number): void {
+    this.mPreviewTextEnd = previewTextEnd;
+  }
+
+  updatePreviewTextRange(leftIdx: number, rightIdx: number): void {
+    this.mLeftIdxOfPreviewTextRange = leftIdx;
+    this.mRightIdxOfPreviewTextRange = rightIdx;
+  }
+
+  clearPreviewTextContents() : void {
+    this.mPreviewText = "";
+    this.mPreviewTextStart = 0;
+    this.mPreviewTextEnd = 0;
+    this.mLeftIdxOfPreviewTextRange = 0;
+    this.mRightIdxOfPreviewTextRange = 0;
+  }
+
+  setIsCursorIdxOutOfPreviewTextRange(hasChanged: boolean): void {
+    this.mIsCursorIdxOutOfPreviewTextRange = hasChanged;
+  }
+
+  getIsCursorIdxOutOfPreviewTextRange(): boolean {
+    return this.mIsCursorIdxOutOfPreviewTextRange;
+  }
+
   setSelectionStart(newSelectionStart: number): void {
     this.mSelectionStartCache = newSelectionStart;
   }
@@ -138,9 +199,9 @@ export class ListenableEditingState {
   }
 
   notifyListener(listener: EditingStateWatcher,
-                 textChanged: boolean,
-                 selectionChanged: boolean,
-                 composingChanged: boolean): void {
+    textChanged: boolean,
+    selectionChanged: boolean,
+    composingChanged: boolean): void {
     this.mChangeNotificationDepth++;
     listener.didChangeEditingState(textChanged, selectionChanged, composingChanged);
     this.mChangeNotificationDepth--;
@@ -148,15 +209,46 @@ export class ListenableEditingState {
 
   notifyListenersIfNeeded(textChanged: boolean, selectionChanged: boolean, composingChanged: boolean) {
     if (textChanged || selectionChanged || composingChanged) {
-      for(const listener of this.mListeners) {
+      for (const listener of this.mListeners) {
         this.notifyListener(listener, textChanged, selectionChanged, composingChanged);
       }
-
     }
   }
 
+  handleInsertPreviewTextEvent(text: string, range: inputMethod.Range): void {
+    // preview text callback with complete text contents，like a, a'b, a'b'c
+    // its text char do not appear one by one
+    this.setPreviewText(text);
+    this.setPreviewTextStart(range.start);
+    this.setPreviewTextEnd(range.end);
+
+    // update preview text start idx and end idx
+    let leftIdxOfPreviewText: number = this.getSelectionStart();
+    let rightIdxOfPreviewText: number = this.getSelectionStart() + text.length;
+    this.updatePreviewTextRange(leftIdxOfPreviewText, rightIdxOfPreviewText);
+
+    if (this.mListeners == null) {
+      Log.e(TAG, "handleInsertPreviewTextEvent, mListeners is null");
+      return;
+    }
+    this.notifyListenersIfNeeded(true, true, false);
+  }
+
   handleInsertTextEvent(text: string): void {
-    let start = this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
+    // clear preview text cache before insert the final texts
+    if (this.getPreviewText().length != 0) {
+      this.setPreviewText("");
+    }
+    // When previewTextChangeSelection async callback has been invoked, covering the previous preview text.
+    // But if that callback did not work, then manually insert the candidate word, covering the previous preview text.
+    if (this.getLeftIdxOfPreviewTextRange() < this.mSelectionStartCache &&
+      (this.getLeftIdxOfPreviewTextRange() != this.getRightIdxOfPreviewTextRange())) {
+      this.mSelectionStartCache = this.getLeftIdxOfPreviewTextRange();
+      this.mSelectionEndCache = this.getRightIdxOfPreviewTextRange();
+    }
+
+    let start =
+      this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
     let end = this.mSelectionStartCache > this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
     const length = text.length;
     this.replace(start, end, text, 0, length);
@@ -180,6 +272,8 @@ export class ListenableEditingState {
       return;
     }
     this.notifyListenersIfNeeded(true, true, false);
+    // when preview text did insert, reset the left and right index
+    this.updatePreviewTextRange(0, 0);
   }
 
   updateTextInputState(state: TextEditState): void {
@@ -203,10 +297,10 @@ export class ListenableEditingState {
 
   beginBatchEdit(): void {
     this.mBatchEditNestDepth++;
-    if(this.mChangeNotificationDepth > 0) {
+    if (this.mChangeNotificationDepth > 0) {
       Log.e(TAG, "editing state should not be changed in a listener callback");
     }
-    if(this.mBatchEditNestDepth == 1 && !this.mListeners.isEmpty()) {
+    if (this.mBatchEditNestDepth == 1 && !this.mListeners.isEmpty()) {
       this.mTextWhenBeginBatchEdit = this.getStringCache();
       this.mSelectionStartWhenBeginBatchEdit = this.getSelectionStart();
       this.mSelectionEndWhenBeginBatchEdit = this.getSelectionEnd();
@@ -220,25 +314,25 @@ export class ListenableEditingState {
       Log.e(TAG, "endBatchEdit called without a matching beginBatchEdit");
       return;
     }
-    if(this.mBatchEditNestDepth == 1) {
-      Log.d(TAG,"mBatchEditNestDepth == 1");
-      for(const listener of this.mPendingListeners) {
+    if (this.mBatchEditNestDepth == 1) {
+      Log.d(TAG, "mBatchEditNestDepth == 1");
+      for (const listener of this.mPendingListeners) {
         this.notifyListener(listener, true, true, true);
       }
 
-      if(!this.mListeners.isEmpty()) {
+      if (!this.mListeners.isEmpty()) {
         Log.d(TAG, "didFinishBatchEdit with " + this.mListeners.length + " listener(s)");
         const textChanged = !(this.mStringCache == this.mTextWhenBeginBatchEdit);
         const selectionChanged = this.mSelectionStartWhenBeginBatchEdit != this.getSelectionStart()
           || this.mSelectionEndWhenBeginBatchEdit != this.getSelectionEnd();
         const composingRegionChanged = this.mComposingStartWhenBeginBatchEdit != this.getComposingStart()
           || this.mComposingEndWhenBeginBatchEdit != this.getComposingEnd();
-        Log.d(TAG,"textChanged: " + textChanged + " selectionChanged: " + selectionChanged +
+        Log.d(TAG, "textChanged: " + textChanged + " selectionChanged: " + selectionChanged +
           " composingRegionChanged: " + composingRegionChanged);
         this.notifyListenersIfNeeded(textChanged, selectionChanged, composingRegionChanged);
       }
     }
-    for(const listener of this.mPendingListeners) {
+    for (const listener of this.mPendingListeners) {
       this.mListeners.add(listener);
     }
     this.mPendingListeners.clear();
@@ -247,10 +341,10 @@ export class ListenableEditingState {
   }
 
   addEditingStateListener(listener: EditingStateWatcher): void {
-    if(this.mChangeNotificationDepth > 0) {
+    if (this.mChangeNotificationDepth > 0) {
       Log.e(TAG, "adding a listener " + JSON.stringify(listener) + " in a listener callback");
     }
-    if(this.mBatchEditNestDepth > 0) {
+    if (this.mBatchEditNestDepth > 0) {
       Log.d(TAG, "a listener was added to EditingState while a batch edit was in progress");
       this.mPendingListeners.add(listener);
     } else {
@@ -259,15 +353,15 @@ export class ListenableEditingState {
   }
 
   removeEditingStateListener(listener: EditingStateWatcher): void {
-    if(this.mChangeNotificationDepth > 0) {
+    if (this.mChangeNotificationDepth > 0) {
       Log.e(TAG, "removing a listener " + JSON.stringify(listener) + " in a listener callback");
     }
     this.mListeners.remove(listener);
-    if(this.mBatchEditNestDepth > 0) {
+    if (this.mBatchEditNestDepth > 0) {
       this.mPendingListeners.remove(listener);
     }
   }
-  
+
   startDeleting(code: number) {
     if (code === KeyCode.KEYCODE_FORWARD_DEL) {
       this.rightDeleteState = DeleteStates.START
@@ -287,6 +381,10 @@ export class ListenableEditingState {
   handleDeleteEvent(leftOrRight: boolean, length: number): void {
     if (length === 0) {
       return;
+    }
+    // clear preview text cache
+    if (this.getPreviewText().length != 0) {
+      this.setPreviewText("");
     }
 
     let start =
@@ -329,7 +427,8 @@ export class ListenableEditingState {
       }
       this.replace(start, unicodeEnd, "", 0, 0);
       this.mSelectionEndCache = start;
-      let tempStr: string = this.mStringCache.slice(0, start) + (unicodeEnd >= this.mStringCache.length ? "" : this.mStringCache.slice(unicodeEnd));
+      let tempStr: string = this.mStringCache.slice(0, start) +
+        (unicodeEnd >= this.mStringCache.length ? "" : this.mStringCache.slice(unicodeEnd));
       this.mStringCache = tempStr;
       this.mSelectionStartCache = this.mSelectionEndCache;
     }
@@ -339,7 +438,8 @@ export class ListenableEditingState {
   handleNewlineEvent(): void {
     // 获取光标所在位置;
     // 当光标移动前位置小于移动后的位置时，获取光标移动前位置;反之获取移动后位置
-    let start = this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
+    let start =
+      this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
     // 当光标移动前位置大于移动后的位置时，获取光标移动前位置;反之获取移动后位置
     let end = this.mSelectionStartCache > this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
 
@@ -366,8 +466,7 @@ export class ListenableEditingState {
   }
 
   handleFunctionKey(functionKey: inputMethod.FunctionKey): void {
-    if(!this.TextInputChannel)
-    {
+    if (!this.TextInputChannel) {
       return
     }
     switch (functionKey.enterKeyType) {
@@ -399,7 +498,7 @@ export class ListenableEditingState {
   }
 
   handleSelectByRange(range: inputMethod.Range): void {
-    Log.d(TAG, "handleSelectByRange start: " + range.start +" end: " + range.end);
+    Log.d(TAG, "handleSelectByRange start: " + range.start + " end: " + range.end);
   }
 
   // only for move cursor Left after insert text like "()" "[]" ...
