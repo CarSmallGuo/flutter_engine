@@ -16,6 +16,7 @@ import { TextEditingDelta } from './TextEditingDelta';
 import TextInputChannel from '../../embedding/engine/systemchannels/TextInputChannel';
 import { FlutterTextUtils } from './TextUtils';
 import { KeyCode } from '@kit.InputKit';
+import { BusinessError } from '@kit.BasicServicesKit';
 
 const TAG = "ListenableEditingState";
 enum DeleteStates {
@@ -39,7 +40,7 @@ export class ListenableEditingState {
 
   private mListeners: ArrayList<EditingStateWatcher> = new ArrayList<EditingStateWatcher>();
   private mPendingListeners: ArrayList<EditingStateWatcher> = new ArrayList<EditingStateWatcher>();
-  private  mBatchTextEditingDeltas: ArrayList<TextEditingDelta> = new ArrayList<TextEditingDelta>();
+  private mBatchTextEditingDeltas: ArrayList<TextEditingDelta> = new ArrayList<TextEditingDelta>();
   private mChangeNotificationDepth: number = 0;
   private mBatchEditNestDepth: number = 0;
 
@@ -49,6 +50,12 @@ export class ListenableEditingState {
   private mComposingStartWhenBeginBatchEdit: number = 0;
   private mComposingEndWhenBeginBatchEdit: number = 0;
 
+  // preview text
+  private mPreviewText: string;
+  private mPreviewTextStart: number = 0;
+  private mPreviewTextEnd: number = 0;
+  private mLeftIdxOfPreviewTextRange: number = 0;
+  private mRightIdxOfPreviewTextRange: number = 0;
 
   constructor(TextInputChannel:TextInputChannel | null,client:number) {
     this.TextInputChannel = TextInputChannel;
@@ -59,6 +66,7 @@ export class ListenableEditingState {
     this.mSelectionEndCache = 0;
     this.mComposingStartCache = -1;
     this.mComposingEndCache = -1;
+    this.mPreviewText = "";
   }
 
   extractBatchTextEditingDeltas(): ArrayList<TextEditingDelta> {
@@ -110,6 +118,51 @@ export class ListenableEditingState {
     return this.mStringCache;
   }
 
+  getPreviewText(): string {
+    return this.mPreviewText;
+  }
+
+  getPreviewTextStart(): number {
+    return this.mPreviewTextStart;
+  }
+
+  getPreviewTextEnd(): number {
+    return this.mPreviewTextEnd;
+  }
+
+  getRightIdxOfPreviewTextRange() : number {
+    return this.mRightIdxOfPreviewTextRange;
+  }
+
+  getLeftIdxOfPreviewTextRange() : number {
+    return this.mLeftIdxOfPreviewTextRange;
+  }
+
+  setPreviewText(previewText: string): void {
+    this.mPreviewText = previewText;
+  }
+
+  setPreviewTextStart(previewTextStart: number): void {
+    this.mPreviewTextStart = previewTextStart;
+  }
+
+  setPreviewTextEnd(previewTextEnd: number): void {
+    this.mPreviewTextEnd = previewTextEnd;
+  }
+
+  updatePreviewTextRange(leftIdx: number, rightIdx: number): void {
+    this.mLeftIdxOfPreviewTextRange = leftIdx;
+    this.mRightIdxOfPreviewTextRange = rightIdx;
+  }
+
+  clearPreviewTextContents() : void {
+    this.mPreviewText = "";
+    this.mPreviewTextStart = 0;
+    this.mPreviewTextEnd = 0;
+    this.mLeftIdxOfPreviewTextRange = 0;
+    this.mRightIdxOfPreviewTextRange = 0;
+  }
+
   setSelectionStart(newSelectionStart: number): void {
     this.mSelectionStartCache = newSelectionStart;
   }
@@ -144,11 +197,34 @@ export class ListenableEditingState {
       for(const listener of this.mListeners) {
         this.notifyListener(listener, textChanged, selectionChanged, composingChanged);
       }
-
     }
   }
 
+  handleInsertPreviewTextEvent(text: string, range: inputMethod.Range): void {
+    // preview text callback with complete text contents，like a, a'b, a'b'c
+    // its text char do not appear one by one
+    this.setPreviewText(text);
+    this.setPreviewTextStart(range.start);
+    this.setPreviewTextEnd(range.end);
+
+    // update preview text start idx and end idx
+    let leftIdxOfPreviewText: number = this.getSelectionStart();
+    let rightIdxOfPreviewText: number = this.getSelectionStart() + text.length;
+    this.updatePreviewTextRange(leftIdxOfPreviewText, rightIdxOfPreviewText)
+
+    if (this.mListeners == null) {
+      Log.e(TAG, "handleInsertPreviewTextEvent, mListeners is null");
+      return;
+    }
+    this.notifyListenersIfNeeded(true, true, false);
+  }
+
   handleInsertTextEvent(text: string): void {
+    // clear preview text cache before insert the final texts
+    if (this.getPreviewText().length != 0) {
+      this.setPreviewText("");
+    }
+
     let start = this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
     let end = this.mSelectionStartCache > this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
     const length = text.length;
@@ -280,6 +356,10 @@ export class ListenableEditingState {
   handleDeleteEvent(leftOrRight: boolean, length: number): void {
     if (length === 0) {
       return;
+    }
+    // clear preview text cache
+    if (this.getPreviewText().length != 0) {
+      this.setPreviewText("");
     }
 
     let start =
