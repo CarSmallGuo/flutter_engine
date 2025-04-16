@@ -18,9 +18,12 @@ import Log from '../../util/Log';
 import { EditingStateWatcher, ListenableEditingState } from './ListenableEditingState';
 import Any from '../common/Any';
 import { inputDevice } from '@kit.InputKit';
+import { BusinessError } from '@kit.BasicServicesKit';
+import { deviceInfo } from '@kit.BasicServicesKit';
 
 /// 临时规避缺少newline对应枚举问题
 const NEWLINE_KEY_TYPE: number = 8;
+const sdkApiVersion: number = deviceInfo.sdkApiVersion;
 
 export default class TextInputPlugin implements EditingStateWatcher {
   private static TAG = "TextInputPlugin";
@@ -45,6 +48,24 @@ export default class TextInputPlugin implements EditingStateWatcher {
     return this.mTextInputHandler.mEditable;
   }
 
+  // do preview the text in the editing widget
+  didChangePreviewTextEditingState(inputTarget: InputTarget, editable: ListenableEditingState): void {
+    let stringCache: string = editable.getStringCache();
+    // obtain the start index of editing preview text
+    let startIdx: number = editable.getLeftIdxOfPreviewTextRange();
+    let leftStringCache  = stringCache.substring(0, startIdx);
+    let rightStringCache = stringCache.substring(startIdx, stringCache.length);
+    // concat the string cache and preview text and show on the TextField
+    let finalStringCache = leftStringCache + editable.getPreviewText() + rightStringCache;
+    // update the selection range
+    let newSelectionStart: number = startIdx + editable.getPreviewText().length;
+    let newSelectionEnd: number = startIdx + editable.getPreviewText().length;
+
+    this.textInputChannel.updateEditingState(inputTarget.id, finalStringCache,
+      newSelectionStart, newSelectionEnd,
+      editable.getComposingStart(), editable.getComposingEnd())
+  }
+
   didChangeEditingState(textChanged: boolean, selectionChanged: boolean, composingRegionChanged: boolean): void {
     let editable = this.mTextInputHandler.mEditable;
     let inputTarget = this.mTextInputHandler.inputTarget;
@@ -52,12 +73,14 @@ export default class TextInputPlugin implements EditingStateWatcher {
     if (configuration != null && configuration.enableDeltaModel) {
       this.textInputChannel.updateEditingStateWithDeltas(inputTarget.id, editable.extractBatchTextEditingDeltas());
       editable.clearBatchDeltas();
-    } else {
+    } else if (sdkApiVersion >= 17 && editable.getPreviewText() != "") {  // debug preview text showing
+      this.didChangePreviewTextEditingState(inputTarget, editable);
+    }
+    else {
       this.textInputChannel.updateEditingState(inputTarget.id, editable.getStringCache(),
         editable.getSelectionStart(), editable.getSelectionEnd(),
         editable.getComposingStart(), editable.getComposingEnd())
     }
-
   }
 
   detach(): void {
@@ -143,6 +166,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       "text:" + editingState.text + " selectionStart:" + editingState.selectionStart + " selectionEnd:"
         + editingState.selectionEnd + " composingStart:" + editingState.composingStart + " composingEnd" +
       editingState.composingEnd);
+    this.mEditable.setPreviewText("");
     this.mEditable.updateTextInputState(editingState);
   }
 
@@ -168,6 +192,12 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   async attach(showKeyboard: boolean): Promise<void> {
     try {
+      // must register previewtext callbacks before attachment
+      if (sdkApiVersion >= 17) {
+        this.registerPreviewTextCallbacks();
+      } else {
+        Log.w(TextInputMethodHandlerImpl.TAG, "The preview text feature of InputMethod is only supported at API-17+")
+      }
       await this.inputMethodController.attach(showKeyboard, this.textConfig);
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to attach:" + JSON.stringify(err));
@@ -244,6 +274,30 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     return this.configuration.inputType.type != this.inputTypeNone;
   }
 
+  registerPreviewTextCallbacks(): void {
+    // this.mEditable.setInputMethodController(this.inputMethodController);
+    try {
+      this.inputMethodController.on("setPreviewText", this.setPreviewTextCallback)
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe setPreviewText:" + JSON.stringify(err));
+      this.unregisterPreviewTextCallbacks();
+      return;
+    }
+
+    try {
+      this.inputMethodController.on("finishTextPreview", this.finishPreviewTextCallback)
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe finishTextPreview:" + JSON.stringify(err));
+      this.unregisterPreviewTextCallbacks();
+      return;
+    }
+  }
+
+  unregisterPreviewTextCallbacks(): void {
+    this.inputMethodController?.off("setPreviewText", this.setPreviewTextCallback)
+    this.inputMethodController?.off("finishTextPreview", this.finishPreviewTextCallback);
+  }
+
   listenKeyBoardEvent(): void {
     try {
       this.inputMethodController.on('insertText', this.insertTextCallback);
@@ -296,8 +350,17 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.imcFlag = true;
   }
 
+  private setPreviewTextCallback = (text: string, range: inputMethod.Range) => {
+    Log.d(TextInputMethodHandlerImpl.TAG, "setPreviewTextCallback: PreviewText=" + text + " start=" + range.start + " end=" + range.end)
+    this.mEditable.handleInsertPreviewTextEvent(text, range);
+  }
+
+  private finishPreviewTextCallback = () => {
+    this.mEditable.clearPreviewTextContents();
+    Log.d(TextInputMethodHandlerImpl.TAG, "finishPreviewTextCallback");
+  }
+
   private insertTextCallback = (text: string) => {
-    Log.d(TextInputMethodHandlerImpl.TAG, "insertText: " + text);
     this.mEditable.handleInsertTextEvent(text);
   }
 
