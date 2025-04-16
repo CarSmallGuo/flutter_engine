@@ -27,8 +27,8 @@ public:
     int GetRefreshRate(void);
     void DisableDVsync() override;
     void EnableDVsync() override;
-    void DisableDVsyncWithoutFling() {}
-    void EnableDVsyncWithoutFling() {}
+    void DisableDVsyncWithoutFling() override;
+    void EnableDVsyncWithoutFling() override;
 
 private:
     // |VsyncWaiter|
