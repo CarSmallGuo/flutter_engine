@@ -32,9 +32,9 @@ using AddFunc = int64_t (*)(HiAppEvent_Processor* processor);
 using DestroyProcessor = void(*)(HiAppEvent_Processor* processor);
 
 typedef struct MissedFrameInfo {
-    int64_t endTimeMicros; // unit: ms
-    int64_t targetTime; // unit: us
-    int64_t lastestTargetTime; // unit: us
+    int64_t endTimeMicros; // unit: us
+    int64_t targetTime; // unit: ns
+    int64_t lastestTargetTime; // unit: ns
     int missedFrame;
 } MissedFrameInfo;
 
@@ -55,6 +55,10 @@ public:
 private:
 
     void DDLInit(void);
+
+    int WriteSingleFrame(void);
+
+    int WriteStatisticFrame(void);
 
     void* libHiappeventHandler_ = nullptr;
 
