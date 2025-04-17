@@ -149,10 +149,118 @@ void OhosHiappEventDDL::ReportJANKEvent(int64_t endTimeMicros,
     MissedFrameInfos.push_back(info);
 }
 
+int OhosHiappEventDDL::WriteSingleFrame(void)
+{
+    if (MissedFrameInfos.size() == 0) {
+        return -1;
+    }
+
+    int64_t endTimeMicros = MissedFrameInfos.front().endTimeMicros;
+    int64_t targetTime = MissedFrameInfos.front().targetTime / 1000;
+    int64_t lastestTargetTime = MissedFrameInfos.front().lastestTargetTime / 1000;
+    int missedFrame = MissedFrameInfos.front().missedFrame;
+
+    if (endTimeMicros < targetTime) {
+        FML_LOG(ERROR) << "report error, endTime is less than targetTime";
+        return -1;
+    }
+
+    int64_t budgetTime = (lastestTargetTime - targetTime) / missedFrame;
+    int64_t vsyncStartTime = targetTime - budgetTime;
+    ParamList list = OH_HiAppEvent_CreateParamList();
+    if (list == nullptr) {
+        FML_LOG(ERROR) << "CreateParamList error";
+        return -1;
+    }
+
+    OH_HiAppEvent_AddStringParam(list, "frameworkName", "FLUTTER");
+    OH_HiAppEvent_AddInt32Param(list, "versionCode", 0);
+    OH_HiAppEvent_AddInt32Param(list, "missedFrames", missedFrame);
+    OH_HiAppEvent_AddInt64Param(list, "startTime", vsyncStartTime);
+    OH_HiAppEvent_AddInt64Param(list, "endTime", endTimeMicros);
+    OH_HiAppEvent_AddInt64Param(list, "pid", getpid());
+
+    int ret = OH_HiAppEvent_Write("PERFORMANCE", "OTHER_JANK", BEHAVIOR, list);
+    if (ret != 0) {
+        FML_LOG(ERROR) << "HiAppEvent_Write error, ret = " << ret;
+    }
+
+    OH_HiAppEvent_DestroyParamList(list);
+    return ret;
+}
+
+int OhosHiappEventDDL::WriteStatisticFrame(void)
+{
+    if (MissedFrameInfos.size() == 0) {
+        FML_LOG(ERROR) << "size of MissedFrameInfos is zero";
+        return -1;
+    }
+
+    ParamList list = OH_HiAppEvent_CreateParamList();
+    if (list == nullptr) {
+        FML_LOG(ERROR) << "CreateParamList error";
+        return -1;
+    }
+
+    int totalMissedFrames = 0;
+    int maxMissedFrame = 0;
+    int targetIndex = 0;
+    int index = 0;
+    for (auto it = MissedFrameInfos.begin(); it != MissedFrameInfos.end(); it++) {
+        totalMissedFrames += (*it).missedFrame;
+
+        if ((*it).missedFrame > maxMissedFrame) {
+            maxMissedFrame = (*it).missedFrame;
+            targetIndex = index;
+        }
+        index++;
+    }
+    // 丢帧最大值
+    int64_t maxEndTimeMicros = MissedFrameInfos.at(targetIndex).endTimeMicros;
+    int64_t maxTargetTime = MissedFrameInfos.at(targetIndex).targetTime / 1000;
+    int64_t maxLastestTargetTime = MissedFrameInfos.at(targetIndex).lastestTargetTime / 1000;
+
+    int64_t maxBudget = (maxLastestTargetTime - maxTargetTime) / maxMissedFrame;
+    int64_t maxVsyncStartTime = maxTargetTime - maxBudget;
+    int64_t maxDiffTime = maxEndTimeMicros - maxVsyncStartTime;
+    int maxFPS = 1000000 / maxBudget;
+
+    // 开始时间 第一次丢帧vsync开始时间
+    int64_t frontTargetTime = MissedFrameInfos.front().targetTime / 1000;
+    int64_t frontLastestTargetTime = MissedFrameInfos.front().lastestTargetTime / 1000;
+    int64_t frontbudgetTime = (frontLastestTargetTime - frontTargetTime) / MissedFrameInfos.front().missedFrame;
+    int64_t vsyncStartTime = frontTargetTime - frontbudgetTime;
+
+    // 结束时间 最后一次丢帧vsync结束时间
+    int64_t backLastestTargetTime = MissedFrameInfos.back().lastestTargetTime / 1000;
+
+    OH_HiAppEvent_AddStringParam(list, "frameworkName", "FLUTTER");
+    OH_HiAppEvent_AddInt32Param(list, "versionCode", 0);
+
+    OH_HiAppEvent_AddInt32Param(list, "maxMissedFrameRate", maxFPS);
+    OH_HiAppEvent_AddInt32Param(list, "totalMissedFrames", totalMissedFrames);
+    OH_HiAppEvent_AddInt64Param(list, "maxFrameTime", maxDiffTime);
+    OH_HiAppEvent_AddInt64Param(list, "startTime", vsyncStartTime);
+    OH_HiAppEvent_AddInt64Param(list, "endTime", backLastestTargetTime);
+    OH_HiAppEvent_AddInt64Param(list, "pid", getpid());
+
+    int ret = OH_HiAppEvent_Write("PERFORMANCE", "OTHER_JANK_STAT", BEHAVIOR, list);
+    if (ret != 0) {
+        FML_LOG(ERROR) << "HiAppEvent_Write error, ret = " << ret;
+    }
+
+    OH_HiAppEvent_DestroyParamList(list);
+    return ret;
+}
+
 void OhosHiappEventDDL::Flush(void)
 {
     if (!isValid_) {
         FML_LOG(ERROR) << "flush isValid_ false";
+        return;
+    }
+
+    if (MissedFrameInfos.size() == 0) {
         return;
     }
 
@@ -164,6 +272,7 @@ void OhosHiappEventDDL::Flush(void)
 
     setReportPoliceFunc_(processor, 1, 1, true, true);
     setReportEventFunc_(processor, "PERFORMANCE", "OTHER_JANK", true);
+    setReportEventFunc_(processor, "PERFORMANCE", "OTHER_JANK_STAT", true);
 
     int64_t processorId = addFunc_(processor);
     if (processorId <= 0) {
@@ -172,41 +281,18 @@ void OhosHiappEventDDL::Flush(void)
         return;
     }
 
-    for (auto it = MissedFrameInfos.begin(); it != MissedFrameInfos.end(); it++) {
-        int64_t endTimeMicros = (*it).endTimeMicros;
-
-        int64_t targetTime = (*it).targetTime / 1000;
-
-        int64_t lastestTargetTime = (*it).lastestTargetTime / 1000;
-
-        int missedFrame = (*it).missedFrame;
-
-        if (endTimeMicros < targetTime) {
-            FML_LOG(ERROR) << "report error, endTime is less than targetTime";
-            destroyProcessor_(processor);
-            return;
+    int ret = -1;
+    do {
+        ret = WriteSingleFrame();
+        if (ret != 0) {
+            break;
         }
 
-        int64_t budgetTime = (lastestTargetTime - targetTime) / missedFrame;
-        int64_t vsyncStartTime = targetTime - budgetTime;
-
-        ParamList list = OH_HiAppEvent_CreateParamList();
-        if (list == nullptr) {
-            FML_LOG(ERROR) << "CreateParamList error";
-            destroyProcessor_(processor);
-            return;
+        ret = WriteStatisticFrame();
+        if (ret != 0) {
+            break;
         }
-        OH_HiAppEvent_AddStringParam(list, "frameworkName", "FLUTTER");
-        OH_HiAppEvent_AddInt32Param(list, "versionCode", 0);
-        OH_HiAppEvent_AddInt32Param(list, "missedFrames", missedFrame);
-        OH_HiAppEvent_AddInt64Param(list, "startTime", vsyncStartTime);
-        OH_HiAppEvent_AddInt64Param(list, "endTime", endTimeMicros);
-        OH_HiAppEvent_AddInt64Param(list, "pid", getpid());
-
-        OH_HiAppEvent_Write("PERFORMANCE", "OTHER_JANK", BEHAVIOR, list);
-
-        OH_HiAppEvent_DestroyParamList(list);
-    }
+    } while (0);
     destroyProcessor_(processor);
     MissedFrameInfos.clear();
 }
