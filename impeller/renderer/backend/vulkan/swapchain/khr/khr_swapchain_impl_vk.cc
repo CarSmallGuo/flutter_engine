@@ -557,6 +557,22 @@ bool KHRSwapchainImplVK::Present(
   present_info.setImageIndices(indices);
   present_info.setWaitSemaphores(*sync->present_ready);
 
+  vk::RectLayerKHR damage_rect;
+  vk::PresentRegionKHR present_region;
+  vk::PresentRegionsKHR present_regions;
+
+  if (render_area_.has_value()) {
+    damage_rect.setOffset(
+        {(int)render_area_->GetX(), (int)render_area_->GetY()});
+    damage_rect.setExtent({(uint32_t)render_area_->GetWidth(),
+                           (uint32_t)render_area_->GetHeight()});
+
+    present_region.setRectangles(damage_rect);
+    present_regions.setRegions(present_region);
+
+    present_info.setPNext(&present_regions);
+  }
+
   auto result = context.GetGraphicsQueue()->Present(present_info);
 
   switch (result) {
