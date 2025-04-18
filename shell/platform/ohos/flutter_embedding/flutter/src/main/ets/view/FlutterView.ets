@@ -196,6 +196,7 @@ export class FlutterView {
   private frameCache: boolean = true;
   private paddingTop?: number;
   private systemAvoidArea: window.AvoidArea;
+  private cutoutAvoidArea: window.AvoidArea;
   private navigationAvoidArea: window.AvoidArea;
   private gestureAvoidArea: window.AvoidArea;
   private keyboardAvoidArea: window.AvoidArea;
@@ -224,6 +225,7 @@ export class FlutterView {
     accessibility.on('accessibilityStateChange', this.accessibilityStateChangeCallback);
 
     this.systemAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM);
+    this.cutoutAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_CUTOUT);
     this.navigationAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR);
     this.gestureAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM_GESTURE);
     this.keyboardAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_KEYBOARD);
@@ -280,6 +282,8 @@ export class FlutterView {
     Log.i(TAG, "avoidAreaChangeCallback type:" + data.type);
     if (data.type == window.AvoidAreaType.TYPE_SYSTEM) { //0
       this.systemAvoidArea = data.area;
+    } else if (data.type == window.AvoidAreaType.TYPE_CUTOUT) { // 1
+      this.cutoutAvoidArea = data.area;
     } else if (data.type == window.AvoidAreaType.TYPE_SYSTEM_GESTURE) { //2
       this.gestureAvoidArea = data.area;
     } else if (data.type == window.AvoidAreaType.TYPE_KEYBOARD) { //3
@@ -552,6 +556,26 @@ export class FlutterView {
       this.systemAvoidArea?.leftRect.width ?? this.viewportMetrics.physicalViewPaddingLeft;
     this.viewportMetrics.physicalViewPaddingRight =
       this.systemAvoidArea?.rightRect.width ?? this.viewportMetrics.physicalViewPaddingRight;
+
+    // Take the max of the cutout avoidArea and existing padding to merge them
+    if (this.cutoutAvoidArea && fullScreen) {
+      this.viewportMetrics.physicalViewPaddingTop = Math.max(this.viewportMetrics.physicalViewPaddingTop,
+        this.cutoutAvoidArea.topRect.top + this.cutoutAvoidArea.topRect.height);
+      if (this.cutoutAvoidArea.bottomRect.height !== 0) {
+        this.viewportMetrics.physicalViewPaddingBottom = Math.max(this.viewportMetrics.physicalViewPaddingBottom,
+          this.viewportMetrics.physicalHeight - this.cutoutAvoidArea.bottomRect.top);
+      }
+      this.viewportMetrics.physicalViewPaddingLeft = Math.max(this.viewportMetrics.physicalViewPaddingLeft,
+        this.cutoutAvoidArea.leftRect.left + this.cutoutAvoidArea.leftRect.width);
+      if (this.cutoutAvoidArea.rightRect.width !== 0) {
+        let orientation = display.getDefaultDisplaySync().orientation;
+        let isLandscape =
+          orientation === display.Orientation.LANDSCAPE || orientation === display.Orientation.LANDSCAPE_INVERTED;
+        let realWidth = isLandscape ? this.viewportMetrics.physicalHeight : this.viewportMetrics.physicalWidth;
+        this.viewportMetrics.physicalViewPaddingRight = Math.max(this.viewportMetrics.physicalViewPaddingBottom,
+          realWidth - this.cutoutAvoidArea.rightRect.left);
+      }
+    }
 
     this.onKeyboardAreaChange(fullScreen)
     this.onAiBarAreaChange(fullScreen)
