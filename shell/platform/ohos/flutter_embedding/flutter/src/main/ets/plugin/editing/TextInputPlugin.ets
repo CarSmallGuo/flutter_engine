@@ -27,9 +27,10 @@ export default class TextInputPlugin implements EditingStateWatcher {
   private textInputChannel: TextInputChannel;
   private mTextInputHandler: TextInputMethodHandlerImpl;
 
-  constructor(textInputChannel: TextInputChannel) {
+  constructor(textInputChannel: TextInputChannel, viewId: string) {
     this.textInputChannel = textInputChannel;
-    this.mTextInputHandler = new TextInputMethodHandlerImpl(this);
+    // viewId is used for requestFocus
+    this.mTextInputHandler = new TextInputMethodHandlerImpl(this, viewId);
     this.textInputChannel.setTextInputMethodHandler(this.mTextInputHandler);
   }
 
@@ -86,9 +87,10 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private inputTypeNone: string = 'NONE';
   private keyboardStatus: inputMethod.KeyboardStatus = inputMethod.KeyboardStatus.HIDE;
   private inputAttribute: inputMethod.InputAttribute = { textInputType: 0, enterKeyType: 1 };
-  private keyboardFocusState: boolean = false
+  private keyboardFocusState: boolean = false;
+  private focusViewId: string = "";
 
-  constructor(plugin: TextInputPlugin | Any) {
+  constructor(plugin: TextInputPlugin | Any, viewId: string) {
     this.textConfig = {
       inputAttribute: this.inputAttribute
     };
@@ -96,11 +98,14 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.mEditable = new ListenableEditingState(null, 0);
     this.inputMethodController = inputMethod.getController();
     this.inputTarget = new InputTarget(Type.NO_TARGET, 0);
+    this.focusViewId = viewId;
   }
 
   /// 通过判断是否是TextInputType.none来决定是否弹出键盘
   show(): void {
     if (this.canShowTextInput()) {
+      // Ensure the Xcomponent gains focus before the soft keyboard is displayed.
+      focusControl.requestFocus(this.focusViewId);
       this.keyboardFocusState = true;
       this.showTextInput();
     } else {

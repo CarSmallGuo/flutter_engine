@@ -4,6 +4,7 @@
  * found in the LICENSE_KHZG file.
  */
 #include <ace/xcomponent/native_interface_xcomponent.h>
+#include <ace/xcomponent/native_interface_xcomponent.h>
 #include "ohos_xcomponent_adapter.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "types.h"
@@ -517,6 +518,14 @@ void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component,
          static_cast<int>(width_), static_cast<int>(height_));
   } else {
     LOGE("GetXComponentSize result:%{public}d", ret);
+  }
+
+  // This setting ensures that the soft keyboard does not automatically dismiss
+  // when the Xcomponent regains focus.
+  ret = OH_NativeXComponent_SetNeedSoftKeyboard(component, true);
+  if (ret != OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
+    LOGE("OH_NativeXComponent_SetNeedSoftKeyboard failed result:%{public}d",
+         ret);
   }
 
   LOGD("OnSurfaceCreated,window.size:%{public}d,%{public}d", (int)width_,
