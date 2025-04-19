@@ -266,7 +266,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       return;
     }
     // Make the Xcomponent gain focus.
-    focusControl.requestFocus(this.flutterView?.getId());
+    focusControl.requestFocus('emptyFocusText' + this.flutterView?.getId());
   }
   synchronizeToNativeViewHierarchy(yes: boolean): void {
     throw new Error('Method not implemented.');
