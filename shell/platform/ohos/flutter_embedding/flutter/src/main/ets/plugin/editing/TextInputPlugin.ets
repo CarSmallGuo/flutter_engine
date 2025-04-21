@@ -118,7 +118,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   hide(): void {
     // Ensure the Xcomponent loses focus before the soft keyboard is hided.
-    focusControl.requestFocus('emptyFocusText' + this.viewId);
+    focusControl.requestFocus('emptyFocusText' + this.focusViewId);
     this.keyboardFocusState = false;
     this.hideTextInput();
   }
