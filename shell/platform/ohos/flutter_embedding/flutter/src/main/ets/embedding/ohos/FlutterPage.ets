@@ -48,7 +48,7 @@ export struct FlutterPage {
 
 
       Text('')
-        .id("unfocus-xcomponent-node")
+        .id('emptyFocusText' + this.viewId)
         .size({ width: 0, height: 0 })
         .opacity(0)
         .focusable(true)
@@ -152,7 +152,7 @@ export struct FlutterPage {
 
 
       Text('')
-        .id("unfocus-xcomponent-node")
+        .id('emptyFocusText' + this.viewId)
         .size({ width: 0, height: 0 })
         .opacity(0)
         .focusable(true)
