@@ -70,8 +70,9 @@ export default class TextInputPlugin implements EditingStateWatcher {
   }
 
   destroy() {
-    // Ensure the Xcomponent loses focus before the soft keyboard is hided.
-    focusControl.requestFocus("unfocus-xcomponent-node");
+    // Since the Dart side no longer listens to the lifecycle, 
+    // the keyboard must be explicitly hidden before the engine is destroyed.
+    this.mTextInputHandler.hide();
     this.textInputChannel.setTextInputMethodHandler(null);
   }
 }
@@ -116,6 +117,8 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   hide(): void {
+    // Ensure the Xcomponent loses focus before the soft keyboard is hided.
+    focusControl.requestFocus('emptyFocusText' + this.viewId);
     this.keyboardFocusState = false;
     this.hideTextInput();
   }
