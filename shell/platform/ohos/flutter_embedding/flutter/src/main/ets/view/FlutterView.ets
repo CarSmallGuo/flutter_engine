@@ -202,7 +202,7 @@ export class FlutterView {
     this.buildDisplayFeatures(display.getFoldStatus());
     this.mainWindow = FlutterManager.getInstance()
       .getWindowStage(FlutterManager.getInstance().getUIAbility(context))
-      .getMainWindowSync();
+      ?.getMainWindowSync();
     this.mFirstFrameListeners = new ArrayList<FirstFrameListener>();
 
     this.mainWindow?.on('windowSizeChange', this.windowSizeChangeCallback);
@@ -216,21 +216,11 @@ export class FlutterView {
     this.keyboardAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_KEYBOARD);
 
     // 监听折叠状态的改变
-    display?.on('foldStatusChange', (data: display.FoldStatus) => {
-      Log.d(TAG, `Fold status change to ${JSON.stringify(data)}`)
-      this.buildDisplayFeatures(data);
-    })
+    display.on('foldStatusChange', this.foldStatusChangeCallback)
 
     // Subscribes to display changes. Example: event that the display size is changed.
     try {
-      display.on("change", ()=>{
-        this.displayInfo = display.getDefaultDisplaySync();
-        if (this.viewportMetrics.devicePixelRatio != this.displayInfo?.densityPixels) {
-          this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
-          Log.i(TAG, "Display on: " + JSON.stringify(this.displayInfo))
-          this.updateViewportMetrics()
-        }
-      });
+      display.on("change", this.displayChangeCallback);
     } catch (e) {
       Log.e(TAG, "displayInfo error" + JSON.stringify(e));
     }
@@ -272,7 +262,21 @@ export class FlutterView {
     this.updateViewportMetrics();
   }
 
-  private  windowSizeChangeCallback = (data: window.Size) => {
+  private foldStatusChangeCallback = (data: display.FoldStatus) => {
+    Log.d(TAG, `Fold status change to ${JSON.stringify(data)}`)
+    this.buildDisplayFeatures(data);
+  }
+
+  private displayChangeCallback = ()=>{
+    this.displayInfo = display.getDefaultDisplaySync();
+    if (this.viewportMetrics.devicePixelRatio != this.displayInfo?.densityPixels) {
+      this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
+      Log.i(TAG, "Display on: " + JSON.stringify(this.displayInfo))
+      this.updateViewportMetrics()
+    }
+  }
+
+  private windowSizeChangeCallback = (data: window.Size) => {
     Log.i(TAG, "windowSizeChangeCallback w:" + data.width + ", h:" + data.height);
     if (this.isAttachedToFlutterEngine()) {
       this.onAreaChange(null);
@@ -366,24 +370,18 @@ export class FlutterView {
       this.mainWindow?.off('windowStatusChange', this.windowStatusChangeCallback);
       accessibility.off('accessibilityStateChange', this.accessibilityStateChangeCallback);
       this.mainWindow?.off('keyboardHeightChange', this.keyboardHeightChangeCallback);
-      display.off('foldStatusChange', (status: display.FoldStatus) => {
-        Log.d(TAG, `foldStatusChange listner destory`);
-      })
+      display.off('foldStatusChange', this.foldStatusChangeCallback);
     } catch (e) {
       Log.e(TAG, "mainWindow off error: " + JSON.stringify(e));
     }
     this.mainWindow = null;
 
     try {
-      display.off("change", ()=>{
-        this.displayInfo = display.getDefaultDisplaySync();
-        this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
-        Log.i(TAG, "Display Info: " + JSON.stringify(this.displayInfo))
-        this.updateViewportMetrics()
-      });
+      display.off('change', this.displayChangeCallback);
     } catch (e) {
       Log.e(TAG, "displayInfo off error" + JSON.stringify(e));
     }
+    FlutterManager.getInstance().deleteFlutterView(this.id, this);
   }
 
   attachToFlutterEngine(flutterEngine: FlutterEngine): void {
