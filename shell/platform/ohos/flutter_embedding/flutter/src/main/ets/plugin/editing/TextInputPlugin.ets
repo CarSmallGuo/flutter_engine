@@ -27,7 +27,7 @@ export default class TextInputPlugin implements EditingStateWatcher {
   private textInputChannel: TextInputChannel;
   private mTextInputHandler: TextInputMethodHandlerImpl;
 
-  constructor(textInputChannel: TextInputChannel, viewId: string) {
+  constructor(textInputChannel: TextInputChannel, viewId?: string) {
     this.textInputChannel = textInputChannel;
     // viewId is used for requestFocus
     this.mTextInputHandler = new TextInputMethodHandlerImpl(this, viewId);
@@ -93,7 +93,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private keyboardFocusState: boolean = false;
   private focusViewId: string = "";
 
-  constructor(plugin: TextInputPlugin | Any, viewId: string) {
+  constructor(plugin: TextInputPlugin | Any, viewId?: string) {
     this.textConfig = {
       inputAttribute: this.inputAttribute
     };
@@ -101,7 +101,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.mEditable = new ListenableEditingState(null, 0);
     this.inputMethodController = inputMethod.getController();
     this.inputTarget = new InputTarget(Type.NO_TARGET, 0);
-    this.focusViewId = viewId;
+    this.focusViewId = viewId ?? "";
   }
 
   /// 通过判断是否是TextInputType.none来决定是否弹出键盘
