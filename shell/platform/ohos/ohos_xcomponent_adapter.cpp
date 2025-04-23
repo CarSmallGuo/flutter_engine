@@ -4,7 +4,6 @@
  * found in the LICENSE_KHZG file.
  */
 #include <ace/xcomponent/native_interface_xcomponent.h>
-#include <ace/xcomponent/native_interface_xcomponent.h>
 #include "ohos_xcomponent_adapter.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "types.h"

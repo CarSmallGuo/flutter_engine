@@ -108,7 +108,9 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   show(): void {
     if (this.canShowTextInput()) {
       // Ensure the Xcomponent gains focus before the soft keyboard is displayed.
-      focusControl.requestFocus(this.focusViewId);
+      if (this.focusViewId) {
+        focusControl.requestFocus(this.focusViewId);
+      }
       this.keyboardFocusState = true;
       this.showTextInput();
     } else {
@@ -118,7 +120,9 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   hide(): void {
     // Ensure the Xcomponent loses focus before the soft keyboard is hided.
-    focusControl.requestFocus('emptyFocusText' + this.focusViewId);
+    if (this.focusViewId) { 
+      focusControl.requestFocus('emptyFocusText' + this.focusViewId);
+    }
     this.keyboardFocusState = false;
     this.hideTextInput();
   }
@@ -187,7 +191,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   handleChangeFocus(focusState: boolean) {
-    if (focusState && this.keyboardFocusState) {
+    if (focusState && this.keyboardFocusState && this.focusViewId) {
       // When the app loses focus, the system automatically detaches the input method.
       // Upon regaining focus, if the input method should be displayed, it must be reattached.
       this.show();
@@ -336,7 +340,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   private sendKeyboardStatusCallback = (state: inputMethod.KeyboardStatus) => {
     this.keyboardStatus = state;
-    if (state == inputMethod.KeyboardStatus.HIDE) {
+    if (state == inputMethod.KeyboardStatus.HIDE && this.focusViewId) {
       this.plugin.textInputChannel.onConnectionClosed(this.inputTarget.id);
     }
   }
