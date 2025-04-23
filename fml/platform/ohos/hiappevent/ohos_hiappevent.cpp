@@ -253,7 +253,7 @@ int OhosHiappEventDDL::WriteStatisticFrame(void)
     return ret;
 }
 
-void OhosHiappEventDDL::Flush(void)
+void OhosHiappEventDDL::WriteSingleFrameFlush(void)
 {
     if (!isValid_) {
         FML_LOG(ERROR) << "flush isValid_ false";
@@ -272,7 +272,6 @@ void OhosHiappEventDDL::Flush(void)
 
     setReportPoliceFunc_(processor, 1, 1, true, true);
     setReportEventFunc_(processor, "PERFORMANCE", "OTHER_JANK", true);
-    setReportEventFunc_(processor, "PERFORMANCE", "OTHER_JANK_STAT", true);
 
     int64_t processorId = addFunc_(processor);
     if (processorId <= 0) {
@@ -287,7 +286,39 @@ void OhosHiappEventDDL::Flush(void)
         if (ret != 0) {
             break;
         }
+    } while (0);
+    destroyProcessor_(processor);
+}
 
+void OhosHiappEventDDL::WriteStatisticFrameFlush(void)
+{
+    if (!isValid_) {
+        FML_LOG(ERROR) << "flush isValid_ false";
+        return;
+    }
+
+    if (MissedFrameInfos.size() == 0) {
+        return;
+    }
+
+    HiAppEvent_Processor* processor = reinterpret_cast<HiAppEvent_Processor*>(createProcessorFunc_("xperfbridge"));
+    if (processor == nullptr) {
+        FML_LOG(ERROR) << "processor == nullptr";
+        return;
+    }
+
+    setReportPoliceFunc_(processor, 1, 1, true, true);
+    setReportEventFunc_(processor, "PERFORMANCE", "OTHER_JANK_STAT", true);
+
+    int64_t processorId = addFunc_(processor);
+    if (processorId <= 0) {
+        FML_LOG(ERROR) << "processorId error";
+        destroyProcessor_(processor);
+        return;
+    }
+
+    int ret = -1;
+    do {
         ret = WriteStatisticFrame();
         if (ret != 0) {
             break;
@@ -296,6 +327,7 @@ void OhosHiappEventDDL::Flush(void)
     destroyProcessor_(processor);
     MissedFrameInfos.clear();
 }
+
 };  // namespace hiappevent
 
 };  // namespace fml
