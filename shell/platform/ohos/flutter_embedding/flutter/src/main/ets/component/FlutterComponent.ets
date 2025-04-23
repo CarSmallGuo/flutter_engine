@@ -16,7 +16,7 @@
 /**
  * 基础component，还未封装，看情况是否使用
  */
-@Component
+@Component // 流水线测试api16
 export default struct FlutterComponent {
   build() {
     Row() {
