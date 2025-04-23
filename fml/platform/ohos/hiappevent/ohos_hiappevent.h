@@ -50,7 +50,9 @@ public:
 
     void ReportJANKEvent(int64_t endTimeMicros, const char** argumentValues, int argumentCount);
 
-    void Flush(void);
+    void WriteSingleFrameFlush(void);
+
+    void WriteStatisticFrameFlush(void);
 
 private:
 
