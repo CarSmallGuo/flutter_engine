@@ -7,8 +7,9 @@
 #ifndef OHOS_HIAPPEVENT_H
 #define OHOS_HIAPPEVENT_H
 
-#include <vector>
 #include <hiappevent/hiappevent.h>
+#include <vector>
+#include "flutter/fml/platform/ohos/dynamic_library_loader.h"
 
 namespace fml {
 
@@ -16,73 +17,69 @@ namespace hiappevent {
 
 using CreateProcessorFunc = HiAppEvent_Processor* (*)(const char* name);
 using SetReportRouteFunc = int (*)(HiAppEvent_Processor* processor,
-                                  const char* appId,
-                                  const char* routeInfo);
+                                   const char* appId,
+                                   const char* routeInfo);
 using SetReportPoliceFunc = int (*)(HiAppEvent_Processor* processor,
                                     int periodReport,
                                     int batchReport,
                                     bool onStartReport,
                                     bool onBackgroundReport);
 using SetReportEventFunc = int (*)(HiAppEvent_Processor* processor,
-                                  const char* domain,
-                                  const char* name,
-                                  bool isRealTime);
+                                   const char* domain,
+                                   const char* name,
+                                   bool isRealTime);
 using AddFunc = int64_t (*)(HiAppEvent_Processor* processor);
 
-using DestroyProcessor = void(*)(HiAppEvent_Processor* processor);
+using DestroyProcessor = void (*)(HiAppEvent_Processor* processor);
 
 typedef struct MissedFrameInfo {
-    int64_t endTimeMicros; // unit: us
-    int64_t targetTime; // unit: ns
-    int64_t lastestTargetTime; // unit: ns
-    int missedFrame;
+  int64_t endTimeMicros;      // unit: us
+  int64_t targetTime;         // unit: ns
+  int64_t lastestTargetTime;  // unit: ns
+  int missedFrame;
 } MissedFrameInfo;
 
-
 class OhosHiappEventDDL {
-public:
-    OhosHiappEventDDL(void);
-    ~OhosHiappEventDDL();
+ public:
+  OhosHiappEventDDL(void);
+  ~OhosHiappEventDDL();
 
-    void Init(void);
+  void Init(void);
 
-    static std::shared_ptr<OhosHiappEventDDL> GetInstance(void);
+  static std::shared_ptr<OhosHiappEventDDL> GetInstance(void);
 
-    void ReportJANKEvent(int64_t endTimeMicros, const char** argumentValues, int argumentCount);
+  void ReportJANKEvent(int64_t endTimeMicros,
+                       const char** argumentValues,
+                       int argumentCount);
 
-    void WriteSingleFrameFlush(void);
+  void Flush(void);
 
-    void WriteStatisticFrameFlush(void);
+  void FlushAllIn(int type);
 
-private:
+ private:
+  int WriteSingleFrame(void);
 
-    void DDLInit(void);
+  int WriteStatisticFrame(void);
 
-    int WriteSingleFrame(void);
+  CreateProcessorFunc createProcessorFunc_ = nullptr;
+  SetReportRouteFunc setReportRouteFunc_ = nullptr;
+  SetReportPoliceFunc setReportPoliceFunc_ = nullptr;
+  SetReportEventFunc setReportEventFunc_ = nullptr;
+  AddFunc addFunc_ = nullptr;
+  DestroyProcessor destroyProcessor_ = nullptr;
 
-    int WriteStatisticFrame(void);
+  int apiVersion_ = 0;
 
-    void* libHiappeventHandler_ = nullptr;
+  std::unique_ptr<flutter::DynamicLibraryLoader> loader_;
 
-    CreateProcessorFunc createProcessorFunc_ = nullptr;
-    SetReportRouteFunc setReportRouteFunc_ = nullptr;
-    SetReportPoliceFunc setReportPoliceFunc_ = nullptr;
-    SetReportEventFunc setReportEventFunc_ = nullptr;
-    AddFunc addFunc_ = nullptr;
-    DestroyProcessor destroyProcessor_ = nullptr;
+  bool isValid_ = false;
 
-    int apiVersion_ = 0;
+  bool isInit_ = false;
 
-    bool isValid_ = false;
-
-    bool isInit_ = false;
-
-    std::vector<MissedFrameInfo> MissedFrameInfos;
-
-
+  std::vector<MissedFrameInfo> MissedFrameInfos;
 };
 
-}; // namespace hiappevent
-}; // namespace fml
+};  // namespace hiappevent
+};  // namespace fml
 
 #endif
