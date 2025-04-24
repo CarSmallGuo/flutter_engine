@@ -54,7 +54,7 @@ class OhosHiappEventDDL {
 
   void Flush(void);
 
-  void FlushAllIn(void);
+  void FlushAllIn(int type);
 
  private:
   inline bool DDLInit(void);
