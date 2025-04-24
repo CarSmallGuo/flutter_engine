@@ -79,6 +79,8 @@ class OhosHiappEventDDL {
 
   bool isInit_ = false;
 
+  bool DDLready_ = false;
+
   std::vector<MissedFrameInfo> MissedFrameInfos;
 };
 
