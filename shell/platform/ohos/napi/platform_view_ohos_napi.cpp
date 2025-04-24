@@ -1900,12 +1900,7 @@ void PlatformViewOHOSNapi::SurfaceDestroyed(int64_t shell_holder) {
 
   OHOS_SHELL_HOLDER->GetPlatformView()->RunTask(
     OhosThreadType::kIO,
-    []{ fml::hiappevent::OhosHiappEventDDL::GetInstance()->WriteSingleFrameFlush(); }
-  );
-
-  OHOS_SHELL_HOLDER->GetPlatformView()->RunTask(
-    OhosThreadType::kIO,
-    []{ fml::hiappevent::OhosHiappEventDDL::GetInstance()->WriteStatisticFrameFlush(); }
+    []{ fml::hiappevent::OhosHiappEventDDL::GetInstance()->Flush(); }
   );
 }
 
