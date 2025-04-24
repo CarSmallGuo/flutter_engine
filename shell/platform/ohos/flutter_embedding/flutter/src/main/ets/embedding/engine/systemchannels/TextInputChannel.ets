@@ -7,7 +7,7 @@
 * Copyright (C) 2013 The Flutter Authors.
 *
 */
-
+// 3.7流水线测试
 import JSONMethodCodec from '../../../plugin/common/JSONMethodCodec';
 import MethodCall from '../../../plugin/common/MethodCall';
 import MethodChannel, { MethodCallHandler, MethodResult } from '../../../plugin/common/MethodChannel';
