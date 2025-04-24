@@ -466,12 +466,7 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
   } else {
     LOGE("OnSurfaceCreated XComponentBase is not attached");
   }
-
-  std::shared_ptr<fml::hiappevent::OhosHiappEventDDL> hiAppeventHandler =
-      fml::hiappevent::OhosHiappEventDDL::GetInstance();
-  if (hiAppeventHandler != nullptr) {
-    hiAppeventHandler->Init();
-  }
+  
 }
 
 void XComponentBase::DetachFlutterEngine() {
