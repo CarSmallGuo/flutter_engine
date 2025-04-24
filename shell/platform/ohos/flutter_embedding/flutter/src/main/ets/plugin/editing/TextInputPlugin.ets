@@ -27,9 +27,10 @@ export default class TextInputPlugin implements EditingStateWatcher {
   private textInputChannel: TextInputChannel;
   private mTextInputHandler: TextInputMethodHandlerImpl;
 
-  constructor(textInputChannel: TextInputChannel) {
+  constructor(textInputChannel: TextInputChannel, viewId?: string) {
     this.textInputChannel = textInputChannel;
-    this.mTextInputHandler = new TextInputMethodHandlerImpl(this);
+    // viewId is used for requestFocus
+    this.mTextInputHandler = new TextInputMethodHandlerImpl(this, viewId);
     this.textInputChannel.setTextInputMethodHandler(this.mTextInputHandler);
   }
 
@@ -69,6 +70,9 @@ export default class TextInputPlugin implements EditingStateWatcher {
   }
 
   destroy() {
+    // Since the Dart side no longer listens to the lifecycle, 
+    // the keyboard must be explicitly hidden before the engine is destroyed.
+    this.mTextInputHandler.hide();
     this.textInputChannel.setTextInputMethodHandler(null);
   }
 }
@@ -86,9 +90,10 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private inputTypeNone: string = 'NONE';
   private keyboardStatus: inputMethod.KeyboardStatus = inputMethod.KeyboardStatus.HIDE;
   private inputAttribute: inputMethod.InputAttribute = { textInputType: 0, enterKeyType: 1 };
-  private keyboardFocusState: boolean = false
+  private keyboardFocusState: boolean = false;
+  private focusViewId: string = "";
 
-  constructor(plugin: TextInputPlugin | Any) {
+  constructor(plugin: TextInputPlugin | Any, viewId?: string) {
     this.textConfig = {
       inputAttribute: this.inputAttribute
     };
@@ -96,11 +101,16 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.mEditable = new ListenableEditingState(null, 0);
     this.inputMethodController = inputMethod.getController();
     this.inputTarget = new InputTarget(Type.NO_TARGET, 0);
+    this.focusViewId = viewId ?? "";
   }
 
   /// 通过判断是否是TextInputType.none来决定是否弹出键盘
   show(): void {
     if (this.canShowTextInput()) {
+      // Ensure the Xcomponent gains focus before the soft keyboard is displayed.
+      if (this.focusViewId) {
+        focusControl.requestFocus(this.focusViewId);
+      }
       this.keyboardFocusState = true;
       this.showTextInput();
     } else {
@@ -109,6 +119,10 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   hide(): void {
+    // Ensure the Xcomponent loses focus before the soft keyboard is hided.
+    if (this.focusViewId) { 
+      focusControl.requestFocus('emptyFocusText' + this.focusViewId);
+    }
     this.keyboardFocusState = false;
     this.hideTextInput();
   }
@@ -169,12 +183,19 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   async attach(showKeyboard: boolean): Promise<void> {
     try {
       await this.inputMethodController.attach(showKeyboard, this.textConfig);
+      this.keyboardStatus = inputMethod.KeyboardStatus.SHOW;
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to attach:" + JSON.stringify(err));
+      this.keyboardStatus = inputMethod.KeyboardStatus.NONE;
     }
   }
 
   handleChangeFocus(focusState: boolean) {
+    if (focusState && this.keyboardFocusState && this.focusViewId) {
+      // When the app loses focus, the system automatically detaches the input method.
+      // Upon regaining focus, if the input method should be displayed, it must be reattached.
+      this.show();
+    }
     try {
       inputDevice.getDeviceList((Error: Error, ids: Array<number>) => {
         let isPhysicalKeyboard = false;
@@ -319,6 +340,9 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   private sendKeyboardStatusCallback = (state: inputMethod.KeyboardStatus) => {
     this.keyboardStatus = state;
+    if (state == inputMethod.KeyboardStatus.HIDE && this.focusViewId) {
+      this.plugin.textInputChannel.onConnectionClosed(this.inputTarget.id);
+    }
   }
 
   private selectByRangeCallback = (range: inputMethod.Range) => {
