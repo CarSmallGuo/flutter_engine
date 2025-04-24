@@ -118,11 +118,6 @@ void OhosHiappEventDDL::Init(void) {
 void OhosHiappEventDDL::ReportJANKEvent(int64_t endTimeMicros,
                                         const char** argumentValues,
                                         int argumentCount) {
-  // if (!isValid_) {
-  //     FML_LOG(ERROR) << "ReportJANKEvent isValid_ false";
-  //     return;
-  // }
-
   if (argumentCount < Argument_Size) {
     FML_LOG(ERROR) << "Array data overflow";
     return;
