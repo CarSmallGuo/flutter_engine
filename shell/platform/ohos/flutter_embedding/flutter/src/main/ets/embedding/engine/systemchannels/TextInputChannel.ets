@@ -22,7 +22,7 @@ import { display } from '@kit.ArkUI'
 import { window } from '@kit.ArkUI';
 import { BusinessError, print } from '@kit.BasicServicesKit';
 
-const TAG = "TextInputChannel";
+const TAG = "TextInputChannel"; // 3.7流水线测试
 /// 规避换行标识无法显示问题，api修改后再删除
 const NEWLINE_KEY_TYPE: number = 8;
 
