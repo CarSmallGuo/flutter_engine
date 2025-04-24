@@ -56,6 +56,7 @@ class PlatformViewOHOSNapi {
       napi_callback_info info);
 
   explicit PlatformViewOHOSNapi(napi_env env);
+  ~PlatformViewOHOSNapi();
   void SetPlatformTaskRunner(fml::RefPtr<fml::TaskRunner> platform_task_runner);
   void FlutterViewHandlePlatformMessageResponse(
       int reponse_id,

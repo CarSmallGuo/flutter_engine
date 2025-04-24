@@ -244,6 +244,10 @@ napi_value PlatformViewOHOSNapi::nativeInvokePlatformMessageResponseCallback(
 }
  */
 PlatformViewOHOSNapi::PlatformViewOHOSNapi(napi_env env) {}
+PlatformViewOHOSNapi::~PlatformViewOHOSNapi() {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi Deconstruction";
+  napi_delete_reference(env_, ref_napi_obj_);
+}
 
 void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessageResponse(
     int reponse_id,
@@ -1128,8 +1132,6 @@ napi_value PlatformViewOHOSNapi::nativeDestroy(napi_env env,
     return nullptr;
   }
 
-  std::shared_ptr<PlatformViewOHOSNapi> napi_facade = OHOS_SHELL_HOLDER->GetNapiFacade();
-  napi_delete_reference(env, napi_facade->ref_napi_obj_);
 
   LOGD("nativeDestroy shell_holder: %{public}ld", shell_holder);
 
