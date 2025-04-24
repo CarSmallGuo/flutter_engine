@@ -202,6 +202,7 @@ source_set("fml") {
       "platform/ohos/napi_util.cc",
       "platform/ohos/ohos_trace_event.cc",
       "platform/ohos/hiappevent/ohos_hiappevent.cpp",
+      "platform/ohos/dynamic_library_loader.cpp"
     ]
     libs += [ "hilog_ndk.z" ]
     libs += [ "ace_napi.z" ]
