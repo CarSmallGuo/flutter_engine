@@ -251,6 +251,16 @@ napi_value PlatformViewOHOSNapi::nativeInvokePlatformMessageResponseCallback(
 }
  */
 PlatformViewOHOSNapi::PlatformViewOHOSNapi(napi_env env) {}
+PlatformViewOHOSNapi::~PlatformViewOHOSNapi() {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi Deconstruction";
+  uint32_t result = 0;
+  if (!ref_napi_obj_) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi ref_napi_obj_ is null !!!";
+    return;
+  }
+  napi_reference_unref(env_, ref_napi_obj_, &result);
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi napi_reference_unref, result is " << result;
+}
 
 void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessageResponse(
     int reponse_id,
@@ -270,11 +280,14 @@ void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessageResponse(
         env_, (void*)data->GetMapping(), data->GetSize());
   }
 
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   status = fml::napi::InvokeJsMethod(
       env_, ref_napi_obj_, "handlePlatformMessageResponse", 2, callbackParam);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod fail ";
   }
+  napi_close_handle_scope(env_, scope);
 }
 
 void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessage(
@@ -319,11 +332,14 @@ void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessage(
     callbackParam[3] = nullptr;
   }
 
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   status = fml::napi::InvokeJsMethod(env_, ref_napi_obj_,
                                      "handlePlatformMessage", 4, callbackParam);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod fail ";
   }
+  napi_close_handle_scope(env_, scope);
 }
 
 void PlatformViewOHOSNapi::FlutterViewOnFirstFrame(bool is_preload) {
@@ -333,20 +349,26 @@ void PlatformViewOHOSNapi::FlutterViewOnFirstFrame(bool is_preload) {
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "napi_create_int64 firstframe fail ";
   }
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   status = fml::napi::InvokeJsMethod(env_, ref_napi_obj_, "onFirstFrame", 1,
                                      callbackParam);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod onFirstFrame fail ";
   }
+  napi_close_handle_scope(env_, scope);
 }
 
 void PlatformViewOHOSNapi::FlutterViewOnPreEngineRestart() {
   FML_DLOG(INFO) << "FlutterViewOnPreEngineRestart";
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   napi_status status = fml::napi::InvokeJsMethod(
       env_, ref_napi_obj_, "onPreEngineRestart", 0, nullptr);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod onPreEngineRestart fail ";
   }
+  napi_close_handle_scope(env_, scope);
 }
 
 std::vector<std::string> splitString(const std::string& input, char delimiter) {
@@ -436,11 +458,14 @@ void PlatformViewOHOSNapi::FlutterViewOnTouchEvent(
     napi_set_element(env_, arrayString, i, stringItem);
   }
 
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   napi_status status = fml::napi::InvokeJsMethod(
       env_, ref_napi_obj_, "onTouchEvent", 1, &arrayString);
   if (status != napi_ok) {
     FML_LOG(ERROR) << "InvokeJsMethod onTouchEvent fail";
   }
+  napi_close_handle_scope(env_, scope);
 }
 
 /**
@@ -2191,6 +2216,8 @@ napi_value PlatformViewOHOSNapi::nativeLookupCallbackInformation(
   napi_create_string_utf8(env, cbInfo->library_path.c_str(), NAPI_AUTO_LENGTH,
                           &callbackParam[2]);
 
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   ret = fml::napi::InvokeJsMethod(env, callbck_napi_obj, "init", 3,
                                   callbackParam);
   if (ret != napi_ok) {
@@ -2198,6 +2225,7 @@ napi_value PlatformViewOHOSNapi::nativeLookupCallbackInformation(
     napi_create_int32(env, -1, &result);
     return result;
   }
+  napi_close_handle_scope(env_, scope);
   napi_delete_reference(env, callbck_napi_obj);
   napi_create_int32(env, 0, &result);
   return result;

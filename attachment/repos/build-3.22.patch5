@@ -1,0 +1,80 @@
+diff --git a/build/config/BUILD.gn b/build/config/BUILD.gn
+index ea49a53..1344257 100644
+--- a/build/config/BUILD.gn
++++ b/build/config/BUILD.gn
+@@ -46,6 +46,9 @@ config("feature_flags") {
+   if (is_asan) {
+     defines += [ "ADDRESS_SANITIZER" ]
+   }
++  if (is_hwasan) {
++    defines += [ "HWADDRESS_SANITIZER" ]
++  }
+   if (is_lsan) {
+     defines += [ "LEAK_SANITIZER" ]
+   }
+diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
+index 2dc5843..4ace662 100644
+--- a/build/config/BUILDCONFIG.gn
++++ b/build/config/BUILDCONFIG.gn
+@@ -143,6 +143,9 @@ declare_args() {
+   # Compile for Address Sanitizer to find memory bugs.
+   is_asan = false
+ 
++  # Compile for Hardware Address Sanitizer to find memory bugs.
++  is_hwasan = false
++
+   # Compile for Leak Sanitizer to find leaks.
+   is_lsan = false
+ 
+@@ -338,9 +341,12 @@ default_library_type = "static_library"
+ # BUILD OPTIONS
+ # =============================================================================
+ 
++if (is_hwasan && current_os != "ohos") {
++  is_hwasan = false
++}
+ # These Sanitizers all imply using the Clang compiler. On Windows they either
+ # don't work or work differently.
+-using_sanitizer = !is_win && (is_asan || is_lsan || is_tsan || is_msan)
++using_sanitizer = !is_win && (is_asan || is_hwasan || is_lsan || is_tsan || is_msan)
+ if (!is_clang && using_sanitizer) {
+   is_clang = true
+ }
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index 8d9f449..c79d19d 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -132,6 +132,10 @@ config("compiler") {
+       cflags += [ "-fsanitize=address" ]
+       ldflags += [ "-fsanitize=address" ]
+     }
++    if (is_hwasan) {
++      cflags += [ "-fsanitize=hwaddress", "-fno-emulated-tls", "-mllvm", "-hwasan-globals=0", "-fno-omit-frame-pointer" ]
++      ldflags += [ "-fsanitize=hwaddress", "-fno-emulated-tls", "-mllvm", "-hwasan-globals=0", "-fno-omit-frame-pointer" ]
++    }
+     if (is_lsan) {
+       cflags += [ "-fsanitize=leak" ]
+       ldflags += [ "-fsanitize=leak" ]
+diff --git a/build/config/sanitizers/BUILD.gn b/build/config/sanitizers/BUILD.gn
+index 243f07e..b995b74 100644
+--- a/build/config/sanitizers/BUILD.gn
++++ b/build/config/sanitizers/BUILD.gn
+@@ -10,7 +10,7 @@ import("//build/toolchain/toolchain.gni")
+ # shared_libraries. Unconditionally depend upon this target as it is empty if
+ # |is_asan|, |is_lsan|, |is_tsan|, |is_msan| and |use_custom_libcxx| are false.
+ group("deps") {
+-  if (is_asan || is_lsan || is_tsan || is_msan) {
++  if (is_asan || is_hwasan || is_lsan || is_tsan || is_msan) {
+     public_configs = [ ":sanitizer_options_link_helper" ]
+     deps += [ ":options_sources" ]
+   }
+@@ -24,6 +24,9 @@ config("sanitizer_options_link_helper") {
+   if (is_asan) {
+     ldflags += [ "-fsanitize=address" ]
+   }
++  if (is_hwasan) {
++    ldflags += [ "-fsanitize=hwaddress", "-fno-emulated-tls", "-mllvm", "-hwasan-globals=0", "-fno-omit-frame-pointer" ]
++  }
+   if (is_lsan) {
+     ldflags += [ "-fsanitize=leak" ]
+   }
