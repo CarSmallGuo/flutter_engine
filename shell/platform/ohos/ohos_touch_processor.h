@@ -75,16 +75,11 @@ class OhosTouchProcessor {
  private:
   int apiVersion_;
   // 共享库名称
-  static constexpr char UIInputEvent_LIB_NAME[] = "libace_ndk.z.so";
-  // 类型别名，用于表示动态加载的函数指针类型
-  using GetDeviceIdFunc = int32_t (*)(ArkUI_UIInputEvent*);
-  using GetAxisActionFunc = int32_t (*)(ArkUI_UIInputEvent*);
-  using GetModifierKeyStatesFunc = int32_t (*)(ArkUI_UIInputEvent*, uint64_t*);
-  // 成员变量：保存动态加载的函数指针和库句柄
-  void* localLibHandler_;
-  GetDeviceIdFunc dynamicGetDeviceId_;
-  GetAxisActionFunc dynamicGetAxisAction_;
-  GetModifierKeyStatesFunc dynamicGetModifierKeyStates_;
+  static constexpr char UI_INPUT_EVENT_LIB_NAME[] = "libace_ndk.z.so";
+  // 动态加载的函数指针
+  int32_t (*dynamicGetDeviceId_)(ArkUI_UIInputEvent*);
+  int32_t (*dynamicGetAxisAction_)(ArkUI_UIInputEvent*);
+  int32_t (*dynamicGetModifierKeyStates_)(ArkUI_UIInputEvent*, uint64_t*);
 
  private:
   std::shared_ptr<std::string[]> packagePacketData(
