@@ -1,0 +1,139 @@
+diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
+index 65b305fa11b..0162dc9358d 100644
+--- a/build/config/BUILDCONFIG.gn
++++ b/build/config/BUILDCONFIG.gn
+@@ -122,6 +122,9 @@ declare_args() {
+   # Compile for Address Sanitizer to find memory bugs.
+   is_asan = false
+ 
++  # Compile for Hardware Address Sanitizer to find memory bugs.
++  is_hwasan = false
++
+   # Compile for Leak Sanitizer to find leaks.
+   is_lsan = false
+ 
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index d606a4a4a14..d1ca92069e8 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -39,7 +39,7 @@ config("default_include_dirs") {
+ }
+ 
+ if (!is_win) {
+-  using_sanitizer = is_asan || is_lsan || is_msan || is_tsan || is_ubsan
++  using_sanitizer = is_asan || is_lsan || is_msan || is_tsan || is_ubsan || is_hwasan
+ }
+ 
+ # compiler ---------------------------------------------------------------------
+@@ -117,6 +117,9 @@ config("compiler") {
+       cflags += [ "-fsanitize=address" ]
+       ldflags += [ "-fsanitize=address" ]
+     }
++    if (is_hwasan) {
++      cflags += [ "-fsanitize=hwaddress", "-fno-emulated-tls", "-mllvm", "-hwasan-globals=0", "-fno-omit-frame-pointer" ]
++    }
+     if (is_lsan) {
+       cflags += [ "-fsanitize=leak" ]
+       ldflags += [ "-fsanitize=leak" ]
+diff --git a/build/config/sanitizers/sanitizers.gni b/build/config/sanitizers/sanitizers.gni
+index 01eb25cb7c5..4f926ac95ba 100644
+--- a/build/config/sanitizers/sanitizers.gni
++++ b/build/config/sanitizers/sanitizers.gni
+@@ -7,7 +7,7 @@ declare_args() {
+   # buildtools/third_party/libc++abi) instead of stdlibc++ as standard library.
+   # This is intended to be used for instrumented builds.
+   use_custom_libcxx =
+-      (is_asan && (is_linux || is_ohos)) || is_lsan || is_msan || is_tsan || is_ubsan
++      ((is_asan || is_hwasan) && (is_linux || is_ohos)) || is_lsan || is_msan || is_tsan || is_ubsan
+ 
+   # Track where uninitialized memory originates from. From fastest to slowest:
+   # 0 - no tracking, 1 - track only the initial allocation site, 2 - track the
+diff --git a/runtime/platform/hwaddress_sanitizer.h b/runtime/platform/hwaddress_sanitizer.h
+new file mode 100644
+index 00000000000..367620e7e9b
+--- /dev/null
++++ b/runtime/platform/hwaddress_sanitizer.h
+@@ -0,0 +1,32 @@
++/*
++* Copyright 2021-2024 Huawei Device Co., Ltd. All rights reserved.
++* Use of this source code is governed by a BSD-style license that
++* can be found in the LICENSE file.
++*/
++
++#ifndef RUNTIME_PLATFORM_HWADDRESS_SANITIZER_H_
++#define RUNTIME_PLATFORM_HWADDRESS_SANITIZER_H_
++
++#include <sanitizer/hwasan_interface.h>
++#include "platform/globals.h"
++
++#if __SANITIZE_HWADDRESS__
++#define USING_HWADDRESS_SANITIZER
++#elif defined(__has_feature)
++#if __has_feature(hwaddress_sanitizer)
++#define USING_HWADDRESS_SANITIZER
++#endif
++#endif
++
++#if defined(USING_HWADDRESS_SANITIZER)
++#define NO_SANITIZE_HWADDRESS __attribute__((no_sanitize("hwaddress")))
++//The memory size of hwasan must be aligned with 16 bytes
++#define HWASAN_UNPOISON(ptr, len) __hwasan_tag_memory(ptr, 0, ((len) + 15) & ~15)
++#else  // defined(USING_HWADDRESS_SANITIZER)
++#define NO_SANITIZE_HWADDRESS
++#define HWASAN_UNPOISON(ptr, len)                                                \
++  do {                                                                         \
++  } while (false && (ptr) == nullptr && (len) == 0)
++#endif  // defined(USING_HWADDRESS_SANITIZER)
++
++#endif  // RUNTIME_PLATFORM_HWADDRESS_SANITIZER_H_
+diff --git a/runtime/vm/exceptions.cc b/runtime/vm/exceptions.cc
+index d24b2d5eeb9..a970ea40832 100644
+--- a/runtime/vm/exceptions.cc
++++ b/runtime/vm/exceptions.cc
+@@ -7,6 +7,7 @@
+ #include "vm/exceptions.h"
+ 
+ #include "platform/address_sanitizer.h"
++#include "platform/hwaddress_sanitizer.h"
+ #include "platform/thread_sanitizer.h"
+ 
+ #include "lib/stacktrace.h"
+@@ -658,6 +659,8 @@ void Exceptions::JumpToFrame(Thread* thread,
+   uword current_sp = OSThread::GetCurrentStackPointer() - 1024;
+   ASAN_UNPOISON(reinterpret_cast<void*>(current_sp),
+                 stack_pointer - current_sp);
++  HWASAN_UNPOISON(reinterpret_cast<void*>(current_sp),
++                  stack_pointer - current_sp);
+ 
+   // We are jumping over C++ frames, so we have to set the safestack pointer
+   // back to what it was when we entered the runtime from Dart code.
+diff --git a/runtime/vm/os_thread_ohos.cc b/runtime/vm/os_thread_ohos.cc
+index d5fbff8f79e..2bb1be4a032 100644
+--- a/runtime/vm/os_thread_ohos.cc
++++ b/runtime/vm/os_thread_ohos.cc
+@@ -16,6 +16,7 @@
+ #include <sys/time.h>      // NOLINT
+ 
+ #include "platform/address_sanitizer.h"
++#include "platform/hwaddress_sanitizer.h"
+ #include "platform/assert.h"
+ #include "platform/safe_stack.h"
+ #include "platform/signal_blocker.h"
+@@ -279,6 +280,7 @@ bool OSThread::GetCurrentStackBounds(uword* lower, uword* upper) {
+ 
+ #if defined(USING_SAFE_STACK)
+ NO_SANITIZE_ADDRESS
++NO_SANITIZE_HWADDRESS
+ NO_SANITIZE_SAFE_STACK
+ uword OSThread::GetCurrentSafestackPointer() {
+ #error "SAFE_STACK is unsupported on this platform"
+@@ -286,6 +288,7 @@ uword OSThread::GetCurrentSafestackPointer() {
+ }
+ 
+ NO_SANITIZE_ADDRESS
++NO_SANITIZE_HWADDRESS
+ NO_SANITIZE_SAFE_STACK
+ void OSThread::SetCurrentSafestackPointer(uword ssp) {
+ #error "SAFE_STACK is unsupported on this platform"
+
+

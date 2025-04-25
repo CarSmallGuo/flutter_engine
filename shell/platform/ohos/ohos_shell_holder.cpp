@@ -134,9 +134,6 @@ static std::string CheckFontSource() {
     return "";
   }
   path = path.append(fileName);
-  if (OHOSLastFontPath.empty()) {
-    OHOSLastFontPath = path;
-  }
   return path;
 }
 
@@ -264,6 +261,7 @@ OHOSShellHolder::OHOSShellHolder(
   bridge_ = std::make_shared<SemanticsBridge>();
   bridge_mutex_ = std::make_shared<std::mutex>();
   platform_view_->SetSemanticsBridge(bridge_, bridge_mutex_);
+  local_font_path_ = OHOSLastFontPath;
   FML_DCHECK(platform_view_);
 }
 
@@ -288,12 +286,14 @@ OHOSShellHolder::OHOSShellHolder(
   bridge_ = std::make_shared<SemanticsBridge>();
   bridge_mutex_ = std::make_shared<std::mutex>();
   platform_view_->SetSemanticsBridge(bridge_, bridge_mutex_);
+  local_font_path_ = OHOSLastFontPath;
 }
 
 OHOSShellHolder::~OHOSShellHolder() {
   FML_LOG(INFO) << "MHN enter ~OHOSShellHolder()";
   shell_.reset();
   thread_host_.reset();
+  napi_facade_.reset();
   shell_ = nullptr;
 }
 
@@ -405,6 +405,9 @@ void OHOSShellHolder::InitializeSystemFont() {
     LOGE("system font file not found");
     return;
   }
+  if (OHOSLastFontPath.empty()) {
+    OHOSLastFontPath = path;
+  }
   mgr->InitializeSystemFont(path);
 }
 
@@ -413,6 +416,9 @@ void OHOSShellHolder::ReloadSystemFonts() {
   if (IsFontChanged(currentPath)) {
     SkFontMgr_OHOS* mgr = (SkFontMgr_OHOS*)(txt::GetDefaultFontManager().get());
     mgr->AddSystemFont(currentPath);
+  }
+  if (local_font_path_ != OHOSLastFontPath) {
+    local_font_path_ = OHOSLastFontPath;
     shell_->ReloadSystemFonts();
   }
 }
@@ -733,6 +739,10 @@ int32_t OHOSShellHolder::GetAccessibilityNodeCursorPosition(int64_t elementId,
                                                             int32_t* index) {
   std::lock_guard<std::mutex> lock(*bridge_mutex_);
   return bridge_->GetAccessibilityNodeCursorPosition(elementId, index);
+}
+
+std::shared_ptr<PlatformViewOHOSNapi> OHOSShellHolder::GetNapiFacade() {
+  return napi_facade_;
 }
 
 }  // namespace flutter
