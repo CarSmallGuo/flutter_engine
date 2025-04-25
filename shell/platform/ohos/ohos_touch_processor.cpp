@@ -17,7 +17,7 @@
 #include "flutter/fml/trace_event.h"
 #include "flutter/lib/ui/window/pointer_data_packet.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
-#include "ohos_logging.h"
+#include "flutter/shell/platform/ohos/utils/dynamic_library_loader.h"
 #include <arkui/native_type.h>
 #include <dlfcn.h>
 
@@ -27,6 +27,9 @@ constexpr int MSEC_PER_SECOND = 1000;
 constexpr int PER_POINTER_MEMBER = 10;
 constexpr int CHANGES_POINTER_MEMBER = 10;
 constexpr int TOUCH_EVENT_ADDITIONAL_ATTRIBUTES = 4;
+constexpr int PINCH_TOUCH_EVENT_ID_1 = -101;
+constexpr int PINCH_TOUCH_EVENT_ID_2 = -102;
+constexpr int FLING_TOUCH_EVENT_ID_1 = -103;
 constexpr double ZOOM_IN = 10.0 / 8.0;
 constexpr double ZOOM_OUT = 1.0 / ZOOM_IN;
 
@@ -217,63 +220,25 @@ void OhosTouchProcessor::HandleTouchEvent(
 
 OhosTouchProcessor::OhosTouchProcessor()
     : apiVersion_(0),
-      localLibHandler_(nullptr),
       dynamicGetDeviceId_(nullptr),
       dynamicGetAxisAction_(nullptr),
       dynamicGetModifierKeyStates_(nullptr) {
   apiVersion_ = OH_GetSdkApiVersion();
   FML_LOG(INFO) << "Current SDK API Version: " << apiVersion_;
 
-  // 动态加载共享库
-  localLibHandler_ = dlopen(UIInputEvent_LIB_NAME, RTLD_LAZY | RTLD_LOCAL);
-  if (localLibHandler_ == nullptr) {
-    FML_LOG(ERROR) << "dlopen failed: " << dlerror();
-    return;
-  }
-  
-  // 当 API 版本大于等于 14 时加载 OH_ArkUI_UIInputEvent_GetDeviceId
-  if (apiVersion_ >= 14) {
-    dynamicGetDeviceId_ = reinterpret_cast<GetDeviceIdFunc>(
-      dlsym(localLibHandler_, "OH_ArkUI_UIInputEvent_GetDeviceId")
-    );
-    if (dynamicGetDeviceId_ == nullptr) {
-      FML_LOG(ERROR) << "dlsym failed for OH_ArkUI_UIInputEvent_GetDeviceId: " << dlerror();
-    }
-  } else {
-    FML_LOG(ERROR) << "API version is lower than 14, dynamic loading OH_ArkUI_UIInputEvent_GetDeviceId skipped.";
-  }
+  DynamicLibraryLoader loader(UI_INPUT_EVENT_LIB_NAME);
 
-  // 当 API 版本大于等于 15 时加载 OH_ArkUI_AxisEvent_GetAxisAction
-  if (apiVersion_ >= 15) {
-    dynamicGetAxisAction_ = reinterpret_cast<GetAxisActionFunc>(
-      dlsym(localLibHandler_, "OH_ArkUI_AxisEvent_GetAxisAction")
-    );
-    if (dynamicGetAxisAction_ == nullptr) {
-      FML_LOG(ERROR) << "dlsym failed for OH_ArkUI_AxisEvent_GetAxisAction: " << dlerror();
-    }
-  } else {
-    FML_LOG(ERROR) << "API version is lower than 15, dynamic loading OH_ArkUI_AxisEvent_GetAxisAction skipped.";
-  }
+  std::vector<SymbolInfo> symbols = {
+    { "OH_ArkUI_UIInputEvent_GetDeviceId", reinterpret_cast<void**>(&dynamicGetDeviceId_), 14 },
+    { "OH_ArkUI_AxisEvent_GetAxisAction", reinterpret_cast<void**>(&dynamicGetAxisAction_), 15 },
+    { "OH_ArkUI_UIInputEvent_GetModifierKeyStates", reinterpret_cast<void**>(&dynamicGetModifierKeyStates_), 17 },
+  };
 
-  // 当 API 版本大于等于 17 时加载 OH_ArkUI_UIInputEvent_GetModifierKeyStates
-  if (apiVersion_ >= 17) {
-    dynamicGetModifierKeyStates_ = reinterpret_cast<GetModifierKeyStatesFunc>(
-      dlsym(localLibHandler_, "OH_ArkUI_UIInputEvent_GetModifierKeyStates")
-    );
-    if (dynamicGetModifierKeyStates_ == nullptr) {
-      FML_LOG(ERROR) << "dlsym failed for OH_ArkUI_UIInputEvent_GetModifierKeyStates: " << dlerror();
-    }
-  } else {
-    FML_LOG(ERROR) << "API version is lower than 17, dynamic loading OH_ArkUI_UIInputEvent_GetModifierKeyStates skipped.";
-  }
+  loader.LoadSymbols(symbols);
 }
 
 OhosTouchProcessor::~OhosTouchProcessor() {
-  // 释放动态加载的库资源
-  if (localLibHandler_ != nullptr) {
-    dlclose(localLibHandler_);
-    localLibHandler_ = nullptr;
-  }
+  
 }
 
 // 处理轴事件：触控板捏合缩放和滚动抛滑手势，鼠标：滚轮滑动和Ctrl+滚轮缩放
@@ -382,7 +347,7 @@ void OhosTouchProcessor::HandlePinchEvent(
   touchEvent1->screenY = windowY - offsetY;
   touchEvent1->x = centerX - offsetX;
   touchEvent1->y = centerY - offsetY;
-  touchEvent1->id = deviceId;
+  touchEvent1->id = PINCH_TOUCH_EVENT_ID_1;
   touchEvent1->size = 0;
   touchEvent1->type = type;
   touchEvent1->force = 1.0;
@@ -395,7 +360,7 @@ void OhosTouchProcessor::HandlePinchEvent(
   touchEvent2->screenY = windowY + offsetY;
   touchEvent2->x = centerX + offsetX;
   touchEvent2->y = centerY + offsetY;
-  touchEvent2->id = deviceId + 1;
+  touchEvent2->id = PINCH_TOUCH_EVENT_ID_2;
   touchEvent2->size = 0;
   touchEvent2->type = type;
   touchEvent2->force = 1.0;
@@ -478,7 +443,7 @@ void OhosTouchProcessor::HandleFlingEvent(
   touchEvent->screenY = windowY + accumulatedDeltaY;
   touchEvent->x = startX + accumulatedDeltaX;
   touchEvent->y = startY + accumulatedDeltaY;
-  touchEvent->id = deviceId;
+  touchEvent->id = FLING_TOUCH_EVENT_ID_1;
   touchEvent->size = 0;
   touchEvent->type = type;
   touchEvent->force = 1.0;
