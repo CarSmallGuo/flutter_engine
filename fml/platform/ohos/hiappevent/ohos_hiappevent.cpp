@@ -3,6 +3,8 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE_HW file.
  */
+#define StatisticType "OTHER_JANK_STAT"
+#define SingleType "OTHER_JANK"
 
 #include "ohos_hiappevent.h"
 
@@ -26,6 +28,8 @@ static const int MISSED_FRAME_INFOS_SIZE = 10;
 static const int REQUIRED_API_VERSION = 18;
 static const int ARGUMENT_SIZE = 3;
 static const int VSYNC_TRANSITIONS_MISSED_SIZE = 2;
+static const int STATISICFLAG = 3;
+static const int SINLEFLAG = 2;
 
 std::shared_ptr<OhosHiappEventDDL> OhosHiappEventDDL::GetInstance() {
   std::call_once(instanceFlag_, [&] {
@@ -250,18 +254,11 @@ int OhosHiappEventDDL::WriteStatisticFrame(void) {
   return ret;
 }
 
-std::map<int, const char*> hiappeventMap = {
-    {0, "OTHER_JANK"},
-    {1, "OTHER_JANK_STAT"},
-};
-
 void OhosHiappEventDDL::Flush(void) {
   Init();
 
-  std::map<int, const char*>::iterator it;
-  for (it = hiappeventMap.begin(); it != hiappeventMap.end(); it++) {
-    FlushAllIn(it->first);
-  }
+  FlushAllIn(SINLEFLAG);
+  FlushAllIn(STATISICFLAG);
 
   MissedFrameInfos.clear();
 }
@@ -287,7 +284,12 @@ void OhosHiappEventDDL::FlushAllIn(int type) {
   }
 
   setReportPoliceFunc_(processor, 1, 1, true, true);
-  setReportEventFunc_(processor, "PERFORMANCE", hiappeventMap[type], true);
+  if (type == 2) {
+    setReportEventFunc_(processor, "PERFORMANCE", SingleType, true);
+  }else {
+    setReportEventFunc_(processor, "PERFORMANCE", StatisticType, true);
+  }
+
 
   int64_t processorId = addFunc_(processor);
   if (processorId <= 0) {
@@ -298,10 +300,10 @@ void OhosHiappEventDDL::FlushAllIn(int type) {
 
   int ret = -1;
   switch (type) {
-    case 0:
+    case 2:
       ret = WriteSingleFrame();
       break;
-    case 1:
+    case 3:
       ret = WriteStatisticFrame();
       break;
     default:
