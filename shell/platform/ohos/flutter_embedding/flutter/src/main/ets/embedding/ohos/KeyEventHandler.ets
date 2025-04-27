@@ -170,7 +170,7 @@ export class KeyEventHandler {
       if (!this.isCombinationKey) {
         this.isCombinationKey = COMBINATION_KEYS.findIndex((it) => it == event.keyCode) >= 0;
       }
-      if (!this.isCombinationKey) {
+      if (!this.isCombinationKey && text) {
         // Ctrl/Alt 键按下的状态，不输入字符（字母/数字/符号）
         this.textInputPlugin?.getEditingState().handleInsertTextEvent(text)
       }
