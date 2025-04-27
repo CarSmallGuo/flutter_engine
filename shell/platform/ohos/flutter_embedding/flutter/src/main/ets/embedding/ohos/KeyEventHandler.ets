@@ -143,7 +143,7 @@ export class KeyEventHandler {
         this.isShiftMode = true;
       } else {
         // Ctrl/Alt 键按下的状态，不输入字符（字母/数字/符号）
-        if (!this.isCombinationMode) {
+        if (!this.isCombinationMode && this.getKeyText(event)) {
           this.textInputPlugin?.getEditingState().handleInsertTextEvent(this.getKeyText(event));
         }
       }
