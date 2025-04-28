@@ -233,7 +233,7 @@ void OhosHiappEventDDL::FlushAllIn(int type) {
     return;
   }
 
-  if (type != 2 && type != 3) {
+  if (type != SINLEFLAG && type != STATISICFLAG) {
     return;
   }
 
@@ -245,7 +245,7 @@ void OhosHiappEventDDL::FlushAllIn(int type) {
   }
 
   setReportPoliceFunc_(processor, 1, 1, true, true);
-  if (type == 2) {
+  if (type == SINLEFLAG) {
     setReportEventFunc_(processor, "PERFORMANCE", SingleType, true);
   } else {
     setReportEventFunc_(processor, "PERFORMANCE", StatisticType, true);
@@ -260,10 +260,10 @@ void OhosHiappEventDDL::FlushAllIn(int type) {
 
   int ret = -1;
   switch (type) {
-    case 2:
+    case SINLEFLAG:
       ret = WriteSingleFrame();
       break;
-    case 3:
+    case STATISICFLAG:
       ret = WriteStatisticFrame();
       break;
     default:
