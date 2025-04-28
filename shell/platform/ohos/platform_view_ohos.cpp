@@ -814,6 +814,7 @@ void PlatformViewOHOS::AccessibilityOnTooltip(
 void PlatformViewOHOS::OnAccessibilityStateChange(bool state) {
   if (state) {
     SetSemanticsEnabled(true);
+    SetAccessibleNavigation(true);
     std::lock_guard<std::mutex> lock(*bridge_mutex_);
     bridge_->OnAccessibilityStateChange(state);
   } else {
@@ -822,10 +823,12 @@ void PlatformViewOHOS::OnAccessibilityStateChange(bool state) {
   }
 }
 
-void PlatformViewOHOS::SetAccessibleNavigation(bool isAccessibleNavigation) {
+void PlatformViewOHOS::SetNavigation(bool isNavigation) {
   std::lock_guard<std::mutex> lock(*bridge_mutex_);
-  bridge_->OnAccessibilityNavigation(isAccessibleNavigation);
+  bridge_->OnAccessibilityNavigation(isNavigation);
+}
 
+void PlatformViewOHOS::SetAccessibleNavigation(bool isAccessibleNavigation) {
   if (is_accessibility_navigation_ == isAccessibleNavigation) {
     return;
   }
