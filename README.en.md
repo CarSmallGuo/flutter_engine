@@ -10,7 +10,7 @@ This repository is an extension of the Flutter engine repository. It enables Flu
 
 * Build environment:
 1. Linux or macOS that support Flutter engine; Windows that supports **gen_snapshot**.
-2. Access to the **allowed_hosts** field in the DEPS file.
+2. Access to the **allowed_hosts** field in the DEPS_ohos file.
 
 * Build steps:
 1. Set up a basic environment. For details, see the [official document](https://github.com/flutter/flutter/wiki/Setting-up-the-Engine-development-environment).
@@ -37,7 +37,7 @@ This repository is an extension of the Flutter engine repository. It enables Flu
       "name": "src/flutter",
       "url": "git@gitee.com:harmonycommando_flutter/flutter_engine.git@oh-3.22.0",
       "custom_deps": {},
-      "deps_file": "DEPS",
+      "deps_file": "DEPS_ohos",
       "safesync_url": "",
    },
    ]
@@ -90,14 +90,7 @@ Starting from version 3.22.0, the engine compilation will by default compile bot
 
 6. After modifying the embedding layer code, running `./ohos` does not take effect. You need to modify the timestamp of any file in the C++ layer for the build system to recognize it (e.g., add a space in any C++ file, save it, then remove the space and save again). Re-run the build to trigger the embedding layer to be repackaged.
 
-7. Method to manually reapply patches:
-
-   ```shell
-   python engine/src/flutter/attachment/scripts/ohos_reverse_patch.py
-   python engine/src/flutter/attachment/scripts/ohos_setup.py
-   ```
-
-8. Configure automatic code navigation
+7. Configure automatic code navigation
 
    It is recommended to use the `vscode+clangd` plugin (note: it conflicts with C/C++ IntelliSense).
    Example configuration:
@@ -110,7 +103,7 @@ Starting from version 3.22.0, the engine compilation will by default compile bot
     "C_Cpp.intelliSenseEngine": "disabled",
    ```
 
-9. `gclient sync` error on Windows
+8. `gclient sync` error on Windows
 
    Key error message: `'A required privilege is not held by the client'`
 

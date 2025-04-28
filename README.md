@@ -9,7 +9,7 @@
 
 * 构建环境：
 1. 目前支持在Linux与MacOS中构建，Windows环境中支持构建gen_snapshot;
-2. 请确保当前构建环境可以访问 `DEPS` 配置文件中 `allowed_hosts` 字段的URL列表。
+2. 请确保当前构建环境可以访问 `DEPS_ohos` 配置文件中 `allowed_hosts` 字段的URL列表。
 
 * 构建步骤：
 1. 构建基础环境：可参照[官网](https://github.com/flutter/flutter/wiki/Setting-up-the-Engine-development-environment)；
@@ -55,7 +55,7 @@
         "name": "src/flutter",
         "url": "git@gitee.com:harmonycommando_flutter/flutter_engine.git@oh-3.22.0",
         "custom_deps": {},
-        "deps_file": "DEPS",
+        "deps_file": "DEPS_ohos",
         "safesync_url": "",
       },
     ]
@@ -104,14 +104,7 @@
 
 6. 修改了embedding层代码，运行./ohos没有生效，需要将任意cpp层文件修改一下时间戳，编译系统才可以识别(例如任意cpp文件添加空格保存后再删除空格后保存)，重新执行则可以触发embedding层重新打包
 
-7. 手动重新应用patch的方法：
-
-   ```shell
-   python engine/src/flutter/attachment/scripts/ohos_reverse_patch.py
-   python engine/src/flutter/attachment/scripts/ohos_setup.py
-   ```
-
-8. 配置代码自动跳转
+7. 配置代码自动跳转
 
    推荐使用vscode+clangd(与C/C++ IntelliSense有冲突)插件
    可参考配置：
@@ -124,7 +117,7 @@
     "C_Cpp.intelliSenseEngine": "disabled",
    ```
 
-9. Windows下gclient sync报错
+8. Windows下gclient sync报错
 
    关键报错信息'A required privilege is not held by the client'
 
