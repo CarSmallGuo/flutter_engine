@@ -649,9 +649,15 @@ void PlatformViewOHOS::RegisterExternalTextureByPixelMap(
     int64_t texture_id,
     NativePixelMap* pixelMap,
     OH_NativeBuffer* pixelMap_native_buffer) {
-  auto extrenal_texture = CreateExternalTexture(texture_id);
-  if (extrenal_texture != nullptr) {
-    extrenal_texture->SetPixelMapAsProducer(pixelMap, pixelMap_native_buffer);
+  auto external_texture = CreateExternalTexture(texture_id);
+  if (external_texture == nullptr) {
+    return;
+  }
+
+  bool ret =
+      external_texture->SetPixelMapAsProducer(pixelMap, pixelMap_native_buffer);
+  if (ret) {
+    PlatformView::ScheduleFrame();
   }
 }
 
@@ -659,21 +665,28 @@ void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(
     int64_t texture_id,
     NativePixelMap* pixelMap,
     OH_NativeBuffer* pixelMap_native_buffer) {
-  if (all_external_texture_.find(texture_id) != all_external_texture_.end()) {
-    auto external_texture = all_external_texture_[texture_id];
-    FML_LOG(INFO) << "SetExternalTextureBackGroundPixelMap " << texture_id;
-    external_texture->SetPixelMapAsProducer(pixelMap, pixelMap_native_buffer);
+  if (all_external_texture_.find(texture_id) == all_external_texture_.end()) {
+    return;
+  }
+
+  auto external_texture = all_external_texture_[texture_id];
+  FML_LOG(INFO) << "SetExternalTextureBackGroundPixelMap " << texture_id;
+  bool ret =
+      external_texture->SetPixelMapAsProducer(pixelMap, pixelMap_native_buffer);
+  if (ret) {
+    PlatformView::ScheduleFrame();
   }
 }
 
-void PlatformViewOHOS::SetExternalTextureBackGroundColor(
-    int64_t texture_id,
-    uint32_t color) {
-    if (all_external_texture_.find(texture_id) != all_external_texture_.end()) {
-      auto external_texture = all_external_texture_[texture_id];
-      FML_LOG(INFO) << "SetExternalTextureBackGroundColor " << texture_id << " color " << color;
-      external_texture->SetBackGroundColor(color);
-    }
+void PlatformViewOHOS::SetExternalTextureBackGroundColor(int64_t texture_id,
+                                                         uint32_t color) {
+  if (all_external_texture_.find(texture_id) != all_external_texture_.end()) {
+    auto external_texture = all_external_texture_[texture_id];
+    FML_LOG(INFO) << "SetExternalTextureBackGroundColor " << texture_id
+                  << " color " << color;
+    external_texture->SetBackGroundColor(color);
+    PlatformView::ScheduleFrame();
+  }
 }
 
 void PlatformViewOHOS::SetTextureBufferSize(int64_t texture_id,
