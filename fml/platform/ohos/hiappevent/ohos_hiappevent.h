@@ -60,8 +60,6 @@ class OhosHiappEventDDL {
 
   int WriteStatisticFrame(void);
 
-  void* libHiappeventHandler_ = nullptr;
-
   CreateProcessorFunc createProcessorFunc_ = nullptr;
   SetReportRouteFunc setReportRouteFunc_ = nullptr;
   SetReportPoliceFunc setReportPoliceFunc_ = nullptr;
@@ -74,8 +72,6 @@ class OhosHiappEventDDL {
   bool isValid_ = false;
 
   bool isInit_ = false;
-
-  bool DDLready_ = false;
 
   std::vector<MissedFrameInfo> MissedFrameInfos;
 };
