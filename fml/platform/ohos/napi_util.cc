@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE_KHZG file.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 
 #include "flutter/fml/platform/ohos/napi_util.h"
@@ -159,7 +159,8 @@ int32_t GetString(napi_env env, napi_value arg, std::string& strValue) {
   // 读取字符串
   size_t copy_lenth = str_len + 1;
   std::vector<char> buff(copy_lenth);
-  status = napi_get_value_string_utf8(env, arg, static_cast<char*>(buff.data()), copy_lenth, &copy_lenth);
+  status = napi_get_value_string_utf8(env, arg, static_cast<char*>(buff.data()),
+                                      copy_lenth, &copy_lenth);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "Error get string:" << status;
     FML_DLOG(ERROR) << "result size:" << copy_lenth;

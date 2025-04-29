@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE_KHZG file.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 #include "ohos_external_texture.h"
 
@@ -162,7 +162,8 @@ void OHOSExternalTexture::Paint(PaintContext& context,
     // dart
     if (background_color_enable_) {
       DlAutoCanvasRestore auto_restore(context.canvas, true);
-      DlPaint paint; paint.setColor(DlColor(background_color_));
+      DlPaint paint;
+      paint.setColor(DlColor(background_color_));
       context.canvas->DrawRect(bounds, paint);
     }
     FML_LOG(INFO) << "No DlImage available for ImageExternalTexture to paint.";
