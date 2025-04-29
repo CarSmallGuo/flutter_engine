@@ -139,7 +139,7 @@ class OHOSExternalTexture : public flutter::Texture {
   OHNativeWindow* producer_nativewindow_ = nullptr;
   OHNativeWindowBuffer* pixelmap_buffer_ = nullptr;
   OH_NativeBuffer* pixelmap_native_buffer_ = nullptr;
-  uint32_t backGroundColor_ = 0xFFFFFFFF; //  white color
+  uint32_t background_color_ = 0xFFFFFFFF; //  white color
 
   OHNativeWindowBuffer* last_native_window_buffer_ = nullptr;
   int last_fence_fd_ = -1;
