@@ -83,6 +83,11 @@ class OHOSExternalTexture : public flutter::Texture {
   // Check if the fd is a valid sync file.
   static bool FdIsValid(int fd);
 
+  static bool GetWindowBufferConfig(OHNativeWindowBuffer* buffer,
+                                    OH_NativeBuffer** native_buffer,
+                                    OH_NativeBuffer_Config* config,
+                                    uint32_t* id);
+
  protected:
   OHNativeWindowBuffer* GetConsumerNativeBuffer(int* fence_fd);
 
@@ -95,13 +100,21 @@ class OHOSExternalTexture : public flutter::Texture {
       PaintContext& context,
       const SkRect& bounds,
       NativeBufferKey key,
+      OH_NativeBuffer_Config& config,
       OHNativeWindowBuffer* nw_buffer) = 0;
+
+  virtual void DeleteBufferGPUResource(NativeBufferKey key) = 0;
 
   ImageLRU image_lru_ = ImageLRU();
 
  private:
   sk_sp<SkImage> GetNextDrawImage(PaintContext& context,
                                            const SkRect& bounds);
+
+  sk_sp<SkImage> GetOldDlImage(PaintContext& context,
+                                        const SkRect& bounds);
+
+  void SetOldDlImage(sk_sp<SkImage> old_image);
 
   bool CopyDataToPixelMapBuffer(const unsigned char* src,
                                 int width,
