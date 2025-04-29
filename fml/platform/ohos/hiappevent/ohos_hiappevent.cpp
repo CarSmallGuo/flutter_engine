@@ -39,12 +39,11 @@ std::shared_ptr<OhosHiappEventDDL> OhosHiappEventDDL::GetInstance() {
   return instance_;
 }
 
-OhosHiappEventDDL::OhosHiappEventDDL(void) {
+OhosHiappEventDDL::OhosHiappEventDDL(void)
+    : loader_(std::make_unique<flutter::DynamicLibraryLoader>(HiAppEvent_LIB_NAME)) {
   apiVersion_ = OH_GetSdkApiVersion();
   return;
 }
-
-OhosHiappEventDDL::~OhosHiappEventDDL() = default;
 
 void OhosHiappEventDDL::Init(void) {
   if (apiVersion_ < REQUIRED_API_VERSION) {
@@ -72,7 +71,7 @@ void OhosHiappEventDDL::Init(void) {
        reinterpret_cast<void**>(&destroyProcessor_), 18},
   };
 
-  loader.LoadSymbols(symbols);
+  loader_->LoadSymbols(symbols);
 
   isValid_ = true;
 
