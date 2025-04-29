@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE_KHZG file.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 
 #include "platform_view_ohos_napi.h"
@@ -1210,7 +1210,8 @@ napi_value PlatformViewOHOSNapi::nativeDestroy(napi_env env,
     return nullptr;
   }
 
-  std::shared_ptr<PlatformViewOHOSNapi> napi_facade = OHOS_SHELL_HOLDER->GetNapiFacade();
+  std::shared_ptr<PlatformViewOHOSNapi> napi_facade =
+      OHOS_SHELL_HOLDER->GetNapiFacade();
   napi_delete_reference(env, napi_facade->ref_napi_obj_);
 
   LOGD("nativeDestroy shell_holder: %{public}ld", shell_holder);
@@ -2527,8 +2528,9 @@ napi_value PlatformViewOHOSNapi::nativeUpdateCurrentXComponentId(
   return nullptr;
 }
 
-napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callback_info info)
-{
+napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(
+    napi_env env,
+    napi_callback_info info) {
   size_t argc = 2;
   napi_value result;
   napi_value args[2] = {nullptr};
@@ -2555,8 +2557,10 @@ napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callba
     return nullptr;
   }
 
-  auto vsyncWaiter = std::shared_ptr<flutter::VsyncWaiter>(OHOS_SHELL_HOLDER->GetVsyncWaiter().lock());
-  auto vsync_waiter_ohos = std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsyncWaiter);
+  auto vsyncWaiter = std::shared_ptr<flutter::VsyncWaiter>(
+      OHOS_SHELL_HOLDER->GetVsyncWaiter().lock());
+  auto vsync_waiter_ohos =
+      std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsyncWaiter);
 
   if (isEnable) {
     LOGD("EnableDVsync");
