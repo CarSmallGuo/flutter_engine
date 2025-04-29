@@ -9,6 +9,7 @@
 
 #include <hiappevent/hiappevent.h>
 #include <vector>
+#include "flutter/fml/platform/ohos/dynamic_library_loader.h"
 
 namespace fml {
 
@@ -69,6 +70,8 @@ class OhosHiappEventDDL {
   DestroyProcessor destroyProcessor_ = nullptr;
 
   int apiVersion_ = 0;
+
+  std::unique_ptr<flutter::DynamicLibraryLoader> loader_;
 
   bool isValid_ = false;
 
