@@ -176,7 +176,7 @@ void OHOSExternalTexture::Paint(PaintContext& context,
   } else {
     SkAutoCanvasRestore autoRestore(context.canvas, true);
     SkPaint paint;
-    paint.setColor(backGroundColor_);
+    paint.setColor(background_color_);
     context.canvas->drawRect(bounds, paint);
     FML_LOG(INFO) << "No DlImage available to paint, draw background color.";
   }
@@ -377,9 +377,16 @@ bool OHOSExternalTexture::SetPixelMapAsProducer(
   return end_ret;
 }
 
-void OHOSExternalTexture::SetBackgroundColor(uint32_t color)
-{
-  backGroundColor_ = color;
+void OHOSExternalTexture::SetBackgroundColor(uint32_t color) {
+  // ABGR to ARGB
+  uint8_t a = (color >> 24) & 0xFF;
+  uint8_t b = (color >> 16) & 0xFF;
+  uint8_t g = (color >>  8) & 0xFF;
+  uint8_t r =  color        & 0xFF;
+  background_color_ = (static_cast<uint32_t>(a) << 24) |
+                      (static_cast<uint32_t>(r) << 16) |
+                      (static_cast<uint32_t>(g) <<  8) |
+                      (static_cast<uint32_t>(b)      );
 }
 
 void OHOSExternalTexture::ReleaseWindowBuffer(OH_NativeImage* native_image,
