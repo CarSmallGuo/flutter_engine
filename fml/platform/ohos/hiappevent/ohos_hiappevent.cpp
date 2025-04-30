@@ -55,8 +55,6 @@ void OhosHiappEventDDL::Init(void) {
     return;
   }
 
-  flutter::DynamicLibraryLoader loader(HiAppEvent_LIB_NAME);
-
   std::vector<flutter::SymbolInfo> symbols = {
       {"OH_HiAppEvent_CreateProcessor",
        reinterpret_cast<void**>(&createProcessorFunc_), 18},
