@@ -45,7 +45,7 @@ OhosHiappEventDDL::OhosHiappEventDDL(void)
   return;
 }
 
-OhosHiappEventDDL::OhosHiappEventDDL() {
+OhosHiappEventDDL::~OhosHiappEventDDL() {
 
 }
 
