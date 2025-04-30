@@ -56,6 +56,8 @@ class OhosHiappEventDDL {
 
   void FlushAllIn(int type);
 
+  std::unique_ptr<flutter::DynamicLibraryLoader> loader_;
+
  private:
   int WriteSingleFrame(void);
 
@@ -69,8 +71,6 @@ class OhosHiappEventDDL {
   DestroyProcessor destroyProcessor_ = nullptr;
 
   int apiVersion_ = 0;
-
-  std::unique_ptr<flutter::DynamicLibraryLoader> loader_;
 
   bool isValid_ = false;
 
