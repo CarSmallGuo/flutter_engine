@@ -40,7 +40,7 @@ std::shared_ptr<OhosHiappEventDDL> OhosHiappEventDDL::GetInstance() {
 }
 
 OhosHiappEventDDL::OhosHiappEventDDL(void)
-    : loader_(std::make_unique<flutter::DynamicLibraryLoader>(HiAppEvent_LIB_NAME)) {
+    : loader_(std::make_unique<flutter::DynamicLibraryLoader>(HIAPPEVENT_LIB_NAME)) {
   apiVersion_ = OH_GetSdkApiVersion();
   return;
 }
