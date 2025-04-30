@@ -45,6 +45,10 @@ OhosHiappEventDDL::OhosHiappEventDDL(void)
   return;
 }
 
+OhosHiappEventDDL::OhosHiappEventDDL() {
+
+}
+
 void OhosHiappEventDDL::Init(void) {
   if (apiVersion_ < REQUIRED_API_VERSION) {
     return;
