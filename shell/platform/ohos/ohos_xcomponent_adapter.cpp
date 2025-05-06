@@ -519,6 +519,14 @@ void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component,
     LOGE("GetXComponentSize result:%{public}d", ret);
   }
 
+  // This setting ensures that the soft keyboard does not automatically dismiss
+  // when the Xcomponent regains focus.
+  ret = OH_NativeXComponent_SetNeedSoftKeyboard(component, true);
+  if (ret != OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
+    LOGE("OH_NativeXComponent_SetNeedSoftKeyboard failed result:%{public}d",
+         ret);
+  }
+
   LOGD("OnSurfaceCreated,window.size:%{public}d,%{public}d", (int)width_,
        (int)height_);
   ret = SetNativeWindowOpt((OHNativeWindow*)window, width_, height_);

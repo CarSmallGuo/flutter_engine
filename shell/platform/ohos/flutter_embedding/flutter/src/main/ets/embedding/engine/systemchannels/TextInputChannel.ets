@@ -21,6 +21,7 @@ import Any from '../../../plugin/common/Any';
 import { display } from '@kit.ArkUI'
 import { window } from '@kit.ArkUI';
 import { BusinessError, print } from '@kit.BasicServicesKit';
+import { PointerDeviceKind } from '../../ohos/OhosTouchProcessor';
 
 const TAG = "TextInputChannel";
 /// 规避换行标识无法显示问题，api修改后再删除
@@ -141,6 +142,8 @@ export default class TextInputChannel {
 
   onConnectionClosed(inputClientId: number): void {
     Log.d(TAG, "Sending 'onConnectionClosed' message.");
+    this.channel.invokeMethod("TextInputClient.onConnectionClosed", [inputClientId]);
+    this.textInputMethodHandler?.hide();
   }
 
   performPrivateCommand(inputClientId: number, action: string, data: Any) {
@@ -173,6 +176,8 @@ export interface TextInputMethodHandler {
 
   setClient(textInputClientId: number, configuration: Configuration | null): void;
 
+  updateConfig(configuration: Configuration | null): void;
+
   setPlatformViewClient(id: number, usesVirtualDisplay: boolean): void;
 
   setEditableSizeAndTransform(width: number, height: number, transform: number[]): void;
@@ -199,6 +204,7 @@ export class Configuration {
   inputAction: Number = 0;
   actionLabel: String = "";
   contentCommitMimeTypes: String[] = [];
+  deviceKind: PointerDeviceKind = PointerDeviceKind.UNKNOWN;
   fields: Configuration[] = [];
 
   constructor(obscureText: boolean,
@@ -212,6 +218,7 @@ export class Configuration {
               actionLabel: String,
               autofill: boolean,
               contentListString: [],
+              deviceKind: PointerDeviceKind,
               fields: Configuration[]
   ) {
     this.obscureText = obscureText;
@@ -226,7 +233,7 @@ export class Configuration {
     this.autofill = autofill;
     this.contentCommitMimeTypes = contentListString;
     this.fields = fields
-
+    this.deviceKind = deviceKind
   }
 
   static getTextCapitalizationFromValue(encodedName: string): TextCapitalization {
@@ -297,6 +304,40 @@ export class Configuration {
       json.actionLabel ?? null,
       json.autofill ?? null,
       contentList as Any,
+      json.deviceKind ?? PointerDeviceKind.UNKNOWN,
+      fields
+    );
+  }
+
+  static fromMap(map: Map<String, Any>) {
+    let inputType = map.get('inputType') as InputType;
+    let inputAction = Configuration.inputActionFromTextInputAction(map.get('inputAction'));
+
+    let fields: Array<Any> = new Array();
+    if (map.get('fields')) {
+      fields = map.get('fields').map((field: Any): Any => Configuration.fromJson(field));
+    }
+
+    // Build list of content commit mime types from the data in the JSON list.
+    const contentList: Array<Any> = [];
+    if (map.get('contentCommitMimeTypes')) {
+      map.get('contentCommitMimeTypes').forEach((type: Any) => {
+        contentList.push(type);
+      });
+    }
+    return new Configuration(
+      map.get('obscureText') ?? false,
+      map.get('autocorrect') ?? true,
+      map.get('enableSuggestions') ?? false,
+      map.get('enableIMEPersonalizedLearning') ?? false,
+      map.get('enableDeltaModel') ?? false,
+      Configuration.getTextCapitalizationFromValue(map.get('textCapitalization')),
+      inputType,
+      inputAction,
+      map.get('actionLabel') ?? null,
+      map.get('autofill') ?? null,
+      contentList as Any,
+      map.get('deviceKind') ?? PointerDeviceKind.UNKNOWN,
       fields
     );
   }
@@ -495,6 +536,11 @@ class TextInputCallback implements MethodCallHandler {
         const config: Configuration | null = Configuration.fromJson(jsonConfiguration);
 
         this.textInputMethodHandler.setClient(textInputClientId, config);
+        result.success(null);
+        break;
+      case 'TextInput.updateConfig':
+        const newConfig: Configuration | null = Configuration.fromMap(args as Map<String, Any>);
+        this.textInputMethodHandler.updateConfig(newConfig);
         result.success(null);
         break;
       case "TextInput.requestAutofill":
