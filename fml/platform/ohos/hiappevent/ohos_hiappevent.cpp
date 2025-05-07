@@ -3,8 +3,8 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE_HW file.
  */
-#define StatisticType "OTHER_JANK_STAT"
-#define SingleType "OTHER_JANK"
+#define STATISTICTYPE "OTHER_JANK_STAT"
+#define SINGLETYPE "OTHER_JANK"
 #define STATISICFLAG 3
 #define SINLEFLAG 2
 
@@ -43,6 +43,10 @@ OhosHiappEventDDL::OhosHiappEventDDL(void)
 }
 
 OhosHiappEventDDL::~OhosHiappEventDDL() = default;
+
+OhosHiappEventDDL::~OhosHiappEventDDL() {
+
+}
 
 void OhosHiappEventDDL::Init(void) {
   if (apiVersion_ < Required_Api_Version) {
@@ -245,9 +249,9 @@ void OhosHiappEventDDL::FlushAllIn(int type) {
 
   setReportPoliceFunc_(processor, 1, 1, true, true);
   if (type == SINLEFLAG) {
-    setReportEventFunc_(processor, "PERFORMANCE", SingleType, true);
+    setReportEventFunc_(processor, "PERFORMANCE", SINGLETYPE, true);
   } else {
-    setReportEventFunc_(processor, "PERFORMANCE", StatisticType, true);
+    setReportEventFunc_(processor, "PERFORMANCE", STATISICFLAG, true);
   }
 
   int64_t processorId = addFunc_(processor);
