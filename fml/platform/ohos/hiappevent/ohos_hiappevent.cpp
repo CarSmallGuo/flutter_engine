@@ -42,14 +42,12 @@ OhosHiappEventDDL::OhosHiappEventDDL(void)
   return;
 }
 
-OhosHiappEventDDL::~OhosHiappEventDDL() = default;
-
 OhosHiappEventDDL::~OhosHiappEventDDL() {
 
 }
 
 void OhosHiappEventDDL::Init(void) {
-  if (apiVersion_ < Required_Api_Version) {
+  if (apiVersion_ < REQUIRED_API_VERSION) {
     return;
   }
 
@@ -84,16 +82,16 @@ void OhosHiappEventDDL::Init(void) {
 void OhosHiappEventDDL::ReportJANKEvent(int64_t endTimeMicros,
                                         const char** argumentValues,
                                         int argumentCount) {
-  if (argumentCount < Argument_Size) {
+  if (argumentCount < ARGUMENT_SIZE) {
     FML_LOG(ERROR) << "Array data overflow";
     return;
   }
 
-  if (MissedFrameInfos.size() == Missed_Frame_Infos_Size) {
+  if (MissedFrameInfos.size() == MISSED_FRAME_INFOS_SIZE) {
     // MissedFrameInfos is full.
     FML_LOG(INFO) << "vector stop push_back";
     return;
-  } else if (MissedFrameInfos.size() > Missed_Frame_Infos_Size) {
+  } else if (MissedFrameInfos.size() > MISSED_FRAME_INFOS_SIZE) {
     return;
   }
 
@@ -106,7 +104,7 @@ void OhosHiappEventDDL::ReportJANKEvent(int64_t endTimeMicros,
   info.endTimeMicros = endTimeMicros;
   info.targetTime = std::stoll(argumentValues[0]);
   info.lastestTargetTime = std::stoll(argumentValues[1]);
-  info.missedFrame = std::stoi(argumentValues[vsync_transitions_missed_Size]);
+  info.missedFrame = std::stoi(argumentValues[VSYNC_TRANSITIONS_MISSED_SIZE]);
   MissedFrameInfos.push_back(info);
 }
 
@@ -251,7 +249,7 @@ void OhosHiappEventDDL::FlushAllIn(int type) {
   if (type == SINLEFLAG) {
     setReportEventFunc_(processor, "PERFORMANCE", SINGLETYPE, true);
   } else {
-    setReportEventFunc_(processor, "PERFORMANCE", STATISICFLAG, true);
+    setReportEventFunc_(processor, "PERFORMANCE", STATISTICTYPE, true);
   }
 
   int64_t processorId = addFunc_(processor);
