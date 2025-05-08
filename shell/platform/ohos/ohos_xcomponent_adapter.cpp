@@ -479,12 +479,7 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
                                          width_, height_);
     is_surface_present_ = true;
   }
-
-  std::shared_ptr<fml::hiappevent::OhosHiappEventDDL> hiAppeventHandler =
-      fml::hiappevent::OhosHiappEventDDL::GetInstance();
-  if (hiAppeventHandler != nullptr) {
-    hiAppeventHandler->Init();
-  }
+  
 }
 
 void XComponentBase::PreDraw(std::string shellholderId, int width, int height) {
