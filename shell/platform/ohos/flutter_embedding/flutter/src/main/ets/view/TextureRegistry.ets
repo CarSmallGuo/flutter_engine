@@ -32,7 +32,12 @@ export interface TextureRegistry {
 
   notifyTextureResizing(textureId: number, width: number, height: number): void;
 
+  /**
+   * @deprecated since 3.22
+   */
   setExternalNativeImage(textureId: number, native_image: number): boolean;
+
+  setExternalNativeImagePtr(textureId: number, native_image: bigint): boolean;
 
   resetExternalTexture(textureId: number, need_surfaceId: boolean): number;
 

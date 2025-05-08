@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE_KHZG file.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 
 #include "platform_view_ohos_napi.h"
@@ -259,7 +259,8 @@ PlatformViewOHOSNapi::~PlatformViewOHOSNapi() {
     return;
   }
   napi_reference_unref(env_, ref_napi_obj_, &result);
-  FML_DLOG(INFO) << "PlatformViewOHOSNapi napi_reference_unref, result is " << result;
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi napi_reference_unref, result is "
+                 << result;
 }
 
 void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessageResponse(
@@ -1620,6 +1621,25 @@ napi_value PlatformViewOHOSNapi::nativeGetTextureWindowId(
   return res;
 }
 
+napi_value PlatformViewOHOSNapi::nativeGetTextureWindowPtr(
+    napi_env env,
+    napi_callback_info info) {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeGetTextureWindowPtr";
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
+  int64_t shell_holder;
+  int64_t textureId;
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
+  NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
+  NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
+  uint64_t windowId =
+      OHOS_SHELL_HOLDER->GetPlatformView()->GetExternalTextureWindowId(
+          textureId);
+  napi_value res;
+  napi_create_bigint_uint64(env, windowId, &res);
+  return res;
+}
+
 napi_value PlatformViewOHOSNapi::nativeSetTextureBufferSize(
     napi_env env,
     napi_callback_info info) {
@@ -1669,10 +1689,43 @@ napi_value PlatformViewOHOSNapi::nativeSetExternalNativeImage(
   int64_t shell_holder;
   int64_t textureId;
   int64_t native_image_ptr;
+
   NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
   NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
   NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
   NAPI_CALL(env, napi_get_value_int64(env, args[2], &native_image_ptr));
+
+  OH_NativeImage* native_image =
+      (reinterpret_cast<OH_NativeImage*>(native_image_ptr));
+
+  bool ret = OHOS_SHELL_HOLDER->GetPlatformView()->SetExternalNativeImage(
+      textureId, native_image);
+  napi_value res;
+  napi_create_int64(env, (int64_t)ret, &res);
+  return res;
+}
+
+napi_value PlatformViewOHOSNapi::nativeSetExternalNativeImagePtr(
+    napi_env env,
+    napi_callback_info info) {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetExternalNativeImagePtr";
+  size_t argc = 3;
+  napi_value args[3] = {nullptr};
+  int64_t shell_holder;
+  int64_t textureId;
+  uint64_t native_image_ptr;
+  bool lossLess = false;
+
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
+  NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
+  NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
+  NAPI_CALL(env, napi_get_value_bigint_uint64(env, args[2], &native_image_ptr,
+                                              &lossLess));
+  // 判断从ArkTS侧获取bigint是否为无损转换，如果不是抛出异常
+  if (!lossLess) {
+    napi_throw_error(env, nullptr, "BigInt values have no lossless converted");
+    return nullptr;
+  }
 
   OH_NativeImage* native_image =
       (reinterpret_cast<OH_NativeImage*>(native_image_ptr));
@@ -1827,7 +1880,7 @@ void PlatformViewOHOSNapi::SurfaceChanged(int64_t shell_holder,
                                           void* window,
                                           int width,
                                           int height) {
-  FML_LOG(INFO) << "impeller" << "SurfaceChanged:";
+  FML_LOG(INFO) << "impeller SurfaceChanged:";
   auto native_window = fml::MakeRefCounted<OHOSNativeWindow>(
       static_cast<OHNativeWindow*>(window));
   OHOS_SHELL_HOLDER->GetPlatformView()->UpdateDisplaySize(width, height);
@@ -2534,8 +2587,9 @@ napi_value PlatformViewOHOSNapi::nativeUpdateCurrentXComponentId(
   return nullptr;
 }
 
-napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callback_info info)
-{
+napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(
+    napi_env env,
+    napi_callback_info info) {
   size_t argc = 2;
   napi_value result;
   napi_value args[2] = {nullptr};
@@ -2562,8 +2616,10 @@ napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callba
     return nullptr;
   }
 
-  auto vsyncWaiter = std::shared_ptr<flutter::VsyncWaiter>(OHOS_SHELL_HOLDER->GetVsyncWaiter().lock());
-  auto vsync_waiter_ohos = std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsyncWaiter);
+  auto vsyncWaiter = std::shared_ptr<flutter::VsyncWaiter>(
+      OHOS_SHELL_HOLDER->GetVsyncWaiter().lock());
+  auto vsync_waiter_ohos =
+      std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsyncWaiter);
 
   if (isEnable) {
     LOGD("EnableDVsync");
