@@ -41,7 +41,7 @@ std::shared_ptr<OhosHiappEventDDL> OhosHiappEventDDL::GetInstance() {
 
 OhosHiappEventDDL::OhosHiappEventDDL(void)
     : loader_(std::make_unique<flutter::DynamicLibraryLoader>(HIAPPEVENT_LIB_NAME)) {
-  apiVersion_ = OH_GetSdkApiVersion();
+  apiVersion_ =flutter::DynamicLibraryLoader::GetApiVersion();
   return;
 }
 
@@ -208,7 +208,7 @@ int OhosHiappEventDDL::WriteStatisticFrame(void) {
   OH_HiAppEvent_AddInt64Param(list, "pid", getpid());
 
   int ret =
-      OH_HiAppEvent_Write("PERFORMANCE", "OTHER_JANK_STAT", BEHAVIOR, list);
+      OH_HiAppEvent_Write("PERFORMANCE", "OTHER_JANK_STAT", STATISTIC, list);
   if (ret != 0) {
     FML_LOG(ERROR) << "HiAppEvent_Write error, ret = " << ret;
   }
