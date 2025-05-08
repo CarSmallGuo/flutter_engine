@@ -206,7 +206,7 @@ int OhosHiappEventDDL::WriteStatisticFrame(void) {
   OH_HiAppEvent_AddInt64Param(list, "pid", getpid());
 
   int ret =
-      OH_HiAppEvent_Write("PERFORMANCE", "OTHER_JANK_STAT", BEHAVIOR, list);
+      OH_HiAppEvent_Write("PERFORMANCE", "OTHER_JANK_STAT", STATISTIC, list);
   if (ret != 0) {
     FML_LOG(ERROR) << "HiAppEvent_Write error, ret = " << ret;
   }
