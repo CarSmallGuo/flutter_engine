@@ -237,6 +237,7 @@ executable("flutter_ohos_unittests") {
 
   ldflags = ["-lace_ndk.z"]
   ldflags += ["-lnative_window"]
+  ldflags += [ "-lnative_drawing" ]
   ldflags += ["-lnative_vsync"]
   ldflags += ["-limage_ndk.z"]
   ldflags += ["-ldeviceinfo_ndk.z"]
@@ -255,6 +256,7 @@ shared_library("flutter_shell_native") {
   ]
 
   ldflags += ["-lnative_window"]
+  ldflags += [ "-lnative_drawing" ]
   ldflags += ["-lnative_buffer"]
   ldflags += ["-lnative_vsync"]
   ldflags += ["-lace_napi.z"]
