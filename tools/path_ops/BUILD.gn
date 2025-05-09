@@ -12,7 +12,10 @@ shared_library("path_ops") {
     "path_ops.h",
   ]
   deps = [ "//flutter/skia" ]
-
+  ldflags = []
+  if (is_ohos) {
+    ldflags += [ "-lnative_drawing" ]
+  }
   metadata = {
     entitlement_file_path = [ "libpath_ops.dylib" ]
   }
