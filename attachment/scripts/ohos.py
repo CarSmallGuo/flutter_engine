@@ -220,8 +220,10 @@ def harBuild(buildInfo, args):
     command += "--output ./src/out/%s/flutter.har " % buildOut
     if args.har_unstripped:
         command += "--native_lib ./src/out/%s/so.unstripped/libflutter.so " % buildOut
+        command += "--native_lib ./src/out/%s/so.unstripped/libflutter_accessibility.so " % buildOut
     else:
         command += "--native_lib ./src/out/%s/libflutter.so " % buildOut
+        command += "--native_lib ./src/out/%s/libflutter_accessibility.so " % buildOut
     if buildType == "profile":
         command += (
             "--native_lib ./src/out/%s/gen/flutter/shell/vmservice/ohos/libs/%s/libvmservice_snapshot.so "
