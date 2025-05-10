@@ -16,7 +16,7 @@ group("ohos") {
   deps = [
     ":flutter_shell_native",
     #":publish_headers_ohos",
-    #":ohos_har",
+    ":ohos_har",
     ":flutter_har_zip",
     ":ohos_symbols",
   ]
@@ -314,17 +314,15 @@ action("ohos_har") {
     accessibility_library = "libflutter_accessibility.so"
   } else {
     engine_library = "so.unstripped/libflutter.so"
-    accessibility_library = "libflutter_accessibility.so"
+    accessibility_library = "so.unstripped/libflutter_accessibility.so"
   }
 
   inputs = [
-    # "$root_build_dir/$embedding_har_filename",
     "$root_build_dir/$engine_library",
   ]
 
   outputs = [
     "$root_build_dir/flutter.har",
-    # "$root_build_dir/$engine_har_filename",
   ]
 
   args = [
@@ -365,14 +363,45 @@ action("ohos_har") {
 
 zip_bundle("flutter_har_zip") {
   output = "$ohos_zip_archive_dir/artifacts.zip"
+
+  if (stripped_symbols) {
+    engine_library = "libflutter.so"
+    accessibility_library = "libflutter_accessibility.so"
+  } else {
+    engine_library = "so.unstripped/libflutter.so"
+    accessibility_library = "so.unstripped/libflutter_accessibility.so"
+  }
+
   files = [
     {
-      source = "$root_build_dir/flutter.har"
-      destination = "flutter.har"
+      source = "$root_build_dir/$embedding_har_filename"
+      destination = "$embedding_har_filename"
+    },
+    {
+      source = "$root_build_dir/$engine_library"
+      destination = "$engine_library"
+    },
+    {
+      source = "$root_build_dir/$accessibility_library"
+      destination = "$accessibility_library"
     }
   ]
 
-  deps = [ ":ohos_har" ]
+  deps = [
+    ":embedding_hars",
+    ":flutter_shell_native",
+    ":flutter_shell_native_accessibility"
+  ]
+
+  if (flutter_runtime_mode == "profile") {
+    deps += [ "//flutter/shell/vmservice:vmservice_snapshot" ]
+    files += [
+      {
+        source = "$root_gen_dir/flutter/shell/vmservice/ohos/libs/$ohos_app_abi/libvmservice_snapshot.so"
+        destination = "libvmservice_snapshot.so"
+      }
+    ]
+  }
 }
 
 zip_bundle("ohos_symbols") {
@@ -523,4 +552,30 @@ if (target_cpu == "x64" || target_cpu == "arm64") {
       },
     ]
   }
+}
+
+action("embedding_hars") {
+  script = "//flutter/attachment/scripts/ohos_create_flutter_har.py"
+
+  inputs = []
+  outputs = [
+    "$embedding_har_path",
+  ]
+
+  args = [
+    "--embedding_src",
+    "../../flutter/shell/platform/ohos/flutter_embedding",
+    "--build_dir",
+    "./obj/ohos/flutter_embedding_har",
+    "--build_type",
+    flutter_runtime_mode,
+    "--output",
+    rebase_path("$embedding_har_filename", root_build_dir, root_build_dir),
+    "--ohos_abi",
+    ohos_app_abi,
+    "--ohos_api_int",
+    ohos_api_int
+  ]
+
+  deps = []
 }

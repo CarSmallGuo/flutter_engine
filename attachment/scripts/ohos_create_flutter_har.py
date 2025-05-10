@@ -93,15 +93,16 @@ def main():
     shutil.copytree(options.embedding_src, options.build_dir)
 
     # copy so files
-    for file in options.native_lib:
-        dir_name, full_file_name = os.path.split(file)
-        targetDir = os.path.join(options.build_dir, "flutter/libs", options.ohos_abi)
-        if not os.path.exists(targetDir):
-            os.makedirs(targetDir)
-        shutil.copyfile(
-            file,
-            os.path.join(targetDir, full_file_name),
-        )
+    if options.native_lib is not None:
+        for file in options.native_lib:
+            dir_name, full_file_name = os.path.split(file)
+            targetDir = os.path.join(options.build_dir, "flutter/libs", options.ohos_abi)
+            if not os.path.exists(targetDir):
+                os.makedirs(targetDir)
+            shutil.copyfile(
+                file,
+                os.path.join(targetDir, full_file_name),
+            )
     buildHar(options.build_dir, options.ohos_api_int, options.build_type)
     shutil.copyfile(
         os.path.join(
