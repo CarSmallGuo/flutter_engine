@@ -103,6 +103,7 @@ OHOSExternalTexture::OHOSExternalTexture(int64_t id,
 }
 
 OHOSExternalTexture::~OHOSExternalTexture() {
+  FML_LOG(INFO) << "~OHOSExternalTexture " << Id();
   DestroyNativeImageSource();
   DestroyPixelMapBuffer();
   return;
@@ -262,7 +263,7 @@ void OHOSExternalTexture::OnGrContextCreated() {
 }
 
 void OHOSExternalTexture::OnGrContextDestroyed() {
-  if (state_ == AttachmentState::kAttached) {
+//  if (state_ == AttachmentState::kAttached) {
     // move UnsetOnFrame here to avoid MarkNewFrameAvailable being invoked when
     // rasterizer thread exit. Hit: MarkNewFrameAvailable will be invoked in
     // rasterizer thread.
@@ -278,7 +279,7 @@ void OHOSExternalTexture::OnGrContextDestroyed() {
     }
     last_fence_fd_ = -1;
     GPUResourceDestroy();
-  }
+//  }
   state_ = AttachmentState::kDetached;
 }
 
