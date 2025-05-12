@@ -178,13 +178,6 @@ static int32_t SetNativeWindowOpt(OHNativeWindow* nativeWindow,
         nativeWindow, width, height, ret);
   }
 
-  ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, SET_TIMEOUT, 0);
-  if (ret) {
-    LOGE(
-        "Set NativeWindow SET_TIMEOUT   Failed :window:%{public}p "
-        ",w:%{public}d x %{public}d:%{public}d",
-        nativeWindow, width, height, ret);
-  }
   return ret;
 }
 
