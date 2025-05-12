@@ -14,8 +14,8 @@ import Log from '../../../util/Log';
 
 const TAG = "FlutterRenderer"
 export class FlutterRenderer implements TextureRegistry {
-  private nextTextureId: number = 0;
   private flutterNapi: FlutterNapi;
+  private static globalTextureId: number = 0;
 
   constructor(flutterNapi: FlutterNapi) {
     this.flutterNapi = flutterNapi;
@@ -30,13 +30,14 @@ export class FlutterRenderer implements TextureRegistry {
   }
 
   getTextureId(): number {
-    this.nextTextureId = this.nextTextureId + 1;
-    Log.i(TAG, "getTextureId: ", this.nextTextureId )
-    return this.nextTextureId;
+    let nextTextureId: number = FlutterRenderer.globalTextureId + 1;
+    FlutterRenderer.globalTextureId = FlutterRenderer.globalTextureId + 1;
+    Log.i(TAG, "getTextureId: " + nextTextureId)
+    return nextTextureId;
   }
 
   registerTexture(textureId: number): SurfaceTextureEntry {
-    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.nextTextureId);
+    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(textureId);
     let surfaceId = this.flutterNapi.registerTexture(textureId);
     Log.i(TAG, "registerTexture, surfaceId=" + surfaceId);
     surfaceTextureRegistryEntry.setSurfaceId(surfaceId);
@@ -47,17 +48,18 @@ export class FlutterRenderer implements TextureRegistry {
    * @deprecated since 3.7
    */
   registerSurfaceTexture(receiver: image.ImageReceiver): SurfaceTextureEntry {
-    this.nextTextureId = this.nextTextureId + 1;
-    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(this.nextTextureId);
+    let nextTextureId: number = FlutterRenderer.globalTextureId + 1;
+    FlutterRenderer.globalTextureId = FlutterRenderer.globalTextureId + 1;
+    let surfaceTextureRegistryEntry = new SurfaceTextureRegistryEntry(nextTextureId);
     surfaceTextureRegistryEntry.setImageReceiver(receiver);
     this.registerImage(surfaceTextureRegistryEntry.getTextureId(), surfaceTextureRegistryEntry.textureWrapper());
     return surfaceTextureRegistryEntry;
   }
 
   registerPixelMap(pixelMap: PixelMap): number {
-    this.nextTextureId = this.nextTextureId + 1;
-    this.flutterNapi.registerPixelMap(this.nextTextureId, pixelMap);
-    return this.nextTextureId;
+    let nextTextureId: number = this.getTextureId();
+    this.flutterNapi.registerPixelMap(nextTextureId, pixelMap);
+    return nextTextureId;
   }
 
   setTextureBackGroundPixelMap(textureId: number, pixelMap: PixelMap): void {

@@ -20,8 +20,7 @@
 
 namespace flutter {
 
-// This global map's key is (PlatformViewOHOS-ptr + texture_id) because there
-// may be many platformViews.
+// This global map's key is (texture_id)
 std::map<uint64_t, PlatformViewOHOS*> g_texture_platformview_map;
 std::recursive_mutex g_map_mutex;
 
@@ -113,6 +112,8 @@ PlatformViewOHOS::PlatformViewOHOS(
 
 PlatformViewOHOS::~PlatformViewOHOS() {
   FML_LOG(INFO) << "PlatformViewOHOS::~PlatformViewOHOS";
+  // The UnregisterTexture cannot be called here because it depends on
+  // rasterizer_, and rasterizer_ may be null at this time.
   external_texture_gl_.clear();
 }
 
@@ -162,6 +163,7 @@ void PlatformViewOHOS::NotifySurfaceWindowChanged(
     fml::AutoResetWaitableEvent latch;
     fml::TaskRunner::RunNowOrPostTask(
         task_runners_.GetRasterTaskRunner(),
+
         [&latch, surface = ohos_surface_.get(),
          native_window = std::move(native_window), this]() {
           if (GetDestroyed()) {
@@ -492,14 +494,14 @@ void PlatformViewOHOS::OnNativeImageFrameAvailable(void* data) {
           return;
         }
         PlatformViewOHOS* platform = g_texture_platformview_map[ptexture_id];
-        uint64_t texture_id = ptexture_id - (uint64_t)platform;
+        uint64_t texture_id = ptexture_id;
         platform->MarkTextureFrameAvailable(texture_id);
       });
 }
 
 std::shared_ptr<OHOSExternalTexture> PlatformViewOHOS::CreateExternalTexture(
   int64_t texture_id) {
-  uint64_t context_frame_data = (uint64_t)this + (uint64_t)texture_id;
+  uint64_t context_frame_data = (uint64_t)texture_id;
   OH_OnFrameAvailableListener listener;
   listener.context = (void*)context_frame_data;
   listener.onFrameAvailable = OnNativeImageFrameAvailable;
@@ -569,7 +571,7 @@ void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id) {
   latch.Wait();
 
   std::lock_guard<std::recursive_mutex> lock(g_map_mutex);
-  g_texture_platformview_map.erase((uint64_t)this + (uint64_t)texture_id);
+  g_texture_platformview_map.erase((uint64_t)texture_id);
 }
 
 void PlatformViewOHOS::RegisterExternalTextureByPixelMap(
