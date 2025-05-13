@@ -462,6 +462,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.mEditable.handleInsertPreviewTextEvent(text, range);
   }
   private finishPreviewTextCallback = () => {
+    this.mEditable.handleInsertTextEvent(this.mEditable.getPreviewText());
     this.mEditable.clearPreviewTextContents();
     Log.d(TextInputMethodHandlerImpl.TAG, "finishPreviewTextCallback");
   }
