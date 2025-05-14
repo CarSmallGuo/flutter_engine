@@ -56,10 +56,10 @@ export default class PlatformChannel {
           requestedOrientation |= 0x04;
           break;
         case DeviceOrientation.LANDSCAPE_LEFT:
-          requestedOrientation |= 0x08;
+          requestedOrientation |= 0x02;
           break;
         case DeviceOrientation.LANDSCAPE_RIGHT:
-          requestedOrientation |= 0x02;
+          requestedOrientation |= 0x08;
           break;
       }
       if (firstRequestedOrientation == 0x00) {
@@ -70,41 +70,41 @@ export default class PlatformChannel {
     switch (requestedOrientation) {
       case 0x00:
         return window.Orientation.UNSPECIFIED;
-      case 0x01:
+      case 0x01: // PORTRAIT_UP
         return window.Orientation.PORTRAIT;
-      case 0x02:
-        return window.Orientation.LANDSCAPE_INVERTED;
-      case 0x03:
-      case 0x04:
-        return window.Orientation.PORTRAIT_INVERTED;
-      case 0x05:
-        return window.Orientation.AUTO_ROTATION_PORTRAIT;
-      case 0x06:
-      case 0x07:
-      case 0x08:
+      case 0x02: // LANDSCAPE_LEFT
         return window.Orientation.LANDSCAPE;
-      case 0x09:
-      case 0x0a:
-        return window.Orientation.AUTO_ROTATION_LANDSCAPE;
-      case 0x0b:
-        return window.Orientation.LOCKED;
-      case 0x0c:
-      case 0x0d:
-      case 0x0e:
+      case 0x04: // PORTRAIT_DOWN
+        return window.Orientation.PORTRAIT_INVERTED;
+      case 0x05: // PORTRAIT_UP and PORTRAIT_DOWN
+        return window.Orientation.USER_ROTATION_PORTRAIT;
+      case 0x08: // LANDSCAPE_RIGHT
+        return window.Orientation.LANDSCAPE_INVERTED;
+      case 0x0a: // LANDSCAPE_LEFT and LANDSCAPE_RIGHT
+        return window.Orientation.USER_ROTATION_LANDSCAPE;
+      case 0x0b: // PORTRAIT_UP, LANDSCAPE_LEFT and LANDSCAPE_RIGHT
+        return window.Orientation.AUTO_ROTATION_UNSPECIFIED;
+      case 0x0f: // PORTRAIT_UP, PORTRAIT_DOWN, LANDSCAPE_LEFT and LANDSCAPE_RIGHT
+        return window.Orientation.AUTO_ROTATION_RESTRICTED;
+      case 0x03: // PORTRAIT_UP and LANDSCAPE_LEFT
+      case 0x06: // PORTRAIT_DOWN and LANDSCAPE_LEFT
+      case 0x07: // PORTRAIT_UP, PORTRAIT_DOWN, and LANDSCAPE_LEFT
+      case 0x09: // PORTRAIT_UP and LANDSCAPE_RIGHT
+      case 0x0c: // PORTRAIT_DOWN and LANDSCAPE_RIGHT
+      case 0x0d: // PORTRAIT_UP, PORTRAIT_DOWN, and LANDSCAPE_RIGHT
+      case 0x0e: // PORTRAIT_DOWN, LANDSCAPE_LEFT, and LANDSCAPE_RIGHT
         switch (firstRequestedOrientation) {
           case 0x01:
             return bundleManager.DisplayOrientation.PORTRAIT;
           case 0x02:
-            return bundleManager.DisplayOrientation.LANDSCAPE_INVERTED;
+            return bundleManager.DisplayOrientation.LANDSCAPE;
           case 0x04:
             return bundleManager.DisplayOrientation.PORTRAIT_INVERTED;
           case 0x08:
-            return bundleManager.DisplayOrientation.LANDSCAPE;
+            return bundleManager.DisplayOrientation.LANDSCAPE_INVERTED;
         }
-      case 0x0f:
-        return window.Orientation.AUTO_ROTATION_RESTRICTED;
     }
-    return bundleManager.DisplayOrientation.PORTRAIT;
+    throw new Error("No such orientations: " + requestedOrientation);
   }
 
   getFeedbackTypeFromValue(encodedName: string): HapticFeedbackType {
