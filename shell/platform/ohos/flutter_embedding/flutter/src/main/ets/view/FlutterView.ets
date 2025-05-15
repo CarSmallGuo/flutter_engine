@@ -304,7 +304,7 @@ export class FlutterView {
     } else if (data.type == window.AvoidAreaType.TYPE_SYSTEM_GESTURE) { //2
       this.gestureAvoidArea = data.area;
     } else if (data.type == window.AvoidAreaType.TYPE_KEYBOARD &&
-    this.flutterEngine?.getTextInputChannel?.textInputMethodHandler?.getKeyboardFocusState()) { //3
+    this.flutterEngine?.getTextInputChannel()?.textInputMethodHandler?.getKeyboardFocusState()) { //3
       this.keyboardAvoidArea = data.area;
     } else if (data.type == window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR) { //4
       this.navigationAvoidArea = data.area;
