@@ -577,28 +577,33 @@ void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id) {
 void PlatformViewOHOS::RegisterExternalTextureByPixelMap(
     int64_t texture_id,
     NativePixelMap* pixelMap) {
-  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
-    auto iter = external_texture_gl_.find(texture_id);
-    if (iter != external_texture_gl_.end()) {
-      iter->second->SetPixelMapAsProducer(pixelMap, nullptr);
-    } else {
-      auto extrenal_texture = CreateExternalTexture(texture_id);
-      if (extrenal_texture != nullptr) {
-        extrenal_texture->SetPixelMapAsProducer(pixelMap, nullptr);
-      }
+  auto iter = external_texture_gl_.find(texture_id);
+  bool ret = false;
+  if (iter != external_texture_gl_.end()) {
+    ret = iter->second->SetPixelMapAsProducer(pixelMap, nullptr);
+  } else {
+    auto extrenal_texture = CreateExternalTexture(texture_id);
+    if (extrenal_texture != nullptr) {
+      ret = extrenal_texture->SetPixelMapAsProducer(pixelMap, nullptr);
     }
+  }
+  if (ret) {
+    PlatformView::ScheduleFrame();
   }
 }
 
 void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(
     int64_t texture_id,
     NativePixelMap* pixelMap) {
-  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
-    if (external_texture_gl_.find(texture_id) != external_texture_gl_.end()) {
-      auto external_texture = external_texture_gl_[texture_id];
-      FML_LOG(INFO) << "SetExternalTextureBackGroundPixelMap " << texture_id;
-      external_texture->SetPixelMapAsProducer(pixelMap, nullptr);
-    }
+  if (external_texture_gl_.find(texture_id) == external_texture_gl_.end()) {
+    return;
+  }
+
+  auto external_texture = external_texture_gl_[texture_id];
+  FML_LOG(INFO) << "SetExternalTextureBackGroundPixelMap " << texture_id;
+  bool ret = external_texture->SetPixelMapAsProducer(pixelMap, nullptr);
+  if (ret) {
+    PlatformView::ScheduleFrame();
   }
 }
 
@@ -609,6 +614,7 @@ void PlatformViewOHOS::SetExternalTextureBackGroundColor(int64_t texture_id,
     FML_LOG(INFO) << "SetExternalTextureBackGroundColor " << texture_id
                   << " color " << color;
     external_texture->SetBackgroundColor(color);
+    PlatformView::ScheduleFrame();
   }
 }
 
