@@ -58,11 +58,11 @@ public:
 
   void VoteVideoValue(int second, int frameCount);
 
-  void AttachNativeVsync(string handleName, OH_NativeVsync* handle);
+  void AttachNativeVsync(string handleName, OH_NativeVSync* handle);
 
   void DettachNativeVsync(string handleName);
 
-  void VotingByNativeVsync(OH_NativeVSync* hanlde);
+  void VotingByNativeVsync(OH_NativeVSync* handle);
 
   void ParseFramesCfg(void);
 
@@ -94,7 +94,7 @@ private:
 
   double lastVelocity_ = 0.0;
 
-  bool firstBoteFrame_ = true;
+  bool firstVoteFrame_ = true;
 
   bool isTouchDown_ = false;
 

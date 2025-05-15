@@ -20,6 +20,7 @@ static constexpr double INCH_2_MILL = 25.4;
 static constexpr int32_t FPS_120 = 120;
 static constexpr int32_t FPS_90 = 90;
 static constexpr int32_t FPS_60 = 60;
+static constexpr int32_t FPS_30 = 30;
 
 constexpr char FRAMES_CFG_JSON[] = "framesconfig.json";
 constexpr char SWITCH_KEY[] = "SWITCH";
@@ -31,7 +32,7 @@ static constexpr fml::TimeDelta TOUCH_3_SEC = fml::TimeDelta::FromSeconds(3);
 
 std::shared_ptr<OhosVsyncVotingMgr> OhosVsyncVotingMgr::GetInstance(void)
 {
-    std::once_once(instanceFlag, [&] {
+    std::call_once(instanceFlag, [&] {
         instance = std::shared_ptr<OhosVsyncVotingMgr>(new OhosVsyncVotingMgr);
     });
     return instance;
@@ -39,7 +40,7 @@ std::shared_ptr<OhosVsyncVotingMgr> OhosVsyncVotingMgr::GetInstance(void)
 
 void OhosVsyncVotingMgr::VoteAnimationValue(AnimationType ANType, double devicePixelRatio, double velocity)
 {
-    if (SwitchStatus_ != 1) {
+    if (switchStatus_ != 1) {
         return;
     }
 
@@ -68,7 +69,7 @@ void OhosVsyncVotingMgr::VoteAnimationValue(AnimationType ANType, double deviceP
 
 void OhosVsyncVotingMgr::VoteTouchValue(VVMTouchType type, int64_t timestamp)
 {
-    if (SwitchStatus_ != 1) {
+    if (switchStatus_ != 1) {
         return;
     }
 
@@ -94,7 +95,7 @@ void OhosVsyncVotingMgr::VoteTouchValue(VVMTouchType type, int64_t timestamp)
 
 void OhosVsyncVotingMgr::VoteWebValue(void)
 {
-    if (SwitchStatus_ != 1) {
+    if (switchStatus_ != 1) {
         return;
     }
 
@@ -106,7 +107,7 @@ void OhosVsyncVotingMgr::VoteWebValue(void)
 
 void OhosVsyncVotingMgr::VoteVideoValue(int second, int frameCount)
 {
-    if (SwitchStatus_ != 1) {
+    if (switchStatus_ != 1) {
         return;
     }
 
@@ -159,7 +160,7 @@ inline void OhosVsyncVotingMgr::VoteANRotation(double velocity)
     return;
 }
 
-void OhosVsyncVotingMgr::AttachNativeVsync(string handleName, OH_NativeVsync* handle)
+void OhosVsyncVotingMgr::AttachNativeVsync(string handleName, OH_NativeVSync* handle)
 {
     if (handle == nullptr) {
         FML_LOG(ERROR) << "handle is null";
@@ -176,9 +177,9 @@ void OhosVsyncVotingMgr::DettachNativeVsync(string handleName)
     return;
 }
 
-void OhosVsyncVotingMgr::VotingByNativeVsync(OH_NativeVSync* hanlde)
+void OhosVsyncVotingMgr::VotingByNativeVsync(OH_NativeVSync* handle)
 {
-    if (SwitchStatus_ != 1) {
+    if (switchStatus_ != 1) {
         return;
     }
 
@@ -219,8 +220,8 @@ void OhosVsyncVotingMgr::VotingByNativeVsync(OH_NativeVSync* hanlde)
     FML_LOG(INFO) << "SetExpectedFrameRateRange : " << rangeStr.c_str();
     TRACE_EVENT1("flutter", "SetExpectedFrameRateRange", "range", rangeStr.c_str());
 
-    OS_NativeVSync_ExpectedRateRange range = {min, max, resultFrameRate_};
-    int ret = OS_NativeVSync_SetExpectedFrameRateRange(handle, &range);
+    OH_NativeVSync_ExpectedRateRange range = {min, max, resultFrameRate_};
+    int ret = OH_NativeVSync_SetExpectedFrameRateRange(handle, &range);
     if (ret != 0) {
         FML_LOG(ERROR) << "SetExpectedFrameRateRange failed, ret = " << ret;
     }
@@ -229,7 +230,7 @@ void OhosVsyncVotingMgr::VotingByNativeVsync(OH_NativeVSync* hanlde)
 
 void OhosVsyncVotingMgr::VotingBySelf()
 {
-    if (SwitchStatus_ != 1) {
+    if (switchStatus_ != 1) {
         return;
     }
 
@@ -270,12 +271,12 @@ void OhosVsyncVotingMgr::VotingBySelf()
     FML_LOG(INFO) << "BySelf SetExpectedFrameRateRange : " << rangeStr.c_str();
     TRACE_EVENT1("flutter", "BySelf SetExpectedFrameRateRange", "range", rangeStr.c_str());
 
-    OS_NativeVSync_ExpectedRateRange range = {min, max, resultFrameRate_};
+    OH_NativeVSync_ExpectedRateRange range = {min, max, resultFrameRate_};
 
     int ret = 0;
     for (auto it = nativeVsyncMap_.begin(); it != nativeVsyncMap_.end(); it++) {
         OH_NativeVSync* handleTmp = it->second;
-        ret = OS_NativeVSync_SetExpectedFrameRateRange(handleTmp, &range);
+        ret = OH_NativeVSync_SetExpectedFrameRateRange(handleTmp, &range);
         if (ret != 0) {
             FML_LOG(ERROR) << "BySelf SetExpectedFrameRateRange failed, ret = " << ret;
         }
@@ -295,7 +296,7 @@ inline void OhosVsyncVotingMgr::ParseTranslate(const Json::Value& arr)
     int valueTmp = 0;
     int number = 1;
     size_t size = arr.size();
-    for (unsinged int i = 0; i < size; i++) {
+    for (unsigned int i = 0; i < size; i++) {
         std::map<string, int> mapTmp;
         if (arr[i].isObject()) {
             for (unsigned int j = 0; j < num; j++) {
@@ -346,9 +347,9 @@ void OhosVsyncVotingMgr::ParseFramesCfg(void)
     Json::Value root;
     Json::CharReaderBuilder charReaderBuilder;
     std::string errs;
-    std::unique_ptr<Json::CharReader> jsonReader(charReaderBuilder.nerCharReader());
+    std::unique_ptr<Json::CharReader> jsonReader(charReaderBuilder.newCharReader());
     bool isJson = jsonReader->parse(data,data + size, &root, &errs);
-    if (!isJson || !err.empty()) {
+    if (!isJson || !errs.empty()) {
         FML_LOG(ERROR) << "Failed to parse frameconfig.json, err = " << errs;
         return;
     }
@@ -356,7 +357,7 @@ void OhosVsyncVotingMgr::ParseFramesCfg(void)
 
     if (root.isMember(SWITCH_KEY)) {
         if (root[SWITCH_KEY].isNumeric()) {
-            switchStatus_ = root[SWITCH_KEY].asUint();
+            switchStatus_ = root[SWITCH_KEY].asUInt();
         } else {
             FML_LOG(ERROR) << "Failed to parse key of SWITCH";
             return;

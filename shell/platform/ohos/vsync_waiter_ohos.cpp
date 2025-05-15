@@ -12,7 +12,7 @@
 #include "napi_common.h"
 #include "ohos_logging.h"
 
-#include "flutter/shell/platfrom/ohos/ohos_vsync_voting_mgr.h"
+#include "flutter/shell/platform/ohos/ohos_vsync_voting_mgr.h"
 
 namespace flutter {
 
@@ -74,8 +74,8 @@ void VsyncWaiterOHOS::UpdateDisplayRefreshRate(int64_t period) {
       std::ostringstream oss;
       oss << "{" << PlatformViewOHOSNapi::display_refresh_rate << "->" "refresh_rate" << "}";
       std::string ossStr = oss.str();
-      TRACE_EVENT1("flutter", "ChangeRefreshRate", "from", ossStr);
-      FML_DLOG(INFO) << "refresh_rate change:" << ossStr;
+      TRACE_EVENT1("flutter", "ChangeRefreshRate", "from", ossStr.c_str());
+      FML_DLOG(INFO) << "refresh_rate change:" << ossStr.c_str();
       PlatformViewOHOSNapi::display_refresh_rate = refresh_rate;
     }
   }

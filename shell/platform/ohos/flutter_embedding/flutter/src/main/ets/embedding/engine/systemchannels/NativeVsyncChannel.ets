@@ -42,7 +42,7 @@ export default class NativeVsyncChannel implements MessageHandler<object> {
                     break;
                 case "velocity":
                     let velocity: number = data.get("velocity");
-                    this.flutterNapi.voteFrameRateVelocity(velocity);
+                    this.flutterNapi.animationVoting(velocity);
                     break;
                 case "video":
                     let second: number = data.get("second");

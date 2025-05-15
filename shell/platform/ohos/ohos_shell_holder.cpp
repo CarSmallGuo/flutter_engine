@@ -22,7 +22,7 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 
-#include "flutter/shell/platfrom/ohos/ohos_vsync_voting_mgr.h"
+#include "flutter/shell/platform/ohos/ohos_vsync_voting_mgr.h"
 
 namespace flutter {
 

@@ -742,8 +742,8 @@ export default class FlutterNapi {
   * 发送屏幕滑动速度
   * @param velocity: 当前屏幕滑动速度
   */
-  animationVoting(min: number, max: number, expected: number): void {
-    flutter.nativeAnimationVoting(this.nativeShellHolderId!, min, max, expected);
+  animationVoting(velocity: number): void {
+    flutter.nativeAnimationVoting(velocity);
   }
 
   /*
@@ -751,15 +751,15 @@ export default class FlutterNapi {
   * @param seconds: 秒数
   * @param frameCount: 一定时间内的帧数
   */
-  videoVoting(seconds: number, frameCount: number): void {
+  static videoVoting(seconds: number, frameCount: number): void {
     flutter.nativeVideoVoting(seconds, frameCount);
   }
 
   /*
   * 预加载帧率挡位配置文件
   */
-  prefetchFramesCfg(seconds: number, frameCount: number): void {
-    flutter.nativePrefetchFramesCfg(seconds, frameCount);
+  static prefetchFramesCfg(): void {
+    flutter.nativePrefetchFramesCfg();
   }
 }
 

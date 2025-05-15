@@ -27,7 +27,7 @@
 #include "flutter/shell/platform/ohos/types.h"
 #include "unicode/uchar.h"
 
-#include "flutter/shell/platform/ohos/ohos_vsync_voting.h"
+#include "flutter/shell/platform/ohos/ohos_vsync_voting_mgr.h"
 
 #define OHOS_SHELL_HOLDER (reinterpret_cast<OHOSShellHolder*>(shell_holder))
 namespace flutter {
@@ -2692,6 +2692,8 @@ napi_value PlatformViewOHOSNapi::nativePrefetchFramesCfg(napi_env env, napi_call
   if (votingMgr != nullptr) {
     votingMgr->ParseFramesCfg();
   }
+
+  return nullptr;
 }
 
 }  // namespace flutter
