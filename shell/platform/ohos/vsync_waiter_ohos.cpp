@@ -12,6 +12,8 @@
 #include "napi_common.h"
 #include "ohos_logging.h"
 
+#include "flutter/shell/platfrom/ohos/ohos_vsync_voting_mgr.h"
+
 namespace flutter {
 
 static constexpr int32_t SUPPORT_API_VERSION = 14;
@@ -26,9 +28,19 @@ VsyncWaiterOHOS::VsyncWaiterOHOS(const flutter::TaskRunners& task_runners,
     : VsyncWaiter(task_runners), enable_frame_cache_(enable_frame_cache) {
   vsync_handle_ =
       OH_NativeVSync_Create("flutterSyncName", strlen(flutterSyncName));
+
+  std::shared_ptr<OhosVsyncVotingMgr> votingMgr = OhosVsyncVotingMgr::GetInstance();
+  if (votingMgr != nullptr) {
+    votingMgr->AttachNativeVsync(std::string("VsyncWaiterOHOS"), vsync_handle_);
+  }
 }
 
 VsyncWaiterOHOS::~VsyncWaiterOHOS() {
+  std::shared_ptr<OhosVsyncVotingMgr> votingMgr = OhosVsyncVotingMgr::GetInstance();
+  if (votingMgr != nullptr) {
+    votingMgr->DettachNativeVsync(std::string("VsyncWaiterOHOS"));
+  }
+
   OH_NativeVSync_Destroy(vsync_handle_);
   vsync_handle_ = nullptr;
 }
@@ -59,10 +71,11 @@ void VsyncWaiterOHOS::UpdateDisplayRefreshRate(int64_t period) {
     }
 
     if (PlatformViewOHOSNapi::display_refresh_rate != refresh_rate) {
-      TRACE_EVENT0("flutter", "ChangeRefreshRate");
-      FML_DLOG(INFO) << "refresh_rate change:"
-                     << PlatformViewOHOSNapi::display_refresh_rate << "->"
-                     << refresh_rate;
+      std::ostringstream oss;
+      oss << "{" << PlatformViewOHOSNapi::display_refresh_rate << "->" "refresh_rate" << "}";
+      std::string ossStr = oss.str();
+      TRACE_EVENT1("flutter", "ChangeRefreshRate", "from", ossStr);
+      FML_DLOG(INFO) << "refresh_rate change:" << ossStr;
       PlatformViewOHOSNapi::display_refresh_rate = refresh_rate;
     }
   }
@@ -89,9 +102,15 @@ void VsyncWaiterOHOS::AwaitVSync() {
   fml::TaskRunner::RunNowOrPostTask(
       task_runners_.GetUITaskRunner(), [weak_this, handle]() {
         int32_t ret = 0;
+
+        std::shared_ptr<OhosVsyncVotingMgr> votingMgr = OhosVsyncVotingMgr::GetInstance();
+        if (votingMgr != nullptr) {
+          votingMgr->VotingByNativeVsync(handle);
+        }
+
         if (0 != (ret = OH_NativeVSync_RequestFrameWithMultiCallback(
                       handle, &OnVsyncFromOHOS, weak_this))) {
-          FML_DLOG(ERROR) << "AwaitVSync...failed:" << ret;
+          FML_LOG(ERROR) << "AwaitVSync...failed:" << ret;
         }
       });
 }

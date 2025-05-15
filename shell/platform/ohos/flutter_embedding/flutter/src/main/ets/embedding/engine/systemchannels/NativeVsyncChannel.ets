@@ -33,10 +33,23 @@ export default class NativeVsyncChannel implements MessageHandler<object> {
 
     onMessage(message: object, reply: Reply<object>): void {
         let data: HashMap<string, Any> = message as HashMap<string, Any>;
-        let isEnable: boolean = data.get("isEnable");
-        this.flutterNapi.SetDVsyncSwitch(isEnable);
-
-        Log.d(NativeVsyncChannel.TAG, `Received message: isEnable:$isEnable`);
+        let iter: IterableIterator<string> = data.keys();
+        for (const key of iter) {
+            switch (key) {
+                case "isEnable":
+                    let isEnable: boolean = data.get("isEnable");
+                    this.flutterNapi.SetDVsyncSwitch(isEnable);
+                    break;
+                case "velocity":
+                    let velocity: number = data.get("velocity");
+                    this.flutterNapi.voteFrameRateVelocity(velocity);
+                    break;
+                case "video":
+                    let second: number = data.get("second");
+                    let frameCount: number = data.get("frameCount");
+                    break;
+            }
+        }
         reply.reply(StringUtils.stringToArrayBuffer(""));
     }
 

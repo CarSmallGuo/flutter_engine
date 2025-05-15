@@ -283,6 +283,10 @@ export default class FlutterEngine implements EngineLifecycleListener {
   getPlatformViewsController(): PlatformViewsController | null {
     return this.platformViewsController;
   }
+
+  async prefetchFramesCfg(): Promise<void> {
+    FlutterNapi.prefetchFramesCfg();
+  }
 }
 
 export interface EngineLifecycleListener {

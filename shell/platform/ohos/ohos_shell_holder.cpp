@@ -22,6 +22,8 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 
+#include "flutter/shell/platfrom/ohos/ohos_vsync_voting_mgr.h"
+
 namespace flutter {
 
 std::string OHOSLastFontPath = "";
@@ -444,6 +446,11 @@ std::optional<RunConfiguration> OHOSShellHolder::BuildRunConfiguration(
     FML_LOG(INFO) << "CreateForKernel.";
     isolate_configuration =
         IsolateConfiguration::CreateForKernel(std::move(kernel_blob));
+  }
+
+  std::shared_ptr<OhosVsyncVotingMgr> votingMgr = OhosVsyncVotingMgr::GetInstance();
+  if (votingMgr != nullptr) {
+    votingMgr->SetAssetProvider(asset_provider_->Clone());
   }
 
   RunConfiguration config(std::move(isolate_configuration));
