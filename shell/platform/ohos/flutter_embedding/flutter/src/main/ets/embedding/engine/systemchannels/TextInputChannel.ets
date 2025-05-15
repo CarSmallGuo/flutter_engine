@@ -190,6 +190,8 @@ export interface TextInputMethodHandler {
 
   handleChangeFocus(focusState: boolean): void;
 
+  getKeyboardFocusState(): boolean;
+
 }
 
 export class Configuration {
