@@ -211,7 +211,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     // notify current cursor index or selection range to the InputMethodFramework
     this.inputMethodController.changeSelection(editingState.text,
       editingState.selectionStart, editingState.selectionEnd);
-    if (sdkApiVersion >= PREVIEW_TEXT_SUPPORT_API) {
+    if (sdkApiVersion >= PREIVEW_TEXT_SUPPORT_API) {
       this.previewTextChangeSelection(editingState);
     }
   }
