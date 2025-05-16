@@ -1,5 +1,28 @@
+From bbb130e6dd6402d15285267a05113180adf0551b Mon Sep 17 00:00:00 2001
+From: openharmony_ci <openharmony_ci@noreply.gitcode.com>
+Date: Thu, 24 Apr 2025 17:21:54 +0800
+Subject: [PATCH] merge flutter_deps into flutter_3.22.0_deps
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+适配OHOS
+
+Created-by: peaceful_black
+Commit-by: 小黑和平
+Merged-by: openharmony_ci
+Description: 在flutter engine依赖的上游社区commit id节点基础上，进行ohos的适配
+
+See merge request: openharmony-sig/fluttertpc_angle!2
+---
+ BUILD.gn                   |  5 +++--
+ gni/angle.gni              | 14 ++++++++------
+ include/EGL/eglplatform.h  | 18 ++++++++++++------
+ src/common/angle_version.h |  4 ++++
+ 4 files changed, 27 insertions(+), 14 deletions(-)
+
 diff --git a/BUILD.gn b/BUILD.gn
-index 621a97bfb..7e9bb8964 100644
+index 621a97bfb3..7e9bb8964d 100644
 --- a/BUILD.gn
 +++ b/BUILD.gn
 @@ -103,7 +103,7 @@ if (angle_build_all) {
@@ -22,7 +45,7 @@ index 621a97bfb..7e9bb8964 100644
      public_deps += [ "third_party/astc-encoder:astcenc" ]
      include_dirs = [ "third_party/astc-encoder/src/Source/" ]
 diff --git a/gni/angle.gni b/gni/angle.gni
-index 31fb784ed..8f5975ec5 100644
+index 31fb784edb..af43677757 100644
 --- a/gni/angle.gni
 +++ b/gni/angle.gni
 @@ -63,7 +63,7 @@ if (angle_has_build) {
@@ -64,7 +87,7 @@ index 31fb784ed..8f5975ec5 100644
    angle_build_vulkan_system_info = angle_has_build && !angle_is_winuwp
  
 diff --git a/include/EGL/eglplatform.h b/include/EGL/eglplatform.h
-index 777e98558..23348f47a 100644
+index 777e985588..23348f47ae 100644
 --- a/include/EGL/eglplatform.h
 +++ b/include/EGL/eglplatform.h
 @@ -111,13 +111,19 @@ typedef intptr_t EGLNativeWindowType;
@@ -94,7 +117,7 @@ index 777e98558..23348f47a 100644
  #elif defined(__unix__)
  
 diff --git a/src/common/angle_version.h b/src/common/angle_version.h
-index 488c65dfe..9a0b295d9 100644
+index 488c65dfe7..9a0b295d91 100644
 --- a/src/common/angle_version.h
 +++ b/src/common/angle_version.h
 @@ -15,8 +15,12 @@
@@ -110,3 +133,6 @@ index 488c65dfe..9a0b295d9 100644
  
  #define ANGLE_STRINGIFY(x) #x
  #define ANGLE_MACRO_STRINGIFY(x) ANGLE_STRINGIFY(x)
+-- 
+2.49.0
+

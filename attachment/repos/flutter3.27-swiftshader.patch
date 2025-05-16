@@ -1,3 +1,25 @@
+From 5dc09a67c722b84e93cd465c06409cdd10b709a2 Mon Sep 17 00:00:00 2001
+From: openharmony_ci <openharmony_ci@noreply.gitcode.com>
+Date: Wed, 7 May 2025 16:42:42 +0800
+Subject: [PATCH] merge flutter_deps into flutter_3.22.0_deps
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+适配OHOS
+
+Created-by: peaceful_black
+Commit-by: 小黑和平
+Merged-by: openharmony_ci
+Description: 在flutter engine依赖的上游社区commit id节点基础上，进行ohos的适配
+
+See merge request: openharmony-sig/fluttertpc_swiftshader!2
+---
+ src/Reactor/BUILD.gn           | 2 ++
+ src/Reactor/reactor.gni        | 2 +-
+ third_party/llvm-10.0/BUILD.gn | 2 ++
+ 3 files changed, 5 insertions(+), 1 deletion(-)
+
 diff --git a/src/Reactor/BUILD.gn b/src/Reactor/BUILD.gn
 index 67dfeb0ec..a2b995813 100644
 --- a/src/Reactor/BUILD.gn
@@ -37,3 +59,6 @@ index 59e52303c..9f59c7ff8 100644
  } else if (is_mac) {
    llvm_include_dirs += [ "configs/darwin/include/" ]
  } else {
+-- 
+2.49.0
+

@@ -1,3 +1,23 @@
+From b30dc6f2b70aa2b7a8362ce7e1f40145eaf1887f Mon Sep 17 00:00:00 2001
+From: openharmony_ci <openharmony_ci@noreply.gitcode.com>
+Date: Thu, 8 May 2025 11:10:27 +0800
+Subject: [PATCH] merge flutter_deps into flutter_3.22.0_deps
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+适配OHOS
+
+Created-by: peaceful_black
+Commit-by: 小黑和平
+Merged-by: openharmony_ci
+Description: 在flutter engine依赖的上游社区commit id节点基础上，进行ohos的适配
+
+See merge request: openharmony-sig/fluttertpc_boringssl_gen!2
+---
+ BUILD.gn | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
 diff --git a/BUILD.gn b/BUILD.gn
 index 1ee6799..684f028 100644
 --- a/BUILD.gn
@@ -19,3 +39,6 @@ index 1ee6799..684f028 100644
        is_clang) {
      if (!bssl_use_clang_integrated_as) {
        # Disable the integrated assembler and use the one shipped with the NDK.
+-- 
+2.49.0
+

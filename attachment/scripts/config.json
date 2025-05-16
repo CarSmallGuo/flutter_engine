@@ -5,171 +5,87 @@
         "type": "files"
     },
     {
-        "name": "dart3.4",
-        "target": "./src/third_party/dart",
+        "name": "dart",
+        "target": "./src/flutter/third_party/dart",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/dart.3.4.0.patch"
+        "file_path": "../../attachment/repos/flutter3.27-dart.patch"
     },
     {
-        "name": "dart_debug",
-        "target": "./src/third_party/dart",
+        "name": "dart2",
+        "target": "./src/flutter/third_party/dart",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/dart.debug_tmp.patch"
-    },
-    {
-        "name": "dart_debug1",
-        "target": "./src/third_party/dart",
-        "type": "patch",
-        "file_path": "../../flutter/attachment/repos/dart.debug_tmp1.patch"
-    },
-    {
-        "name": "dart4",
-        "target": "./src/third_party/dart",
-        "type": "patch",
-        "file_path": "../../flutter/attachment/repos/dart.patch4"
-    },
-    {
-        "name": "dart5",
-        "target": "./src/third_party/dart",
-        "type": "patch",
-        "file_path": "../../flutter/attachment/repos/dart.patch5"
-    },
-    {
-        "name": "dart6",
-        "target": "./src/third_party/dart",
-        "type": "patch",
-        "file_path": "../../flutter/attachment/repos/dart.patch6"
-    },
-    {
-        "name": "dart7",
-        "target": "./src/third_party/dart",
-        "type": "patch",
-        "file_path": "../../flutter/attachment/repos/dart.patch7"
-    },
-    {
-        "name": "dart8",
-        "target": "./src/third_party/dart",
-        "type": "patch",
-        "file_path": "../../flutter/attachment/repos/dart.patch8"
-    },
-    {
-        "name": "dart9",
-        "target": "./src/third_party/dart",
-        "type": "patch",
-        "file_path": "../../flutter/attachment/repos/dart.patch9"
+        "file_path": "../../attachment/repos/flutter3.27-dart.patch2"
     },
     {
         "name": "skia",
         "target": "./src/flutter/third_party/skia",
         "type": "patch",
-        "file_path": "../../../flutter/attachment/repos/skia-3.22.patch"
+        "file_path": "../..//attachment/repos/flutter3.27-skia.patch"
     },
     {
-        "name": "skia_font_reload",
+        "name": "skia2",
         "target": "./src/flutter/third_party/skia",
         "type": "patch",
-        "file_path": "../../../flutter/attachment/repos/skia-3.22.patch1"
-    },
-    {
-        "name": "skia-2",
-        "target": "./src/flutter/third_party/skia",
-        "type": "patch",
-        "file_path": "../../../flutter/attachment/repos/skia-3.22.patch2"
-    },
-    {
-        "name": "skia-3",
-        "target": "./src/flutter/third_party/skia",
-        "type": "patch",
-        "file_path": "../../../flutter/attachment/repos/skia-3.22.patch3"
+        "file_path": "../..//attachment/repos/flutter3.27-skia.patch2"
     },
     {
         "name": "spirv-headers",
         "target": "./src/flutter/third_party/vulkan-deps/spirv-headers/src",
         "type": "patch",
-        "file_path": "../../../../../flutter/attachment/repos/spirv-headers.patch"
+        "file_path": "../../../../attachment/repos/flutter3.27-spirv-headers.patch"
     },
     {
         "name": "angle",
         "target": "./src/flutter/third_party/angle",
         "type": "patch",
-        "file_path": "../../../flutter/attachment/repos/angle-3.22.patch"
+        "file_path": "../../attachment/repos/flutter3.27-angle.patch"
     },
     {
         "name": "build",
         "target": "./src/build",
         "type": "patch",
-        "file_path": "../flutter/attachment/repos/build-3.22.patch"
-    },
-    {
-        "name": "build2",
-        "target": "./src/build",
-        "type": "patch",
-        "file_path": "../flutter/attachment/repos/build-3.22.patch2"
-    },
-    {
-        "name": "build3",
-        "target": "./src/build",
-        "type": "patch",
-        "file_path": "../flutter/attachment/repos/build-3.22.patch3"
-    },
-    {
-        "name": "build4",
-        "target": "./src/build",
-        "type": "patch",
-        "file_path": "../flutter/attachment/repos/build-3.22.patch4"
-    },
-    {
-        "name": "build5",
-        "target": "./src/build",
-        "type": "patch",
-        "file_path": "../flutter/attachment/repos/build-3.22.patch5"
+        "file_path": "../flutter/attachment/repos/flutter3.27-build.patch"
     },
     {
         "name": "zlib",
-        "target": "./src/third_party/zlib",
+        "target": "./src/flutter/third_party/zlib",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/zlib.patch"
+        "file_path": "../../attachment/repos/flutter3.27-zlib.patch"
     },
 	{
         "name": "boringssl",
         "target": "./src/flutter/third_party/boringssl",
         "type": "patch",
-        "file_path": "../../../flutter/attachment/repos/boringssl-3.22.patch"
+        "file_path": "../../attachment/repos/flutter3.27-boringssl.patch"
     },
     {
         "name": "swiftshader",
         "target": "./src/flutter/third_party/swiftshader",
         "type": "patch",
-        "file_path": "../../../flutter/attachment/repos/swiftshader-3.22.patch"
+        "file_path": "../../attachment/repos/flutter3.27-swiftshader.patch"
     },
     {
         "name": "native",
-        "target": "./src/third_party/dart/third_party/pkg/native",
+        "target": "./src/flutter/third_party/dart/third_party/pkg/native",
         "type": "patch",
-        "file_path": "../../../../../flutter/attachment/repos/native.patch"
+        "file_path": "../../../../../attachment/repos/flutter3.27-native.patch"
     },
     {
         "name": "vulkan",
         "target": "./src/flutter/third_party/vulkan-deps/vulkan-headers/src",
         "type": "patch",
-        "file_path": "../../../../../flutter/attachment/repos/vulkan.patch"
+        "file_path": "../../../../attachment/repos/flutter3.27-vulkan.patch"
     },
     {
         "name": "libcxxabi",
-        "target": "./src/third_party/libcxxabi",
+        "target": "./src/flutter/third_party/libcxxabi",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/libcxxabi.patch"
-    },
-    {
-        "name": "libcxxabi2",
-        "target": "./src/third_party/libcxxabi",
-        "type": "patch",
-        "file_path": "../../flutter/attachment/repos/libcxxabi.patch2"
+        "file_path": "../../attachment/repos/flutter3.27-libcxxabi.patch"
     },
     {
         "name": "libcxx",
-        "target": "./src/third_party/libcxx",
+        "target": "./src/flutter/third_party/libcxx",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/libcxx.patch"
+        "file_path": "../../attachment/repos/flutter3.27-libcxx.patch"
     }
 ]

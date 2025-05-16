@@ -1,3 +1,36 @@
+From 532529599e33fa154aefee86d84147f50b6dda84 Mon Sep 17 00:00:00 2001
+From: openharmony_ci <openharmony_ci@noreply.gitcode.com>
+Date: Thu, 8 May 2025 10:50:22 +0800
+Subject: [PATCH] merge flutter_deps into flutter_3.22.0_deps
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+适配OHOS
+
+Created-by: peaceful_black
+Commit-by: 小黑和平
+Merged-by: openharmony_ci
+Description: 在flutter engine依赖的上游社区commit id节点基础上，进行ohos的适配
+
+See merge request: openharmony-sig/fluttertpc_vulkan-headers!2
+---
+ BUILD.gn                                    |   3 +
+ include/vulkan/vulkan.h                     |   4 +
+ include/vulkan/vulkan.hpp                   |  86 ++++
+ include/vulkan/vulkan_core.h                |  11 +
+ include/vulkan/vulkan_enums.hpp             |   9 +
+ include/vulkan/vulkan_funcs.hpp             | 105 +++++
+ include/vulkan/vulkan_handles.hpp           |  47 +++
+ include/vulkan/vulkan_hash.hpp              |  56 +++
+ include/vulkan/vulkan_ohos.h                | 199 ++++++++++
+ include/vulkan/vulkan_raii.hpp              | 115 ++++++
+ include/vulkan/vulkan_static_assertions.hpp |  28 ++
+ include/vulkan/vulkan_structs.hpp           | 416 ++++++++++++++++++++
+ include/vulkan/vulkan_to_string.hpp         |   5 +
+ 13 files changed, 1084 insertions(+)
+ create mode 100644 include/vulkan/vulkan_ohos.h
+
 diff --git a/BUILD.gn b/BUILD.gn
 index df1ba65..da302ab 100644
 --- a/BUILD.gn
@@ -1409,3 +1442,6 @@ index b7c08c7..20f9efd 100644
  #if defined( VK_ENABLE_BETA_EXTENSIONS )
        case StructureType::ePhysicalDeviceShaderEnqueueFeaturesAMDX: return "PhysicalDeviceShaderEnqueueFeaturesAMDX";
        case StructureType::ePhysicalDeviceShaderEnqueuePropertiesAMDX: return "PhysicalDeviceShaderEnqueuePropertiesAMDX";
+-- 
+2.49.0
+

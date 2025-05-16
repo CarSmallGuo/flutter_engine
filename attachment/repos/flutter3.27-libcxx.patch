@@ -1,3 +1,25 @@
+From 39525fcbc24a8757b54bc3f8a616c9a9a6811b59 Mon Sep 17 00:00:00 2001
+From: openharmony_ci <openharmony_ci@noreply.gitcode.com>
+Date: Thu, 24 Apr 2025 17:22:21 +0800
+Subject: [PATCH] merge flutter_deps into flutter_3.22.0_deps
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+适配OHOS
+
+Created-by: peaceful_black
+Commit-by: 小黑和平
+Merged-by: openharmony_ci
+Description: 在flutter engine依赖的上游社区commit id节点基础上，进行ohos的适配
+
+See merge request: openharmony-sig/fluttertpc_libcxx!2
+---
+ include/__config           | 5 +++--
+ include/__locale           | 3 +++
+ src/include/config_elast.h | 2 ++
+ 3 files changed, 8 insertions(+), 2 deletions(-)
+
 diff --git a/include/__config b/include/__config
 index 22c2ed7fd..c151bbec9 100644
 --- a/include/__config
@@ -49,3 +71,5 @@ index bef26ec50..0e762d276 100644
  // No _LIBCPP_ELAST needed on Emscripten
  #elif defined(__linux__) || defined(_LIBCPP_HAS_MUSL_LIBC)
 -- 
+2.49.0
+
