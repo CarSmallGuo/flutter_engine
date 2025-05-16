@@ -1,0 +1,115 @@
+diff --git a/pkg/compiler/lib/src/inferrer/builder.dart b/pkg/compiler/lib/src/inferrer/builder.dart
+index d6c18dd0512..73d25eaad29 100644
+--- a/pkg/compiler/lib/src/inferrer/builder.dart
++++ b/pkg/compiler/lib/src/inferrer/builder.dart
+@@ -2246,6 +2246,11 @@ class KernelTypeGraphBuilder extends ir.VisitorDefault<TypeInformation?>
+     return TypeInformationConstantVisitor(this, node)
+         .visitConstant(node.constant);
+   }
++
++  @override
++  TypeInformation visitFileUriExpression(ir.FileUriExpression node) {
++    return visit(node.expression)!;
++  }
+ }
+ 
+ class TypeInformationConstantVisitor
+diff --git a/pkg/compiler/lib/src/ir/scope_visitor.dart b/pkg/compiler/lib/src/ir/scope_visitor.dart
+index 501c21e59c2..782dafc2313 100644
+--- a/pkg/compiler/lib/src/ir/scope_visitor.dart
++++ b/pkg/compiler/lib/src/ir/scope_visitor.dart
+@@ -1443,6 +1443,11 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
+     return const EvaluationComplexity.constant();
+   }
+ 
++  @override
++  EvaluationComplexity visitFileUriExpression(ir.FileUriExpression node) {
++    return visitNode(node.expression);
++  }
++
+   /// Returns true if the node is a field, or a constructor (factory or
+   /// generative).
+   bool _isFieldOrConstructor(ir.Node node) =>
+diff --git a/pkg/compiler/lib/src/ssa/builder.dart b/pkg/compiler/lib/src/ssa/builder.dart
+index 5d90641738f..1c44d9158f3 100644
+--- a/pkg/compiler/lib/src/ssa/builder.dart
++++ b/pkg/compiler/lib/src/ssa/builder.dart
+@@ -6228,6 +6228,11 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
+       ..cleanUp();
+   }
+ 
++  @override
++  void visitFileUriExpression(ir.FileUriExpression node) {
++    node.expression.accept(this);
++  }
++
+   bool _tryInlineMethod(
+       FunctionEntity function,
+       Selector? selector,
+diff --git a/pkg/dart2wasm/lib/await_transformer.dart b/pkg/dart2wasm/lib/await_transformer.dart
+index a7f5b292c6c..e882385a6d0 100644
+--- a/pkg/dart2wasm/lib/await_transformer.dart
++++ b/pkg/dart2wasm/lib/await_transformer.dart
+@@ -767,6 +767,9 @@ class _ExpressionTransformer extends Transformer {
+   @override
+   TreeNode visitRethrow(Rethrow expr) => nullary(expr);
+ 
++  @override
++  TreeNode visitFileUriExpression(FileUriExpression expr) => unary(expr);
++
+   @override
+   TreeNode visitVariableGet(VariableGet expr) {
+     Expression result = expr;
+diff --git a/pkg/dart2wasm/lib/code_generator.dart b/pkg/dart2wasm/lib/code_generator.dart
+index 224258e8588..18db4b8f43d 100644
+--- a/pkg/dart2wasm/lib/code_generator.dart
++++ b/pkg/dart2wasm/lib/code_generator.dart
+@@ -3160,6 +3160,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
+     return translator.topInfo.nullableType;
+   }
+ 
++  @override
++  w.ValueType visitFileUriExpression(
++      FileUriExpression node, w.ValueType expectedType) {
++    return wrap(node.expression, expectedType);
++  }
++
+   // Generates a function for a constructor's body, where the allocated struct
+   // object is passed to this function.
+   void generateConstructorBody(Reference target) {
+diff --git a/pkg/vm/lib/transformations/type_flow/summary_collector.dart b/pkg/vm/lib/transformations/type_flow/summary_collector.dart
+index 8ffcb5a87ce..d70086c855a 100644
+--- a/pkg/vm/lib/transformations/type_flow/summary_collector.dart
++++ b/pkg/vm/lib/transformations/type_flow/summary_collector.dart
+@@ -2636,6 +2636,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
+     _visit(node.operand);
+     return _staticType(node);
+   }
++
++  @override
++  TypeExpr visitFileUriExpression(FileUriExpression node) {
++    return _visit(node.expression);
++  }
+ }
+ 
+ class RuntimeTypeTranslatorImpl
+diff --git a/pkg/vm/lib/transformations/type_flow/transformer.dart b/pkg/vm/lib/transformations/type_flow/transformer.dart
+index 2e1f872b438..d04c01be7d0 100644
+--- a/pkg/vm/lib/transformations/type_flow/transformer.dart
++++ b/pkg/vm/lib/transformations/type_flow/transformer.dart
+@@ -221,6 +221,14 @@ class MoveFieldInitializers {
+         if (!isFirst) {
+           initExpr = CloneVisitorNotMembers().clone(initExpr);
+         }
++        if (c.fileUri != f.fileUri) {
++          if (initExpr is ConstantExpression) {
++            initExpr = FileUriConstantExpression(initExpr.constant,
++                type: initExpr.type, fileUri: f.fileUri);
++          } else {
++            initExpr = FileUriExpression(initExpr, f.fileUri);
++          }
++        }
+         final Initializer newInit = initializedFields.contains(f)
+             ? LocalInitializer(VariableDeclaration(null,
+                 initializer: initExpr, isSynthesized: true))
+-- 

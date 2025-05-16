@@ -8,6 +8,7 @@ import static io.flutter.Build.API_LEVELS;
 
 import android.annotation.TargetApi;
 import android.content.ComponentCallbacks2;
+import android.content.ComponentCallbacks2;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
@@ -18,6 +19,7 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Looper;
 import android.view.Surface;
 import androidx.annotation.Keep;
@@ -33,6 +35,7 @@ import io.flutter.view.TextureRegistry;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
+import java.util.ArrayDeque;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -446,6 +449,10 @@ public class FlutterRenderer implements TextureRegistry {
     // It is safe to do on all versions so we unconditionally have this set to true.
     private static final boolean CLEANUP_ON_MEMORY_PRESSURE = true;
 
+    // We must always cleanup on memory pressure on Android 14 due to a bug in Android.
+    // It is safe to do on all versions so we unconditionally have this set to true.
+    private static final boolean CLEANUP_ON_MEMORY_PRESSURE = true;
+
     private final long id;
 
     private boolean released;
@@ -474,6 +481,7 @@ public class FlutterRenderer implements TextureRegistry {
     private long lastDequeueTime = 0;
     private long lastQueueTime = 0;
     private long lastScheduleTime = 0;
+    private int numTrims = 0;
     private int numTrims = 0;
 
     private final Object lock = new Object();
@@ -685,6 +693,15 @@ public class FlutterRenderer implements TextureRegistry {
 
     @Override
     public void onTrimMemory(int level) {
+      if (!trimOnMemoryPressure) {
+        return;
+      }
+      if (level < ComponentCallbacks2.TRIM_MEMORY_BACKGROUND) {
+        return;
+      }
+      synchronized (lock) {
+        numTrims++;
+      }
       if (!trimOnMemoryPressure) {
         return;
       }
@@ -919,6 +936,13 @@ public class FlutterRenderer implements TextureRegistry {
     public int numImageReaders() {
       synchronized (lock) {
         return imageReaderQueue.size();
+      }
+    }
+
+    @VisibleForTesting
+    public int numTrims() {
+      synchronized (lock) {
+        return numTrims;
       }
     }
 

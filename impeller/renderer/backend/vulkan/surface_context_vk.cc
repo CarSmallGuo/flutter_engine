@@ -9,6 +9,7 @@
 #include "impeller/renderer/backend/vulkan/context_vk.h"
 #include "impeller/renderer/backend/vulkan/swapchain/khr/khr_swapchain_vk.h"
 #include "impeller/renderer/surface.h"
+#include "vulkan/vulkan_core.h"
 
 namespace impeller {
 
@@ -76,6 +77,10 @@ bool SurfaceContextVK::SetSwapchain(std::shared_ptr<SwapchainVK> swapchain) {
   return true;
 }
 
+void SurfaceContextVK::ClearSwapchain() {
+  swapchain_ = nullptr;
+}
+
 std::unique_ptr<Surface> SurfaceContextVK::AcquireNextSurface() {
   TRACE_EVENT0("impeller", __FUNCTION__);
   auto surface = swapchain_ ? swapchain_->AcquireNextDrawable() : nullptr;
@@ -89,6 +94,19 @@ std::unique_ptr<Surface> SurfaceContextVK::AcquireNextSurface() {
   parent_->GetCommandPoolRecycler()->Dispose();
   parent_->GetResourceAllocator()->DebugTraceMemoryStatistics();
   return surface;
+}
+
+int SurfaceContextVK::GetCurrentImageIndex() {
+  if (swapchain_) {
+    return swapchain_->GetCurrentImageIndex();
+  }
+  return -1;
+}
+
+void SurfaceContextVK::SetRenderArea(std::optional<IRect> area) {
+  if (swapchain_) {
+    swapchain_->SetRenderArea(area);
+  }
 }
 
 void SurfaceContextVK::UpdateSurfaceSize(const ISize& size) const {

@@ -669,6 +669,8 @@ public class FlutterRendererTest {
 
     // Invoke the onTrimMemory callback with level 0.
     // This should do nothing.
+    // Invoke the onTrimMemory callback with level 0.
+    // This should do nothing.
     texture.onTrimMemory(0);
     shadowOf(Looper.getMainLooper()).idle();
 

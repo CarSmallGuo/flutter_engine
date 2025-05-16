@@ -297,7 +297,7 @@ final ffi.DynamicLibrary _dylib = () {
     return ffi.DynamicLibrary.open('path_ops.dll');
   } else if (Platform.isIOS || Platform.isMacOS) {
     return ffi.DynamicLibrary.open('libpath_ops.dylib');
-  } else if (Platform.isAndroid || Platform.isLinux) {
+  } else if (Platform.isAndroid || Platform.isLinux || Platform.isOhos) {
     return ffi.DynamicLibrary.open('libpath_ops.so');
   }
   throw UnsupportedError('Unknown platform: ${Platform.operatingSystem}');
