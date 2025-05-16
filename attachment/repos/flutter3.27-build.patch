@@ -1,8 +1,57 @@
+From afd2e7bac169455229fbab98d41eeb4c99cf9382 Mon Sep 17 00:00:00 2001
+From: openharmony_ci <openharmony_ci@noreply.gitcode.com>
+Date: Sun, 27 Apr 2025 19:07:58 +0800
+Subject: [PATCH] merge flutter_deps into flutter_3.22.0_deps
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+适配OHOS
+
+Created-by: peaceful_black
+Commit-by: 小黑和平
+Merged-by: openharmony_ci
+Description: 在flutter engine依赖的上游社区commit id节点基础上，进行ohos的适配
+
+See merge request: openharmony-sig/fluttertpc_buildroot!2
+---
+ build/config/BUILD.gn                 |   5 +
+ build/config/BUILDCONFIG.gn           |  60 ++++++-
+ build/config/compiler/BUILD.gn        |  47 ++++-
+ build/config/ohos/BUILD.gn            |  29 +++
+ build/config/ohos/config.gni          |  32 ++++
+ build/config/ohos/pkg-config.py       | 249 ++++++++++++++++++++++++++
+ build/config/ohos/pkg_config.gni      | 131 ++++++++++++++
+ build/config/ohos/sysroot_ld_path.py  |  21 +++
+ build/config/sanitizers/BUILD.gn      |   5 +-
+ build/config/sysroot.gni              |   4 +-
+ build/ohos/ohos_create_flutter_har.py | 133 ++++++++++++++
+ build/ohos/sysroot_ld_path.sh         | 100 +++++++++++
+ build/toolchain/custom/BUILD.gn       |   8 +-
+ 13 files changed, 807 insertions(+), 17 deletions(-)
+ create mode 100644 build/config/ohos/BUILD.gn
+ create mode 100644 build/config/ohos/config.gni
+ create mode 100644 build/config/ohos/pkg-config.py
+ create mode 100644 build/config/ohos/pkg_config.gni
+ create mode 100644 build/config/ohos/sysroot_ld_path.py
+ create mode 100644 build/ohos/ohos_create_flutter_har.py
+ create mode 100755 build/ohos/sysroot_ld_path.sh
+
 diff --git a/build/config/BUILD.gn b/build/config/BUILD.gn
-index 4e62965..ea49a53 100644
+index 4e62965..1344257 100644
 --- a/build/config/BUILD.gn
 +++ b/build/config/BUILD.gn
-@@ -146,6 +146,8 @@ config("default_libs") {
+@@ -46,6 +46,9 @@ config("feature_flags") {
+   if (is_asan) {
+     defines += [ "ADDRESS_SANITIZER" ]
+   }
++  if (is_hwasan) {
++    defines += [ "HWADDRESS_SANITIZER" ]
++  }
+   if (is_lsan) {
+     defines += [ "LEAK_SANITIZER" ]
+   }
+@@ -146,6 +149,8 @@ config("default_libs") {
        "dl",
        "m",
      ]
@@ -12,10 +61,20 @@ index 4e62965..ea49a53 100644
      libs = [ "dl" ]
    }
 diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
-index b8d0f47..a3d1ed9 100644
+index b74b2e2..2bdc25b 100644
 --- a/build/config/BUILDCONFIG.gn
 +++ b/build/config/BUILDCONFIG.gn
-@@ -190,6 +190,7 @@ if (current_os == "win") {
+@@ -143,6 +143,9 @@ declare_args() {
+   # Compile for Address Sanitizer to find memory bugs.
+   is_asan = false
+ 
++  # Compile for Hardware Address Sanitizer to find memory bugs.
++  is_hwasan = false
++
+   # Compile for Leak Sanitizer to find leaks.
+   is_lsan = false
+ 
+@@ -194,6 +197,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = false
@@ -23,7 +82,7 @@ index b8d0f47..a3d1ed9 100644
    is_mac = false
    is_posix = false
    is_win = true
-@@ -198,6 +199,7 @@ if (current_os == "win") {
+@@ -202,6 +206,7 @@ if (current_os == "win") {
    is_android = false
    is_chromeos = false
    is_fuchsia = false
@@ -31,7 +90,7 @@ index b8d0f47..a3d1ed9 100644
    is_fuchsia_host = false
    is_ios = false
    is_linux = false
-@@ -212,6 +214,7 @@ if (current_os == "win") {
+@@ -216,6 +221,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = false
@@ -39,7 +98,7 @@ index b8d0f47..a3d1ed9 100644
    is_mac = false
    is_posix = true
    is_win = false
-@@ -223,6 +226,7 @@ if (current_os == "win") {
+@@ -227,6 +233,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = true
@@ -47,7 +106,7 @@ index b8d0f47..a3d1ed9 100644
    is_mac = false
    is_posix = true
    is_win = false
-@@ -237,6 +241,7 @@ if (current_os == "win") {
+@@ -241,6 +248,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = false
@@ -55,7 +114,7 @@ index b8d0f47..a3d1ed9 100644
    is_mac = false
    is_posix = true
    is_win = false
-@@ -248,6 +253,19 @@ if (current_os == "win") {
+@@ -252,6 +260,19 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = true
    is_linux = false
@@ -75,7 +134,7 @@ index b8d0f47..a3d1ed9 100644
    is_mac = false
    is_posix = true
    is_win = false
-@@ -259,6 +277,7 @@ if (current_os == "win") {
+@@ -263,6 +284,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = true
@@ -83,7 +142,7 @@ index b8d0f47..a3d1ed9 100644
    is_mac = false
    is_posix = true
    is_win = false
-@@ -270,6 +289,7 @@ if (current_os == "win") {
+@@ -274,6 +296,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = false
@@ -91,7 +150,7 @@ index b8d0f47..a3d1ed9 100644
    is_mac = false
    is_posix = true
    is_win = false
-@@ -281,6 +301,7 @@ if (current_os == "win") {
+@@ -285,6 +308,7 @@ if (current_os == "win") {
    is_fuchsia_host = false
    is_ios = false
    is_linux = false
@@ -99,19 +158,30 @@ index b8d0f47..a3d1ed9 100644
    is_mac = false
    is_posix = false
    is_win = false
-@@ -313,7 +334,7 @@ if (!is_clang && using_sanitizer) {
+@@ -317,14 +341,17 @@ default_library_type = "static_library"
+ # BUILD OPTIONS
+ # =============================================================================
+ 
++if (is_hwasan && current_os != "ohos") {
++  is_hwasan = false
++}
+ # These Sanitizers all imply using the Clang compiler. On Windows they either
+ # don't work or work differently.
+-using_sanitizer = !is_win && (is_asan || is_lsan || is_tsan || is_msan)
++using_sanitizer = !is_win && (is_asan || is_hwasan || is_lsan || is_tsan || is_msan)
+ if (!is_clang && using_sanitizer) {
    is_clang = true
  }
-
+ 
 -use_flutter_cxx = is_clang && (is_linux || is_android || is_mac || is_ios)
 +use_flutter_cxx = is_clang && (is_linux || is_android || is_mac || is_ios || is_ohos )
-
+ 
  if (is_msan && !is_linux) {
    assert(false, "Memory sanitizer is only available on Linux.")
-@@ -365,7 +386,9 @@ if (is_posix) {
+@@ -377,7 +404,9 @@ if (is_posix) {
    ]
  }
-
+ 
 -if (is_linux) {
 +if (is_ohos || (is_linux && host_os == "mac")) {
 +  _native_compiler_configs += [ "//build/config/ohos:sdk" ]
@@ -119,7 +189,7 @@ index b8d0f47..a3d1ed9 100644
    _native_compiler_configs += [ "//build/config/linux:sdk" ]
  } else if (is_mac) {
    _native_compiler_configs += [ "//build/config/mac:sdk" ]
-@@ -510,8 +533,18 @@ shlib_toolchain = false
+@@ -524,8 +553,18 @@ shlib_toolchain = false
  if (custom_toolchain != "") {
    assert(custom_sysroot != "")
    assert(custom_target_triple != "")
@@ -137,9 +207,9 @@ index b8d0f47..a3d1ed9 100644
 +    assert(false, "Unknown host for ohos cross compile")
 +  }
  } else if (is_win) {
-   if (is_clang) {
-     host_toolchain = "//build/toolchain/win:clang_$host_cpu"
-@@ -544,6 +577,19 @@ if (custom_toolchain != "") {
+   assert(is_clang)
+   host_toolchain = "//build/toolchain/win:clang_$host_cpu"
+@@ -551,6 +590,19 @@ if (custom_toolchain != "") {
    } else {
      set_default_toolchain("//build/toolchain/android:$current_cpu")
    }
@@ -160,10 +230,21 @@ index b8d0f47..a3d1ed9 100644
    if (is_clang) {
      host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index ba20010..17e0487 100644
+index 61e54bb..cd3e526 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -191,10 +191,16 @@ config("compiler") {
+@@ -125,6 +125,10 @@ config("compiler") {
+       cflags += [ "-fsanitize=address" ]
+       ldflags += [ "-fsanitize=address" ]
+     }
++    if (is_hwasan) {
++      cflags += [ "-fsanitize=hwaddress", "-fno-emulated-tls", "-mllvm", "-hwasan-globals=0", "-fno-omit-frame-pointer" ]
++      ldflags += [ "-fsanitize=hwaddress", "-fno-emulated-tls", "-mllvm", "-hwasan-globals=0", "-fno-omit-frame-pointer" ]
++    }
+     if (is_lsan) {
+       cflags += [ "-fsanitize=leak" ]
+       ldflags += [ "-fsanitize=leak" ]
+@@ -199,10 +203,16 @@ config("compiler") {
      # CPU architecture. We may or may not be doing a cross compile now, so for
      # simplicity we always explicitly set the architecture.
      if (current_cpu == "x64") {
@@ -184,8 +265,8 @@ index ba20010..17e0487 100644
        ldflags += [ "-m64" ]
      } else if (current_cpu == "x86") {
        cflags += [ "-m32" ]
-@@ -315,7 +321,7 @@ config("compiler") {
-
+@@ -332,7 +342,7 @@ config("compiler") {
+ 
    # Linux/Android common flags setup.
    # ---------------------------------
 -  if (is_linux || is_android) {
@@ -193,8 +274,8 @@ index ba20010..17e0487 100644
      cflags += [
        "-fPIC",
        "-pipe",  # Use pipes for communicating between sub-processes. Faster.
-@@ -334,7 +340,16 @@ config("compiler") {
-
+@@ -351,7 +361,30 @@ config("compiler") {
+ 
    # Linux-specific compiler flags setup.
    # ------------------------------------
 -  if (is_linux) {
@@ -202,67 +283,38 @@ index ba20010..17e0487 100644
 +    cflags += [ "-pthread" ]
 +    ldflags += [ "-pthread" ]
 +
-+    if (current_cpu == "arm64") {
++    if (current_cpu == "x86") {
++      cflags += [ "--target=x86-linux-ohos" ]
++      ldflags += [ "--target=x86-linux-ohos" ]
++      cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
++    } else if (current_cpu == "x64") {
++      cflags += [ "--target=x86_64-linux-ohos" ]
++      ldflags += [ "--target=x86_64-linux-ohos" ]
++      cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
++    } else if (current_cpu == "arm") {
++      cflags += [ "--target=aarch-linux-ohos" ]
++      ldflags += [ "--target=aarch-linux-ohos" ]
++      cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
++    } else if (current_cpu == "arm64") {
 +      cflags += [ "--target=aarch64-linux-ohos" ]
 +      ldflags += [ "--target=aarch64-linux-ohos" ]
 +      cflags += [ "-DBORINGSSL_CLANG_SUPPORTS_DOT_ARCH" ]
 +    }
++
++    defines += [ "__OHOS__" ]
 +  } else if (is_linux) {
      cflags += [ "-pthread" ]
      ldflags += [ "-pthread" ]
-
-@@ -521,9 +536,13 @@ config("runtime_library") {
-       ldflags += [ "-nostdlib++" ]
-     }
-     include_dirs = [
--      "//third_party/libcxx/include",
-       "//third_party/libcxxabi/include",
-     ]
-+    if (custom_toolchain != "") {
-+      include_dirs += [ "$custom_toolchain/include/c++/v1" ]
-+    } else {
-+      include_dirs += [ "//third_party/libcxx/include" ]
-+    }
-   }
-
-   # Android standard library setup.
-@@ -860,17 +879,35 @@ config("optimize") {
-     cflags = [ "-Oz" ] + common_optimize_on_cflags  # Favor size over speed.
-   } else if (is_wasm) {
-     cflags = [ "-Oz" ]
-+  } else if (is_ohos) {
-+      cflags = [ "-O3" ] + common_optimize_on_cflags
-   } else {
-     cflags = [ "-O2" ] + common_optimize_on_cflags
-   }
-
-   lto_flags = []
--  if (enable_lto && (is_ios || is_android || is_fuchsia || is_wasm)) {
-+  if (enable_lto && (is_ios || is_android || is_fuchsia || is_wasm || is_ohos)) {
-     lto_flags += [ "-flto" ]
-   }
-
-+  if (is_ohos) {
-+    cflags += [
-+      "-mcpu=tsv110",
-+      "-fwhole-program-vtables",
-+    ]
-+  }
-+
-   ldflags = common_optimize_on_ldflags + lto_flags
-   cflags += lto_flags
-+
-+  if (is_ohos) {
-+    ldflags += [
-+      "-Wl,--lto-O2",
-+      "-Wl,--plugin-opt=-mcpu=tsv110",
-+      "-Wl,-mllvm",
-+      "-Wl,-wholeprogramdevirt-check=fallback",
-+    ]
-+  }
- }
-
- # Turn off optimizations.
+ 
+@@ -664,7 +697,7 @@ if (is_win) {
+     "-Wno-psabi",
+   ]
+ 
+-  if (!is_android) {
++  if (!is_android && !is_ohos) {
+     default_warning_flags += [
+       # Needed for nlohmann/json.
+       "-Wno-deprecated-literal-operator",
 diff --git a/build/config/ohos/BUILD.gn b/build/config/ohos/BUILD.gn
 new file mode 100644
 index 0000000..b2675d2
@@ -300,10 +352,10 @@ index 0000000..b2675d2
 +}
 diff --git a/build/config/ohos/config.gni b/build/config/ohos/config.gni
 new file mode 100644
-index 0000000..0022d70
+index 0000000..063c176
 --- /dev/null
 +++ b/build/config/ohos/config.gni
-@@ -0,0 +1,13 @@
+@@ -0,0 +1,32 @@
 +# Copyright 2014 The Chromium Authors. All rights reserved.
 +# Use of this source code is governed by a BSD-style license that can be
 +# found in the LICENSE file.
@@ -311,12 +363,32 @@ index 0000000..0022d70
 +# This file contains common system config stuff for the Ohos build.
 +
 +if (is_ohos) {
-+  if (current_cpu == "arm64") {
++  # Defines host_os
++  if (host_os == "linux") {
++    ohos_host_os = "linux"
++  } else if (host_os == "mac") {
++    ohos_host_os = "darwin"
++  } else if (host_os == "win") {
++    ohos_host_os = "win"
++  } else {
++    assert(false, "Need Ohos toolchain support for your build OS.")
++  }
++
++
++  # ABI ------------------------------------------------------------------------
++  if (current_cpu == "x86") {
++    ohos_app_abi = "x86"
++  } else if (current_cpu == "x64") {
++    ohos_app_abi = "x86_64"
++  } else if (current_cpu == "arm") {
++    ohos_app_abi = "armeabi-v7a"
++  } else if (current_cpu == "arm64") {
 +    ohos_app_abi = "arm64-v8a"
 +  } else {
 +    assert(false, "Unknown Ohos ABI: " + current_cpu)
 +  }
 +}
+\ No newline at end of file
 diff --git a/build/config/ohos/pkg-config.py b/build/config/ohos/pkg-config.py
 new file mode 100644
 index 0000000..b4a6aff
@@ -736,22 +808,184 @@ index 0000000..2cde6e2
 +                                 universal_newlines=True).strip()
 +
 +print('"%s"' % result)
+diff --git a/build/config/sanitizers/BUILD.gn b/build/config/sanitizers/BUILD.gn
+index 243f07e..b995b74 100644
+--- a/build/config/sanitizers/BUILD.gn
++++ b/build/config/sanitizers/BUILD.gn
+@@ -10,7 +10,7 @@ import("//build/toolchain/toolchain.gni")
+ # shared_libraries. Unconditionally depend upon this target as it is empty if
+ # |is_asan|, |is_lsan|, |is_tsan|, |is_msan| and |use_custom_libcxx| are false.
+ group("deps") {
+-  if (is_asan || is_lsan || is_tsan || is_msan) {
++  if (is_asan || is_hwasan || is_lsan || is_tsan || is_msan) {
+     public_configs = [ ":sanitizer_options_link_helper" ]
+     deps += [ ":options_sources" ]
+   }
+@@ -24,6 +24,9 @@ config("sanitizer_options_link_helper") {
+   if (is_asan) {
+     ldflags += [ "-fsanitize=address" ]
+   }
++  if (is_hwasan) {
++    ldflags += [ "-fsanitize=hwaddress", "-fno-emulated-tls", "-mllvm", "-hwasan-globals=0", "-fno-omit-frame-pointer" ]
++  }
+   if (is_lsan) {
+     ldflags += [ "-fsanitize=leak" ]
+   }
 diff --git a/build/config/sysroot.gni b/build/config/sysroot.gni
-index 7987e51..cd7b060 100644
+index 5f7e48a..4cfa808 100644
 --- a/build/config/sysroot.gni
 +++ b/build/config/sysroot.gni
-@@ -22,8 +22,10 @@ if (current_toolchain == default_toolchain && target_sysroot != "") {
+@@ -20,8 +20,10 @@ if (current_toolchain == default_toolchain && target_sysroot != "") {
  } else if (is_android) {
    import("//build/config/android/config.gni")
-   sysroot = rebase_path("$llvm_android_toolchain_root/sysroot")
+   sysroot = rebase_path("$android_toolchain_root/sysroot", root_build_dir)
 +} else if (is_ohos) {
 +  sysroot = target_sysroot
  } else if (is_linux && !is_chromeos) {
 -  if (use_default_linux_sysroot && !is_fuchsia) {
 +  if (use_default_linux_sysroot) {
      if (current_cpu == "x64") {
-       sysroot = rebase_path("//build/linux/debian_sid_amd64-sysroot")
-     } else {
+       sysroot =
+           rebase_path("//build/linux/debian_sid_amd64-sysroot", root_build_dir)
+diff --git a/build/ohos/ohos_create_flutter_har.py b/build/ohos/ohos_create_flutter_har.py
+new file mode 100644
+index 0000000..203ddb5
+--- /dev/null
++++ b/build/ohos/ohos_create_flutter_har.py
+@@ -0,0 +1,133 @@
++#!/usr/bin/env python3
++#
++# Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++"""Create a HAR incorporating all the components required to build a Flutter application"""
++
++import argparse
++import logging
++import os
++import re
++import shutil
++import subprocess
++import sys
++
++
++HAR_CONFIG_TEMPLATE = """
++{
++  "app": {
++    "signingConfigs": [],
++    "products": [
++      {
++        "name": "default",
++        "signingConfig": "default",
++        "compileSdkVersion": "%s",
++        "compatibleSdkVersion": "%s",
++        "runtimeOS": "HarmonyOS",
++      }
++    ],
++    "buildModeSet": [
++      {
++        "name": "debug",
++      },
++      {
++        "name": "release"
++      },
++      {
++        "name": "profile"
++      },
++    ]
++  },
++  "modules": [
++    {
++      "name": "flutter",
++      "srcPath": "./flutter"
++    }
++  ]
++}
++"""
++
++
++# 更新har的配置文件，指定编译使用的api版本
++def updateConfig(buildDir, apiInt):
++    apiStr = "4.1.0(11)" if apiInt == 11 else "5.0.0(12)"
++    jsonFile = os.path.join(buildDir, "build-profile.json5")
++    with open(jsonFile, "w", encoding="utf-8") as file:
++        file.write(HAR_CONFIG_TEMPLATE % (apiStr, apiStr))
++
++
++# 执行命令
++def runCommand(command, checkCode=True, timeout=None):
++    logging.info("runCommand start, command = %s" % (command))
++    code = subprocess.Popen(command, shell=True).wait(timeout)
++    if code != 0:
++        logging.error("runCommand error, code = %s, command = %s" % (code, command))
++        if checkCode:
++            exit(code)
++    else:
++        logging.info("runCommand finish, code = %s, command = %s" % (code, command))
++
++
++# 编译har文件，通过hvigorw的命令行参数指定编译类型(debug/release/profile)
++def buildHar(buildDir, apiInt, buildType):
++    updateConfig(buildDir, apiInt)
++    runCommand(
++        "cd %s && hvigorw clean --mode module " % (buildDir)
++        + "-p module=flutter@default -p product=default -p buildMode=%s " % buildType
++        + "assembleHar --no-daemon"
++    )
++
++
++def main():
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--embedding_src", help="Path of embedding source code.")
++    parser.add_argument("--build_dir", help="Path to build.")
++    parser.add_argument(
++        "--build_type",
++        choices=["debug", "release", "profile"],
++        help="Type to build har.",
++    )
++    parser.add_argument("--output", help="Path to output har.")
++    parser.add_argument("--native_lib", action="append", help="Native code library.")
++    parser.add_argument("--ohos_abi", help="Native code ABI.")
++    parser.add_argument(
++        "--ohos_api_int", type=int, choices=[11, 12], help="Ohos api int."
++    )
++    options = parser.parse_args()
++    # copy source code
++    if os.path.exists(options.build_dir):
++        shutil.rmtree(options.build_dir)
++    shutil.copytree(options.embedding_src, options.build_dir)
++
++    # copy so files
++    for file in options.native_lib:
++        dir_name, full_file_name = os.path.split(file)
++        targetDir = os.path.join(options.build_dir, "flutter/libs", options.ohos_abi)
++        if not os.path.exists(targetDir):
++            os.makedirs(targetDir)
++        shutil.copyfile(
++            file,
++            os.path.join(targetDir, full_file_name),
++        )
++    buildHar(options.build_dir, options.ohos_api_int, options.build_type)
++    shutil.copyfile(
++        os.path.join(
++            options.build_dir, "flutter/build/default/outputs/default/flutter.har"
++        ),
++        options.output,
++    )
++
++
++if __name__ == "__main__":
++    sys.exit(main())
 diff --git a/build/ohos/sysroot_ld_path.sh b/build/ohos/sysroot_ld_path.sh
 new file mode 100755
 index 0000000..4b8bf73
@@ -858,47 +1092,8 @@ index 0000000..4b8bf73
 +    done | xargs echo
 +  fi
 +fi
-diff --git a/build/secondary/third_party/glfw/BUILD.gn b/build/secondary/third_party/glfw/BUILD.gn
-index cad6cbc..c17950b 100644
---- a/build/secondary/third_party/glfw/BUILD.gn
-+++ b/build/secondary/third_party/glfw/BUILD.gn
-@@ -47,6 +47,34 @@ source_set("glfw") {
-     ]
-
-     defines = [ "_GLFW_WIN32" ]
-+  } else if (is_ohos) {
-+    sources += [
-+      "$_checkout_dir/src/glx_context.c",
-+      "$_checkout_dir/src/glx_context.h",
-+      "$_checkout_dir/src/posix_time.c",
-+      "$_checkout_dir/src/posix_time.h",
-+      "$_checkout_dir/src/posix_thread.c",
-+      "$_checkout_dir/src/posix_thread.h",
-+      "$_checkout_dir/src/x11_init.c",
-+      "$_checkout_dir/src/x11_monitor.c",
-+      "$_checkout_dir/src/x11_platform.h",
-+      "$_checkout_dir/src/x11_window.c",
-+      "$_checkout_dir/src/xkb_unicode.c",
-+      "$_checkout_dir/src/xkb_unicode.h",
-+    ]
-+
-+    defines = [
-+      "_GLFW_X11",
-+      "_GLFW_HAS_XF86VM",
-+    ]
-+
-+    libs = [
-+      "X11",
-+      "Xcursor",
-+      "Xinerama",
-+      "Xrandr",
-+      "Xxf86vm",
-+    ]
-   } else if (is_linux) {
-     sources += [
-       "$_checkout_dir/src/glx_context.c",
 diff --git a/build/toolchain/custom/BUILD.gn b/build/toolchain/custom/BUILD.gn
-index 65b1623..a89742a 100644
+index 3da5f93..05de4d7 100644
 --- a/build/toolchain/custom/BUILD.gn
 +++ b/build/toolchain/custom/BUILD.gn
 @@ -12,11 +12,11 @@ toolchain("custom") {
@@ -914,6 +1109,9 @@ index 65b1623..a89742a 100644
 +  readelf = "${toolchain_bin}/llvm-readelf"
 +  nm = "${toolchain_bin}/llvm-nm"
 +  strip = "${toolchain_bin}/llvm-strip"
-
+ 
    target_triple_flags = "--target=${custom_target_triple}"
    sysroot_flags = "--sysroot ${custom_sysroot}"
+-- 
+2.49.0
+

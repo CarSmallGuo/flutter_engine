@@ -65,6 +65,7 @@ source_set("gpu") {
     "//flutter/impeller/shader_bundle:shader_bundle_flatbuffers",
     "//flutter/lib/ui",
     "//flutter/third_party/tonic",
+    "//flutter/impeller/display_list:display_list",
   ]
 
   if (is_win) {

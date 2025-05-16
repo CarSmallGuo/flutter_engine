@@ -151,6 +151,7 @@ source_set("flutter_ohos_sources") {
     "//flutter/shell/platform/common/client_wrapper:client_wrapper_library_stubs",
     "//flutter/shell/platform/embedder:embedder_headers",
     "//flutter/third_party/rapidjson",
+    "//flutter/impeller/display_list:display_list",
   ]
 
   public_deps = [
@@ -304,7 +305,7 @@ shared_library("flutter_shell_native") {
 #  deps = [
 #    ":flutter_ohos_gtk",
 #    ":publish_headers_ohos",
-#    "//third_party/dart/runtime/bin:gen_snapshot",
+#    "//flutter/third_party/dart/runtime/bin:gen_snapshot",
 #  ]
 #  sources = get_target_outputs(":publish_headers_ohos")
 #  tmp_files = []
@@ -428,7 +429,7 @@ if (target_cpu != "x86") {
   zip_bundle("gen_snapshot") {
     gen_snapshot_bin = "gen_snapshot"
     gen_snapshot_out_dir = get_label_info(
-            "//third_party/dart/runtime/bin:gen_snapshot($host_toolchain)",
+            "//flutter/third_party/dart/runtime/bin:gen_snapshot($host_toolchain)",
             "root_out_dir")
     gen_snapshot_path = rebase_path("$gen_snapshot_out_dir/$gen_snapshot_bin")
 
@@ -449,7 +450,7 @@ if (target_cpu != "x86") {
       },
     ]
 
-    deps = [ "//third_party/dart/runtime/bin:gen_snapshot($host_toolchain)" ]
+    deps = [ "//flutter/third_party/dart/runtime/bin:gen_snapshot($host_toolchain)" ]
   }
 
   # TODO(godofredoc): Remove gen_snapshot and rename new_gen_snapshot when v2 migration is complete.
@@ -457,7 +458,7 @@ if (target_cpu != "x86") {
   zip_bundle("new_gen_snapshot") {
     gen_snapshot_bin = "gen_snapshot"
     gen_snapshot_out_dir = get_label_info(
-            "//third_party/dart/runtime/bin:gen_snapshot($host_toolchain)",
+            "//flutter/third_party/dart/runtime/bin:gen_snapshot($host_toolchain)",
             "root_out_dir")
     gen_snapshot_path = rebase_path("$gen_snapshot_out_dir/$gen_snapshot_bin")
 
@@ -478,7 +479,7 @@ if (target_cpu != "x86") {
       },
     ]
 
-    deps = [ "//third_party/dart/runtime/bin:gen_snapshot($host_toolchain)" ]
+    deps = [ "//flutter/third_party/dart/runtime/bin:gen_snapshot($host_toolchain)" ]
 
     if (host_os == "mac") {
       deps += [ ":ohos_entitlement_config" ]
@@ -495,12 +496,12 @@ if (target_cpu != "x86") {
 if (target_cpu == "x64" || target_cpu == "arm64") {
   zip_bundle("analyze_snapshot") {
     deps =
-        [ "//third_party/dart/runtime/bin:analyze_snapshot($host_toolchain)" ]
+        [ "//flutter/third_party/dart/runtime/bin:analyze_snapshot($host_toolchain)" ]
 
     analyze_snapshot_bin = "analyze_snapshot"
     analyze_snapshot_out_dir =
         get_label_info(
-            "//third_party/dart/runtime/bin:analyze_snapshot($host_toolchain)",
+            "//flutter/third_party/dart/runtime/bin:analyze_snapshot($host_toolchain)",
             "root_out_dir")
     analyze_snapshot_path =
         rebase_path("$analyze_snapshot_out_dir/$analyze_snapshot_bin")
@@ -527,12 +528,12 @@ if (target_cpu == "x64" || target_cpu == "arm64") {
   # BUG: https://github.com/flutter/flutter/issues/105351
   zip_bundle("new_analyze_snapshot") {
     deps =
-        [ "//third_party/dart/runtime/bin:analyze_snapshot($host_toolchain)" ]
+        [ "//flutter/third_party/dart/runtime/bin:analyze_snapshot($host_toolchain)" ]
 
     analyze_snapshot_bin = "analyze_snapshot"
     analyze_snapshot_out_dir =
         get_label_info(
-            "//third_party/dart/runtime/bin:analyze_snapshot($host_toolchain)",
+            "//flutter/third_party/dart/runtime/bin:analyze_snapshot($host_toolchain)",
             "root_out_dir")
     analyze_snapshot_path =
         rebase_path("$analyze_snapshot_out_dir/$analyze_snapshot_bin")

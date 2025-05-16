@@ -1,0 +1,36 @@
+From 8168b52c7439c02de8df6dd8cecef4b0a40cdf83 Mon Sep 17 00:00:00 2001
+From: openharmony_ci <openharmony_ci@noreply.gitcode.com>
+Date: Thu, 24 Apr 2025 17:09:42 +0800
+Subject: [PATCH] merge flutter_deps into flutter_3.22.0_deps
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+适配ohos
+
+Created-by: peaceful_black
+Commit-by: 小黑和平
+Merged-by: openharmony_ci
+Description: 在flutter engine依赖的上游社区commit id节点基础上，进行ohos的适配
+
+See merge request: openharmony-sig/fluttertpc_zlib!2
+---
+ BUILD.gn | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/BUILD.gn b/BUILD.gn
+index f97ab45..7edf0c2 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -128,7 +128,7 @@ if (use_arm_neon_optimizations) {
+     defines = [ "CRC32_ARMV8_CRC32" ]
+     if (is_android) {
+       defines += [ "ARMV8_OS_ANDROID" ]
+-    } else if (is_linux || is_chromeos) {
++    } else if (is_linux || is_chromeos || is_ohos) {
+       defines += [ "ARMV8_OS_LINUX" ]
+     } else if (is_mac) {
+       defines += [ "ARMV8_OS_MACOS" ]
+-- 
+2.49.0
+

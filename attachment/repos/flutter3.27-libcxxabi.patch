@@ -1,21 +1,38 @@
+From 34ac570a85b6df9074c95c7a3a1049ad84d1c1cd Mon Sep 17 00:00:00 2001
+From: openharmony_ci <openharmony_ci@noreply.gitcode.com>
+Date: Thu, 24 Apr 2025 17:21:31 +0800
+Subject: [PATCH] merge flutter_deps into flutter_3.22.0_deps
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+适配OHOS
+
+Created-by: peaceful_black
+Commit-by: 小黑和平
+Merged-by: openharmony_ci
+Description: 在flutter engine依赖的上游社区commit id节点基础上，进行ohos的适配
+
+See merge request: openharmony-sig/fluttertpc_libcxxabi!2
+---
+ src/abort_message.cpp          | 20 ++++++++++++++++++--
+ src/demangle/ItaniumDemangle.h |  2 +-
+ 2 files changed, 19 insertions(+), 3 deletions(-)
+
 diff --git a/src/abort_message.cpp b/src/abort_message.cpp
-index a4e8451..3a647e3 100644
+index 859a503..428b450 100644
 --- a/src/abort_message.cpp
 +++ b/src/abort_message.cpp
-@@ -11,11 +11,7 @@
+@@ -11,7 +11,7 @@
  #include <stdarg.h>
  #include "abort_message.h"
  
--#if defined(__MUSL_OHOS__)
--extern "C" void set_fatal_message(const char *msg);
--#endif  // defined(__MUSL_OHOS__)
--
 -#ifdef __BIONIC__
 +#if defined(__BIONIC__) && !defined(__OHOS__)
  #   include <android/api-level.h>
  #   if __ANDROID_API__ >= 21
  #       include <syslog.h>
-@@ -30,6 +26,10 @@ extern "C" void set_fatal_message(const char *msg);
+@@ -26,6 +26,10 @@
  #   define _LIBCXXABI_USE_CRASHREPORTER_CLIENT
  #endif
  
@@ -26,19 +43,7 @@ index a4e8451..3a647e3 100644
  void abort_message(const char* format, ...)
  {
      // Write message to stderr. We do this before formatting into a
-@@ -46,11 +46,6 @@ void abort_message(const char* format, ...)
-     }
- #endif
- 
--#if defined(__MUSL_OHOS__)
--    if (&set_fatal_message != nullptr) {
--        set_fatal_message(format);
--    }
--#endif  // defined(__MUSL_OHOS__)
-     // Format the arguments into an allocated buffer. We leak the buffer on
-     // purpose, since we're about to abort() anyway.
- #if defined(_LIBCXXABI_USE_CRASHREPORTER_CLIENT)
-@@ -61,6 +56,18 @@ void abort_message(const char* format, ...)
+@@ -52,6 +56,18 @@ void abort_message(const char* format, ...)
      va_end(list);
  
      CRSetCrashLogMessage(buffer);
@@ -57,7 +62,7 @@ index a4e8451..3a647e3 100644
  #elif defined(__BIONIC__)
      char* buffer;
      va_list list;
-@@ -82,7 +89,7 @@ void abort_message(const char* format, ...)
+@@ -73,7 +89,7 @@ void abort_message(const char* format, ...)
      // (tombstone and/or logcat) in older releases.
      __assert2(__FILE__, __LINE__, __func__, buffer);
  #   endif // __ANDROID_API__ >= 21
@@ -80,3 +85,5 @@ index e3f0c6d..0b22fdb 100644
  #elif defined(__arm__) || defined(__mips__) || defined(__hexagon__)
      static const size_t mangled_size = 16;
 -- 
+2.49.0
+
