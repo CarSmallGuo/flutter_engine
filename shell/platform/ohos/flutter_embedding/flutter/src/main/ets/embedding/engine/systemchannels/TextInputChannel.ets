@@ -149,6 +149,11 @@ export default class TextInputChannel {
   performPrivateCommand(inputClientId: number, action: string, data: Any) {
 
   }
+
+  getKeyboardFocusState() {
+    return this.textInputMethodHandler?.getKeyboardFocusState();
+  }
+  
 }
 
 interface EditingState {
@@ -189,6 +194,8 @@ export interface TextInputMethodHandler {
   clearClient(): void;
 
   handleChangeFocus(focusState: boolean): void;
+
+  getKeyboardFocusState(): boolean;
 
 }
 
