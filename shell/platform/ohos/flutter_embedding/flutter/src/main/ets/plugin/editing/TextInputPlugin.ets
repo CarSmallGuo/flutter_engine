@@ -159,6 +159,10 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.hideTextInput();
   }
 
+  getKeyboardFocusState() {
+    return this.keyboardFocusState;
+  }
+
   requestAutofill(): void {
 
   }
