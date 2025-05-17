@@ -386,54 +386,55 @@ KHRSwapchainImplVK::AcquireResult KHRSwapchainImplVK::AcquireNextDrawable() {
   context.GetGPUTracer()->MarkFrameStart();
 
   auto image = images_[index % images_.size()];
-  current_image_index_ = index % images_.size();
+  // [MTChannn]
+  // current_image_index_ = index % images_.size();
 
-  /// The GPU's write operations to the image must wait for the
-  /// sync->render_ready semaphore (i.e., wait for the GPU or hardware composer
-  /// to complete reading the image);
-  /// otherwise, screen tearing or other visual artifacts may occur.
-  /// However, the current function does not provide the render_ready semaphore
-  /// upon return, meaning subsequent write operations to the image will not
-  /// wait for the semaphore to signal, potentially leading to visual anomalies.
+  // /// The GPU's write operations to the image must wait for the
+  // /// sync->render_ready semaphore (i.e., wait for the GPU or hardware composer
+  // /// to complete reading the image);
+  // /// otherwise, screen tearing or other visual artifacts may occur.
+  // /// However, the current function does not provide the render_ready semaphore
+  // /// upon return, meaning subsequent write operations to the image will not
+  // /// wait for the semaphore to signal, potentially leading to visual anomalies.
 
-  /// To address this issue, a write barrier is added here for the image,
-  /// along with a wait for the corresponding semaphore,
-  /// ensuring correct rendering.
-  /// Note: vkWaitSemaphores might not function correctly when the semaphore is
-  /// imported from a sync FD.
-  sync->ready_cmd_buffer = context.CreateCommandBuffer();
-  if (sync->ready_cmd_buffer) {
-    auto vk_cmd_buffer = CommandBufferVK::Cast(*sync->ready_cmd_buffer)
-                             .GetEncoder()
-                             ->GetCommandBuffer();
-    BarrierVK barrier;
-    barrier.new_layout = vk::ImageLayout::eColorAttachmentOptimal;
-    barrier.cmd_buffer = vk_cmd_buffer;
-    barrier.src_access = {};
-    barrier.src_stage = vk::PipelineStageFlagBits::eTopOfPipe;
-    barrier.dst_access = vk::AccessFlagBits::eColorAttachmentWrite;
-    barrier.dst_stage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-    image->SetLayout(barrier);
+  // /// To address this issue, a write barrier is added here for the image,
+  // /// along with a wait for the corresponding semaphore,
+  // /// ensuring correct rendering.
+  // /// Note: vkWaitSemaphores might not function correctly when the semaphore is
+  // /// imported from a sync FD.
+  // sync->ready_cmd_buffer = context.CreateCommandBuffer();
+  // if (sync->ready_cmd_buffer) {
+  //   auto vk_cmd_buffer = CommandBufferVK::Cast(*sync->ready_cmd_buffer)
+  //                            .GetEncoder()
+  //                            ->GetCommandBuffer();
+  //   BarrierVK barrier;
+  //   barrier.new_layout = vk::ImageLayout::eColorAttachmentOptimal;
+  //   barrier.cmd_buffer = vk_cmd_buffer;
+  //   barrier.src_access = {};
+  //   barrier.src_stage = vk::PipelineStageFlagBits::eTopOfPipe;
+  //   barrier.dst_access = vk::AccessFlagBits::eColorAttachmentWrite;
+  //   barrier.dst_stage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+  //   image->SetLayout(barrier);
 
-    auto end_ret = vk_cmd_buffer.end();
-    if (end_ret == vk::Result::eSuccess) {
-      vk::SubmitInfo submit_info;
-      vk::PipelineStageFlags wait_stage =
-          vk::PipelineStageFlagBits::eColorAttachmentOutput;
-      submit_info.setWaitDstStageMask(wait_stage);
-      submit_info.setWaitSemaphores(*sync->render_ready);
-      submit_info.setCommandBuffers(vk_cmd_buffer);
-      auto result = context.GetGraphicsQueue()->Submit(submit_info, nullptr);
-      if (result != vk::Result::eSuccess) {
-        VALIDATION_LOG << "Submit Swapchain Image Write Barrier Failed: "
-                       << vk::to_string(result);
-      }
-    } else {
-      VALIDATION_LOG << "Command Buffer End Failed: " << vk::to_string(end_ret);
-    }
-  } else {
-    VALIDATION_LOG << "Create Command Buffer Failed";
-  }
+  //   auto end_ret = vk_cmd_buffer.end();
+  //   if (end_ret == vk::Result::eSuccess) {
+  //     vk::SubmitInfo submit_info;
+  //     vk::PipelineStageFlags wait_stage =
+  //         vk::PipelineStageFlagBits::eColorAttachmentOutput;
+  //     submit_info.setWaitDstStageMask(wait_stage);
+  //     submit_info.setWaitSemaphores(*sync->render_ready);
+  //     submit_info.setCommandBuffers(vk_cmd_buffer);
+  //     auto result = context.GetGraphicsQueue()->Submit(submit_info, nullptr);
+  //     if (result != vk::Result::eSuccess) {
+  //       VALIDATION_LOG << "Submit Swapchain Image Write Barrier Failed: "
+  //                      << vk::to_string(result);
+  //     }
+  //   } else {
+  //     VALIDATION_LOG << "Command Buffer End Failed: " << vk::to_string(end_ret);
+  //   }
+  // } else {
+  //   VALIDATION_LOG << "Create Command Buffer Failed";
+  // }
 
   uint32_t image_index = index;
   return AcquireResult{SurfaceVK::WrapSwapchainImage(

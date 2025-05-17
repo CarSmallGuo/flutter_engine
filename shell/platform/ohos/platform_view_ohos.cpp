@@ -65,7 +65,6 @@ std::unique_ptr<OHOSSurface> OhosSurfaceFactoryImpl::CreateSurface() {
 
 std::unique_ptr<OHOSContext> CreateOHOSContext(
     const flutter::TaskRunners& task_runners,
-    uint8_t msaa_samples,
     OHOSRenderingAPI rendering_api,
     bool enable_vulkan_validation,
     bool enable_opengl_gpu_tracing,
@@ -76,7 +75,7 @@ std::unique_ptr<OHOSContext> CreateOHOSContext(
       return std::make_unique<OHOSContext>(OHOSRenderingAPI::kSoftware);
     case OHOSRenderingAPI::kOpenGLES:
       return std::make_unique<OhosContextGLSkia>(OHOSRenderingAPI::kOpenGLES,
-                                                 task_runners, msaa_samples);
+                                                 task_runners);
     case OHOSRenderingAPI::kImpellerVulkan:
       return std::make_unique<OHOSContextVulkanImpeller>(
           enable_vulkan_validation, enable_vulkan_gpu_tracing);
@@ -90,15 +89,13 @@ PlatformViewOHOS::PlatformViewOHOS(
     PlatformView::Delegate& delegate,
     const flutter::TaskRunners& task_runners,
     const std::shared_ptr<PlatformViewOHOSNapi>& napi_facade,
-    bool use_software_rendering,
-    uint8_t msaa_samples)
+    bool use_software_rendering)
     : PlatformViewOHOS(
           delegate,
           task_runners,
           napi_facade,
           CreateOHOSContext(
               task_runners,
-              msaa_samples,
               delegate.OnPlatformViewGetSettings().ohos_rendering_api,
               delegate.OnPlatformViewGetSettings().enable_vulkan_validation,
               delegate.OnPlatformViewGetSettings().enable_opengl_gpu_tracing,

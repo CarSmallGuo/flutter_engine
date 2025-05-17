@@ -691,7 +691,6 @@ uint64_t OHOSExternalTexture::Reset(bool need_surfaceId) {
 bool OHOSExternalTexture::CreatePixelMapBuffer(int width,
                                                int height,
                                                int pixel_format) {
-  int fence_fd = -1;
   DestroyPixelMapBuffer();
 
   int window_format = PixelMapToWindowFormat((PIXEL_FORMAT)pixel_format);

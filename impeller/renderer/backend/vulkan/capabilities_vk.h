@@ -111,6 +111,60 @@ enum class RequiredAndroidDeviceExtensionVK : uint32_t {
 };
 
 //------------------------------------------------------------------------------
+/// @brief      A device extension available on all OHOS platforms. Without
+///             the presence of these extensions on OHOS, context creation
+///             will fail.
+///
+///             Platform agnostic code can still check if these OHOS
+///             extensions are present.
+///
+enum class RequiredOHOSDeviceExtensionVK : uint32_t {
+  //----------------------------------------------------------------------------
+  /// For importing hardware buffers used in external texture composition.
+  ///
+  /// https://developer.huawei.com/consumer/cn/doc/harmonyos-references-V5/vulkan__ohos_8h-V5
+  ///
+  kOHOSNativeBuffer,
+
+  //----------------------------------------------------------------------------
+  /// Dependency of kOHOSNativeBuffer.
+  ///
+  /// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VK_KHR_sampler_ycbcr_conversion.html
+  ///
+  kKHRSamplerYcbcrConversion,
+
+  //----------------------------------------------------------------------------
+  /// Dependency of kOHOSNativeBuffer.
+  ///
+  /// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VK_KHR_external_memory.html
+  ///
+  kOHOSExternalMemory,
+
+  //----------------------------------------------------------------------------
+  /// Dependency of kOHOSNativeBuffer.
+  ///
+  /// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VK_EXT_queue_family_foreign.html
+  ///
+  kEXTQueueFamilyForeign,
+
+  //----------------------------------------------------------------------------
+  /// Dependency of kOHOSNativeBuffer.
+  ///
+  /// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VK_KHR_external_semaphore_fd.html
+  ///
+  kKHRExternalSemaphoreFd,
+
+  //----------------------------------------------------------------------------
+  /// Dependency of kOHOSNativeBuffer.
+  ///
+  /// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VK_KHR_dedicated_allocation.html
+  ///
+  kKHRDedicatedAllocation,
+
+  kLast,
+};
+
+//------------------------------------------------------------------------------
 /// @brief      A device extension enabled if available. Subsystems cannot
 ///             assume availability and must check if these extensions are
 ///             available.
@@ -139,6 +193,15 @@ enum class OptionalDeviceExtensionVK : uint32_t {
   /// https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VK_EXT_image_compression_control.html
   ///
   kEXTImageCompressionControl,
+
+  //----------------------------------------------------------------------------
+  /// To enable incremental presentation, allowing the application to specify
+  /// the regions of a surface that have changed.
+  /// This can improve presentation efficiency by avoiding full-surface updates.
+  ///
+  /// https://registry.khronos.org/vulkan/specs/latest/man/html/VK_KHR_incremental_present.html
+  ///
+  kVKKHRIncrementalPresent,
 
   kLast,
 };
