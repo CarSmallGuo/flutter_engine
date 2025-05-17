@@ -214,7 +214,6 @@ void SemanticsNodeExtend::OHOSComponentTypeUpdate() {
 
 void SemanticsNodeExtend::OHOSActionsUpdate() {
   ohActions.clear();
-  int32_t actionTypeNum = 0;
   if (HasAction(ACTIONS_::kTap)) {
     ohActions.push_back({ArkUI_Accessibility_ActionType::
                              ARKUI_ACCESSIBILITY_NATIVE_ACTION_TYPE_CLICK,

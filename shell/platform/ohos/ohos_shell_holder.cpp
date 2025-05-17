@@ -186,8 +186,7 @@ OHOSShellHolder::OHOSShellHolder(
             shell.GetTaskRunners(),  // task runners
             napi_facade,             // napi interop
             shell.GetSettings()
-                .enable_software_rendering,   // use software rendering
-            shell.GetSettings().msaa_samples  // msaa sample count
+                .enable_software_rendering   // use software rendering
         );
         LOGI("on_create_platform_view LOGI");
         FML_LOG(INFO) << "on_create_platform_view end";

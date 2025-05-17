@@ -16,7 +16,6 @@
 #include "flutter/impeller/core/texture_descriptor.h"
 #include "flutter/impeller/display_list/dl_image_impeller.h"
 #include "flutter/impeller/renderer/backend/vulkan/command_buffer_vk.h"
-#include "flutter/impeller/renderer/backend/vulkan/command_encoder_vk.h"
 #include "flutter/impeller/renderer/backend/vulkan/ohos/ohb_texture_source_vk.h"
 #include "flutter/impeller/renderer/backend/vulkan/texture_vk.h"
 #include "fml/logging.h"
@@ -175,35 +174,36 @@ void OHOSExternalTextureVulkan::WaitGPUFence(int fence_fd) {
     return;
   }
 
-  if (texture) {
-    // Transition the layout to shader read.
-    impeller::CommandBufferVK& buffer_vk =
-        impeller::CommandBufferVK::Cast(*cmd_buffer);
-    auto encoder = buffer_vk.GetEncoder();
+  // [MTChannn]
+  // if (texture) {
+  //   // Transition the layout to shader read.
+  //   impeller::CommandBufferVK& buffer_vk =
+  //       impeller::CommandBufferVK::Cast(*cmd_buffer);
+  //   auto encoder = buffer_vk.GetEncoder();
 
-    barrier.cmd_buffer = encoder->GetCommandBuffer();
-    barrier.src_access = impeller::vk::AccessFlagBits::eColorAttachmentWrite |
-                         impeller::vk::AccessFlagBits::eTransferWrite;
-    barrier.src_stage =
-        impeller::vk::PipelineStageFlagBits::eColorAttachmentOutput |
-        impeller::vk::PipelineStageFlagBits::eTransfer;
-    barrier.dst_access = impeller::vk::AccessFlagBits::eShaderRead;
-    barrier.dst_stage = impeller::vk::PipelineStageFlagBits::eFragmentShader;
+  //   barrier.cmd_buffer = encoder->GetCommandBuffer();
+  //   barrier.src_access = impeller::vk::AccessFlagBits::eColorAttachmentWrite |
+  //                        impeller::vk::AccessFlagBits::eTransferWrite;
+  //   barrier.src_stage =
+  //       impeller::vk::PipelineStageFlagBits::eColorAttachmentOutput |
+  //       impeller::vk::PipelineStageFlagBits::eTransfer;
+  //   barrier.dst_access = impeller::vk::AccessFlagBits::eShaderRead;
+  //   barrier.dst_stage = impeller::vk::PipelineStageFlagBits::eFragmentShader;
 
-    barrier.new_layout = impeller::vk::ImageLayout::eShaderReadOnlyOptimal;
+  //   barrier.new_layout = impeller::vk::ImageLayout::eShaderReadOnlyOptimal;
 
-    if (!texture->SetLayout(barrier)) {
-      FML_LOG(ERROR) << "External texture SetLayout failed";
-      return;
-    }
+  //   if (!texture->SetLayout(barrier)) {
+  //     FML_LOG(ERROR) << "External texture SetLayout failed";
+  //     return;
+  //   }
 
-    if (!encoder->EndCommandBuffer()) {
-      FML_LOG(ERROR) << "Failed to end command buffer";
-      return;
-    }
+  //   if (!encoder->EndCommandBuffer()) {
+  //     FML_LOG(ERROR) << "Failed to end command buffer";
+  //     return;
+  //   }
 
-    submit_info.setCommandBuffers(barrier.cmd_buffer);
-  }
+  //   submit_info.setCommandBuffers(barrier.cmd_buffer);
+  // }
 
   if (fence_fd > 0 && FdIsValid(fence_fd)) {
     // If the fence_fd is already signaled, it means the related data has

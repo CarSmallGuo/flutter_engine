@@ -55,6 +55,10 @@ class SwapchainVK {
   /// @brief Mark the current swapchain configuration as dirty, forcing it to be
   ///        recreated on the next frame.
   virtual void UpdateSurfaceSize(const ISize& size) = 0;
+  
+  virtual int GetCurrentImageIndex() = 0;
+
+  virtual void SetRenderArea(std::optional<IRect> area) = 0;
 
  protected:
   SwapchainVK();

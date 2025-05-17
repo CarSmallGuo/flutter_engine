@@ -79,6 +79,8 @@ class SurfaceContextVK : public Context,
   [[nodiscard]] bool SetWindowSurface(vk::UniqueSurfaceKHR surface,
                                       const ISize& size);
 
+  void ClearSwapchain();
+
   [[nodiscard]] bool SetSwapchain(std::shared_ptr<SwapchainVK> swapchain);
 
   std::unique_ptr<Surface> AcquireNextSurface();
@@ -92,8 +94,11 @@ class SurfaceContextVK : public Context,
   void UpdateSurfaceSize(const ISize& size) const;
 
   // |Context|
-  // |Context|
   void InitializeCommonlyUsedShadersIfNeeded() const override;
+
+#ifdef FML_OS_OHOS
+  vk::UniqueSurfaceKHR CreateOHOSSurface(OHNativeWindow* window) const;
+#endif  // FML_OS_OHOS
 
   // |Context|
   void DisposeThreadLocalCachedResources() override;

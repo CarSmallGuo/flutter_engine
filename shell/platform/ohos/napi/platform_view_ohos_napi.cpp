@@ -2568,7 +2568,6 @@ napi_value PlatformViewOHOSNapi::nativeSetFlutterNavigationAction(
 napi_value PlatformViewOHOSNapi::nativeUpdateCurrentXComponentId(
     napi_env env,
     napi_callback_info info) {
-  napi_status ret;
   size_t argc = 1;
   napi_value args[1] = {nullptr};
   napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
