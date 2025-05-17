@@ -11,10 +11,22 @@
         "file_path": "../../attachment/repos/flutter3.27-dart.patch"
     },
     {
+        "name": "dart2",
+        "target": "./src/flutter/third_party/dart",
+        "type": "patch",
+        "file_path": "../../attachment/repos/flutter3.27-dart.patch2"
+    },
+    {
         "name": "skia",
         "target": "./src/flutter/third_party/skia",
         "type": "patch",
         "file_path": "../..//attachment/repos/flutter3.27-skia.patch"
+    },
+    {
+        "name": "skia2",
+        "target": "./src/flutter/third_party/skia",
+        "type": "patch",
+        "file_path": "../..//attachment/repos/flutter3.27-skia.patch2"
     },
     {
         "name": "spirv-headers",
@@ -26,13 +38,13 @@
         "name": "angle",
         "target": "./src/flutter/third_party/angle",
         "type": "patch",
-        "file_path": "../../../attachment/repos/flutter3.27-angle-3.22.patch"
+        "file_path": "../../attachment/repos/flutter3.27-angle.patch"
     },
     {
         "name": "build",
         "target": "./src/build",
         "type": "patch",
-        "file_path": "../../flutter/attachment/repos/flutter3.27-build-3.22.patch"
+        "file_path": "../flutter/attachment/repos/flutter3.27-build.patch"
     },
     {
         "name": "zlib",
@@ -44,13 +56,13 @@
         "name": "boringssl",
         "target": "./src/flutter/third_party/boringssl",
         "type": "patch",
-        "file_path": "../../../attachment/repos/flutter3.27-boringssl-3.22.patch"
+        "file_path": "../../attachment/repos/flutter3.27-boringssl.patch"
     },
     {
         "name": "swiftshader",
         "target": "./src/flutter/third_party/swiftshader",
         "type": "patch",
-        "file_path": "../../../attachment/repos/flutter3.27-swiftshader-3.22.patch"
+        "file_path": "../../attachment/repos/flutter3.27-swiftshader.patch"
     },
     {
         "name": "native",
