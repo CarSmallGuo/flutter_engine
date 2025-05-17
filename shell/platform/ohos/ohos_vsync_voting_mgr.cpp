@@ -35,6 +35,7 @@ std::shared_ptr<OhosVsyncVotingMgr> OhosVsyncVotingMgr::GetInstance(void)
     std::call_once(instanceFlag, [&] {
         instance = std::shared_ptr<OhosVsyncVotingMgr>(new OhosVsyncVotingMgr);
     });
+    
     return instance;
 }
 
