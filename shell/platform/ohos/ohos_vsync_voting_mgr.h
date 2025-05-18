@@ -13,6 +13,8 @@
 
 namespace flutter {
 using namespace std;
+using SetExpectedFrameRateRangeFunc_ = int(*)(OH_NativeVSync* nativeVsync,
+                                              OH_NativeVSync_ExpectedRateRange* range);
 
 enum class VsyncVotingPriority {
   VOTING_LEVEL_HIGH = 0,
@@ -45,8 +47,8 @@ enum class VVMTouchType {
 
 class OhosVsyncVotingMgr {
 public:
-  OhosVsyncVotingMgr() = default;
-  ~OhosVsyncVotingMgr() = default;
+  OhosVsyncVotingMgr();
+  ~OhosVsyncVotingMgr();
 
   static shared_ptr<OhosVsyncVotingMgr> GetInstance(void);
 
@@ -103,6 +105,10 @@ private:
   unique_ptr<OHOSAssetProvider> asset_provider_;
 
   vector<map<string, int> > framesSet;
+
+  void* libHandle_;
+
+  SetExpectedFrameRateRangeFunc_ setExpectedFrameRateRangeFunc_ = nullptr;
 }; // class OhosVsyncVotingMgr
 
 } // namespace flutter
