@@ -742,8 +742,8 @@ export default class FlutterNapi {
   * 发送屏幕滑动速度
   * @param velocity: 当前屏幕滑动速度
   */
-  animationVoting(velocity: number): void {
-    flutter.nativeAnimationVoting(velocity);
+  static animationVoting(type: number, velocity: number): void {
+    flutter.nativeAnimationVoting(type, velocity);
   }
 
   /*

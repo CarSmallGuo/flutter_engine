@@ -189,7 +189,7 @@ export const nativeUpdateCurrentXComponentId: (xcomponent_id: string) => void;
 
 export const nativeVoteFrameRate: (nativeShellHolderId: number, min: number, max: number, expected: number) => void;
 
-export const nativeAnimationVoting: (velocity: number) => void;
+export const nativeAnimationVoting: (type: number, velocity: number) => void;
 
 export const nativeVideoVoting: (seconds: number, frameCount: number) => void;
 

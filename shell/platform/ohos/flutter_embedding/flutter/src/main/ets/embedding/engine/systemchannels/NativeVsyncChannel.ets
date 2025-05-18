@@ -15,49 +15,54 @@
 
 import Log from '../../../util/Log';
 import DartExecutor from '../dart/DartExecutor';
-import BasicMessageChannel, { MessageHandler, Reply} from '../../../plugin/common/BasicMessageChannel';
 import HashMap from '@ohos.util.HashMap';
-import StandardMessageCodec from '../../../plugin/common/StandardMessageCodec';
 import StringUtils from '../../../util/StringUtils';
 import Any from '../../../plugin/common/Any';
 import FlutterNapi from '../FlutterNapi';
-
+import MethodChannel, { MethodCallHandler, MethodResult } from '../../../plugin/common/MethodChannel';
+import MethodCall from '../../../plugin/common/MethodCall';
+import StandardMethodCodec from '../../../plugin/common/StandardMethodCodec';
 /**
 * nativeVsync功能channel
 */
-export default class NativeVsyncChannel implements MessageHandler<object> {
+export default class NativeVsyncChannel implements MethodCallHandler {
     private static TAG = "NativeVsyncChannel";
     private static CHANNEL_NAME = "flutter/nativevsync";
-    private channel: BasicMessageChannel<object>;
+    public channel: MethodChannel;
     private flutterNapi: FlutterNapi;
 
-    onMessage(message: object, reply: Reply<object>): void {
-        let data: HashMap<string, Any> = message as HashMap<string, Any>;
-        let iter: IterableIterator<string> = data.keys();
-        for (const key of iter) {
-            switch (key) {
+    onMethodCall(call: MethodCall, result: MethodResult): void {
+        let method: string = call.method;
+        Log.i(NativeVsyncChannel.TAG, "Received '" + method + "' message.");
+        try {
+            switch (method) {
                 case "isEnable":
-                    let isEnable: boolean = data.get("isEnable");
+                    let isEnable: boolean = call.argument('isEnable');
                     this.flutterNapi.SetDVsyncSwitch(isEnable);
                     break;
-                case "velocity":
-                    let velocity: number = data.get("velocity");
-                    this.flutterNapi.animationVoting(velocity);
+                case "sendVelocity":
+                    let type: string = call.argument('type');
+                    let velocity: number = call.argument('velocity');
+                    if (type == "translate") {
+                        FlutterNapi.animationVoting(0, velocity);
+                    }
                     break;
                 case "video":
-                    let second: number = data.get("second");
-                    let frameCount: number = data.get("frameCount");
+                    let second: number = call.argument('second');
+                    let frameCount: number = call.argument('frameCount');
+                    FlutterNapi.videoVoting(second, frameCount);
+                    break;
+                default:
                     break;
             }
+        } catch (error) {
+            result.error("error", "UnHandled error: " + JSON.stringify(error), null)
         }
-        reply.reply(StringUtils.stringToArrayBuffer(""));
     }
 
     constructor(dartExecutor: DartExecutor, flutterNapi: FlutterNapi) {
-        Log.i(NativeVsyncChannel.TAG, "Channel entered");
-        this.channel = new BasicMessageChannel<object>(
-            dartExecutor, NativeVsyncChannel.CHANNEL_NAME, StandardMessageCodec.INSTANCE);
-        this.channel.setMessageHandler(this);
+        this.channel = new MethodChannel(dartExecutor, NativeVsyncChannel.CHANNEL_NAME, StandardMethodCodec.INSTANCE);
+        this.channel.setMethodCallHandler(this);
         this.flutterNapi = flutterNapi;
     }
 }

@@ -2626,8 +2626,8 @@ napi_value PlatformViewOHOSNapi::nativeVoteFrameRate(napi_env env, napi_callback
 
 napi_value PlatformViewOHOSNapi::nativeAnimationVoting(napi_env env, napi_callback_info info)
 {
-  size_t argc = 1;
-  napi_value args[1] = {nullptr};
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
 
   napi_status ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
   if (ret != napi_ok) {
@@ -2635,8 +2635,16 @@ napi_value PlatformViewOHOSNapi::nativeAnimationVoting(napi_env env, napi_callba
     return nullptr;
   }
 
+  int32_t type;
+  ret = napi_get_value_int32(env, args[0], &type);
+  if (ret != napi_ok) {
+    FML_LOG(ERROR) << "nativeAnimationVoting type "
+                      "napi_get_value_int32 error, " << ret;
+    return nullptr;
+  }
+
   double velocity;
-  ret = napi_get_value_double(env, args[0], &velocity);
+  ret = napi_get_value_double(env, args[1], &velocity);
   if (ret != napi_ok) {
     FML_LOG(ERROR) << "nativeAnimationVoting velocity "
                       "napi_get_value_double error, " << ret;
@@ -2644,11 +2652,18 @@ napi_value PlatformViewOHOSNapi::nativeAnimationVoting(napi_env env, napi_callba
   }
 
   std::shared_ptr<OhosVsyncVotingMgr> votingMgr = OhosVsyncVotingMgr::GetInstance();
-  if (votingMgr != nullptr) {
-    votingMgr->VoteAnimationValue(AnimationType::AN_TYPE_TRANSLATE,
-      PlatformViewOHOSNapi::display_density_pixels, velocity);
+  if (votingMgr == nullptr) {
+    return nullptr;
   }
 
+  switch (type) {
+    case 1:
+      votingMgr->VoteAnimationValue(AnimationType::AN_TYPE_TRANSLATE,
+        PlatformViewOHOSNapi::display_density_pixels, velocity);
+      break;
+    default:
+      break;
+  }
   return nullptr;
 }
 
