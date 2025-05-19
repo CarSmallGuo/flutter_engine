@@ -97,8 +97,6 @@ class TestImpellerContext : public impeller::Context {
 
   void Shutdown() override {}
 
-  void DisposeThreadLocalCachedResources() override { did_dispose_ = true; }
-
   bool DidDisposeResources() const { return did_dispose_; }
 
   mutable size_t command_buffer_count_ = 0;
