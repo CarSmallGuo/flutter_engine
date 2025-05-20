@@ -342,7 +342,7 @@ def buildLocalEngine(buildType, args):
   OPT = "--unoptimized --no-lto " if buildType == "debug" else ""
   extraParam = args.gn_extra_param
   osName = platform.system().lower()
-  hostAppend = f"--mac-cpu {args.host_cpu}" if osName == "darwin" else ""
+  hostAppend = f"--mac-cpu {args.host_cpu} " if osName == "darwin" else ""
   runCommand(
       "%s " % os.path.join("src", "flutter", "tools", "gn") + "--runtime-mode %s " % buildType +
       OPT + "--no-goma " + "--no-prebuilt-dart-sdk " + "--full-dart-sdk " +
