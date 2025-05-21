@@ -27,12 +27,14 @@
 #include "flutter/shell/platform/ohos/types.h"
 #include "unicode/uchar.h"
 
+#include "flutter/shell/platform/ohos/ohos_vsync_voting_mgr.h"
+
 #define OHOS_SHELL_HOLDER (reinterpret_cast<OHOSShellHolder*>(shell_holder))
 namespace flutter {
 
 int64_t PlatformViewOHOSNapi::display_width = 0;
 int64_t PlatformViewOHOSNapi::display_height = 0;
-int64_t PlatformViewOHOSNapi::display_refresh_rate = 60;
+int32_t PlatformViewOHOSNapi::display_refresh_rate = 60;
 // std::set<int> all_refresh_rates = {60, 90, 120};
 std::shared_ptr<std::set<int>> PlatformViewOHOSNapi::all_refresh_rates =
     std::make_shared<std::set<int>>(std::initializer_list<int>{60});
@@ -1061,7 +1063,7 @@ napi_value PlatformViewOHOSNapi::nativeUpdateRefreshRate(
   LOGD("PlatformViewOHOSNapi::nativeUpdateRefreshRate: %{public}ld",
        refreshRate);
   FML_DCHECK(refreshRate > 0);
-  display_refresh_rate = refreshRate;
+  display_refresh_rate = static_cast<int>(refreshRate);
   if (all_refresh_rates->find(refreshRate) == all_refresh_rates->end()) {
     auto newSet = std::make_shared<std::set<int>>(*all_refresh_rates);
     newSet->insert(refreshRate);
@@ -2573,6 +2575,140 @@ napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callba
 
   napi_create_int32(env, 0, &result);
   return result;
+}
+
+napi_value PlatformViewOHOSNapi::nativeVoteFrameRate(napi_env env, napi_callback_info info)
+{
+  size_t argc = 4;
+  napi_value args[4] = {nullptr};
+
+  napi_status ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (ret != napi_ok) {
+    FML_LOG(ERROR) << "nativeVoteFrameRate napi_get_cb_info error, " << ret;
+    return nullptr;
+  }
+
+  int64_t shell_holder;
+  ret = napi_get_value_int64(env, args[0], &shell_holder);
+  if (ret != napi_ok) {
+    FML_LOG(ERROR) << "nativeVoteFrameRate shell_holder "
+                      "napi_get_value_int64 error, " << ret;
+    return nullptr;
+  }
+
+  int32_t min;
+  ret = napi_get_value_int32(env, args[1], &min);
+  if (ret != napi_ok) {
+    FML_LOG(ERROR) << "nativeVoteFrameRate min "
+                      "napi_get_value_int32 error, " << ret;
+    return nullptr;
+  }
+
+  int32_t max;
+  ret = napi_get_value_int32(env, args[2], &max);
+  if (ret != napi_ok) {
+    FML_LOG(ERROR) << "nativeVoteFrameRate max "
+                      "napi_get_value_int32 error, " << ret;
+    return nullptr;
+  }
+
+  int32_t expected;
+  ret = napi_get_value_int32(env, args[3], &expected);
+  if (ret != napi_ok) {
+    FML_LOG(ERROR) << "nativeVoteFrameRate expected "
+                      "napi_get_value_int32 error, " << ret;
+    return nullptr;
+  }
+
+  // TODO
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeAnimationVoting(napi_env env, napi_callback_info info)
+{
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
+
+  napi_status ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (ret != napi_ok) {
+    FML_LOG(ERROR) << "nativeAnimationVoting napi_get_cb_info error, " << ret;
+    return nullptr;
+  }
+
+  int32_t type;
+  ret = napi_get_value_int32(env, args[0], &type);
+  if (ret != napi_ok) {
+    FML_LOG(ERROR) << "nativeAnimationVoting type "
+                      "napi_get_value_int32 error, " << ret;
+    return nullptr;
+  }
+
+  double velocity;
+  ret = napi_get_value_double(env, args[1], &velocity);
+  if (ret != napi_ok) {
+    FML_LOG(ERROR) << "nativeAnimationVoting velocity "
+                      "napi_get_value_double error, " << ret;
+    return nullptr;
+  }
+
+  std::shared_ptr<OhosVsyncVotingMgr> votingMgr = OhosVsyncVotingMgr::GetInstance();
+  if (votingMgr == nullptr) {
+    return nullptr;
+  }
+
+  switch (type) {
+    case 1:
+      votingMgr->VoteAnimationValue(AnimationType::AN_TYPE_TRANSLATE,
+        PlatformViewOHOSNapi::display_density_pixels, velocity);
+      break;
+    default:
+      break;
+  }
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativeVideoVoting(napi_env env, napi_callback_info info)
+{
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
+  napi_status ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
+  if (ret != napi_ok) {
+    FML_LOG(ERROR) << "nativeVideoVoting napi_get_cb_info error, " << ret;
+    return nullptr;
+  }
+
+  int32_t second;
+  ret = napi_get_value_int32(env, args[0], &second);
+  if (ret != napi_ok) {
+    FML_LOG(ERROR) << "nativeVideoVoting second "
+                      "napi_get_value_int32 error, " << ret;
+    return nullptr;
+  }
+
+  int32_t frameCount;
+  ret = napi_get_value_int32(env, args[1], &frameCount);
+  if (ret != napi_ok) {
+    FML_LOG(ERROR) << "nativeVideoVoting frameCount "
+                      "napi_get_value_int32 error, " << ret;
+    return nullptr;
+  }
+
+  std::shared_ptr<OhosVsyncVotingMgr> votingMgr = OhosVsyncVotingMgr::GetInstance();
+  if (votingMgr != nullptr) {
+    votingMgr->VoteVideoValue(second, frameCount);
+  }
+
+  return nullptr;
+}
+
+napi_value PlatformViewOHOSNapi::nativePrefetchFramesCfg(napi_env env, napi_callback_info info)
+{
+  std::shared_ptr<OhosVsyncVotingMgr> votingMgr = OhosVsyncVotingMgr::GetInstance();
+  if (votingMgr != nullptr) {
+    votingMgr->ParseFramesCfg();
+  }
+
+  return nullptr;
 }
 
 }  // namespace flutter

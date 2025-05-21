@@ -727,6 +727,40 @@ export default class FlutterNapi {
   SetDVsyncSwitch(isEnable: boolean): void {
     flutter.nativeSetDVsyncSwitch(this.nativeShellHolderId!, isEnable);
   }
+
+  /*
+  * 设置期望帧率
+  * @param min: 最小帧率挡位
+  * @param max: 最大帧率挡位
+  * @param expected: 当前期望的帧率挡位
+  */
+  voteFrameRate(min: number, max: number, expected: number): void {
+    flutter.nativeVoteFrameRate(this.nativeShellHolderId!, min, max, expected);
+  }
+
+  /*
+  * 发送屏幕滑动速度
+  * @param velocity: 当前屏幕滑动速度
+  */
+  static animationVoting(type: number, velocity: number): void {
+    flutter.nativeAnimationVoting(type, velocity);
+  }
+
+  /*
+  * 发送视频帧数
+  * @param seconds: 秒数
+  * @param frameCount: 一定时间内的帧数
+  */
+  static videoVoting(seconds: number, frameCount: number): void {
+    flutter.nativeVideoVoting(seconds, frameCount);
+  }
+
+  /*
+  * 预加载帧率挡位配置文件
+  */
+  static prefetchFramesCfg(): void {
+    flutter.nativePrefetchFramesCfg();
+  }
 }
 
 export interface AccessibilityDelegate {
