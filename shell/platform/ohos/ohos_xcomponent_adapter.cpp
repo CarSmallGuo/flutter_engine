@@ -3,16 +3,21 @@
  * All rights reserved. Use of this source code is governed by a BSD-style
  * license that can be found in the LICENSE_KHZG file.
  */
-#include <ace/xcomponent/native_interface_xcomponent.h>
 #include "ohos_xcomponent_adapter.h"
-#include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
-#include "types.h"
-#include "ohos_logging.h"
+#include <ace/xcomponent/native_interface_xcomponent.h>
 #include <functional>
-#include "flutter/fml/logging.h"
 #include "accessibility/ohos_semantics_bridge.h"
+#include "flutter/fml/logging.h"
+#include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
+#include "ohos_logging.h"
+#include "types.h"
 
 namespace flutter {
+
+const int32_t OHOS_API_VERSION = OH_GetSdkApiVersion();
+
+std::unique_ptr<DynamicLibraryLoader> XComponentBase::loader_ =
+    std::make_unique<DynamicLibraryLoader>(ARKUI_ACE_LIB_NAME);
 
 bool g_isMouseLeftActive = false;
 double g_scrollDistance = 0.0;
@@ -94,6 +99,8 @@ void XComponentAdapter::AttachFlutterEngine(std::string& id,
   if (findIter != xcomponetMap_.end()) {
     findIter->second->AttachFlutterEngine(shellholderId);
   }
+  if (OHOS_API_VERSION >= 15)
+    return;
   SetCurrentXcomponentId(id);
 }
 
@@ -103,18 +110,17 @@ void XComponentAdapter::DetachFlutterEngine(std::string& id) {
   if (iter != xcomponetMap_.end()) {
     iter->second->DetachFlutterEngine();
   }
-  if (current_xcomponent_id_ == id) {
+  if (OHOS_API_VERSION < 15 && current_xcomponent_id_ == id) {
     SetCurrentXcomponentId("");
   }
 }
 
-void XComponentAdapter::OnMouseWheel(std::string& id, mouseWheelEvent event)
-{
+void XComponentAdapter::OnMouseWheel(std::string& id, mouseWheelEvent event) {
   std::lock_guard<std::mutex> lock(xcomponentMap_mutex_);
-    auto iter = xcomponetMap_.find(id);
-    if (iter != xcomponetMap_.end()) {
-        iter->second->OnDispatchMouseWheelEvent(event);
-    }
+  auto iter = xcomponetMap_.find(id);
+  if (iter != xcomponetMap_.end()) {
+    iter->second->OnDispatchMouseWheelEvent(event);
+  }
 }
 
 // It must be invoked within the xcomponentMap_mutex_ lock.
@@ -122,6 +128,14 @@ XComponentBase* XComponentAdapter::GetCurrentXcomponent() {
   auto iter = xcomponetMap_.find(current_xcomponent_id_);
   if (iter != xcomponetMap_.end()) {
     return xcomponetMap_[current_xcomponent_id_];
+  }
+  return nullptr;
+}
+
+XComponentBase* XComponentAdapter::GetXcomponentBase(const std::string& id) {
+  auto iter = xcomponetMap_.find(id);
+  if (iter != xcomponetMap_.end()) {
+    return iter->second;
   }
   return nullptr;
 }
@@ -137,7 +151,8 @@ static int32_t SetNativeWindowOpt(OHNativeWindow* nativeWindow,
                                   int height) {
   // Set the read and write scenarios of the native window buffer.
   uint64_t usage = 0;
-  int ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, GET_USAGE, &usage);
+  int ret =
+      OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, GET_USAGE, &usage);
   usage |= BUFFER_USAGE_MEM_DMA | (BUFFER_USAGE_HW_COMPOSER);
   ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, SET_USAGE, usage);
   if (ret) {
@@ -183,10 +198,9 @@ static int32_t SetNativeWindowOpt(OHNativeWindow* nativeWindow,
 
 void OnSurfaceCreatedCB(OH_NativeXComponent* component, void* window) {
   std::lock_guard<std::mutex> lock(
-    XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  for(auto it: XComponentAdapter::GetInstance()->xcomponetMap_)
-  {
-    if(it.second->nativeXComponent_ == component) {
+      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
+  for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
+    if (it.second->nativeXComponent_ == component) {
       LOGD("OnSurfaceCreatedCB is called");
       it.second->OnSurfaceCreated(component, window);
     }
@@ -195,10 +209,9 @@ void OnSurfaceCreatedCB(OH_NativeXComponent* component, void* window) {
 
 void OnSurfaceChangedCB(OH_NativeXComponent* component, void* window) {
   std::lock_guard<std::mutex> lock(
-    XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  for(auto it: XComponentAdapter::GetInstance()->xcomponetMap_)
-  {
-    if(it.second->nativeXComponent_ == component) {
+      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
+  for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
+    if (it.second->nativeXComponent_ == component) {
       it.second->OnSurfaceChanged(component, window);
     }
   }
@@ -206,11 +219,10 @@ void OnSurfaceChangedCB(OH_NativeXComponent* component, void* window) {
 
 void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
   std::lock_guard<std::mutex> lock(
-    XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  for(auto it = XComponentAdapter::GetInstance()->xcomponetMap_.begin(); 
-    it != XComponentAdapter::GetInstance()->xcomponetMap_.end();)
-  {
-    if(it->second->nativeXComponent_ == component) {
+      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
+  for (auto it = XComponentAdapter::GetInstance()->xcomponetMap_.begin();
+       it != XComponentAdapter::GetInstance()->xcomponetMap_.end();) {
+    if (it->second->nativeXComponent_ == component) {
       it->second->OnSurfaceDestroyed(component, window);
       delete it->second;
       it = XComponentAdapter::GetInstance()->xcomponetMap_.erase(it);
@@ -218,51 +230,48 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
       ++it;
     }
   }
-
 }
 void DispatchTouchEventCB(OH_NativeXComponent* component, void* window) {
   std::lock_guard<std::mutex> lock(
-    XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  for(auto it: XComponentAdapter::GetInstance()->xcomponetMap_)
-  {
-    if(it.second->nativeXComponent_ == component) {
+      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
+  for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
+    if (it.second->nativeXComponent_ == component) {
       it.second->OnDispatchTouchEvent(component, window);
     }
   }
 }
 
-void DispatchMouseEventCB(OH_NativeXComponent* component, void* window)
-{
+void DispatchMouseEventCB(OH_NativeXComponent* component, void* window) {
   std::lock_guard<std::mutex> lock(
-    XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-    for (auto it: XComponentAdapter::GetInstance()->xcomponetMap_) {
-        if (it.second->nativeXComponent_ == component) {
-            it.second->OnDispatchMouseEvent(component, window);
-        }
+      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
+  for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
+    if (it.second->nativeXComponent_ == component) {
+      it.second->OnDispatchMouseEvent(component, window);
     }
+  }
 }
 
-void DispatchHoverEventCB(OH_NativeXComponent* component, bool isHover)
-{
-    LOGD("XComponentManger::DispatchHoverEventCB");
-    if (!isHover) {
-      for (auto it: XComponentAdapter::GetInstance()->xcomponetMap_) {
-        if (it.second->nativeXComponent_ == component) {
-            it.second->OnDispatchMouseLeaveEvent(component);
-        }
+void DispatchHoverEventCB(OH_NativeXComponent* component, bool isHover) {
+  LOGD("XComponentManger::DispatchHoverEventCB");
+  if (!isHover) {
+    for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
+      if (it.second->nativeXComponent_ == component) {
+        it.second->OnDispatchMouseLeaveEvent(component);
       }
     }
+  }
 }
 
-void XComponentBase::OnDispatchMouseLeaveEvent(OH_NativeXComponent* component)
-{
+void XComponentBase::OnDispatchMouseLeaveEvent(OH_NativeXComponent* component) {
   if (window_ != nullptr) {
     OH_NativeXComponent_MouseEvent mouseEvent;
-    int32_t ret = OH_NativeXComponent_GetMouseEvent(component, window_, &mouseEvent);
+    int32_t ret =
+        OH_NativeXComponent_GetMouseEvent(component, window_, &mouseEvent);
     if (ret == OH_NATIVEXCOMPONENT_RESULT_SUCCESS && isEngineAttached_) {
       LOGD("XComponentManger::OnDispatchMouseLeaveEvent()");
       // the leave mouseEvent data，is the same of last point on the area.
-      ohosTouchProcessor_.HandleMouseEvent(std::stoll(shellholderId_), component, mouseEvent, 0.0, true);
+      ohosTouchProcessor_.HandleMouseEvent(std::stoll(shellholderId_),
+                                           component, mouseEvent, 0.0, true);
     }
   } else {
     LOGE("OnSurfaceCreated XComponentBase is not attached");
@@ -277,7 +286,6 @@ void XComponentBase::BindXComponentCallback() {
   mouseCallback_.DispatchMouseEvent = DispatchMouseEventCB;
   mouseCallback_.DispatchHoverEvent = DispatchHoverEventCB;
 }
-
 
 /** Called when need to get element infos based on a specified node. */
 static int32_t FindAccessibilityNodeInfosByIdCallback(
@@ -421,9 +429,20 @@ void XComponentBase::BindAccessibilityProviderCallback() {
       GetAccessibilityNodeCursorPositionCallback;
 }
 
-XComponentBase::XComponentBase(std::string id){
+XComponentBase::XComponentBase(std::string id) {
   id_ = id;
   isEngineAttached_ = false;
+  OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_ = nullptr;
+  if (OHOS_API_VERSION >= 15) {
+    loader_->LoadSymbols({
+        {ARKUI_REGISTER_CALLBACK_WITH_INSTANCE,
+         reinterpret_cast<void**>(
+             &OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_),
+         15},
+    });
+    multiInstanceXCompAccessibility_ =
+        std::make_unique<MultiInstanceXCompAccessibility>();
+  }
 }
 
 XComponentBase::~XComponentBase() {}
@@ -435,7 +454,8 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
       id_.c_str(), shellholderId.c_str());
   shellholderId_ = shellholderId;
   // obtain the shell holder pointer
-  shellholder_ptr_ = reinterpret_cast<OHOSShellHolder*>(std::stoll(shellholderId_));
+  shellholder_ptr_ =
+      reinterpret_cast<OHOSShellHolder*>(std::stoll(shellholderId_));
   isEngineAttached_ = true;
   if (window_ != nullptr) {
     if (provider_ != nullptr && shellholder_ptr_) {
@@ -466,18 +486,23 @@ void XComponentBase::DetachFlutterEngine() {
   isEngineAttached_ = false;
 }
 
-
-void XComponentBase::SetNativeXComponent(OH_NativeXComponent* nativeXComponent){
+void XComponentBase::SetNativeXComponent(
+    OH_NativeXComponent* nativeXComponent) {
   nativeXComponent_ = nativeXComponent;
   if (nativeXComponent_ != nullptr) {
     BindXComponentCallback();
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
-    OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_, &mouseCallback_);
+    OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_,
+                                                   &mouseCallback_);
   }
 }
 
-ArkUI_AccessibilityProvider* XComponentBase::GetArkUIAccessibilityServiceProvider(
+ArkUI_AccessibilityProvider*
+XComponentBase::GetArkUIAccessibilityServiceProvider(
     OH_NativeXComponent* nativeXComponent) {
+  if (OHOS_API_VERSION >= 15) {
+    return GetArkUIAccessibilityServiceProviderWithInstance(nativeXComponent);
+  }
   BindAccessibilityProviderCallback();
   ArkUI_AccessibilityProvider* provider = nullptr;
   int32_t ret = OH_NativeXComponent_GetNativeAccessibilityProvider(
@@ -493,6 +518,38 @@ ArkUI_AccessibilityProvider* XComponentBase::GetArkUIAccessibilityServiceProvide
     return nullptr;
   }
   LOGI("XComponentBase::GetArkUIAccessibilityServiceProvider -> finished");
+  return provider;
+}
+
+ArkUI_AccessibilityProvider*
+XComponentBase::GetArkUIAccessibilityServiceProviderWithInstance(
+    OH_NativeXComponent* nativeXComponent) {
+  // bind the multi-instance accessibility callbacks
+  CHECK_WITH_RET_NULLPTR(multiInstanceXCompAccessibility_,
+                         GetArkUIAccessibilityServiceProviderWithInstance);
+  multiInstanceXCompAccessibility_->BindAccessibilityCallbackWithInstance();
+
+  ArkUI_AccessibilityProvider* provider = nullptr;
+  int32_t ret = OH_NativeXComponent_GetNativeAccessibilityProvider(
+      nativeXComponent, &provider);
+  if (ret != 0) {
+    LOGE("GetArkUIAccessibilityServiceProviderWithInstance is failed");
+    return nullptr;
+  }
+  // register the accessibility callback with multi-instances
+  CHECK_WITH_RET_NULLPTR(
+      OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_,
+      GetArkUIAccessibilityServiceProviderWithInstance);
+  ret = OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_(
+      id_.c_str(), provider,
+      &multiInstanceXCompAccessibility_->a11yProviderCallbackWithInstance_);
+  if (ret != 0) {
+    LOGE("OH_ArkUI_AccessibilityProviderRegisterCallback is failed");
+    return nullptr;
+  }
+  LOGI(
+      "XComponentBase::GetArkUIAccessibilityServiceProviderWithInstance -> "
+      "finished");
   return provider;
 }
 
@@ -537,6 +594,7 @@ void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component,
   }
 
   provider_ = GetArkUIAccessibilityServiceProvider(nativeXComponent_);
+
   if (isEngineAttached_) {
     if (provider_ != nullptr && shellholder_ptr_) {
       shellholder_ptr_->SetAccessibilityProvider(provider_);
@@ -549,14 +607,16 @@ void XComponentBase::OnSurfaceCreated(OH_NativeXComponent* component,
   }
 }
 
-void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component, void* window)
-{
+void XComponentBase::OnSurfaceChanged(OH_NativeXComponent* component,
+                                      void* window) {
   LOGD("XComponentManger::OnSurfaceChanged ");
   int32_t ret = OH_NativeXComponent_GetXComponentSize(component, window,
                                                       &width_, &height_);
   if (ret == OH_NATIVEXCOMPONENT_RESULT_SUCCESS) {
-    LOGD("XComponentManger::OnSurfaceChanged Current width:%{public}d,height:%{public}d",
-         static_cast<int>(width_), static_cast<int>(height_));
+    LOGD(
+        "XComponentManger::OnSurfaceChanged Current "
+        "width:%{public}d,height:%{public}d",
+        static_cast<int>(width_), static_cast<int>(height_));
   }
   if (isEngineAttached_) {
     PlatformViewOHOSNapi::SurfaceChanged(std::stoll(shellholderId_), width_,
@@ -602,11 +662,13 @@ void XComponentBase::OnDispatchTouchEvent(OH_NativeXComponent* component,
     if (isEngineAttached_) {
       // if this touchEvent triggered by mouse, return
       OH_NativeXComponent_EventSourceType sourceType;
-      int32_t ret2 = OH_NativeXComponent_GetTouchEventSourceType(component, touchEvent_.id, &sourceType);
+      int32_t ret2 = OH_NativeXComponent_GetTouchEventSourceType(
+          component, touchEvent_.id, &sourceType);
       if (ret2 == OH_NATIVEXCOMPONENT_RESULT_SUCCESS &&
           sourceType == OH_NATIVEXCOMPONENT_SOURCE_TYPE_MOUSE) {
-          ohosTouchProcessor_.HandleVirtualTouchEvent(std::stoll(shellholderId_), component, &touchEvent_);
-          return;
+        ohosTouchProcessor_.HandleVirtualTouchEvent(std::stoll(shellholderId_),
+                                                    component, &touchEvent_);
+        return;
       }
       ohosTouchProcessor_.HandleTouchEvent(std::stoll(shellholderId_),
                                            component, &touchEvent_);
@@ -618,53 +680,57 @@ void XComponentBase::OnDispatchTouchEvent(OH_NativeXComponent* component,
   }
 }
 
-void XComponentBase::OnDispatchMouseEvent(OH_NativeXComponent* component, void* window)
-{
-    OH_NativeXComponent_MouseEvent mouseEvent;
-    int32_t ret = OH_NativeXComponent_GetMouseEvent(component, window, &mouseEvent);
-    if (ret == OH_NATIVEXCOMPONENT_RESULT_SUCCESS && isEngineAttached_) {
-        if (mouseEvent.button == OH_NATIVEXCOMPONENT_LEFT_BUTTON) {
-            if (mouseEvent.action == OH_NATIVEXCOMPONENT_MOUSE_PRESS) {
-                g_isMouseLeftActive = true;
-            } else if (mouseEvent.action == OH_NATIVEXCOMPONENT_MOUSE_RELEASE) {
-                g_isMouseLeftActive = false;
-            }
-        }
-        ohosTouchProcessor_.HandleMouseEvent(std::stoll(shellholderId_), component, mouseEvent, 0.0);
-        return;
+void XComponentBase::OnDispatchMouseEvent(OH_NativeXComponent* component,
+                                          void* window) {
+  OH_NativeXComponent_MouseEvent mouseEvent;
+  int32_t ret =
+      OH_NativeXComponent_GetMouseEvent(component, window, &mouseEvent);
+  if (ret == OH_NATIVEXCOMPONENT_RESULT_SUCCESS && isEngineAttached_) {
+    if (mouseEvent.button == OH_NATIVEXCOMPONENT_LEFT_BUTTON) {
+      if (mouseEvent.action == OH_NATIVEXCOMPONENT_MOUSE_PRESS) {
+        g_isMouseLeftActive = true;
+      } else if (mouseEvent.action == OH_NATIVEXCOMPONENT_MOUSE_RELEASE) {
+        g_isMouseLeftActive = false;
+      }
     }
-    LOGE("XComponentManger::DispatchMouseEvent XComponentBase is not attached");
+    ohosTouchProcessor_.HandleMouseEvent(std::stoll(shellholderId_), component,
+                                         mouseEvent, 0.0);
+    return;
+  }
+  LOGE("XComponentManger::DispatchMouseEvent XComponentBase is not attached");
 }
 
-void XComponentBase::OnDispatchMouseWheelEvent(mouseWheelEvent event)
-{
-    std::string shell_holder_str = std::to_string(event.shellHolder);
-    if (shell_holder_str != shellholderId_) {
-        return;
+void XComponentBase::OnDispatchMouseWheelEvent(mouseWheelEvent event) {
+  std::string shell_holder_str = std::to_string(event.shellHolder);
+  if (shell_holder_str != shellholderId_) {
+    return;
+  }
+  if (isEngineAttached_) {
+    if (g_isMouseLeftActive) {
+      return;
     }
-    if (isEngineAttached_) {
-        if (g_isMouseLeftActive) {
-            return;
-        }
-        if (event.eventType == "actionUpdate") {
-            OH_NativeXComponent_MouseEvent mouseEvent;
-            // 调整鼠标滚轮滚动时，列表滑动的方向。和Windows保持一致。
-            double scrollY = g_scrollDistance - event.offsetY;
-            g_scrollDistance = event.offsetY;
-            // fix resize ratio
-            mouseEvent.x = event.globalX / g_resizeRate;
-            mouseEvent.y = event.globalY / g_resizeRate;
-            scrollY = scrollY / g_resizeRate;
-            mouseEvent.button = OH_NATIVEXCOMPONENT_NONE_BUTTON;
-            mouseEvent.action = OH_NATIVEXCOMPONENT_MOUSE_NONE;
-            mouseEvent.timestamp = event.timestamp;
-            ohosTouchProcessor_.HandleMouseEvent(std::stoll(shellholderId_), nullptr, mouseEvent, scrollY);
-        } else {
-            g_scrollDistance = 0.0;
-        }
+    if (event.eventType == "actionUpdate") {
+      OH_NativeXComponent_MouseEvent mouseEvent;
+      // 调整鼠标滚轮滚动时，列表滑动的方向。和Windows保持一致。
+      double scrollY = g_scrollDistance - event.offsetY;
+      g_scrollDistance = event.offsetY;
+      // fix resize ratio
+      mouseEvent.x = event.globalX / g_resizeRate;
+      mouseEvent.y = event.globalY / g_resizeRate;
+      scrollY = scrollY / g_resizeRate;
+      mouseEvent.button = OH_NATIVEXCOMPONENT_NONE_BUTTON;
+      mouseEvent.action = OH_NATIVEXCOMPONENT_MOUSE_NONE;
+      mouseEvent.timestamp = event.timestamp;
+      ohosTouchProcessor_.HandleMouseEvent(std::stoll(shellholderId_), nullptr,
+                                           mouseEvent, scrollY);
     } else {
-        LOGE("XComponentManger::DispatchMouseWheelEvent XComponentBase is not attached");
+      g_scrollDistance = 0.0;
     }
+  } else {
+    LOGE(
+        "XComponentManger::DispatchMouseWheelEvent XComponentBase is not "
+        "attached");
+  }
 }
 
 int32_t XComponentBase::FindAccessibilityNodeInfosById(
