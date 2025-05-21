@@ -201,7 +201,6 @@ source_set("fml") {
       "platform/ohos/napi_util.h",
       "platform/ohos/napi_util.cc",
       "platform/ohos/ohos_trace_event.cc",
-      "platform/ohos/hiappevent/ohos_hiappevent.cpp",
       "platform/ohos/dynamic_library_loader.cpp",
       "platform/ohos/dynamic_library_loader.h",
     ]
@@ -209,6 +208,7 @@ source_set("fml") {
     libs += [ "ace_napi.z" ]
     libs += [ "uv" ]
     libs += [ "hitrace_ndk.z" ]
+    libs += [ "deviceinfo_ndk.z" ]
   }else if (is_linux) {
     sources += [
       "platform/linux/message_loop_linux.cc",

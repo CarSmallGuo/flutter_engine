@@ -12,6 +12,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include "flutter/fml/platform/ohos/dynamic_library_loader.h"
 #include "flutter/shell/platform/ohos/accessibility/multi_instance_xcomp_accessibility.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "flutter/shell/platform/ohos/ohos_touch_processor.h"
@@ -25,6 +26,16 @@ class XComponentBase {
  private:
   void BindXComponentCallback();
   void BindAccessibilityProviderCallback();
+
+  // dynamic load the needed accessibility symbols
+  static constexpr char ARKUI_REGISTER_CALLBACK_WITH_INSTANCE[] =
+      "OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance";
+  static constexpr char ARKUI_ACE_LIB_NAME[] = "libace_ndk.z.so";
+  // function pointers
+  int32_t (*OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_)(
+      const char*,
+      ArkUI_AccessibilityProvider*,
+      ArkUI_AccessibilityProviderCallbacksWithInstance*);
 
  public:
   XComponentBase(std::string id);
@@ -84,7 +95,8 @@ class XComponentBase {
   OH_NativeXComponent_MouseEvent_Callback mouseCallback_;
   ArkUI_AccessibilityProviderCallbacks accessibilityProviderCallback_;
   // multi-instance xcomponent of accessibility (API-15+)
-  std::unique_ptr<MultiInstanceXCompAccessibility> multiInstanceXCompAccessibility_;
+  std::unique_ptr<MultiInstanceXCompAccessibility>
+      multiInstanceXCompAccessibility_;
 
   std::string id_;
   std::string shellholderId_;

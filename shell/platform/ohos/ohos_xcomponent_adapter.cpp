@@ -96,7 +96,8 @@ void XComponentAdapter::AttachFlutterEngine(std::string& id,
   if (findIter != xcomponetMap_.end()) {
     findIter->second->AttachFlutterEngine(shellholderId);
   }
-  if (OHOS_API_VERSION >= 15) return;
+  if (OHOS_API_VERSION >= 15)
+    return;
   SetCurrentXcomponentId(id);
 }
 
@@ -111,8 +112,7 @@ void XComponentAdapter::DetachFlutterEngine(std::string& id) {
   }
 }
 
-void XComponentAdapter::OnMouseWheel(std::string& id, mouseWheelEvent event)
-{
+void XComponentAdapter::OnMouseWheel(std::string& id, mouseWheelEvent event) {
   std::lock_guard<std::mutex> lock(xcomponentMap_mutex_);
   auto iter = xcomponetMap_.find(id);
   if (iter != xcomponetMap_.end()) {
@@ -148,7 +148,8 @@ static int32_t SetNativeWindowOpt(OHNativeWindow* nativeWindow,
                                   int height) {
   // Set the read and write scenarios of the native window buffer.
   uint64_t usage = 0;
-  int ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, GET_USAGE, &usage);
+  int ret =
+      OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, GET_USAGE, &usage);
   usage |= BUFFER_USAGE_MEM_DMA | (BUFFER_USAGE_HW_COMPOSER);
   ret = OH_NativeWindow_NativeWindowHandleOpt(nativeWindow, SET_USAGE, usage);
   if (ret) {
@@ -429,6 +430,14 @@ XComponentBase::XComponentBase(std::string id) {
   id_ = id;
   isEngineAttached_ = false;
   if (OHOS_API_VERSION >= 15) {
+    OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_ = nullptr;
+    std::make_unique<DynamicLibraryLoader>(ARKUI_ACE_LIB_NAME)
+        ->LoadSymbols({
+            {ARKUI_REGISTER_CALLBACK_WITH_INSTANCE,
+             reinterpret_cast<void**>(
+                 &OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_),
+             15},
+        });
     multiInstanceXCompAccessibility_ =
         std::make_unique<MultiInstanceXCompAccessibility>();
   }
@@ -511,12 +520,10 @@ ArkUI_AccessibilityProvider*
 XComponentBase::GetArkUIAccessibilityServiceProviderWithInstance(
     OH_NativeXComponent* nativeXComponent) {
   // bind the multi-instance accessibility callbacks
-  if (multiInstanceXCompAccessibility_ != nullptr) {
-    multiInstanceXCompAccessibility_->BindAccessibilityCallbackWithInstance();
-  } else {
-    LOGE("multiInstanceAccessibility_ is nullptr");
-    return nullptr;
-  }
+  CHECK_WITH_RET_NULLPTR(multiInstanceXCompAccessibility_,
+                         GetArkUIAccessibilityServiceProviderWithInstance);
+  multiInstanceXCompAccessibility_->BindAccessibilityCallbackWithInstance();
+
   ArkUI_AccessibilityProvider* provider = nullptr;
   int32_t ret = OH_NativeXComponent_GetNativeAccessibilityProvider(
       nativeXComponent, &provider);
@@ -525,7 +532,10 @@ XComponentBase::GetArkUIAccessibilityServiceProviderWithInstance(
     return nullptr;
   }
   // register the accessibility callback with multi-instances
-  ret = OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance(
+  CHECK_WITH_RET_NULLPTR(
+      OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_,
+      GetArkUIAccessibilityServiceProviderWithInstance);
+  ret = OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_(
       id_.c_str(), provider,
       &multiInstanceXCompAccessibility_->a11yProviderCallbackWithInstance_);
   if (ret != 0) {
