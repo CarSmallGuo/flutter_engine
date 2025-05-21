@@ -100,6 +100,10 @@ private:
 
   bool isTouchDown_ = false;
 
+  bool isCfgFileInit_ = false;
+
+  double curAnimationTranslateVelocity_ = 0.0;
+
   map<string, OH_NativeVSync*> nativeVsyncMap_;
 
   unique_ptr<OHOSAssetProvider> asset_provider_;

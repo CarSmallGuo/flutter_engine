@@ -44,7 +44,7 @@ export default class NativeVsyncChannel implements MethodCallHandler {
                     let type: string = call.argument('type');
                     let velocity: number = call.argument('velocity');
                     if (type == "translate") {
-                        FlutterNapi.animationVoting(0, velocity);
+                        FlutterNapi.animationVoting(1, velocity);
                     }
                     break;
                 case "video":

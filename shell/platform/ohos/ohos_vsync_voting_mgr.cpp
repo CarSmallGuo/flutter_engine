@@ -44,7 +44,7 @@ std::shared_ptr<OhosVsyncVotingMgr> OhosVsyncVotingMgr::GetInstance(void) {
   return instance;
 }
 
-OhosVsyncVotingMgr::OhosVsyncVotingMgr() : libHandle_(nullptr) {
+OhosVsyncVotingMgr::OhosVsyncVotingMgr() : asset_provider_(nullptr),libHandle_(nullptr) {
   libHandle_ = dlopen(LIB_NATIVE_VSYNC_NAME, RTLD_LAZY | RTLD_LOCAL);
   if (libHandle_ == nullptr) {
     FML_LOG(ERROR) << "Failed to dlopen libnative_vsync.so";
@@ -118,8 +118,6 @@ void OhosVsyncVotingMgr::VoteTouchValue(VVMTouchType type, int64_t timestamp) {
     VotingBySelf();
   } else if (type == VVMTouchType::TOUCH_TYPE_UP_3_SEC_AFTER) {
     if (timestamp - touchTimestamp >= 3000) {
-      touchVoting_ = FPS_60;
-      VotingBySelf();
       touchVoting_ = 0;
       VotingBySelf();
     }
@@ -169,6 +167,13 @@ void OhosVsyncVotingMgr::VoteVideoValue(int second, int frameCount) {
 }
 
 inline void OhosVsyncVotingMgr::VoteANTranslate(double velocity) {
+  if (velocity < curAnimationTranslateVelocity_) {
+    return;
+  }
+
+  curAnimationTranslateVelocity_ = velocity;
+
+
   if (lastVelocity_ < 1) {
     firstVoteFrame_ = true;
   }
@@ -246,6 +251,9 @@ void OhosVsyncVotingMgr::VotingByNativeVsync(OH_NativeVSync* handle) {
     resultFrameRate_ = 0;
   }
 
+  // 清空缓存
+  curAnimationTranslateVelocity_ = 0.0;
+
   if (resultFrameRate_ == 0 && resultFrameRate_ == localFrameRate_) {
     return;
   }
@@ -303,6 +311,8 @@ void OhosVsyncVotingMgr::VotingBySelf() {
   } else {
     resultFrameRate_ = 0;
   }
+
+  curAnimationTranslateVelocity_ = 0.0;
 
   if (resultFrameRate_ == 0 && resultFrameRate_ == localFrameRate_) {
     return;
@@ -390,6 +400,11 @@ void OhosVsyncVotingMgr::ParseFramesCfg(void) {
     return;
   }
 
+  if (isCfgFileInit_) {
+    FML_LOG(ERROR) << "framesconfig file has been initiallized";
+    return;
+  }
+
   std::unique_ptr<fml::Mapping> framesCfgMapping =
       asset_provider_->GetAsMapping(std::string(FRAMES_CFG_JSON));
   if (framesCfgMapping == nullptr) {
@@ -403,6 +418,8 @@ void OhosVsyncVotingMgr::ParseFramesCfg(void) {
     FML_LOG(ERROR) << "Failed to GetBuffer";
     return;
   }
+
+  isCfgFileInit_ = true;
 
   int size = static_cast<int>(framesCfgMapping->GetSize());
 
@@ -446,6 +463,11 @@ void OhosVsyncVotingMgr::SetAssetProvider(
 
   if (hap_asset_provider == nullptr) {
     FML_LOG(ERROR) << "hap_asset_provider is null";
+    return;
+  }
+
+  if (asset_provider_ != nullptr) {
+    FML_LOG(ERROR) << "asset_provider is not null";
     return;
   }
 
