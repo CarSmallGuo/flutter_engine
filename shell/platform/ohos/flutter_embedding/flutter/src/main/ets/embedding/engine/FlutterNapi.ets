@@ -727,6 +727,21 @@ export default class FlutterNapi {
   SetDVsyncSwitch(isEnable: boolean): void {
     flutter.nativeSetDVsyncSwitch(this.nativeShellHolderId!, isEnable);
   }
+
+  /*
+  * 发送屏幕滑动速度
+  * @param velocity: 当前屏幕滑动速度
+  */
+  static animationVoting(type: number, velocity: number): void {
+    flutter.nativeAnimationVoting(type, velocity);
+  }
+
+  /*
+  * 预加载帧率挡位配置文件
+  */
+  static prefetchFramesCfg(): void {
+    flutter.nativePrefetchFramesCfg();
+  }
 }
 
 export interface AccessibilityDelegate {
