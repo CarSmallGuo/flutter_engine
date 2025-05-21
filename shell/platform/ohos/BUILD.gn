@@ -79,6 +79,7 @@ source_set("flutter_ohos_sources") {
              "./accessibility/ohos_semantics_tree.h",
              "./accessibility/ohos_semantics_bridge.h",
              "./accessibility/ohos_accessibility_ddl.h",
+             "./accessibility/multi_instance_xcomp_accessibility.h",
              "./utils/ohos_utils.h",
              "./utils/arkui_accessibility_constant.h"
            ]
@@ -116,6 +117,7 @@ source_set("flutter_ohos_sources") {
       "./accessibility/ohos_semantics_tree.cpp",
       "./accessibility/ohos_semantics_bridge.cpp",
       "./accessibility/ohos_accessibility_ddl.cpp",
+      "./accessibility/multi_instance_xcomp_accessibility.cpp",
       "./utils/ohos_utils.cpp",
       "image_lru.cpp"
   ]
