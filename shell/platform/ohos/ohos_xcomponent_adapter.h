@@ -10,6 +10,7 @@
 #include <arkui/native_interface_accessibility.h>
 #include <map>
 #include <string>
+#include "flutter/shell/platform/ohos/accessibility/multi_instance_xcomp_accessibility.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "flutter/shell/platform/ohos/ohos_touch_processor.h"
 #include "napi/native_api.h"
@@ -73,11 +74,16 @@ class XComponentBase {
 
   ArkUI_AccessibilityProvider* GetArkUIAccessibilityServiceProvider(
       OH_NativeXComponent* nativeXComponent);
+  ArkUI_AccessibilityProvider* GetArkUIAccessibilityServiceProviderWithInstance(
+      OH_NativeXComponent* nativeXComponent);
 
   OH_NativeXComponent_TouchEvent touchEvent_;
   OH_NativeXComponent_Callback callback_;
   OH_NativeXComponent_MouseEvent_Callback mouseCallback_;
   ArkUI_AccessibilityProviderCallbacks accessibilityProviderCallback_;
+  // multi-instance xcomponent of accessibility (API-15+)
+  std::unique_ptr<MultiInstanceXCompAccessibility>
+      multiInstanceXCompAccessibility_;
   std::string id_;
   std::string shellholderId_;
   OHOSShellHolder* shellholder_ptr_ = nullptr;
@@ -108,6 +114,7 @@ class XComponentAdapter {
   void DetachFlutterEngine(std::string& id);
   void OnMouseWheel(std::string& id, mouseWheelEvent event);
   XComponentBase* GetCurrentXcomponent();
+  XComponentBase* GetXcomponentBase(const std::string& id);
   void SetCurrentXcomponentId(std::string id);
 
  public:
