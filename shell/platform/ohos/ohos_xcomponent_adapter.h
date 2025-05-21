@@ -1,33 +1,45 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE_KHZG file.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 
 #ifndef OHOS_XCOMPONENT_ADAPTER_H
 #define OHOS_XCOMPONENT_ADAPTER_H
-#include <deviceinfo.h>
 #include <ace/xcomponent/native_interface_xcomponent.h>
 #include <arkui/native_interface_accessibility.h>
-#include <string>
+#include <deviceinfo.h>
 #include <map>
 #include <mutex>
-#include "flutter/shell/platform/ohos/ohos_touch_processor.h"
+#include <string>
+#include "flutter/fml/platform/ohos/dynamic_library_loader.h"
+#include "flutter/shell/platform/ohos/accessibility/multi_instance_xcomp_accessibility.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
+#include "flutter/shell/platform/ohos/ohos_touch_processor.h"
+#include "flutter/shell/platform/ohos/utils/ohos_utils.h"
 #include "napi/native_api.h"
 #include "napi_common.h"
-#include "flutter/shell/platform/ohos/utils/ohos_utils.h"
 #include "ohos_shell_holder.h"
 namespace flutter {
 
-class XComponentBase
-{
-private:
+class XComponentBase {
+ private:
   void BindXComponentCallback();
   void BindAccessibilityProviderCallback();
- 
-public:
-  XComponentBase(std::string id);
+
+  // dynamic load the needed accessibility symbols
+  static std::unique_ptr<DynamicLibraryLoader> loader_;
+  static constexpr char ARKUI_REGISTER_CALLBACK_WITH_INSTANCE[] =
+      "OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance";
+  static constexpr char ARKUI_ACE_LIB_NAME[] = "libace_ndk.z.so";
+  // function pointers
+  int32_t (*OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_)(
+      const char*,
+      ArkUI_AccessibilityProvider*,
+      ArkUI_AccessibilityProviderCallbacksWithInstance*);
+
+ public:
+  XComponentBase(const std::string& id);
   ~XComponentBase();
 
   void AttachFlutterEngine(std::string shellholderId);
@@ -76,11 +88,17 @@ public:
   ArkUI_AccessibilityProvider* GetArkUIAccessibilityServiceProvider(
       OH_NativeXComponent* nativeXComponent);
 
+  ArkUI_AccessibilityProvider* GetArkUIAccessibilityServiceProviderWithInstance(
+      OH_NativeXComponent* nativeXComponent);
+
   OH_NativeXComponent_TouchEvent touchEvent_;
   OH_NativeXComponent_Callback callback_;
   OH_NativeXComponent_MouseEvent_Callback mouseCallback_;
   ArkUI_AccessibilityProviderCallbacks accessibilityProviderCallback_;
-  
+  // multi-instance xcomponent of accessibility (API-15+)
+  std::unique_ptr<MultiInstanceXCompAccessibility>
+      multiInstanceXCompAccessibility_;
+
   std::string id_;
   std::string shellholderId_;
   bool isEngineAttached_;
@@ -107,6 +125,7 @@ class XComponentAdapter {
   void OnMouseWheel(std::string& id, mouseWheelEvent event);
 
   XComponentBase* GetCurrentXcomponent();
+  XComponentBase* GetXcomponentBase(const std::string& id);
   void SetCurrentXcomponentId(std::string id);
 
  public:

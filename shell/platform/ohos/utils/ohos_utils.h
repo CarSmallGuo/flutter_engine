@@ -25,6 +25,15 @@ using LIBHANDLE = void*;
 #define ARKUI_BAD_PARAM_CODE (-2)
 #define ARKUI_OOM_CODE  (-3)
 
+#define CHECK_WITH_RET_NULLPTR(PARAM, FUNC)                    \
+    do {                                                       \
+        if ((PARAM) == nullptr) {                              \
+            LOGE("Error: %{public}s -> %{public}s is nullptr", \
+                #FUNC, #PARAM);                                \
+            return nullptr;                                    \
+        }                                                      \
+    } while (false)                                            \
+
 #define ARKUI_ACCESSIBILITY_CALL_CHECK(X)                                 \
     do {                                                                  \
         int32_t RET = X;                                                  \
