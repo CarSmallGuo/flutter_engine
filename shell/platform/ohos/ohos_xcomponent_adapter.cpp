@@ -448,6 +448,14 @@ XComponentBase::XComponentBase(std::string id) {
   id_ = id;
   is_engine_attached_ = false;
   if (OHOS_API_VERSION >= 15) {
+    OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_ = nullptr;
+    std::make_unique<DynamicLibraryLoader>(ARKUI_ACE_LIB_NAME)
+        ->LoadSymbols({
+            {ARKUI_REGISTER_CALLBACK_WITH_INSTANCE,
+             reinterpret_cast<void**>(
+                 &OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_),
+             15},
+        });
     multiInstanceXCompAccessibility_ =
         std::make_unique<MultiInstanceXCompAccessibility>();
   }
@@ -563,7 +571,13 @@ XComponentBase::GetArkUIAccessibilityServiceProviderWithInstance(
     return nullptr;
   }
   // register the accessibility callback with multi-instances
-  ret = OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance(
+  if (OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_ == nullptr) {
+    LOGE(
+        "OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_ is "
+        "nullptr");
+    return nullptr;
+  }
+  ret = OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_(
       id_.c_str(), provider,
       &multiInstanceXCompAccessibility_->a11yProviderCallbackWithInstance_);
   if (ret != 0) {
