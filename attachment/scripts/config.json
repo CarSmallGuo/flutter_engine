@@ -74,7 +74,7 @@
         "name": "native2",
         "target": "./src/flutter/third_party/dart/third_party/pkg/native",
         "type": "patch",
-        "file_path": "../../../../../attachment/repos/flutter3.27-native2.patch"
+        "file_path": "../../../../../attachment/repos/flutter3.27-native.patch2"
     },
     {
         "name": "vulkan",
