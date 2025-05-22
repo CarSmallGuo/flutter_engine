@@ -70,7 +70,7 @@ export default function FlutterEntryTest() {
     it('TestShouldAttachEngineToAbility', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.shouldAttachEngineToAbility();
-      expect(result).assertUndefined();
+      expect(result).assertTrue();
       done();
     })
 
@@ -126,14 +126,14 @@ export default function FlutterEntryTest() {
     it('TestGetCachedEngineId', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.getCachedEngineId();
-      expect(result).assertUndefined();
+      expect(result).assertEqual("");
       done();
     })
 
     it('TestGetCachedEngineGroupId', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.getCachedEngineGroupId();
-      expect(result).assertUndefined();
+      expect(result).assertNull();
       done();
     })
 
