@@ -22,7 +22,7 @@ import TextInputPlugin from '../plugin/editing/TextInputPlugin';
 import { accessibility } from '@kit.AccessibilityKit';
 import { uiObserver } from '@kit.ArkUI';
 import { common } from '@kit.AbilityKit';
-
+// 门禁测试
 const TAG = "FlutterViewTag";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
 
