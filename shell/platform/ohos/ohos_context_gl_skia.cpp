@@ -79,8 +79,7 @@ OhosContextGLSkia::OhosContextGLSkia(OHOSRenderingAPI rendering_api,
   TRACE_EVENT0("flutter", "OhosContextGLSkia");
 
   // Choose a valid configuration.
-  std::tie(success, config_) =
-      ChooseEGLConfiguration(environment_->Display());
+  std::tie(success, config_) = ChooseEGLConfiguration(environment_->Display());
   if (!success) {
     FML_LOG(ERROR) << "Could not choose an EGL configuration.";
     LogLastEGLError();
