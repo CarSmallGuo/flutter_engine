@@ -29,6 +29,12 @@
         "file_path": "../..//attachment/repos/flutter3.27-skia.patch2"
     },
     {
+        "name": "skia3",
+        "target": "./src/flutter/third_party/skia",
+        "type": "patch",
+        "file_path": "../..//attachment/repos/flutter3.27-skia.patch3"
+    },
+    {
         "name": "spirv-headers",
         "target": "./src/flutter/third_party/vulkan-deps/spirv-headers/src",
         "type": "patch",

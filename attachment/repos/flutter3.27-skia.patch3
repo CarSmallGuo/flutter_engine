@@ -1,0 +1,202 @@
+diff --git a/src/ports/skia_ohos/FontConfig_ohos.cpp b/src/ports/skia_ohos/FontConfig_ohos.cpp
+index 8201ace411..ccf735db91 100644
+--- a/src/ports/skia_ohos/FontConfig_ohos.cpp
++++ b/src/ports/skia_ohos/FontConfig_ohos.cpp
+@@ -15,6 +15,7 @@
+ #include "SkString.h"
+ #include "SkTypeface_ohos.h"
+ #include "include/private/base/SkDebug.h"
++#include "native_drawing/drawing_text_typography.h"
+ 
+ using namespace ErrorCode;
+ #if defined(SK_BUILD_FONT_MGR_FOR_PREVIEW_WIN) or defined(SK_BUILD_FONT_MGR_FOR_PREVIEW_MAC) or defined(SK_BUILD_FONT_MGR_FOR_PREVIEW_LINUX)
+@@ -324,6 +325,138 @@ char* FontConfig_OHOS::getFileData(const char* fname, int& size)
+     return (char*)data;
+ }
+ 
++/*! parse the system font configuration from OH_Drawing_GetSystemFontConfigInfo
++ * \return NO_ERROR successful
++ * \return ERROR_CONFIG_NOT_FOUND config document is not found
++ * \return ERROR_CONFIG_FORMAT_NOT_SUPPORTED config document format is not supported
++ * \return ERROR_CONFIG_INVALID_VALUE_TYPE wrong type of value in the configuration
++ */
++int FontConfig_OHOS::parseSystemFontConfigInfo()
++{
++    OH_Drawing_FontConfigInfoErrorCode errCode;
++    OH_Drawing_FontConfigInfo* cfg =
++        OH_Drawing_GetSystemFontConfigInfo(&errCode);
++
++    if (errCode != SUCCESS_FONT_CONFIG_INFO || cfg == nullptr) {
++        OH_Drawing_DestroySystemFontConfigInfo(cfg);
++        // 注意：即便 errCode 是 SUCCESS，但 cfg 为空也视为未知错误
++        switch (errCode) {
++            case SUCCESS_FONT_CONFIG_INFO:
++                // cfg == nullptr 的意外情况
++                return logErrInfo(ERROR_CONFIG_NOT_FOUND, "OH_Drawing_GetSystemFontConfigInfo");
++
++            case ERROR_FONT_CONFIG_INFO_PARSE_FILE:
++                // 解析配置文件失败
++                return logErrInfo(ERROR_CONFIG_FORMAT_NOT_SUPPORTED, "OH_Drawing_GetSystemFontConfigInfo");
++
++            case ERROR_FONT_CONFIG_INFO_ALLOC_MEMORY:
++                // 内存申请失败，相当于无法继续解析
++                return logErrInfo(ERROR_CONFIG_NOT_FOUND, "OH_Drawing_GetSystemFontConfigInfo");
++
++            case ERROR_FONT_CONFIG_INFO_COPY_STRING_DATA:
++                // 字符串拷贝失败，数据不完整
++                return logErrInfo(ERROR_CONFIG_INVALID_VALUE_TYPE, "OH_Drawing_GetSystemFontConfigInfo");
++
++            case ERROR_FONT_CONFIG_INFO_UNKNOWN:
++            default:
++                // 未知错误
++                return logErrInfo(ERROR_CONFIG_NOT_FOUND, "OH_Drawing_GetSystemFontConfigInfo");
++        }
++    }
++
++    // —— fontdir 列表 ——  
++    fontDirSet.clear();
++    for (size_t i = 0; i < cfg->fontDirSize; ++i) {
++        fontDirSet.emplace_back(SkString(cfg->fontDirSet[i]));
++    }
++
++    // —— generic 列表 ——  
++    genericFamilySet.clear();
++    genericNames.reset();
++    aliasMap.reset();
++    adjustMap.reset();
++    variationMap.reset();
++    ttcIndexMap.reset();
++
++    for (size_t g = 0; g < cfg->fontGenericInfoSize; ++g) {
++        auto& gi = cfg->fontGenericInfoSet[g];
++
++        // 创建一个 GenericFamily
++        auto family = std::make_unique<GenericFamily>();
++        family->familyName = SkString(gi.familyName);
++        family->typefaceSet = std::make_shared<TypefaceSet>();
++
++        // 别名列表
++        std::vector<AliasInfo> aliasSet;
++        for (size_t a = 0; a < gi.aliasInfoSize; ++a) {
++            auto& ai = gi.aliasInfoSet[a];
++            AliasInfo info = {
++                static_cast<int>(genericFamilySet.size()) + static_cast<int>(aliasSet.size()),
++                ai.weight
++            };
++            aliasSet.push_back(info);
++
++            // 记录 name → 索引
++            genericNames.set(SkString(ai.familyName),
++                             genericFamilySet.size() + aliasSet.size() - 1);
++        }
++        if (!aliasSet.empty()) {
++            aliasMap.set(SkString(family->familyName), aliasSet);
++        }
++
++        // 字重映射列表
++        std::vector<AdjustInfo> adjustSet;
++        for (size_t r = 0; r < gi.adjustInfoSize; ++r) {
++            auto& adj = gi.adjustInfoSet[r];
++            adjustSet.push_back({adj.weight, adj.to});
++        }
++        if (!adjustSet.empty()) {
++            adjustMap.set(SkString(family->familyName), adjustSet);
++        }
++
++        // 把这条 GenericFamily 放进去
++        genericNames.set(SkString(family->familyName), genericFamilySet.size());
++        genericFamilySet.emplace_back(std::move(family));
++    }
++
++    // —— fallback 列表 ——  
++    fallbackSet.clear();
++    fallbackForMap.reset();
++    fallbackNames.reset();
++
++    for (size_t fg = 0; fg < cfg->fallbackGroupSize; ++fg) {
++        auto& group = cfg->fallbackGroupSet[fg];
++        SkString lang(group.groupName);
++
++        // 当前语言组在全局 fallbackSet 里起始位置
++        unsigned int startPos = fallbackSet.size();
++
++        // 遍历这一组的所有 FallbackInfo
++        for (size_t i = 0; i < group.fallbackInfoSize; ++i) {
++            auto& fi = group.fallbackInfoSet[i];
++            auto fallback = std::make_unique<FallbackInfo>();
++            fallback->langs      = lang;
++            fallback->familyName = SkString(fi.familyName);
++            fallback->typefaceSet = std::make_shared<TypefaceSet>();
++
++            // 记录 familyName → 全局索引
++            fallbackNames.set(fallback->familyName, fallbackSet.size());
++            fallbackSet.emplace_back(std::move(fallback));
++        }
++
++        // 记录语言 → 该组在 fallbackSet 的 [startPos, count]
++        FallbackSetPos pos = {
++            startPos,
++            static_cast<unsigned int>(fallbackSet.size() - startPos)
++        };
++        fallbackForMap.set(lang, pos);
++    }
++
++    OH_Drawing_DestroySystemFontConfigInfo(cfg);
++
++    return NO_ERROR;
++}
++
+ /*! parse the system font configuration document
+  * \param fname the full name of the font configuration document
+  * \return NO_ERROR successful
+@@ -1304,10 +1437,10 @@ bool FontConfig_OHOS::judgeFileExist()
+ 
+ int FontConfig_OHOS::checkProductFile(const char* fname)
+ {
+-    int err = parseConfig(PRODUCT_DEFAULT_CONFIG);
+-    SkDebugf("parse productfontconfig json file err = %d", err);
++    int err = parseSystemFontConfigInfo();
++    SkDebugf("parse system font config info err = %d", err);
+     if ((err != NO_ERROR) || (!judgeFileExist())) {
+-        SkDebugf("parse productfontconfig json file error");
++        SkDebugf("parse system font config info error");
+         fontDirSet.clear();
+         fallbackForMap.reset();
+         genericFamilySet.clear();
+@@ -1319,7 +1452,23 @@ int FontConfig_OHOS::checkProductFile(const char* fname)
+         adjustMap.reset();
+         variationMap.reset();
+         ttcIndexMap.reset();
+-        err = parseConfig(fname);
++        err = parseConfig(PRODUCT_DEFAULT_CONFIG);
++        SkDebugf("parse productfontconfig json file err = %d", err);
++        if ((err != NO_ERROR) || (!judgeFileExist())) {
++            SkDebugf("parse productfontconfig json file error");
++            fontDirSet.clear();
++            fallbackForMap.reset();
++            genericFamilySet.clear();
++            fallbackSet.clear();
++            genericNames.reset();
++            fallbackNames.reset();
++            errSet.clear();
++            aliasMap.reset();
++            adjustMap.reset();
++            variationMap.reset();
++            ttcIndexMap.reset();
++            err = parseConfig(fname);
++        }
+     }
+     return err;
+ }
+diff --git a/src/ports/skia_ohos/FontConfig_ohos.h b/src/ports/skia_ohos/FontConfig_ohos.h
+index 9311f237bc..a2e2337a6d 100644
+--- a/src/ports/skia_ohos/FontConfig_ohos.h
++++ b/src/ports/skia_ohos/FontConfig_ohos.h
+@@ -182,6 +182,7 @@ private:
+     VariationMap variationMap; // to save variation information temporarily
+     TtcIndexMap ttcIndexMap; // to save 'index' information temporarily
+ 
++    int parseSystemFontConfigInfo();
+     int parseConfig(const char* fname);
+     int checkConfigFile(const char* fname, Json::Value& root);
+     int parseFontDir(const Json::Value& root);
