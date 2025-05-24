@@ -30,7 +30,7 @@ import TextInputPlugin from '../plugin/editing/TextInputPlugin';
 import { accessibility } from '@kit.AccessibilityKit';
 import { deviceInfo } from '@kit.BasicServicesKit';
 
-const TAG = "FlutterViewTag";
+const TAG = "FlutterViewTag";   // 门禁测试
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
 
 export class ViewportMetrics {
