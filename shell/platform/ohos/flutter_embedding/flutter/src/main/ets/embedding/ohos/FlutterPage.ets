@@ -9,7 +9,6 @@ import { FlutterView } from '../../view/FlutterView';
 import FlutterManager from './FlutterManager';
 import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
 import flutter from 'libflutter.so';
-
 const TAG = "FlutterPage";
 
 export const OHOS_FLUTTER_PAGE_UPDATE = "ohos_flutter_page_update";
@@ -61,19 +60,17 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
-          // 当xcomponent窗口部分显示或完全隐藏时触发回调
           this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
             { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
-            (ratioInc: boolean, ratio: number) => {
-              if (ratioInc) {
+            (isExpanding: boolean, currentRatio: number) => {
+              if (isExpanding) {
                 Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
-                  " ratioInc: " + ratioInc + " ratio: " + ratio);
-                flutter.nativeGetXComponentId(this.viewId);
-                // 保证获取xcomponentid之后再使用无障碍
-                this.flutterView?.onAccessibilityIsOpen();
+                  " isExpanding: " + isExpanding + " ratio: " + currentRatio);
+                flutter.nativeUpdateCurrentXComponentId(this.viewId);
               }
             }
           )
+          Log.d(TAG, "XComponent onLoad ");
         })
         .onDestroy(() => {
           Log.d(TAG, "XComponent onDestroy ");
@@ -167,19 +164,17 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
           Log.d(TAG, "XComponent onLoad ");
-          // 当xcomponent窗口部分显示或完全隐藏时触发回调
           this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
             { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
-            (ratioInc: boolean, ratio: number) => {
-              if (ratioInc) {
+            (isExpanding: boolean, currentRatio: number) => {
+              if (isExpanding) {
                 Log.i(TAG, "setOnVisibleAreaApproximateChange -> xcomponentId: " + this.viewId +
-                  " ratioInc: " + ratioInc + " ratio: " + ratio);
-                flutter.nativeGetXComponentId(this.viewId);
-                // 保证获取xcomponentid之后再使用无障碍
-                this.flutterView?.onAccessibilityIsOpen();
+                  " isExpanding: " + isExpanding + " ratio: " + currentRatio);
+                flutter.nativeUpdateCurrentXComponentId(this.viewId);
               }
             }
           )
+          Log.d(TAG, "XComponent onLoad ");
         })
         .onDestroy(() => {
           Log.d(TAG, "XComponent onDestroy ");
@@ -267,6 +262,8 @@ export struct FlutterPage {
   @State checkKeyboard: boolean = true;
   @State checkGesture: boolean = true;
   @State checkMouseWheel: boolean = true;
+  @State checkAiBar: boolean = true;
+  @Prop @Watch("onPaddingChange")paddingTop?: number = undefined;
   @StorageLink('nodeWidth') storageLinkWidth: number = 0;
   @StorageLink('nodeHeight') storageLinkHeight: number = 0;
   @State rootDvModel: DVModelChildren | undefined = undefined
@@ -277,13 +274,18 @@ export struct FlutterPage {
 
   aboutToAppear() {
     this.flutterView = FlutterManager.getInstance().getFlutterView(this.viewId);
+    if (!this.flutterView) {
+      Log.e(TAG, "getFlutterView failed. viewId is " + this.viewId.toString());
+    }
     this.flutterView?.addFirstFrameListener(this)
 
     this.flutterView?.setCheckFullScreen(this.checkFullScreen)
     this.flutterView?.setCheckKeyboard(this.checkKeyboard)
     this.flutterView?.setCheckGesture(this.checkGesture)
+    this.flutterView?.setPaddingTop(this.paddingTop)
+    this.flutterView?.setCheckAiBar(this.checkAiBar)
 
-    this.rootDvModel = this.flutterView!!.getDVModel().children
+    this.rootDvModel = this.flutterView?.getDVModel().children
     getContext().eventHub.on(OHOS_FLUTTER_PAGE_UPDATE, () => {
       this.isNeedUpdate = true;
     })
@@ -304,5 +306,9 @@ export struct FlutterPage {
     } else {
       this.defaultPage();
     }
+  }
+
+  onPaddingChange() {
+    this.flutterView?.setPaddingTop(this.paddingTop);
   }
 }

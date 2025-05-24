@@ -193,6 +193,12 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     this.setParams(params!, "width", physicalWidth);
     this.setParams(params!, "height", physicalHeight);
 
+    let textureId = this.viewIdWithTextureId.get(viewId);
+    if (textureId != undefined) {
+      let density = this.getDisplayDensity();
+      this.textureRegistry?.notifyTextureResizing(textureId, request.newLogicalWidth * density, request.newLogicalHeight * density);
+    }
+
     onComplete.run(new PlatformViewBufferSize(physicalWidth, physicalHeight));
   }
 
@@ -259,6 +265,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       Log.e(TAG, "Setting direction to a null view with id: " + viewId);
       return;
     }
+    // Make the Xcomponent gain focus.
     focusControl.requestFocus('emptyFocusText' + this.flutterView?.getId());
   }
   synchronizeToNativeViewHierarchy(yes: boolean): void {

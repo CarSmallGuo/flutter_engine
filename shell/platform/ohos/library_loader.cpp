@@ -43,9 +43,6 @@ static napi_value Init(napi_env env, napi_value exports) {
           "nativeSetViewportMetrics",
           flutter::PlatformViewOHOSNapi::nativeSetViewportMetrics),
       DECLARE_NAPI_FUNCTION(
-          "nativeSetAccessibilityFeatures",
-          flutter::PlatformViewOHOSNapi::nativeSetAccessibilityFeatures),
-      DECLARE_NAPI_FUNCTION(
           "nativeCleanupMessageData",
           flutter::PlatformViewOHOSNapi::nativeCleanupMessageData),
       DECLARE_NAPI_FUNCTION(
@@ -131,11 +128,26 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION("nativeDecodeUtf8",
                             flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),
       DECLARE_NAPI_FUNCTION(
-          "nativeUpdateSemantics",
-          flutter::PlatformViewOHOSNapi::nativeUpdateSemantics),
+          "nativeLookupCallbackInformation",
+          flutter::PlatformViewOHOSNapi::nativeLookupCallbackInformation),
       DECLARE_NAPI_FUNCTION(
-          "nativeUpdateCustomAccessibilityActions",
-          flutter::PlatformViewOHOSNapi::nativeUpdateCustomAccessibilityActions),
+          "nativeUnicodeIsEmoji",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmoji),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsEmojiModifier",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifier),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsEmojiModifierBase",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifierBase),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsVariationSelector",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsVariationSelector),
+      DECLARE_NAPI_FUNCTION(
+          "nativeUnicodeIsRegionalIndicatorSymbol",
+          flutter::PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol),
+      DECLARE_NAPI_FUNCTION(
+          "nativeSetDVsyncSwitch",
+          flutter::PlatformViewOHOSNapi::nativeSetDVsyncSwitch),
       DECLARE_NAPI_FUNCTION(
           "nativeAccessibilityStateChange",
           flutter::PlatformViewOHOSNapi::nativeAccessibilityStateChange),
@@ -158,38 +170,20 @@ static napi_value Init(napi_env env, napi_value exports) {
           "nativeSetFontWeightScale",
           flutter::PlatformViewOHOSNapi::nativeSetFontWeightScale),
       DECLARE_NAPI_FUNCTION(
-          "nativeGetShellHolderId",
-          flutter::PlatformViewOHOSNapi::nativeGetShellHolderId),
+          "nativeSetFlutterNavigationAction",
+          flutter::PlatformViewOHOSNapi::nativeSetFlutterNavigationAction),
       DECLARE_NAPI_FUNCTION(
-          "nativeDecodeUtf8",
-          flutter::PlatformViewOHOSNapi::nativeDecodeUtf8),
-      DECLARE_NAPI_FUNCTION(
-          "nativeLookupCallbackInformation",
-          flutter::PlatformViewOHOSNapi::nativeLookupCallbackInformation),
-      DECLARE_NAPI_FUNCTION(
-          "nativeGetFlutterNavigationAction",
-          flutter::PlatformViewOHOSNapi::nativeGetFlutterNavigationAction),
-      DECLARE_NAPI_FUNCTION(
-          "nativeUnicodeIsEmoji",
-          flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmoji),
-      DECLARE_NAPI_FUNCTION(
-          "nativeUnicodeIsEmojiModifier",
-          flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifier),
-      DECLARE_NAPI_FUNCTION(
-          "nativeUnicodeIsEmojiModifierBase",
-          flutter::PlatformViewOHOSNapi::nativeUnicodeIsEmojiModifierBase),
-      DECLARE_NAPI_FUNCTION(
-          "nativeUnicodeIsVariationSelector",
-          flutter::PlatformViewOHOSNapi::nativeUnicodeIsVariationSelector),
-      DECLARE_NAPI_FUNCTION(
-          "nativeUnicodeIsRegionalIndicatorSymbol",
-          flutter::PlatformViewOHOSNapi::nativeUnicodeIsRegionalIndicatorSymbol),
+          "nativeUpdateCurrentXComponentId",
+          flutter::PlatformViewOHOSNapi::nativeUpdateCurrentXComponentId),
       DECLARE_NAPI_FUNCTION(
           "nativeGetXComponentId",
           flutter::PlatformViewOHOSNapi::nativeGetXComponentId),
       DECLARE_NAPI_FUNCTION(
           "nativeSetDVsyncSwitch",
           flutter::PlatformViewOHOSNapi::nativeSetDVsyncSwitch),
+      DECLARE_NAPI_FUNCTION(
+          "nativeNotifyTextureResizing",
+          flutter::PlatformViewOHOSNapi::nativeNotifyTextureResizing),
   };
 
   FML_DLOG(INFO) << "Init NAPI size=" << sizeof(desc) / sizeof(desc[0]);

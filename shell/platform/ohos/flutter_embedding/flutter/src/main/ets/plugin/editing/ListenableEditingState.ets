@@ -15,12 +15,20 @@ import ArrayList from '@ohos.util.ArrayList';
 import { TextEditingDelta } from './TextEditingDelta';
 import TextInputChannel from '../../embedding/engine/systemchannels/TextInputChannel';
 import { FlutterTextUtils } from './TextUtils';
+import { KeyCode } from '@kit.InputKit';
 
 const TAG = "ListenableEditingState";
+enum DeleteStates {
+  START,
+  MOVING,
+  END
+}
 
 export class ListenableEditingState {
   private TextInputChannel: TextInputChannel | null = null;
   private client: number = 0
+  private leftDeleteState: DeleteStates = DeleteStates.END
+  private rightDeleteState: DeleteStates = DeleteStates.END
   //Cache used to storage software keyboard input action
   private mStringCache: string;
   private mSelectionStartCache: number = 0;
@@ -102,6 +110,13 @@ export class ListenableEditingState {
     return this.mStringCache;
   }
 
+  getSelectionString(): string {
+    if (this.mSelectionStartCache < 0 || this.mSelectionEndCache > this.mStringCache.length) {
+      return "";
+    }
+    return this.mStringCache.substring(this.mSelectionStartCache, this.mSelectionEndCache);
+  }
+
   setSelectionStart(newSelectionStart: number): void {
     this.mSelectionStartCache = newSelectionStart;
   }
@@ -168,6 +183,12 @@ export class ListenableEditingState {
   }
 
   updateTextInputState(state: TextEditState): void {
+    if (this.leftDeleteState === DeleteStates.START) {
+      this.leftDeleteState = DeleteStates.MOVING;
+    }
+    if (this.rightDeleteState === DeleteStates.START) {
+      this.rightDeleteState = DeleteStates.MOVING;
+    }
     this.beginBatchEdit();
     this.setStringCache(state.text);
     if (state.hasSelection()) {
@@ -246,6 +267,74 @@ export class ListenableEditingState {
       this.mPendingListeners.remove(listener);
     }
   }
+  
+  startDeleting(code: number) {
+    if (code === KeyCode.KEYCODE_FORWARD_DEL) {
+      this.rightDeleteState = DeleteStates.START
+    } else {
+      this.leftDeleteState = DeleteStates.START
+    }
+  }
+
+  endDeletion(code: number) {
+    if (code === KeyCode.KEYCODE_FORWARD_DEL) {
+      this.rightDeleteState = DeleteStates.END
+    } else {
+      this.leftDeleteState = DeleteStates.END
+    }
+  }
+
+  handleDeleteEvent(leftOrRight: boolean, length: number): void {
+    if (length === 0) {
+      return;
+    }
+
+    let start =
+      this.mSelectionStartCache < this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
+    let end = this.mSelectionStartCache > this.mSelectionEndCache ? this.mSelectionStartCache : this.mSelectionEndCache;
+
+    if (leftOrRight == false && this.leftDeleteState !== DeleteStates.MOVING) {
+      //delete left
+      if (start == 0 && end == 0) {
+        return;
+      }
+
+      let unicodeStart = start;
+      if (start == end) {
+        for (let i = 0; i < length; i++) {
+          unicodeStart = FlutterTextUtils.getOffsetBefore(this.mStringCache, unicodeStart);
+          if (unicodeStart === 0) {
+            break;
+          }
+        }
+      }
+      this.replace(unicodeStart, end, "", 0, 0);
+      this.mSelectionStartCache = unicodeStart;
+      let tempStr: string = this.mStringCache.slice(0, unicodeStart) + this.mStringCache.slice(end);
+      this.mStringCache = tempStr;
+      this.mSelectionEndCache = this.mSelectionStartCache;
+    } else if (leftOrRight == true && this.rightDeleteState !== DeleteStates.MOVING) {
+      //delete right
+      if (start == this.mStringCache.length) {
+        return;
+      }
+      let unicodeEnd = end;
+      if (start == end) {
+        for (let i = 0; i < length; i++) {
+          unicodeEnd = FlutterTextUtils.getOffsetAfter(this.mStringCache, unicodeEnd);
+          if (unicodeEnd === this.mStringCache.length) {
+            break;
+          }
+        }
+      }
+      this.replace(start, unicodeEnd, "", 0, 0);
+      this.mSelectionEndCache = start;
+      let tempStr: string = this.mStringCache.slice(0, start) + (unicodeEnd >= this.mStringCache.length ? "" : this.mStringCache.slice(unicodeEnd));
+      this.mStringCache = tempStr;
+      this.mSelectionStartCache = this.mSelectionEndCache;
+    }
+    this.notifyListenersIfNeeded(true, true, false);
+  }
 
   handleNewlineEvent(): void {
     // 获取光标所在位置;
@@ -313,8 +402,19 @@ export class ListenableEditingState {
     Log.d(TAG, "handleSelectByRange start: " + range.start +" end: " + range.end);
   }
 
-
-
+  // only for move cursor Left after insert text like "()" "[]" ...
+  handleMoveCursor(direction: inputMethod.Direction): void {
+    Log.d(TAG, "handleMoveCursor direction: " + direction);
+    if (direction === inputMethod.Direction.CURSOR_LEFT) {
+      let start = this.getSelectionStart();
+      let end = this.getSelectionEnd();
+      if (start === end && start > 0) {
+        this.setSelectionStart(start - 1);
+        this.setSelectionEnd(end - 1);
+        this.notifyListenersIfNeeded(false, true, false);
+      }
+    }
+  }
 }
 
 export interface EditingStateWatcher {

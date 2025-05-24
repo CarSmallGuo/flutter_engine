@@ -278,6 +278,9 @@ export default class FlutterNapi {
     return []
   }
 
+  /**
+   * @deprecated since 3.7
+   */
   decodeImage(buffer: ArrayBuffer, imageGeneratorAddress: number): void {
     if (buffer) {
       Log.d(TAG, "called decodeImage=" + buffer.byteLength)
@@ -370,6 +373,25 @@ export default class FlutterNapi {
     flutter.nativeAccessibilityStateChange(this.nativeShellHolderId!, state);
   }
 
+  /**
+   * @deprecated since 3.7
+   */
+  touchGuideStateChange(state: Boolean): void {
+    this.ensureRunningOnMainThread();
+    flutter.nativeTouchGuideStateChange(state);
+  }
+
+  /**
+   * @deprecated since 3.7
+   */
+  //native c++ get the shell holder id
+  getShellHolderId(): void {
+    this.ensureRunningOnMainThread();
+    if (this.isAttached()) {
+      flutter.nativeGetShellHolderId(this.nativeShellHolderId!);
+    }
+  }
+
   setLocalizationPlugin(localizationPlugin: LocalizationPlugin | null): void {
     this.localizationPlugin = localizationPlugin;
   }
@@ -444,6 +466,9 @@ export default class FlutterNapi {
     this.nativeShellHolderId = null;
   }
 
+  /**
+   * @deprecated since 3.7
+   */
   initNativeImage(textureId: number, aImage: image.Image) {
     Log.d(TAG, "called initNativeImage ");
     if (!this.isAttached()) {
@@ -499,18 +524,19 @@ export default class FlutterNapi {
     flutter.nativeSetTextureBufferSize(this.nativeShellHolderId!, textureId, width, height);
   }
 
+  notifyTextureResizing(textureId: number, width: number, height: number): void {
+    Log.d(TAG, "called notifyTextureResizing ");
+    if (!this.isAttached()) {
+      Log.e(TAG, "notifyTextureResizing this.nativeShellHolderId:" + this.nativeShellHolderId)
+      return;
+    }
+    flutter.nativeNotifyTextureResizing(this.nativeShellHolderId!, textureId, width, height);
+  }
+
   /** Dispatch Touch Event */
   onTouchEvent(strings: Array<string>): void {
     if (this.isAttached()) {
       TouchEventProcessor.getInstance().postTouchEvent(strings);
-    }
-  }
-
-  //native c++ get the shell holder id
-  getShellHolderId(): void {
-    this.ensureRunningOnMainThread();
-    if (this.isAttached()) {
-      flutter.nativeGetShellHolderId(this.nativeShellHolderId!);
     }
   }
 
@@ -524,11 +550,11 @@ export default class FlutterNapi {
     }
   }
 
-  setFlutterNavigationAction(isNavigate: boolean): void {
+  setFlutterNavigationAction(shellHolderId: number, isNavigate: boolean): void {
     this.ensureRunningOnMainThread();
     if (this.isAttached()) {
       Log.i(TAG, "setFlutterNavigationAction: " + isNavigate);
-      flutter.nativeGetFlutterNavigationAction(isNavigate);
+      flutter.nativeSetFlutterNavigationAction(shellHolderId, isNavigate);
     } else {
       Log.w(TAG, "setFlutterNavigationAction is detached !");
     }
@@ -560,9 +586,5 @@ export default class FlutterNapi {
 }
 
 export interface AccessibilityDelegate {
-  updateCustomAccessibilityActions(buffer: ByteBuffer, strings: string[]): void;
-
-  updateSemantics(buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]): void;
-
   accessibilityStateChange(state: Boolean): void;
 }

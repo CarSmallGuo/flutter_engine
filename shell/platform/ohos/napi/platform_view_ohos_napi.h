@@ -20,7 +20,6 @@
 #include "flutter/shell/common/run_configuration.h"
 #include "flutter/shell/platform/ohos/napi_common.h"
 #include "napi/native_api.h"
-#include "flutter/shell/platform/ohos/accessibility/ohos_accessibility_features.h"
 
 // class for all c++ to call js function
 namespace flutter {
@@ -57,6 +56,7 @@ class PlatformViewOHOSNapi {
       napi_callback_info info);
 
   explicit PlatformViewOHOSNapi(napi_env env);
+  ~PlatformViewOHOSNapi();
   void SetPlatformTaskRunner(fml::RefPtr<fml::TaskRunner> platform_task_runner);
   void FlutterViewHandlePlatformMessageResponse(
       int reponse_id,
@@ -185,6 +185,9 @@ class PlatformViewOHOSNapi {
     napi_env env,
     napi_callback_info info);
 
+  static napi_value nativeNotifyTextureResizing(napi_env env,
+    napi_callback_info info);
+
   // Surface相关，XComponent调用
   static void SurfaceCreated(int64_t shell_holder, void* window);
 
@@ -202,39 +205,8 @@ class PlatformViewOHOSNapi {
       napi_callback_info info);
   static napi_value nativeXComponentDispatchMouseWheel(napi_env env,
                                                        napi_callback_info info);
-  /**
-   * ets call c++
-   */
-  static napi_value nativeUpdateSemantics(napi_env env,
-                                          napi_callback_info info);
-  static napi_value nativeUpdateCustomAccessibilityActions(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeAccessibilityStateChange(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeAccessibilityAnnounce(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeAccessibilityOnTap(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeAccessibilityOnLongPress(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeAccessibilityOnTooltip(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeSetSemanticsEnabled(napi_env env, napi_callback_info info);
   static napi_value nativeEncodeUtf8(napi_env env, napi_callback_info info);
   static napi_value nativeDecodeUtf8(napi_env env, napi_callback_info info);
-
-  static napi_value nativeSetFontWeightScale(
-      napi_env env,
-      napi_callback_info info);
-  static napi_value nativeGetFlutterNavigationAction(
-      napi_env env,
-      napi_callback_info info);
 
   static napi_value nativeLookupCallbackInformation(
       napi_env env,
@@ -271,9 +243,30 @@ class PlatformViewOHOSNapi {
       napi_env env,
       napi_callback_info info);
 
+  static napi_value nativeAccessibilityStateChange(napi_env env,
+                                                   napi_callback_info info);
+  static napi_value nativeAccessibilityAnnounce(napi_env env,
+                                                napi_callback_info info);
+  static napi_value nativeAccessibilityOnTap(napi_env env,
+                                             napi_callback_info info);
+  static napi_value nativeAccessibilityOnLongPress(napi_env env,
+                                                   napi_callback_info info);
+  static napi_value nativeAccessibilityOnTooltip(napi_env env,
+                                                 napi_callback_info info);
+  static napi_value nativeSetSemanticsEnabled(napi_env env,
+                                              napi_callback_info info);
+  static napi_value nativeSetFlutterNavigationAction(napi_env env,
+                                                     napi_callback_info info);
+
+  static napi_value nativeSetFontWeightScale(napi_env env,
+                                             napi_callback_info info);
+
+  static napi_value nativeUpdateCurrentXComponentId(napi_env env,
+                                                    napi_callback_info info);
+
  private:
   static napi_env env_;
-  napi_ref ref_napi_obj_;
+  napi_ref ref_napi_obj_ = nullptr;
   static std::vector<std::string> system_languages;
   fml::RefPtr<fml::TaskRunner> platform_task_runner_;
   static int64_t napi_shell_holder_id_;

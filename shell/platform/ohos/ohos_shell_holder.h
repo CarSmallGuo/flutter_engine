@@ -21,7 +21,7 @@
 #include "flutter/common/settings.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "flutter/shell/platform/ohos/platform_view_ohos.h"
-
+#include "accessibility/ohos_semantics_bridge.h"
 #include "napi_common.h"
 #include "ohos_asset_provider.h"
 #include "ohos_image_generator.h"
@@ -64,6 +64,34 @@ class OHOSShellHolder {
     return shell_->GetVsyncWaiter();
   }
 
+  // accessibility
+  void SetAccessibilityProvider(ArkUI_AccessibilityProvider* provider);
+
+  int32_t FindFocusNode(int32_t id,
+                        ArkUI_AccessibilityFocusType focusType,
+                        ArkUI_AccessibilityElementInfo* info);
+  int32_t FindNextFocusNode(int32_t id,
+                            ArkUI_AccessibilityFocusMoveDirection direction,
+                            ArkUI_AccessibilityElementInfo* info);
+
+  int32_t FillNodesWithSearchText(int32_t id,
+                                  const char* text,
+                                  ArkUI_AccessibilityElementInfoList* list);
+
+  int32_t FillNodesWithSearch(int32_t id,
+                              ArkUI_AccessibilitySearchMode mode,
+                              ArkUI_AccessibilityElementInfoList* list);
+
+  int32_t ExecuteAction(int64_t elementId,
+                        ArkUI_Accessibility_ActionType action,
+                        ArkUI_AccessibilityActionArguments* actionArguments);
+
+  int32_t ClearAccessibilityFocus(int64_t elementId);
+
+  int32_t GetAccessibilityNodeCursorPosition(int64_t elementId, int32_t* index);
+
+  std::shared_ptr<PlatformViewOHOSNapi> GetNapiFacade();
+
  private:
   std::optional<RunConfiguration> BuildRunConfiguration(
       const std::string& entrypoint,
@@ -75,6 +103,9 @@ class OHOSShellHolder {
   std::shared_ptr<ThreadHost> thread_host_;
   std::unique_ptr<Shell> shell_;
   uint64_t next_pointer_flow_id_ = 0;
+
+  std::shared_ptr<SemanticsBridge> bridge_;
+  std::shared_ptr<std::mutex> bridge_mutex_;
 
   std::unique_ptr<OHOSAssetProvider> assetProvider_;
 

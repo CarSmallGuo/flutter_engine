@@ -6,8 +6,14 @@ import FlutterNapi from '../../../ets/embedding/engine/FlutterNapi';
 import { ByteBuffer } from '../../../ets/util/ByteBuffer';
 import { FlutterCallbackInformation } from '../../../ets/view/FlutterCallbackInformation';
 
+/**
+ * @deprecated since 3.7
+ */
 export const getContext: (a: number) => napiContext;
 
+/**
+ * @deprecated since 3.7
+ */
 export class napiContext {
   onPageShow(): void;
 
@@ -79,6 +85,9 @@ export const nativeSetViewportMetrics: (nativeShellHolderId: number, devicePixel
                                         , systemGestureInsetLeft: number, physicalTouchSlop: number, displayFeaturesBounds: Array<number>
                                         , displayFeaturesType: Array<number>, displayFeaturesState: Array<number>) => void;
 
+/**
+ * @deprecated since 3.7
+ */
 export const nativeImageDecodeCallback: (width: number, height: number, imageGeneratorPointer: number, pixelMap : image.PixelMap | null) => void;
 
 export const nativeGetSystemLanguages: (nativeShellHolderId: number, languages: Array<string>) => void;
@@ -98,11 +107,6 @@ export const nativeXComponentDispatchMouseWheel: (nativeShellHolderId: number,
                                                   ) => void;
 
 
-// send updateSemantics and updateCustomAccessibilityActions from ets to c++
-export const nativeUpdateSemantics: (buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]) => void;
-export const nativeUpdateCustomAccessibilityActions: (buffer: ByteBuffer, strings: string[]) => void;
-
-
 /**
  * Detaches flutterNapi和engine之间的关联
  * 这个方法执行前提是flutterNapi已经和engine关联
@@ -111,6 +115,9 @@ export const nativeDestroy: (
   nativeShellHolderId: number
 ) => void;
 
+/**
+ * @deprecated since 3.7
+ */
 export const nativeInitNativeImage: (nativeShellHolderId: number, textureId: number, aImage: image.Image) => void;
 
 export const nativeUnregisterTexture: (nativeShellHolderId: number, textureId: number) => void;
@@ -129,30 +136,28 @@ export const nativeDecodeUtf8: (array: Uint8Array) => string;
 
 export const nativeSetTextureBufferSize: (nativeShellHolderId: number, textureId: number, width: number, height: number) => void;
 
+export const nativeNotifyTextureResizing: (nativeShellHolderId: number, textureId: number, width: number, height: number) => void;
+
 /**
- * accessibiltyChannel中的
+ * @deprecated since 3.7
  */
-export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number, responseId: number) => void;
-
-export const nativeAccessibilityStateChange: (nativeShellHolderId: number, state: Boolean) => void;
-
-export const nativeAccessibilityAnnounce: (message: string) => void;
-
-export const nativeAccessibilityOnTap: (nodeId: number) => void;
-
-export const nativeAccessibilityOnLongPress: (nodeId: number) => void;
-
-export const nativeAccessibilityOnTooltip: (message: string) => void;
-
-export const nativeSetSemanticsEnabled: (nativeShellHolderId: number, enabled: boolean) => void;
-
-export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightScale: number) => void;
-
 export const nativeGetShellHolderId: (nativeShellHolderId: number) => void;
 
+/**
+ * @deprecated since 3.7
+ */
 export const nativeLookupCallbackInformation: (callback: FlutterCallbackInformation, handler: number) => number;
 
-export const nativeGetFlutterNavigationAction: (isNavigate: boolean) => void;
+/**
+ * @deprecated since 3.7
+ */
+export const nativeGetXComponentId: (id: string) => number;
+
+
+/**
+ * @deprecated since 3.7
+ */
+export const nativeTouchGuideStateChange: (state: Boolean) => void;
 
 
 export const nativeUnicodeIsEmoji: (code: number) => number;
@@ -165,6 +170,37 @@ export const nativeUnicodeIsVariationSelector: (code: number) => number;
 
 export const nativeUnicodeIsRegionalIndicatorSymbol: (code: number) => number;
 
-export const nativeGetXComponentId: (id: string) => number;
-
 export const nativeSetDVsyncSwitch: (nativeShellHolderId: number, isEnable: boolean) => void;
+
+/**
+ * @deprecated since 3.7
+ */
+// send updateSemantics and updateCustomAccessibilityActions from ets to c++
+export const nativeUpdateSemantics: (buffer: ByteBuffer, strings: string[], stringAttributeArgs: ByteBuffer[]) => void;
+
+/**
+ * @deprecated since 3.7
+ */
+export const nativeUpdateCustomAccessibilityActions: (buffer: ByteBuffer, strings: string[]) => void;
+
+
+// accessibility
+export const nativeSetAccessibilityFeatures: (accessibilityFeatureFlags: number, responseId: number) => void;
+
+export const nativeAccessibilityStateChange: (nativeShellHolderId: number, state: Boolean) => void;
+
+export const nativeAccessibilityAnnounce: (nativeShellHolderId: number, message: string) => void;
+
+export const nativeAccessibilityOnTap: (nativeShellHolderId: number, nodeId: number) => void;
+
+export const nativeAccessibilityOnLongPress: (nativeShellHolderId: number, nodeId: number) => void;
+
+export const nativeAccessibilityOnTooltip: (nativeShellHolderId: number, message: string) => void;
+
+export const nativeSetSemanticsEnabled: (nativeShellHolderId: number, enabled: boolean) => void;
+
+export const nativeSetFontWeightScale: (nativeShellHolderId: number, fontWeightScale: number) => void;
+
+export const nativeSetFlutterNavigationAction: (nativeShellHolderId: number, isNavigate: boolean) => void;
+
+export const nativeUpdateCurrentXComponentId: (xcomponent_id: string) => void;

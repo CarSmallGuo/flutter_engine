@@ -75,13 +75,10 @@ source_set("flutter_ohos_sources") {
              "ohos_surface_gl_skia.h",
              "types.h",
              "ohos_logging.h",
-             "platform_view_ohos_delegate.h",
-             "./accessibility/ohos_accessibility_bridge.h",
-             "./accessibility/ohos_accessibility_features.h",
-             "./accessibility/ohos_accessibility_manager.h",
-             "./accessibility/native_accessibility_channel.h",
+             "./accessibility/ohos_semantics_node.h",
+             "./accessibility/ohos_semantics_tree.h",
+             "./accessibility/ohos_semantics_bridge.h",
              "./accessibility/ohos_accessibility_ddl.h",
-             "./utils/ddl_utils.h",
              "./utils/ohos_utils.h",
              "./utils/arkui_accessibility_constant.h"
            ]
@@ -112,15 +109,15 @@ source_set("flutter_ohos_sources") {
       "ohos_environment_gl.cpp",
       "ohos_surface_gl_skia.cpp",
       "ohos_image_generator.cpp",
+      "ohos_external_texture.cpp",
       "ohos_external_texture_gl.cpp",
       "./surface/ohos_snapshot_surface_producer.cpp",
-      "platform_view_ohos_delegate.cpp",
-      "./accessibility/ohos_accessibility_bridge.cpp",
-      "./accessibility/ohos_accessibility_features.cpp",
-      "./accessibility/ohos_accessibility_manager.cpp",
-      "./accessibility/native_accessibility_channel.cpp",
+      "./accessibility/ohos_semantics_node.cpp",
+      "./accessibility/ohos_semantics_tree.cpp",
+      "./accessibility/ohos_semantics_bridge.cpp",
       "./accessibility/ohos_accessibility_ddl.cpp",
-      "./utils/ohos_utils.cpp"
+      "./utils/ohos_utils.cpp",
+      "image_lru.cpp"
   ]
 
   # Set flag to stop headers being directly included (library users should not do this)
@@ -147,6 +144,7 @@ source_set("flutter_ohos_sources") {
     "//flutter/fml",
     "//flutter/impeller",
     "//flutter/impeller/toolkit/egl",
+    "//flutter/impeller/toolkit/gles",
     "//flutter/lib/ui",
     "//flutter/runtime",
     "//flutter/runtime:libdart",
@@ -257,6 +255,7 @@ shared_library("flutter_shell_native") {
   ]
 
   ldflags += ["-lnative_window"]
+  ldflags += ["-lnative_buffer"]
   ldflags += ["-lnative_vsync"]
   ldflags += ["-lace_napi.z"]
   ldflags += ["-lace_ndk.z"]
@@ -273,6 +272,7 @@ shared_library("flutter_shell_native") {
   ldflags += ["-lpthread"]
   ldflags += ["-lpixelmap_ndk.z"]
   ldflags += ["-lqos"]
+  ldflags += ["-ldl"]
 
   public_configs = [ "//flutter:config" ]
 }
