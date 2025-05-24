@@ -390,17 +390,21 @@ KHRSwapchainImplVK::AcquireResult KHRSwapchainImplVK::AcquireNextDrawable() {
   // current_image_index_ = index % images_.size();
 
   // /// The GPU's write operations to the image must wait for the
-  // /// sync->render_ready semaphore (i.e., wait for the GPU or hardware composer
+  // /// sync->render_ready semaphore (i.e., wait for the GPU or hardware
+  // composer
   // /// to complete reading the image);
   // /// otherwise, screen tearing or other visual artifacts may occur.
-  // /// However, the current function does not provide the render_ready semaphore
+  // /// However, the current function does not provide the render_ready
+  // semaphore
   // /// upon return, meaning subsequent write operations to the image will not
-  // /// wait for the semaphore to signal, potentially leading to visual anomalies.
+  // /// wait for the semaphore to signal, potentially leading to visual
+  // anomalies.
 
   // /// To address this issue, a write barrier is added here for the image,
   // /// along with a wait for the corresponding semaphore,
   // /// ensuring correct rendering.
-  // /// Note: vkWaitSemaphores might not function correctly when the semaphore is
+  // /// Note: vkWaitSemaphores might not function correctly when the semaphore
+  // is
   // /// imported from a sync FD.
   // sync->ready_cmd_buffer = context.CreateCommandBuffer();
   // if (sync->ready_cmd_buffer) {
@@ -430,7 +434,8 @@ KHRSwapchainImplVK::AcquireResult KHRSwapchainImplVK::AcquireNextDrawable() {
   //                      << vk::to_string(result);
   //     }
   //   } else {
-  //     VALIDATION_LOG << "Command Buffer End Failed: " << vk::to_string(end_ret);
+  //     VALIDATION_LOG << "Command Buffer End Failed: " <<
+  //     vk::to_string(end_ret);
   //   }
   // } else {
   //   VALIDATION_LOG << "Create Command Buffer Failed";

@@ -240,7 +240,7 @@ void Canvas::drawLine(double x1,
 
 void Canvas::drawPaint(Dart_Handle paint_objects, Dart_Handle paint_data) {
   Paint paint(paint_objects, paint_data);
-  FML_DLOG(INFO)<<"drawPaint:" <<(int64_t)paint_objects ;
+  FML_DLOG(INFO) << "drawPaint:" << (int64_t)paint_objects;
   FML_DCHECK(paint.isNotNull());
   if (display_list_builder_) {
     DlPaint dl_paint;

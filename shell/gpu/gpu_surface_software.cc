@@ -32,7 +32,7 @@ std::unique_ptr<SurfaceFrame> GPUSurfaceSoftware::AcquireFrame(
   SurfaceFrame::FramebufferInfo framebuffer_info;
   framebuffer_info.supports_readback = true;
 
-  FML_DLOG(INFO) <<"AcquireFrame" ;
+  FML_DLOG(INFO) << "AcquireFrame";
   // TODO(38466): Refactor GPU surface APIs take into account the fact that an
   // external view embedder may want to render to the root surface.
   if (!render_to_surface_) {
@@ -52,14 +52,14 @@ std::unique_ptr<SurfaceFrame> GPUSurfaceSoftware::AcquireFrame(
 
   sk_sp<SkSurface> backing_store = delegate_->AcquireBackingStore(size);
 
-FML_DLOG(INFO) << "AcquireFrame";
+  FML_DLOG(INFO) << "AcquireFrame";
   if (backing_store == nullptr) {
-    FML_DLOG(INFO) <<"AcquireFrame ... backing_store is null" ;
+    FML_DLOG(INFO) << "AcquireFrame ... backing_store is null";
     return nullptr;
   }
 
   if (size != SkISize::Make(backing_store->width(), backing_store->height())) {
-    FML_DLOG(INFO) <<"AcquireFrame ... backing_store size not matched" ;
+    FML_DLOG(INFO) << "AcquireFrame ... backing_store size not matched";
     return nullptr;
   }
 
@@ -73,12 +73,12 @@ FML_DLOG(INFO) << "AcquireFrame";
       [self = weak_factory_.GetWeakPtr()](const SurfaceFrame& surface_frame,
                                           DlCanvas* canvas) -> bool {
     // If the surface itself went away, there is nothing more to do.
-    FML_DLOG(INFO) <<"AcquireFrame ... on_submit ..." ;
+    FML_DLOG(INFO) << "AcquireFrame ... on_submit ...";
     if (!self || !self->IsValid() || canvas == nullptr) {
       FML_DLOG(INFO) << "on_submit  return false";
       return false;
     }
-    FML_DLOG(INFO) <<"AcquireFrame ... on_submit canvas->flush " ;
+    FML_DLOG(INFO) << "AcquireFrame ... on_submit canvas->flush ";
 
     canvas->Flush();
     return true;
@@ -93,7 +93,7 @@ FML_DLOG(INFO) << "AcquireFrame";
             surface_frame.SkiaSurface());
       };
 
-FML_DLOG(INFO) << "return  SurfaceFrame";
+  FML_DLOG(INFO) << "return  SurfaceFrame";
   return std::make_unique<SurfaceFrame>(backing_store, framebuffer_info,
                                         encode_callback, submit_callback,
                                         logical_size);

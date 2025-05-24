@@ -25,7 +25,7 @@ def genZipFile():
   engine_project_root_dir = Path(os.path.realpath(__file__)).parents[4]
   dart_sdk_path = engine_project_root_dir.joinpath(f"src/out/host_release{suffix}/dart-sdk")
   host_release_path = engine_project_root_dir.joinpath(f"src/out/host_release{suffix}/")
-  
+
   print(dart_sdk_path)
   with zipfile.ZipFile(engine_project_root_dir.joinpath(f'dart-sdk-{osName}-{osArch}.zip'), 'w',
                        zipfile.ZIP_DEFLATED) as zipf:
