@@ -1,3 +1,37 @@
+diff --git a/pkgs/ffigen/example/libclang-example/custom_import.dart b/pkgs/ffigen/example/libclang-example/custom_import.dart
+index 33b29796..4516ad30 100644
+--- a/pkgs/ffigen/example/libclang-example/custom_import.dart
++++ b/pkgs/ffigen/example/libclang-example/custom_import.dart
+@@ -15,6 +15,7 @@ import 'dart:ffi';
+   Abi.androidX64: Uint64(),
+   Abi.ohosArm: Uint32(),
+   Abi.ohosArm64: Uint64(),
++  Abi.ohosX64: Uint64(),
+   Abi.fuchsiaArm64: Uint64(),
+   Abi.fuchsiaX64: Uint64(),
+   Abi.iosArm: Uint32(),
+@@ -45,6 +46,7 @@ final class UintPtr extends AbiSpecificInteger {
+   Abi.androidX64: Uint64(),
+   Abi.ohosArm: Uint32(),
+   Abi.ohosArm64: Uint64(),
++  Abi.ohosX64: Uint64(),
+   Abi.fuchsiaArm64: Uint64(),
+   Abi.fuchsiaX64: Uint64(),
+   Abi.iosArm: Uint32(),
+diff --git a/pkgs/jni/lib/_internal.dart b/pkgs/jni/lib/_internal.dart
+index 768be191..f6e63210 100644
+--- a/pkgs/jni/lib/_internal.dart
++++ b/pkgs/jni/lib/_internal.dart
+@@ -51,6 +51,9 @@ export 'src/types.dart'
+   Abi.androidArm64: ffi.Int32(),
+   Abi.androidIA32: ffi.Int32(),
+   Abi.androidX64: ffi.Int32(),
++  Abi.ohosArm: ffi.Int32(),
++  Abi.ohosArm64: ffi.Int32(),
++  Abi.ohosX64: ffi.Int32(),
+   Abi.androidRiscv64: ffi.Int32(),
+   Abi.fuchsiaArm64: ffi.Int32(),
+   Abi.fuchsiaX64: ffi.Int32(),
 diff --git a/pkgs/native_assets_cli/lib/src/architecture.dart b/pkgs/native_assets_cli/lib/src/architecture.dart
 index 6e7ce0ca..42816d55 100644
 --- a/pkgs/native_assets_cli/lib/src/architecture.dart
@@ -43,7 +77,7 @@ index d4b3be7c..ddc74813 100644
          Abi.fuchsiaX64: OS.fuchsia,
          Abi.iosArm: OS.iOS,
 diff --git a/pkgs/native_assets_cli/lib/src/os.dart b/pkgs/native_assets_cli/lib/src/os.dart
-index 63fa5d2c..82e1fb9c 100644
+index 63fa5d2c..af8dc10a 100644
 --- a/pkgs/native_assets_cli/lib/src/os.dart
 +++ b/pkgs/native_assets_cli/lib/src/os.dart
 @@ -16,6 +16,11 @@ final class OS {
@@ -66,3 +100,14 @@ index 63fa5d2c..82e1fb9c 100644
      fuchsia,
      iOS,
      linux,
+@@ -46,8 +52,8 @@ final class OS {
+ 
+   /// Typical cross compilation between OSes.
+   static const osCrossCompilationDefault = {
+-    OS.macOS: [OS.macOS, OS.iOS, OS.android],
+-    OS.linux: [OS.linux, OS.android],
++    OS.macOS: [OS.macOS, OS.iOS, OS.android, OS.ohos],
++    OS.linux: [OS.linux, OS.android, OS.ohos],
+     OS.windows: [OS.windows, OS.android],
+   };
+ 
