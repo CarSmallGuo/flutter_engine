@@ -1,0 +1,68 @@
+diff --git a/pkgs/native_assets_cli/lib/src/architecture.dart b/pkgs/native_assets_cli/lib/src/architecture.dart
+index 6e7ce0ca..42816d55 100644
+--- a/pkgs/native_assets_cli/lib/src/architecture.dart
++++ b/pkgs/native_assets_cli/lib/src/architecture.dart
+@@ -49,6 +49,9 @@ final class Architecture {
+     Abi.androidIA32: Architecture.ia32,
+     Abi.androidX64: Architecture.x64,
+     Abi.androidRiscv64: Architecture.riscv64,
++    Abi.ohosArm: Architecture.arm,
++    Abi.ohosArm64: Architecture.arm64,
++    Abi.ohosX64: Architecture.x64,
+     Abi.fuchsiaArm64: Architecture.arm64,
+     Abi.fuchsiaRiscv64: Architecture.riscv64,
+     Abi.fuchsiaX64: Architecture.x64,
+diff --git a/pkgs/native_assets_cli/lib/src/model/target.dart b/pkgs/native_assets_cli/lib/src/model/target.dart
+index d4b3be7c..ddc74813 100644
+--- a/pkgs/native_assets_cli/lib/src/model/target.dart
++++ b/pkgs/native_assets_cli/lib/src/model/target.dart
+@@ -55,6 +55,7 @@ final class Target implements Comparable<Target> {
+   static const androidRiscv64 = Target._(Abi.androidRiscv64);
+   static const ohosArm = Target._(Abi.ohosArm);
+   static const ohosArm64 = Target._(Abi.ohosArm64);
++  static const ohosX64 = Target._(Abi.ohosX64);
+   static const fuchsiaArm64 = Target._(Abi.fuchsiaArm64);
+   static const fuchsiaX64 = Target._(Abi.fuchsiaX64);
+   static const iOSArm = Target._(Abi.iosArm);
+@@ -80,6 +81,7 @@ final class Target implements Comparable<Target> {
+     androidRiscv64,
+     ohosArm,
+     ohosArm64,
++    ohosX64,
+     fuchsiaArm64,
+     fuchsiaX64,
+     iOSArm,
+@@ -120,6 +122,9 @@ final class Target implements Comparable<Target> {
+         Abi.androidIA32: OS.android,
+         Abi.androidX64: OS.android,
+         Abi.androidRiscv64: OS.android,
++        Abi.ohosArm: OS.ohos,
++        Abi.ohosArm64: OS.ohos,
++        Abi.ohosX64: OS.ohos,
+         Abi.fuchsiaArm64: OS.fuchsia,
+         Abi.fuchsiaX64: OS.fuchsia,
+         Abi.iosArm: OS.iOS,
+diff --git a/pkgs/native_assets_cli/lib/src/os.dart b/pkgs/native_assets_cli/lib/src/os.dart
+index 63fa5d2c..82e1fb9c 100644
+--- a/pkgs/native_assets_cli/lib/src/os.dart
++++ b/pkgs/native_assets_cli/lib/src/os.dart
+@@ -16,6 +16,11 @@ final class OS {
+   /// operating system.
+   static const OS android = OS._('android');
+ 
++  /// The
++  /// [OpenHarmony](https://en.wikipedia.org/wiki/OpenHarmony)
++  /// operation system.
++  static const OS ohos = OS._('ohos');
++
+   /// The [Fuchsia](https://en.wikipedia.org/wiki/Google_Fuchsia) operating
+   /// system.
+   static const OS fuchsia = OS._('fuchsia');
+@@ -37,6 +42,7 @@ final class OS {
+   /// Known values for [OS].
+   static const List<OS> values = [
+     android,
++    ohos,
+     fuchsia,
+     iOS,
+     linux,

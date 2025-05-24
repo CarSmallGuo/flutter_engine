@@ -71,6 +71,12 @@
         "file_path": "../../../../../attachment/repos/flutter3.27-native.patch"
     },
     {
+        "name": "native2",
+        "target": "./src/flutter/third_party/dart/third_party/pkg/native",
+        "type": "patch",
+        "file_path": "../../../../../attachment/repos/flutter3.27-native2.patch"
+    },
+    {
         "name": "vulkan",
         "target": "./src/flutter/third_party/vulkan-deps/vulkan-headers/src",
         "type": "patch",
