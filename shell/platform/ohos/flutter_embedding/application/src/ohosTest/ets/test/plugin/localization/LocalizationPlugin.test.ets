@@ -45,7 +45,7 @@ export default function LocalizationPluginTest() {
       expect(actualLocale.script).assertEqual(expectedLocale.script);
     })
     it('testSendLocaleToFlutter', 0, () => {
-      let mockSystemLocale = 'zh-Hans-AL';
+      let mockSystemLocale = 'zh-Hans-CN';
       (localizationChannel as Any).sendLocales = (locales:Any) => {
         expect(locales).assertContain(mockSystemLocale);
       };
