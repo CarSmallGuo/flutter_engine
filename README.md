@@ -53,7 +53,7 @@
       {
         "managed": False,
         "name": "src/flutter",
-        "url": "git@gitee.com:harmonycommando_flutter/flutter_engine.git@oh-3.22.0",
+         "url": "git@gitcode.com:openharmony-tpc/flutter_engine.git@oh-3.27.4-dev",
         "custom_deps": {},
         "deps_file": "DEPS",
         "safesync_url": "",
