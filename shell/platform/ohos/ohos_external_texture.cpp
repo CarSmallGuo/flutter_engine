@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE_KHZG file.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 #include "ohos_external_texture.h"
 
@@ -162,7 +162,8 @@ void OHOSExternalTexture::Paint(PaintContext& context,
     // dart
     if (background_color_enable_) {
       DlAutoCanvasRestore auto_restore(context.canvas, true);
-      DlPaint paint; paint.setColor(DlColor(background_color_));
+      DlPaint paint;
+      paint.setColor(DlColor(background_color_));
       context.canvas->DrawRect(bounds, paint);
     }
     FML_LOG(INFO) << "No DlImage available for ImageExternalTexture to paint.";
@@ -368,7 +369,11 @@ bool OHOSExternalTexture::SetPixelMapAsProducer(
 void OHOSExternalTexture::SetBackGroundColor(uint32_t color) {
   TRACE_EVENT0("flutter", "SetExternalTextureBackGroundColor");
   background_color_enable_ = true;
-  background_color_ = color;
+  // ABGR to ARGB. In hexadecimal, each two bits corresponds to a color channel
+  background_color_ =
+      (color & 0xFF00FF00) |          // keep A and G channel
+      ((color & 0x00FF0000) >> 16) |  // shift B to forth channel
+      ((color & 0x000000FF) << 16);   // shift R to second channel
 }
 
 void OHOSExternalTexture::ReleaseWindowBuffer(OH_NativeImage* native_image,
@@ -394,10 +399,7 @@ void OHOSExternalTexture::ReleaseWindowBuffer(OH_NativeImage* native_image,
 
 SkRect OHOSExternalTexture::UpdateWindowSize(OHNativeWindowBuffer* buffer) {
   OH_NativeBuffer_Config config = {0, 0};
-  OH_NativeBuffer* native_buffer = nullptr;
-  int ret = OH_NativeBuffer_FromNativeWindowBuffer(buffer, &native_buffer);
-  if (native_buffer != nullptr) {
-    OH_NativeBuffer_GetConfig(native_buffer, &config);
+  if (GetWindowBufferConfig(buffer, nullptr, &config, nullptr)) {
     producer_nativewindow_width_ = config.width;
     producer_nativewindow_height_ = config.height;
   }
@@ -529,19 +531,20 @@ sk_sp<flutter::DlImage> OHOSExternalTexture::GetNextDrawImage(
     return nullptr;
   }
 
-  OH_NativeBuffer* native_buffer = nullptr;
-  int ret = OH_NativeBuffer_FromNativeWindowBuffer(native_widnow_buffer,
-                                                   &native_buffer);
-  if (ret != 0 || native_buffer == nullptr) {
-    FML_LOG(ERROR) << "OHOSExternalTextureGL get OH_NativeBuffer error:" << ret;
+  OH_NativeBuffer_Config config;
+  uint32_t buffer_id = 0;
+  if (!GetWindowBufferConfig(native_widnow_buffer, nullptr, &config,
+                             &buffer_id)) {
     return nullptr;
   }
-  // ensure buffer_id > 0 (may get seqNum = 0)
-  uint32_t buffer_id = OH_NativeBuffer_GetSeqNum(native_buffer) + 1;
 
-  auto ret_image = image_lru_.FindImage(buffer_id);
+  NativeBufferKey delete_key = 0;
+  auto ret_image = image_lru_.FindImage(buffer_id, config, &delete_key);
   if (ret_image == nullptr) {
-    ret_image = CreateDlImage(context, bounds, buffer_id, native_widnow_buffer);
+    ret_image =
+        CreateDlImage(context, bounds, buffer_id, config, native_widnow_buffer);
+  } else {
+    DeleteBufferGPUResource(delete_key);
   }
   if (ret_image == nullptr) {
     if (FdIsValid(fence_fd)) {
@@ -560,18 +563,14 @@ sk_sp<flutter::DlImage> OHOSExternalTexture::GetOldDlImage(
     PaintContext& context,
     const SkRect& bounds) {
   if (!old_dl_image_ && last_native_window_buffer_ != nullptr) {
-    OH_NativeBuffer* native_buffer = nullptr;
-    int ret = OH_NativeBuffer_FromNativeWindowBuffer(last_native_window_buffer_,
-                                                     &native_buffer);
-    if (ret != 0 || native_buffer == nullptr) {
-      FML_LOG(ERROR) << "OHOSExternalTextureGL get OH_NativeBuffer error:"
-                     << ret;
+    uint32_t buffer_id = 0;
+    OH_NativeBuffer_Config config;
+    if (!GetWindowBufferConfig(last_native_window_buffer_, nullptr, &config,
+                               &buffer_id)) {
       return nullptr;
     }
-    // ensure buffer_id > 0 (may get seqNum = 0)
-    uint32_t buffer_id = OH_NativeBuffer_GetSeqNum(native_buffer) + 1;
-    old_dl_image_ =
-        CreateDlImage(context, bounds, buffer_id, last_native_window_buffer_);
+    old_dl_image_ = CreateDlImage(context, bounds, buffer_id, config,
+                                  last_native_window_buffer_);
   }
   return old_dl_image_;
 }
@@ -857,17 +856,11 @@ bool OHOSExternalTexture::CopyDataToPixelMapBuffer(const unsigned char* src,
     return false;
   }
   OH_NativeBuffer_Config nativebuffer_config;
-
-  // native_buffer ptr is convert from nativeWindowBuffer inner member, so it
-  // don't need release
   OH_NativeBuffer* native_buffer = nullptr;
-  int ret =
-      OH_NativeBuffer_FromNativeWindowBuffer(pixelmap_buffer_, &native_buffer);
-  if (ret != 0 || native_buffer == nullptr) {
-    FML_LOG(ERROR) << "OHOSExternalTextureGL get OH_NativeBuffer error:" << ret;
+  if (!GetWindowBufferConfig(pixelmap_buffer_, &native_buffer,
+                             &nativebuffer_config, nullptr)) {
     return false;
   }
-  OH_NativeBuffer_GetConfig(native_buffer, &nativebuffer_config);
   if (nativebuffer_config.width != width ||
       nativebuffer_config.height != height) {
     FML_LOG(ERROR) << "OHOSExternalTextureGL "
@@ -878,7 +871,7 @@ bool OHOSExternalTexture::CopyDataToPixelMapBuffer(const unsigned char* src,
   }
 
   unsigned char* dst = nullptr;
-  ret = OH_NativeBuffer_Map(native_buffer, (void**)&dst);
+  int ret = OH_NativeBuffer_Map(native_buffer, (void**)&dst);
   if (ret != 0 || dst == nullptr) {
     FML_LOG(ERROR) << "OHOSExternalTextureGL "
                       "OH_NativeBuffer_Map err:"
@@ -1046,6 +1039,36 @@ bool OHOSExternalTexture::FdIsValid(int fd) {
       return false;
     }
   }
+}
+
+bool OHOSExternalTexture::GetWindowBufferConfig(
+    OHNativeWindowBuffer* buffer,
+    OH_NativeBuffer** out_native_buffer,
+    OH_NativeBuffer_Config* config,
+    uint32_t* id) {
+  if (buffer == nullptr) {
+    return false;
+  }
+  // native_buffer ptr is convert from nativeWindowBuffer inner member, so it
+  // don't need release
+  OH_NativeBuffer* native_buffer = nullptr;
+  int ret = OH_NativeBuffer_FromNativeWindowBuffer(buffer, &native_buffer);
+  if (ret != 0 || native_buffer == nullptr) {
+    FML_LOG(ERROR) << "OHOSExternalTexture get OH_NativeBuffer error:" << ret;
+    return false;
+  }
+
+  if (out_native_buffer != nullptr) {
+    *out_native_buffer = native_buffer;
+  }
+  if (config != nullptr) {
+    OH_NativeBuffer_GetConfig(native_buffer, config);
+  }
+  if (id != nullptr) {
+    // ensure buffer_id > 0 (may get seqNum = 0)
+    *id = OH_NativeBuffer_GetSeqNum(native_buffer) + 1;
+  }
+  return true;
 }
 
 }  // namespace flutter

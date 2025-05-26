@@ -20,6 +20,8 @@ import hiTraceMeter from '@ohos.hiTraceMeter'
 import { JSON } from '@kit.ArkTS';
 import TextInputPlugin from '../plugin/editing/TextInputPlugin';
 import { accessibility } from '@kit.AccessibilityKit';
+import { uiObserver } from '@kit.ArkUI';
+import { common } from '@kit.AbilityKit';
 
 const TAG = "FlutterViewTag";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
@@ -211,7 +213,7 @@ export class FlutterView {
 
     this.mainWindow = FlutterManager.getInstance()
       .getWindowStage(FlutterManager.getInstance().getUIAbility(context))
-      .getMainWindowSync();
+      ?.getMainWindowSync();
     this.mFirstFrameListeners = new ArrayList<FirstFrameListener>();
     this.mFirstPreloadFrameListeners = new ArrayList<FirstPreloadFrameListener>();
 
@@ -230,6 +232,13 @@ export class FlutterView {
 
     // 监听折叠状态的改变
     display?.on('foldStatusChange', this.foldStatusChangeCallback);
+
+    // 监听路由跳转（Flutter跳转鸿蒙原生），软键盘处理
+    uiObserver.on('routerPageUpdate', context as common.UIAbilityContext, (info: uiObserver.RouterPageInfo) => {
+      if (this.getKeyboardHeight() !== 0 && info.state === uiObserver.RouterPageState.ON_PAGE_SHOW) {
+        this.flutterEngine?.getTextInputChannel()?.textInputMethodHandler?.hide();
+      }
+    })
 
     // Subscribes to display changes. Example: event that the display size is changed.
     try {
@@ -283,7 +292,9 @@ export class FlutterView {
     } else if (data.type == window.AvoidAreaType.TYPE_SYSTEM_GESTURE) { //2
       this.gestureAvoidArea = data.area;
     } else if (data.type == window.AvoidAreaType.TYPE_KEYBOARD) { //3
-      this.keyboardAvoidArea = data.area;
+      if (this.flutterEngine?.getTextInputChannel()?.getKeyboardFocusState()) {
+        this.keyboardAvoidArea = data.area;
+      }
     } else if (data.type == window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR) { //4
       this.navigationAvoidArea = data.area;
     }
@@ -386,6 +397,7 @@ export class FlutterView {
 
   onDestroy() {
     try {
+      uiObserver.off('routerPageUpdate', this.uiContext!);
       this.mainWindow?.off('windowSizeChange', this.windowSizeChangeCallback);
       this.mainWindow?.off('avoidAreaChange', this.avoidAreaChangeCallback);
       this.mainWindow?.off('windowStatusChange', this.windowStatusChangeCallback);
@@ -403,6 +415,7 @@ export class FlutterView {
     } catch (e) {
       Log.e(TAG, "displayInfo off error" + JSON.stringify(e));
     }
+    FlutterManager.getInstance().deleteFlutterView(this.id, this);
   }
 
   attachToFlutterEngine(flutterEngine: FlutterEngine): void {

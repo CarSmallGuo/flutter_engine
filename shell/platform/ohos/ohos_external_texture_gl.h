@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE_KHZG file.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 #ifndef FLUTTER_SHELL_PLATFORM_OHOS_OHOS_EXTERNAL_TEXTURE_GL_H_
 #define FLUTTER_SHELL_PLATFORM_OHOS_OHOS_EXTERNAL_TEXTURE_GL_H_
@@ -43,11 +43,13 @@ class OHOSExternalTextureGL : public OHOSExternalTexture {
   void SetGPUFence(OHNativeWindowBuffer* window_buffer, int* fence_fd) override;
   void WaitGPUFence(int fence_fd) override;
   void GPUResourceDestroy() override;
+  void DeleteBufferGPUResource(NativeBufferKey key) override;
 
   sk_sp<flutter::DlImage> CreateDlImage(
       PaintContext& context,
       const SkRect& bounds,
       NativeBufferKey key,
+      OH_NativeBuffer_Config& config,
       OHNativeWindowBuffer* nw_buffer) override;
 
  private:
