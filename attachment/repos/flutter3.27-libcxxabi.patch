@@ -1,0 +1,89 @@
+From 34ac570a85b6df9074c95c7a3a1049ad84d1c1cd Mon Sep 17 00:00:00 2001
+From: openharmony_ci <openharmony_ci@noreply.gitcode.com>
+Date: Thu, 24 Apr 2025 17:21:31 +0800
+Subject: [PATCH] merge flutter_deps into flutter_3.22.0_deps
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+适配OHOS
+
+Created-by: peaceful_black
+Commit-by: 小黑和平
+Merged-by: openharmony_ci
+Description: 在flutter engine依赖的上游社区commit id节点基础上，进行ohos的适配
+
+See merge request: openharmony-sig/fluttertpc_libcxxabi!2
+---
+ src/abort_message.cpp          | 20 ++++++++++++++++++--
+ src/demangle/ItaniumDemangle.h |  2 +-
+ 2 files changed, 19 insertions(+), 3 deletions(-)
+
+diff --git a/src/abort_message.cpp b/src/abort_message.cpp
+index 859a503..428b450 100644
+--- a/src/abort_message.cpp
++++ b/src/abort_message.cpp
+@@ -11,7 +11,7 @@
+ #include <stdarg.h>
+ #include "abort_message.h"
+ 
+-#ifdef __BIONIC__
++#if defined(__BIONIC__) && !defined(__OHOS__)
+ #   include <android/api-level.h>
+ #   if __ANDROID_API__ >= 21
+ #       include <syslog.h>
+@@ -26,6 +26,10 @@
+ #   define _LIBCXXABI_USE_CRASHREPORTER_CLIENT
+ #endif
+ 
++#if defined(__OHOS__)
++    extern "C" __attribute__((weak)) void set_fatal_message(const char *msg);
++#endif
++
+ void abort_message(const char* format, ...)
+ {
+     // Write message to stderr. We do this before formatting into a
+@@ -52,6 +56,18 @@ void abort_message(const char* format, ...)
+     va_end(list);
+ 
+     CRSetCrashLogMessage(buffer);
++
++#elif defined(__OHOS__)
++    char* buffer;
++    va_list list;
++    va_start(list, format);
++    vasprintf(&buffer, format, list);
++    va_end(list);
++
++    if (&set_fatal_message) {
++        set_fatal_message(buffer);
++    }
++
+ #elif defined(__BIONIC__)
+     char* buffer;
+     va_list list;
+@@ -73,7 +89,7 @@ void abort_message(const char* format, ...)
+     // (tombstone and/or logcat) in older releases.
+     __assert2(__FILE__, __LINE__, __func__, buffer);
+ #   endif // __ANDROID_API__ >= 21
+-#endif // __BIONIC__
++#endif // __BIONIC__ || __OHOS__
+ 
+     abort();
+ }
+diff --git a/src/demangle/ItaniumDemangle.h b/src/demangle/ItaniumDemangle.h
+index e3f0c6d..0b22fdb 100644
+--- a/src/demangle/ItaniumDemangle.h
++++ b/src/demangle/ItaniumDemangle.h
+@@ -5099,7 +5099,7 @@ template <>
+ struct FloatData<long double>
+ {
+ #if defined(__mips__) && defined(__mips_n64) || defined(__aarch64__) || \
+-    defined(__wasm__) || defined(__riscv)
++    defined(__wasm__) || defined(__riscv) || defined(__loongarch__)
+     static const size_t mangled_size = 32;
+ #elif defined(__arm__) || defined(__mips__) || defined(__hexagon__)
+     static const size_t mangled_size = 16;
+-- 
+2.49.0
+

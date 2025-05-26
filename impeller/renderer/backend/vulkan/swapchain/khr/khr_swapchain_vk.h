@@ -37,6 +37,10 @@ class KHRSwapchainVK final : public SwapchainVK {
   // |SwapchainVK|
   void UpdateSurfaceSize(const ISize& size) override;
 
+  int GetCurrentImageIndex() override;
+
+  void SetRenderArea(std::optional<IRect> area) override;
+
  private:
   friend class SwapchainVK;
 

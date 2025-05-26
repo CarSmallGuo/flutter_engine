@@ -5,11 +5,9 @@
 import("//flutter/build/dart/dart.gni")
 
 declare_args() {
-  engine_version = ""
-
-  skia_version = ""
-
-  dart_version = ""
+  engine_version = "1a65d409c7a1438a34d21b60bf30a6fd5db59314"
+  skia_version = "7e1844439eaa3eb24d00c6314ddc81ca532fdd1b"
+  dart_version = "5b8936496673a285bf8f37472119bc2afb38a295"
 }
 
 _flutter_root = "//flutter"

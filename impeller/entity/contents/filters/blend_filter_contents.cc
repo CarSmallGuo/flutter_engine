@@ -1014,6 +1014,8 @@ std::optional<Entity> BlendFilterContents::RenderFilter(
   }
 
   FML_UNREACHABLE();
+  std::optional<Entity> ret;
+  return ret;
 }
 
 }  // namespace impeller

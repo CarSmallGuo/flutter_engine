@@ -1,0 +1,68 @@
+From 84fbf0815a3fed894a506ea72747e21fee37211f Mon Sep 17 00:00:00 2001
+From: openharmony_ci <openharmony_ci@noreply.gitcode.com>
+Date: Thu, 24 Apr 2025 17:22:49 +0800
+Subject: [PATCH] merge flutter_deps into flutter_3.22.0_deps
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+适配OHOS
+
+Created-by: peaceful_black
+Commit-by: 小黑和平
+Merged-by: openharmony_ci
+Description: 在flutter engine依赖的上游社区commit id节点基础上，进行ohos的适配
+
+See merge request: openharmony-sig/fluttertpc_dart_native!2
+---
+ pkgs/ffigen/example/libclang-example/custom_import.dart | 4 ++++
+ pkgs/native_assets_cli/lib/src/model/target.dart        | 4 ++++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/pkgs/ffigen/example/libclang-example/custom_import.dart b/pkgs/ffigen/example/libclang-example/custom_import.dart
+index 5f565dd7..33b29796 100644
+--- a/pkgs/ffigen/example/libclang-example/custom_import.dart
++++ b/pkgs/ffigen/example/libclang-example/custom_import.dart
+@@ -13,6 +13,8 @@ import 'dart:ffi';
+   Abi.androidArm64: Uint64(),
+   Abi.androidIA32: Uint32(),
+   Abi.androidX64: Uint64(),
++  Abi.ohosArm: Uint32(),
++  Abi.ohosArm64: Uint64(),
+   Abi.fuchsiaArm64: Uint64(),
+   Abi.fuchsiaX64: Uint64(),
+   Abi.iosArm: Uint32(),
+@@ -41,6 +43,8 @@ final class UintPtr extends AbiSpecificInteger {
+   Abi.androidArm64: Uint64(),
+   Abi.androidIA32: Uint32(),
+   Abi.androidX64: Uint64(),
++  Abi.ohosArm: Uint32(),
++  Abi.ohosArm64: Uint64(),
+   Abi.fuchsiaArm64: Uint64(),
+   Abi.fuchsiaX64: Uint64(),
+   Abi.iosArm: Uint32(),
+diff --git a/pkgs/native_assets_cli/lib/src/model/target.dart b/pkgs/native_assets_cli/lib/src/model/target.dart
+index d8067353..d4b3be7c 100644
+--- a/pkgs/native_assets_cli/lib/src/model/target.dart
++++ b/pkgs/native_assets_cli/lib/src/model/target.dart
+@@ -53,6 +53,8 @@ final class Target implements Comparable<Target> {
+   static const androidIA32 = Target._(Abi.androidIA32);
+   static const androidX64 = Target._(Abi.androidX64);
+   static const androidRiscv64 = Target._(Abi.androidRiscv64);
++  static const ohosArm = Target._(Abi.ohosArm);
++  static const ohosArm64 = Target._(Abi.ohosArm64);
+   static const fuchsiaArm64 = Target._(Abi.fuchsiaArm64);
+   static const fuchsiaX64 = Target._(Abi.fuchsiaX64);
+   static const iOSArm = Target._(Abi.iosArm);
+@@ -76,6 +78,8 @@ final class Target implements Comparable<Target> {
+     androidIA32,
+     androidX64,
+     androidRiscv64,
++    ohosArm,
++    ohosArm64,
+     fuchsiaArm64,
+     fuchsiaX64,
+     iOSArm,
+-- 
+2.49.0
+

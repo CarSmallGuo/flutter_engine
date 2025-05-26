@@ -1,0 +1,39 @@
+From fab6da82758af956ff96a6ca646845d4d956165c Mon Sep 17 00:00:00 2001
+From: openharmony_ci <openharmony_ci@noreply.gitcode.com>
+Date: Thu, 8 May 2025 10:50:54 +0800
+Subject: [PATCH] merge flutter_deps into flutter_3.22.0_deps
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+适配OHOS
+
+Created-by: peaceful_black
+Commit-by: 小黑和平
+Merged-by: openharmony_ci
+Description: 在flutter engine依赖的上游社区commit id节点基础上，进行ohos的适配
+
+See merge request: openharmony-sig/fluttertpc_spirv-headers!2
+---
+ tools/buildHeaders/jsoncpp/dist/jsoncpp.cpp | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/tools/buildHeaders/jsoncpp/dist/jsoncpp.cpp b/tools/buildHeaders/jsoncpp/dist/jsoncpp.cpp
+index 1304914..7cdb50b 100644
+--- a/tools/buildHeaders/jsoncpp/dist/jsoncpp.cpp
++++ b/tools/buildHeaders/jsoncpp/dist/jsoncpp.cpp
+@@ -2564,11 +2564,9 @@ LogicError::LogicError(std::string const& msg)
+ {}
+ void throwRuntimeError(std::string const& msg)
+ {
+-  throw RuntimeError(msg);
+ }
+ void throwLogicError(std::string const& msg)
+ {
+-  throw LogicError(msg);
+ }
+ 
+ // //////////////////////////////////////////////////////////////////
+-- 
+2.49.0
+
