@@ -32,8 +32,8 @@ export default function TextInputPluginTest() {
       const flutterNapi = FlutterInjector.getInstance().getFlutterNapi();
       dartExecutor = new DartExecutor(flutterNapi, assetManager);
       textInputChannelMock = new TextInputChannel(dartExecutor);
-      textInputPlugin = new TextInputPlugin(textInputChannelMock);
-      textInputMethodHandlerImpl = new TextInputMethodHandlerImpl(textInputChannelMock);
+      textInputPlugin = new TextInputPlugin(textInputChannelMock, "");
+      textInputMethodHandlerImpl = new TextInputMethodHandlerImpl(textInputChannelMock, "");
     })
     it('should initialize correctly', 0, ()=> {
       expect(textInputMethodHandlerImpl).not().assertNull();

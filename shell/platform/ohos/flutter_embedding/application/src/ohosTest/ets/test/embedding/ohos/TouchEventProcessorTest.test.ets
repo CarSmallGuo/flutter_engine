@@ -33,7 +33,7 @@ export default function TouchEventProcessorTest() {
       const strings = ['test1', 'test2', 'test3'];
       const top = 10;
       const left = 10;
-      const decodeTouchPacket: CustomTouchEvent = touchEventProcessor.constureCustomTouchEvent(strings, top, left);
+      const decodeTouchPacket: CustomTouchEvent = touchEventProcessor.constructCustomTouchEvent(strings, top, left);
       expect(decodeTouchPacket).not().assertNull();
       done();
     })

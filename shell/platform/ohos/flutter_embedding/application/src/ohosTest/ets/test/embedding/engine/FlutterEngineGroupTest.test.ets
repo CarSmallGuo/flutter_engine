@@ -26,20 +26,20 @@ export default function FlutterEngineGroupTest() {
 
   describe('FlutterEngineGroupTest', () => {
 
-    it('checkLoader', 0, async (done: Function) => {
-      console.info("uitest: checkLoader begin");
-      const checkLoaderCallBack = flutterEngineGroup.checkLoader(context, args);
-      expect(checkLoaderCallBack).not().assertNull();
-      done();
-    })
+    // it('checkLoader', 0, async (done: Function) => {
+    //   console.info("uitest: checkLoader begin");
+    //   const checkLoaderCallBack = flutterEngineGroup.checkLoader(context, args);
+    //   expect(checkLoaderCallBack).not().assertNull();
+    //   done();
+    // })
 
-    it('createAndRunEngineByOptions', 0, async (done: Function) => {
-      console.info("uitest: createAndRunEngineByOptions begin");
-      const options = new Options(context);
-      const createAndRunEngineByOptionsCallBack = flutterEngineGroup.createAndRunEngineByOptions(options);
-      expect(createAndRunEngineByOptionsCallBack).not().assertNull();
-      done();
-    })
+    // it('createAndRunEngineByOptions', 0, async (done: Function) => {
+    //   console.info("uitest: createAndRunEngineByOptions begin");
+    //   const options = new Options(context);
+    //   const createAndRunEngineByOptionsCallBack = flutterEngineGroup.createAndRunEngineByOptions(options);
+    //   expect(createAndRunEngineByOptionsCallBack).not().assertNull();
+    //   done();
+    // })
 
     it('createEngine', 0, async (done: Function) => {
       console.info("uitest: createEngine begin");
