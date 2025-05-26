@@ -83,7 +83,7 @@ export default function FlutterEntryTest() {
     it('TestShouldAttachEngineToAbility', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.shouldAttachEngineToAbility();
-      expect(result).assertEqual(null);
+      expect(result).assertTrue();
       done();
     })
 
