@@ -25,6 +25,7 @@ import { common } from '@kit.AbilityKit';
 
 const TAG = "FlutterViewTag";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
+// 门禁测试
 
 export class ViewportMetrics {
   devicePixelRatio: number = 1.0;
