@@ -179,8 +179,8 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
         + editingState.selectionEnd + " composingStart:" + editingState.composingStart + " composingEnd" +
       editingState.composingEnd);
     this.mEditable.updateTextInputState(editingState);
-    this.inputMethodController.changeSelection(this.mEditable.getSelectionString(), this.mEditable.getSelectionStart(),
-      this.mEditable.getSelectionEnd());
+    this.inputMethodController.changeSelection(editingState.text, editingState.selectionStart,
+      editingState.selectionEnd);
   }
 
   clearClient(): void {
@@ -378,16 +378,20 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private insertTextCallback = (text: string) => {
     Log.d(TextInputMethodHandlerImpl.TAG, "insertText: " + text);
     this.mEditable.handleInsertTextEvent(text);
-    this.inputMethodController.changeSelection(this.mEditable.getSelectionString(), this.mEditable.getSelectionStart(),
+    this.inputMethodController.changeSelection(this.mEditable.getStringCache(), this.mEditable.getSelectionStart(),
       this.mEditable.getSelectionEnd());
   }
 
   private deleteLeftCallback = (length: number) => {
     this.mEditable.handleDeleteEvent(false, length);
+    this.inputMethodController.changeSelection(this.mEditable.getStringCache(), this.mEditable.getSelectionStart(),
+      this.mEditable.getSelectionEnd());
   }
 
   private deleteRightCallback = (length: number) => {
     this.mEditable.handleDeleteEvent(true, length);
+    this.inputMethodController.changeSelection(this.mEditable.getStringCache(), this.mEditable.getSelectionStart(),
+      this.mEditable.getSelectionEnd());
   }
 
   private sendFunctionKeyCallback = (functionKey: inputMethod.FunctionKey) => {
