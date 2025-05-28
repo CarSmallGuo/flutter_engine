@@ -54,6 +54,7 @@ export default class FlutterShellArgs {
   static ARG_DART_FLAGS = "--dart-flags=";
   static ARG_KEY_MSAA_SAMPLES = "msaa-samples";
   static ARG_MSAA_SAMPLES = "--msaa-samples=";
+  public forceEnableTrace: boolean = true;
 
   /**
    * 从意图中解析参数，创建shellArgs
@@ -79,8 +80,6 @@ export default class FlutterShellArgs {
       FlutterShellArgs.ARG_SKIA_DETERMINISTIC_RENDERING, want, flutterShellArgs);
     FlutterShellArgs.checkArg(FlutterShellArgs.ARG_KEY_TRACE_SKIA, FlutterShellArgs.ARG_TRACE_SKIA, want,
       flutterShellArgs);
-    FlutterShellArgs.checkArg(FlutterShellArgs.ARG_KEY_TRACE_SYSTRACE, FlutterShellArgs.ARG_TRACE_SYSTRACE, want,
-      flutterShellArgs);
     FlutterShellArgs.checkArg(FlutterShellArgs.ARG_KEY_ENABLE_IMPELLER, FlutterShellArgs.ARG_ENABLE_IMPELLER, want,
       flutterShellArgs);
     FlutterShellArgs.checkArg(FlutterShellArgs.ARG_KEY_DUMP_SHADER_SKP_ON_SHADER_COMPILATION,
@@ -91,6 +90,13 @@ export default class FlutterShellArgs {
       FlutterShellArgs.ARG_PURGE_PERSISTENT_CACHE, want, flutterShellArgs);
     FlutterShellArgs.checkArg(FlutterShellArgs.ARG_KEY_VERBOSE_LOGGING, FlutterShellArgs.ARG_VERBOSE_LOGGING, want,
       flutterShellArgs);
+
+    if (flutterShellArgs.forceEnableTrace) {
+      flutterShellArgs.add(FlutterShellArgs.ARG_TRACE_SYSTRACE);
+    } else {
+      FlutterShellArgs.checkArg(FlutterShellArgs.ARG_KEY_TRACE_SYSTRACE, FlutterShellArgs.ARG_TRACE_SYSTRACE, want,
+        flutterShellArgs);
+    }
 
     let skia_allow_list: Object = want.parameters![FlutterShellArgs.ARG_KEY_TRACE_SKIA_ALLOWLIST];
     if (skia_allow_list != undefined) {
