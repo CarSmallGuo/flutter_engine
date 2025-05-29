@@ -395,8 +395,19 @@ export class ListenableEditingState {
     Log.d(TAG, "handleSelectByRange start: " + range.start +" end: " + range.end);
   }
 
-
-
+  // only for move cursor Left after insert text like "()" "[]" ...
+  handleMoveCursor(direction: inputMethod.Direction): void {
+    Log.d(TAG, "handleMoveCursor direction: " + direction);
+    if (direction === inputMethod.Direction.CURSOR_LEFT) {
+      let start = this.getSelectionStart();
+      let end = this.getSelectionEnd();
+      if (start === end && start > 0) {
+        this.setSelectionStart(start - 1);
+        this.setSelectionEnd(end - 1);
+        this.notifyListenersIfNeeded(false, true, false);
+      }
+    }
+  }
 }
 
 export interface EditingStateWatcher {

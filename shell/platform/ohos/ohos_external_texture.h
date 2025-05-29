@@ -83,6 +83,11 @@ class OHOSExternalTexture : public flutter::Texture {
   // Check if the fd is a valid sync file.
   static bool FdIsValid(int fd);
 
+  static bool GetWindowBufferConfig(OHNativeWindowBuffer* buffer,
+                                    OH_NativeBuffer** native_buffer,
+                                    OH_NativeBuffer_Config* config,
+                                    uint32_t* id);
+
  protected:
   OHNativeWindowBuffer* GetConsumerNativeBuffer(int* fence_fd);
 
@@ -95,13 +100,21 @@ class OHOSExternalTexture : public flutter::Texture {
       PaintContext& context,
       const SkRect& bounds,
       NativeBufferKey key,
+      OH_NativeBuffer_Config& config,
       OHNativeWindowBuffer* nw_buffer) = 0;
+
+  virtual void DeleteBufferGPUResource(NativeBufferKey key) = 0;
 
   ImageLRU image_lru_ = ImageLRU();
 
  private:
   sk_sp<SkImage> GetNextDrawImage(PaintContext& context,
                                            const SkRect& bounds);
+
+  sk_sp<SkImage> GetOldDlImage(PaintContext& context,
+                                        const SkRect& bounds);
+
+  void SetOldDlImage(sk_sp<SkImage> old_image);
 
   bool CopyDataToPixelMapBuffer(const unsigned char* src,
                                 int width,
@@ -127,10 +140,6 @@ class OHOSExternalTexture : public flutter::Texture {
 
   void GetNewTransformBound(SkM44& transform, SkRect& bounds);
 
-  enum class AttachmentState { kUninitialized, kAttached, kDetached };
-
-  AttachmentState state_ = AttachmentState::kUninitialized;
-
   uint64_t producer_surface_id_ = 0;
 
   bool producer_has_frame_ = false;
@@ -139,7 +148,7 @@ class OHOSExternalTexture : public flutter::Texture {
   OHNativeWindow* producer_nativewindow_ = nullptr;
   OHNativeWindowBuffer* pixelmap_buffer_ = nullptr;
   OH_NativeBuffer* pixelmap_native_buffer_ = nullptr;
-  uint32_t backGroundColor_ = 0xFFFFFFFF; //  white color
+  uint32_t background_color_ = 0xFFFFFFFF; //  white color
 
   OHNativeWindowBuffer* last_native_window_buffer_ = nullptr;
   int last_fence_fd_ = -1;

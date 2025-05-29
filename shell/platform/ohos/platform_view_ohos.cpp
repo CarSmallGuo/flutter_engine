@@ -20,10 +20,9 @@
 
 namespace flutter {
 
-// This global map's key is (PlatformViewOHOS-ptr + texture_id) because there
-// may be many platformViews.
+// This global map's key is (texture_id)
 std::map<uint64_t, PlatformViewOHOS*> g_texture_platformview_map;
-std::mutex g_map_mutex;
+std::recursive_mutex g_map_mutex;
 
 OhosSurfaceFactoryImpl::OhosSurfaceFactoryImpl(
     const std::shared_ptr<OHOSContext>& context,
@@ -113,6 +112,8 @@ PlatformViewOHOS::PlatformViewOHOS(
 
 PlatformViewOHOS::~PlatformViewOHOS() {
   FML_LOG(INFO) << "PlatformViewOHOS::~PlatformViewOHOS";
+  // The UnregisterTexture cannot be called here because it depends on
+  // rasterizer_, and rasterizer_ may be null at this time.
   external_texture_gl_.clear();
 }
 
@@ -132,7 +133,7 @@ void PlatformViewOHOS::NotifyCreate(
       // because the onGrContextCreate method of the external texture will be
       // called in PlatformView::NotifyCreated.
       RegisterTexture(external_texture);
-      std::lock_guard<std::mutex> lock(g_map_mutex);
+      std::lock_guard<std::recursive_mutex> lock(g_map_mutex);
       g_texture_platformview_map[(uint64_t)texture_id] = this;
     }
 
@@ -162,6 +163,7 @@ void PlatformViewOHOS::NotifySurfaceWindowChanged(
     fml::AutoResetWaitableEvent latch;
     fml::TaskRunner::RunNowOrPostTask(
         task_runners_.GetRasterTaskRunner(),
+
         [&latch, surface = ohos_surface_.get(),
          native_window = std::move(native_window), this]() {
           if (GetDestroyed()) {
@@ -217,7 +219,7 @@ void PlatformViewOHOS::NotifyDestroyed() {
       // unregisterExternalTexture, their actual destruction will occur after
       // ~PlatformViewOHOS.
       UnregisterTexture(texture_id);
-      std::lock_guard<std::mutex> lock(g_map_mutex);
+      std::lock_guard<std::recursive_mutex> lock(g_map_mutex);
       g_texture_platformview_map.erase((uint64_t)texture_id);
     }
     fml::AutoResetWaitableEvent latch;
@@ -467,7 +469,7 @@ PointerDataDispatcherMaker PlatformViewOHOS::GetDispatcherMaker() {
 
 void PlatformViewOHOS::OnNativeImageFrameAvailable(void* data) {
   uint64_t ptexture_id = (uint64_t)data;
-  std::lock_guard<std::mutex> lock(g_map_mutex);
+  std::lock_guard<std::recursive_mutex> lock(g_map_mutex);
   if (g_texture_platformview_map.find(ptexture_id) ==
       g_texture_platformview_map.end()) {
     return;
@@ -480,22 +482,26 @@ void PlatformViewOHOS::OnNativeImageFrameAvailable(void* data) {
     return;
   }
 
-  // Note: RunNowOrPostTask may get dead lock when running in platform thread.
-  platform->task_runners_.GetPlatformTaskRunner()->PostTask([ptexture_id]() {
-    std::lock_guard<std::mutex> lock(g_map_mutex);
-    if (g_texture_platformview_map.find(ptexture_id) ==
-        g_texture_platformview_map.end()) {
-      return;
-    }
-    PlatformViewOHOS* platform = g_texture_platformview_map[ptexture_id];
-    uint64_t texture_id = ptexture_id - (uint64_t)platform;
-    platform->MarkTextureFrameAvailable(texture_id);
-  });
+  // Note: PostTask may lead to a deadlock if a render task (which might acquire
+  // the buffer) is dispatched earlier and scheduled to run before this task.
+  // So we use recursive_mutex to safely invoke OnNativeImageFrameAvailable from
+  // the platform thread, allowing nested lock acquisition without deadlock.
+  fml::TaskRunner::RunNowOrPostTask(
+      platform->task_runners_.GetPlatformTaskRunner(), [ptexture_id]() {
+        std::lock_guard<std::recursive_mutex> lock(g_map_mutex);
+        if (g_texture_platformview_map.find(ptexture_id) ==
+            g_texture_platformview_map.end()) {
+          return;
+        }
+        PlatformViewOHOS* platform = g_texture_platformview_map[ptexture_id];
+        uint64_t texture_id = ptexture_id;
+        platform->MarkTextureFrameAvailable(texture_id);
+      });
 }
 
 std::shared_ptr<OHOSExternalTexture> PlatformViewOHOS::CreateExternalTexture(
   int64_t texture_id) {
-  uint64_t context_frame_data = (uint64_t)this + (uint64_t)texture_id;
+  uint64_t context_frame_data = (uint64_t)texture_id;
   OH_OnFrameAvailableListener listener;
   listener.context = (void*)context_frame_data;
   listener.onFrameAvailable = OnNativeImageFrameAvailable;
@@ -509,7 +515,7 @@ std::shared_ptr<OHOSExternalTexture> PlatformViewOHOS::CreateExternalTexture(
   }
   if (extrenal_texture && extrenal_texture->GetProducerSurfaceId() != 0 &&
       extrenal_texture->GetProducerWindowId() != 0) {
-    std::lock_guard<std::mutex> lock(g_map_mutex);
+    std::lock_guard<std::recursive_mutex> lock(g_map_mutex);
     g_texture_platformview_map[context_frame_data] = this;
     external_texture_gl_[texture_id] = extrenal_texture;
     RegisterTexture(extrenal_texture);
@@ -564,49 +570,51 @@ void PlatformViewOHOS::UnRegisterExternalTexture(int64_t texture_id) {
                                     [&latch]() { latch.Signal(); });
   latch.Wait();
 
-  std::lock_guard<std::mutex> lock(g_map_mutex);
-  g_texture_platformview_map.erase((uint64_t)this + (uint64_t)texture_id);
+  std::lock_guard<std::recursive_mutex> lock(g_map_mutex);
+  g_texture_platformview_map.erase((uint64_t)texture_id);
 }
 
 void PlatformViewOHOS::RegisterExternalTextureByPixelMap(
     int64_t texture_id,
     NativePixelMap* pixelMap) {
-  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
-    auto iter = external_texture_gl_.find(texture_id);
-    if (iter != external_texture_gl_.end()) {
-      iter->second->SetPixelMapAsProducer(pixelMap, nullptr);
-    } else {
-      auto extrenal_texture = CreateExternalTexture(texture_id);
-      if (extrenal_texture != nullptr) {
-        extrenal_texture->SetPixelMapAsProducer(pixelMap, nullptr);
-      }
+  auto iter = external_texture_gl_.find(texture_id);
+  bool ret = false;
+  if (iter != external_texture_gl_.end()) {
+    ret = iter->second->SetPixelMapAsProducer(pixelMap, nullptr);
+  } else {
+    auto extrenal_texture = CreateExternalTexture(texture_id);
+    if (extrenal_texture != nullptr) {
+      ret = extrenal_texture->SetPixelMapAsProducer(pixelMap, nullptr);
     }
+  }
+  if (ret) {
+    PlatformView::ScheduleFrame();
   }
 }
 
 void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(
     int64_t texture_id,
     NativePixelMap* pixelMap) {
-  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
-    if (external_texture_gl_.find(texture_id) != external_texture_gl_.end()) {
-      auto external_texture = external_texture_gl_[texture_id];
-      FML_LOG(INFO) << "SetExternalTextureBackGroundPixelMap " << texture_id;
-      external_texture->SetPixelMapAsProducer(pixelMap, nullptr);
-    }
+  if (external_texture_gl_.find(texture_id) == external_texture_gl_.end()) {
+    return;
+  }
+
+  auto external_texture = external_texture_gl_[texture_id];
+  FML_LOG(INFO) << "SetExternalTextureBackGroundPixelMap " << texture_id;
+  bool ret = external_texture->SetPixelMapAsProducer(pixelMap, nullptr);
+  if (ret) {
+    PlatformView::ScheduleFrame();
   }
 }
 
-void PlatformViewOHOS::SetExternalTextureBackGroundColor(
-    int64_t texture_id,
-    uint32_t color) {
-  if (ohos_context_->RenderingApi() == OHOSRenderingAPI::kOpenGLES) {
-    auto iter = external_texture_gl_.find(texture_id);
-    if (iter != external_texture_gl_.end()) {
-      auto external_texture = external_texture_gl_[texture_id];
-      FML_LOG(INFO) << "SetExternalTextureBackGroundColor " << texture_id
-                    << "color:0x" << std::hex << color;
-      external_texture->SetBackgroundColor(color);
-    }
+void PlatformViewOHOS::SetExternalTextureBackGroundColor(int64_t texture_id,
+                                                         uint32_t color) {
+  if (external_texture_gl_.find(texture_id) != external_texture_gl_.end()) {
+    auto external_texture = external_texture_gl_[texture_id];
+    FML_LOG(INFO) << "SetExternalTextureBackGroundColor " << texture_id
+                  << " color " << color;
+    external_texture->SetBackgroundColor(color);
+    PlatformView::ScheduleFrame();
   }
 }
 
@@ -674,6 +682,7 @@ void PlatformViewOHOS::AccessibilityOnTooltip(
 void PlatformViewOHOS::OnAccessibilityStateChange(bool state) {
   if (state) {
     SetSemanticsEnabled(true);
+    SetAccessibleNavigation(true);
     std::lock_guard<std::mutex> lock(*bridge_mutex_);
     bridge_->OnAccessibilityStateChange(state);
   } else {
@@ -682,10 +691,12 @@ void PlatformViewOHOS::OnAccessibilityStateChange(bool state) {
   }
 }
 
-void PlatformViewOHOS::SetAccessibleNavigation(bool isAccessibleNavigation) {
+void PlatformViewOHOS::SetNavigation(bool isNavigation) {
   std::lock_guard<std::mutex> lock(*bridge_mutex_);
-  bridge_->OnAccessibilityNavigation(isAccessibleNavigation);
+  bridge_->OnAccessibilityNavigation(isNavigation);
+}
 
+void PlatformViewOHOS::SetAccessibleNavigation(bool isAccessibleNavigation) {
   if (is_accessibility_navigation_ == isAccessibleNavigation) {
     return;
   }

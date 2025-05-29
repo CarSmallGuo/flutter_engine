@@ -20,6 +20,8 @@ import { JSON } from '@kit.ArkTS';
 import { accessibility } from '@kit.AccessibilityKit';
 import TextInputPlugin from '../plugin/editing/TextInputPlugin';
 import { deviceInfo } from '@kit.BasicServicesKit';
+import { uiObserver } from '@kit.ArkUI';
+import { common } from '@kit.AbilityKit';
 
 const TAG = "FlutterViewTag";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
@@ -187,6 +189,7 @@ export class FlutterView {
   private checkFullScreen: boolean = true;
   private checkKeyboard: boolean = true;
   private checkGesture: boolean = true;
+  private checkAiBar: boolean = true;
   private paddingTop?: number;
   private systemAvoidArea: window.AvoidArea;
   private navigationAvoidArea: window.AvoidArea;
@@ -202,7 +205,7 @@ export class FlutterView {
     this.buildDisplayFeatures(display.getFoldStatus());
     this.mainWindow = FlutterManager.getInstance()
       .getWindowStage(FlutterManager.getInstance().getUIAbility(context))
-      .getMainWindowSync();
+      ?.getMainWindowSync();
     this.mFirstFrameListeners = new ArrayList<FirstFrameListener>();
 
     this.mainWindow?.on('windowSizeChange', this.windowSizeChangeCallback);
@@ -216,21 +219,18 @@ export class FlutterView {
     this.keyboardAvoidArea = this.mainWindow?.getWindowAvoidArea(window.AvoidAreaType.TYPE_KEYBOARD);
 
     // 监听折叠状态的改变
-    display?.on('foldStatusChange', (data: display.FoldStatus) => {
-      Log.d(TAG, `Fold status change to ${JSON.stringify(data)}`)
-      this.buildDisplayFeatures(data);
+    display.on('foldStatusChange', this.foldStatusChangeCallback)
+
+    // 监听路由跳转（Flutter跳转鸿蒙原生），软键盘处理
+    uiObserver.on('routerPageUpdate', context as common.UIAbilityContext, (info: uiObserver.RouterPageInfo) => {
+      if (this.getKeyboardHeight() !== 0 && info.state === uiObserver.RouterPageState.ON_PAGE_SHOW) {
+        this.flutterEngine?.getTextInputChannel()?.textInputMethodHandler?.hide();
+      }
     })
 
     // Subscribes to display changes. Example: event that the display size is changed.
     try {
-      display.on("change", ()=>{
-        this.displayInfo = display.getDefaultDisplaySync();
-        if (this.viewportMetrics.devicePixelRatio != this.displayInfo?.densityPixels) {
-          this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
-          Log.i(TAG, "Display on: " + JSON.stringify(this.displayInfo))
-          this.updateViewportMetrics()
-        }
-      });
+      display.on("change", this.displayChangeCallback);
     } catch (e) {
       Log.e(TAG, "displayInfo error" + JSON.stringify(e));
     }
@@ -272,7 +272,21 @@ export class FlutterView {
     this.updateViewportMetrics();
   }
 
-  private  windowSizeChangeCallback = (data: window.Size) => {
+  private foldStatusChangeCallback = (data: display.FoldStatus) => {
+    Log.d(TAG, `Fold status change to ${JSON.stringify(data)}`)
+    this.buildDisplayFeatures(data);
+  }
+
+  private displayChangeCallback = ()=>{
+    this.displayInfo = display.getDefaultDisplaySync();
+    if (this.viewportMetrics.devicePixelRatio != this.displayInfo?.densityPixels) {
+      this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
+      Log.i(TAG, "Display on: " + JSON.stringify(this.displayInfo))
+      this.updateViewportMetrics()
+    }
+  }
+
+  private windowSizeChangeCallback = (data: window.Size) => {
     Log.i(TAG, "windowSizeChangeCallback w:" + data.width + ", h:" + data.height);
     if (this.isAttachedToFlutterEngine()) {
       this.onAreaChange(null);
@@ -291,7 +305,9 @@ export class FlutterView {
     } else if (data.type == window.AvoidAreaType.TYPE_SYSTEM_GESTURE) { //2
       this.gestureAvoidArea = data.area;
     } else if (data.type == window.AvoidAreaType.TYPE_KEYBOARD) { //3
-      this.keyboardAvoidArea = data.area;
+      if (this.flutterEngine?.getTextInputChannel()?.getKeyboardFocusState()) {
+        this.keyboardAvoidArea = data.area;
+      }
     } else if (data.type == window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR) { //4
       this.navigationAvoidArea = data.area;
     }
@@ -361,29 +377,24 @@ export class FlutterView {
 
   onDestroy() {
     try {
+      uiObserver.off('routerPageUpdate', this.uiContext!);
       this.mainWindow?.off('windowSizeChange', this.windowSizeChangeCallback);
       this.mainWindow?.off('avoidAreaChange', this.avoidAreaChangeCallback);
       this.mainWindow?.off('windowStatusChange', this.windowStatusChangeCallback);
       accessibility.off('accessibilityStateChange', this.accessibilityStateChangeCallback);
       this.mainWindow?.off('keyboardHeightChange', this.keyboardHeightChangeCallback);
-      display.off('foldStatusChange', (status: display.FoldStatus) => {
-        Log.d(TAG, `foldStatusChange listner destory`);
-      })
+      display.off('foldStatusChange', this.foldStatusChangeCallback);
     } catch (e) {
       Log.e(TAG, "mainWindow off error: " + JSON.stringify(e));
     }
     this.mainWindow = null;
 
     try {
-      display.off("change", ()=>{
-        this.displayInfo = display.getDefaultDisplaySync();
-        this.viewportMetrics.devicePixelRatio = this.displayInfo?.densityPixels;
-        Log.i(TAG, "Display Info: " + JSON.stringify(this.displayInfo))
-        this.updateViewportMetrics()
-      });
+      display.off('change', this.displayChangeCallback);
     } catch (e) {
       Log.e(TAG, "displayInfo off error" + JSON.stringify(e));
     }
+    FlutterManager.getInstance().deleteFlutterView(this.id, this);
   }
 
   attachToFlutterEngine(flutterEngine: FlutterEngine): void {
@@ -434,7 +445,7 @@ export class FlutterView {
 
     let windowId = this.mainWindow?.getWindowProperties()?.id ?? 0
     this.mouseCursorPlugin = new MouseCursorPlugin(windowId, this.flutterEngine?.getMouseCursorChannel()!);
-    this.textInputPlugin = new TextInputPlugin(this.flutterEngine?.getTextInputChannel()!);
+    this.textInputPlugin = new TextInputPlugin(this.flutterEngine?.getTextInputChannel()!, this.id);
     this.keyboardManager = new KeyboardManager(flutterEngine, this.textInputPlugin!);
     this.settings = new Settings(this.flutterEngine.getSettingsChannel()!);
     this.sendSettings();
@@ -500,7 +511,9 @@ export class FlutterView {
     // 根据是否全屏显示，设置标题栏高度（若全屏，则及时规避）
     let isUseFullScreen = FlutterManager.getInstance().getFullScreenListener().useFullScreen();
     let isLayoutFullScreen = this.mainWindow?.getWindowProperties().isLayoutFullScreen;
+    let fullScreen = false
     if (this.checkFullScreen && (setFullScreen || isLayoutFullScreen || isUseFullScreen)) { // 全屏显示
+      fullScreen = true
       if (this.paddingTop != undefined) {
         this.viewportMetrics.physicalViewPaddingTop = this.paddingTop;
       } else {
@@ -520,13 +533,24 @@ export class FlutterView {
     this.viewportMetrics.physicalViewPaddingRight =
       this.systemAvoidArea?.rightRect.width ?? this.viewportMetrics.physicalViewPaddingRight;
 
-    this.onKeyboardAreaChange()
-    this.onGestureAreaChange()
+    this.onKeyboardAreaChange(fullScreen)
+    this.onAiBarAreaChange(fullScreen)
+    this.onGestureAreaChange(fullScreen)
     this.updateViewportMetrics()
   }
 
-  private onKeyboardAreaChange() {
-    if (this.checkKeyboard) {
+  // At the bottom of the single-frame phone is an AI assistant wake-up bar
+  // The area can lead to confusing gestures in repetitive areas without handled properly
+  // physicalViewPaddingBottom is modified by this function which needs to be called after onKeyboardAreaChange
+  private onAiBarAreaChange(fullScreen: boolean = false) {
+    if (this.checkAiBar && this.navigationAvoidArea != null && fullScreen) {
+      this.viewportMetrics.physicalViewPaddingBottom =
+        Math.max(this.navigationAvoidArea.bottomRect.height, this.viewportMetrics.physicalViewPaddingBottom)
+    }
+  }
+
+  private onKeyboardAreaChange(fullScreen: boolean = false) {
+    if (this.checkKeyboard && fullScreen) {
       this.viewportMetrics.physicalViewInsetTop =
         this.keyboardAvoidArea?.topRect.height ?? this.viewportMetrics.physicalViewInsetTop
       this.viewportMetrics.physicalViewInsetLeft =
@@ -543,8 +567,8 @@ export class FlutterView {
     }
   }
 
-  private onGestureAreaChange() {
-    if (this.checkGesture) {
+  private onGestureAreaChange(fullScreen: boolean = false) {
+    if (this.checkGesture && fullScreen) {
       this.viewportMetrics.systemGestureInsetTop =
         this.gestureAvoidArea?.topRect.height ?? this.viewportMetrics.systemGestureInsetTop
       this.viewportMetrics.systemGestureInsetLeft =
@@ -650,6 +674,10 @@ export class FlutterView {
 
   setCheckGesture(check: boolean) {
     this.checkGesture = check
+  }
+
+  setCheckAiBar(check: boolean) {
+    this.checkAiBar = check
   }
 
   setPaddingTop(paddingTop?: number) {
