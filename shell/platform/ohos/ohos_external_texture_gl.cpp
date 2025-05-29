@@ -1,16 +1,7 @@
 /*
  * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 
 #include "ohos_external_texture_gl.h"
@@ -142,6 +133,7 @@ sk_sp<flutter::DlImage> OHOSExternalTextureGL::CreateDlImage(
     PaintContext& context,
     const SkRect& bounds,
     NativeBufferKey key,
+    OH_NativeBuffer_Config& config,
     OHNativeWindowBuffer* nw_buffer) {
   GLuint texture_name = 0;
   glGenTextures(1, &texture_name);
@@ -172,8 +164,14 @@ sk_sp<flutter::DlImage> OHOSExternalTextureGL::CreateDlImage(
 
   // lru: oldest resource need earse
   now_key_ = key;
-  gl_resources_.erase(image_lru_.AddImage(dl_image, key));
+  DeleteBufferGPUResource(image_lru_.AddImage(dl_image, config, key));
   return dl_image;
+}
+
+void OHOSExternalTextureGL::DeleteBufferGPUResource(NativeBufferKey key) {
+  if (key != 0) {
+    gl_resources_.erase(key);
+  }
 }
 
 OHOSUniqueEGLImageKHR OHOSExternalTextureGL::CreateEGLImage(
