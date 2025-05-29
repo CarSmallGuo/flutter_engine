@@ -1,16 +1,8 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright 2013 The Flutter Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 #include "flutter/shell/platform/ohos/ohos_surface_gl_skia.h"
@@ -214,6 +206,10 @@ bool OhosSurfaceGLSkia::GLContextPresent(const GLPresentInfo& present_info) {
     onscreen_surface_->SetPresentationTime(*present_info.presentation_time);
     uint64_t present_time =
         present_info.presentation_time->ToEpochDelta().ToNanoseconds();
+    // [-1ms] is to avoid this situation:
+    // ui_timestamp(xxx8.334ms) > now_time(xxx8.332ms) => skip this frame
+    // update [-2ms]: vsync may get a perid of 7.1 ms when 120hz.
+    present_time -= fml::TimeDelta::FromMilliseconds(2).ToNanoseconds();
     OH_NativeWindow_NativeWindowHandleOpt(
         (OHNativeWindow*)native_window_->Gethandle(),
         SET_DESIRED_PRESENT_TIMESTAMP, present_time);

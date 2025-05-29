@@ -1,17 +1,4 @@
-/*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+
 
 export { default as FlutterInjector } from './src/main/ets/FlutterInjector';
 export { default as FlutterPluginRegistry } from './src/main/ets/app/FlutterPluginRegistry';
@@ -71,7 +58,7 @@ export { default as PlatformPlugin } from './src/main/ets/plugin/PlatformPlugin'
 export { default as BasicMessageChannel, Reply } from './src/main/ets/plugin/common/BasicMessageChannel';
 export { default as BinaryCodec } from './src/main/ets/plugin/common/BinaryCodec';
 export * from './src/main/ets/plugin/common/BinaryMessenger';
-export { default as EventChannel } from './src/main/ets/plugin/common/EventChannel';
+export { default as EventChannel, StreamHandler, EventSink } from './src/main/ets/plugin/common/EventChannel';
 export { default as FlutterException } from './src/main/ets/plugin/common/FlutterException';
 export { default as JSONMessageCodec } from './src/main/ets/plugin/common/JSONMessageCodec';
 export { default as JSONMethodCodec } from './src/main/ets/plugin/common/JSONMethodCodec';

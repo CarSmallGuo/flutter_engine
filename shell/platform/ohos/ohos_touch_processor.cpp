@@ -1,16 +1,7 @@
 /*
  * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 
 #include "flutter/shell/platform/ohos/ohos_touch_processor.h"
@@ -560,7 +551,7 @@ void OhosTouchProcessor::HandleMouseEvent(
   pointerData.pressure = 0.0;
   pointerData.pressure_max = 1.0;
   pointerData.pressure_min = 0.0;
-  pointerData.kind = PointerData::DeviceKind::kMouse; // kMouse支持鼠标框选文字
+  pointerData.kind = PointerData::DeviceKind::kMouse;  // kMouse支持鼠标框选文字
   pointerData.buttons = getPointerButtonFromMouse(mouseEvent.button);
   // hover support
   if (mouseEvent.button == OH_NATIVEXCOMPONENT_NONE_BUTTON &&

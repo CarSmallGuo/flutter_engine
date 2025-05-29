@@ -1,16 +1,7 @@
 /*
  * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 
 #ifndef FLUTTER_SHELL_PLATFORM_OHOS_NAPI_PLATFORM_VIEW_OHOS_NAPI_H_
@@ -57,6 +48,7 @@ class PlatformViewOHOSNapi {
       napi_callback_info info);
 
   explicit PlatformViewOHOSNapi(napi_env env);
+  ~PlatformViewOHOSNapi();
   void SetPlatformTaskRunner(fml::RefPtr<fml::TaskRunner> platform_task_runner);
   void FlutterViewHandlePlatformMessageResponse(
       int reponse_id,
@@ -174,6 +166,9 @@ class PlatformViewOHOSNapi {
 
   static napi_value nativeGetTextureWindowId(napi_env env,
                                              napi_callback_info info);
+  static napi_value nativeGetTextureWindowPtr(napi_env env,
+                                              napi_callback_info info);
+
   static napi_value nativeSetTextureBackGroundPixelMap(napi_env env,
                                                        napi_callback_info info);
   static napi_value nativeSetTextureBackGroundColor(napi_env env,
@@ -187,6 +182,9 @@ class PlatformViewOHOSNapi {
 
   static napi_value nativeSetExternalNativeImage(napi_env env,
                                                  napi_callback_info info);
+
+  static napi_value nativeSetExternalNativeImagePtr(napi_env env,
+                                                    napi_callback_info info);
 
   static napi_value nativeResetExternalTexture(napi_env env,
                                                napi_callback_info info);
@@ -270,9 +268,10 @@ class PlatformViewOHOSNapi {
                                                     napi_callback_info info);
   static napi_value nativeSetDVsyncSwitch(napi_env env,
                                           napi_callback_info info);
+
  private:
   static napi_env env_;
-  napi_ref ref_napi_obj_;
+  napi_ref ref_napi_obj_ = nullptr;
   static std::vector<std::string> system_languages;
   fml::RefPtr<fml::TaskRunner> platform_task_runner_;
   static int64_t napi_shell_holder_id_;

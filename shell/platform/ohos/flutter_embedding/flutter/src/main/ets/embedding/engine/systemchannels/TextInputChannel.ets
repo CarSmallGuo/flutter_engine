@@ -1,16 +1,11 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 *
-*     http://www.apache.org/licenses/LICENSE-2.0
+* Based on TextInputChannel.java originally written by
+* Copyright (C) 2013 The Flutter Authors.
 *
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 */
 
 import JSONMethodCodec from '../../../plugin/common/JSONMethodCodec';
@@ -26,6 +21,7 @@ import Any from '../../../plugin/common/Any';
 import { display } from '@kit.ArkUI'
 import { window } from '@kit.ArkUI';
 import { BusinessError, print } from '@kit.BasicServicesKit';
+import { PointerDeviceKind } from '../../ohos/OhosTouchProcessor';
 
 const TAG = "TextInputChannel";
 /// 规避换行标识无法显示问题，api修改后再删除
@@ -149,6 +145,7 @@ export default class TextInputChannel {
   onConnectionClosed(inputClientId: number): void {
     Log.d(TAG, "Sending 'onConnectionClosed' message.");
     this.channel.invokeMethod("TextInputClient.onConnectionClosed", [inputClientId]);
+    this.textInputMethodHandler?.hide();
   }
 
   performPrivateCommand(inputClientId: number, action: string, data: Any) {
@@ -163,6 +160,11 @@ export default class TextInputChannel {
   public setDevicePixelRatio(devicePixelRatio: number) {
     this.TextInputCallback?.setDevicePixelRatio(devicePixelRatio);
   }
+
+  getKeyboardFocusState() {
+    return this.textInputMethodHandler?.getKeyboardFocusState();
+  }
+  
 }
 
 interface EditingState {
@@ -190,6 +192,8 @@ export interface TextInputMethodHandler {
 
   setClient(textInputClientId: number, configuration: Configuration | null): void;
 
+  updateConfig(configuration: Configuration | null): void;
+
   setPlatformViewClient(id: number, usesVirtualDisplay: boolean): void;
 
   setEditableSizeAndTransform(width: number, height: number, transform: number[]): void;
@@ -201,6 +205,8 @@ export interface TextInputMethodHandler {
   clearClient(): void;
 
   handleChangeFocus(focusState: boolean): void;
+
+  getKeyboardFocusState(): boolean;
 
 }
 
@@ -215,6 +221,7 @@ export class Configuration {
   inputAction: Number = 0;
   actionLabel: String = "";
   contentCommitMimeTypes: String[] = [];
+  deviceKind: PointerDeviceKind = PointerDeviceKind.UNKNOWN;
   fields: Configuration[] = [];
 
   constructor(obscureText: boolean,
@@ -227,6 +234,7 @@ export class Configuration {
     actionLabel: String,
     autofill: boolean,
     contentListString: [],
+    deviceKind: PointerDeviceKind,
     fields: Configuration[]
   ) {
     this.obscureText = obscureText;
@@ -240,7 +248,7 @@ export class Configuration {
     this.autofill = autofill;
     this.contentCommitMimeTypes = contentListString;
     this.fields = fields
-
+    this.deviceKind = deviceKind
   }
 
   private static inputActionFromTextInputAction(inputActionName: string): number {
@@ -300,6 +308,41 @@ export class Configuration {
       json.actionLabel ?? null,
       json.autofill ?? null,
       contentList as Any,
+      json.deviceKind ?? PointerDeviceKind.UNKNOWN,
+      fields
+    );
+  }
+
+  static fromMap(map: Map<String, Any>) {
+    let inputTypeSrc: Any = map.get('inputType');
+    let type = TextInputType.get(inputTypeSrc.name) ?? inputMethod.TextInputType.TEXT;
+    let inputType = new InputType(type, inputTypeSrc.decimal, inputTypeSrc.signed);
+    let inputAction = Configuration.inputActionFromTextInputAction(map.get('inputAction'));
+
+    let fields: Array<Any> = new Array();
+    if (map.get('fields')) {
+      fields = map.get('fields').map((field: Any): Any => Configuration.fromJson(field));
+    }
+
+    // Build list of content commit mime types from the data in the JSON list.
+    const contentList: Array<Any> = [];
+    if (map.get('contentCommitMimeTypes')) {
+      map.get('contentCommitMimeTypes').forEach((type: Any) => {
+        contentList.push(type);
+      });
+    }
+    return new Configuration(
+      map.get('obscureText') ?? false,
+      map.get('autocorrect') ?? true,
+      map.get('enableSuggestions') ?? false,
+      map.get('enableIMEPersonalizedLearning') ?? false,
+      map.get('enableDeltaModel') ?? false,
+      inputType,
+      inputAction,
+      map.get('actionLabel') ?? null,
+      map.get('autofill') ?? null,
+      contentList as Any,
+      map.get('deviceKind') ?? PointerDeviceKind.UNKNOWN,
       fields
     );
   }
@@ -490,6 +533,11 @@ class TextInputCallback implements MethodCallHandler {
         const config: Configuration | null = Configuration.fromJson(jsonConfiguration);
 
         this.textInputMethodHandler.setClient(textInputClientId, config);
+        result.success(null);
+        break;
+      case 'TextInput.updateConfig':
+        const newConfig: Configuration | null = Configuration.fromMap(args as Map<String, Any>);
+        this.textInputMethodHandler.updateConfig(newConfig);
         result.success(null);
         break;
       case "TextInput.requestAutofill":

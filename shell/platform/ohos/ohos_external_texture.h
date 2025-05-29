@@ -1,16 +1,7 @@
 /*
  * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 
 #ifndef FLUTTER_SHELL_PLATFORM_OHOS_OHOS_EXTERNAL_TEXTURE_H_
@@ -83,6 +74,11 @@ class OHOSExternalTexture : public flutter::Texture {
   // Check if the fd is a valid sync file.
   static bool FdIsValid(int fd);
 
+  static bool GetWindowBufferConfig(OHNativeWindowBuffer* buffer,
+                                    OH_NativeBuffer** native_buffer,
+                                    OH_NativeBuffer_Config* config,
+                                    uint32_t* id);
+
  protected:
   OHNativeWindowBuffer* GetConsumerNativeBuffer(int* fence_fd);
 
@@ -95,7 +91,10 @@ class OHOSExternalTexture : public flutter::Texture {
       PaintContext& context,
       const SkRect& bounds,
       NativeBufferKey key,
+      OH_NativeBuffer_Config& config,
       OHNativeWindowBuffer* nw_buffer) = 0;
+
+  virtual void DeleteBufferGPUResource(NativeBufferKey key) = 0;
 
   ImageLRU image_lru_ = ImageLRU();
 
@@ -141,7 +140,7 @@ class OHOSExternalTexture : public flutter::Texture {
   OHNativeWindowBuffer* pixelmap_buffer_ = nullptr;
   OH_NativeBuffer* pixelmap_native_buffer_ = nullptr;
   bool background_color_enable_ = false;
-  uint32_t background_color_;
+  uint32_t background_color_ = 0x00000000;  // 透明
 
   OHNativeWindowBuffer* last_native_window_buffer_ = nullptr;
   int last_fence_fd_ = -1;

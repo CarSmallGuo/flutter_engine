@@ -1,16 +1,11 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 *
-*     http://www.apache.org/licenses/LICENSE-2.0
+* Based on TextInputPlugin.java originally written by
+* Copyright (C) 2013 The Flutter Authors.
 *
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 */
 
 import TextInputChannel, {
@@ -24,9 +19,12 @@ import { EditingStateWatcher, ListenableEditingState } from './ListenableEditing
 import Any from '../common/Any';
 import { inputDevice } from '@kit.InputKit';
 import { BusinessError } from '@kit.BasicServicesKit';
+import { PointerDeviceKind } from '../../embedding/ohos/OhosTouchProcessor';
+import deviceInfo from '@ohos.deviceInfo';
 
 /// 临时规避缺少newline对应枚举问题
 const NEWLINE_KEY_TYPE: number = 8;
+const INPUT_SUPPORT_API = 15;
 
 export default class TextInputPlugin implements EditingStateWatcher {
   private static TAG = "TextInputPlugin";
@@ -75,12 +73,15 @@ export default class TextInputPlugin implements EditingStateWatcher {
   }
 
   destroy() {
-    // Since the Dart side no longer listens to the lifecycle, 
+    // Since the Dart side no longer listens to the lifecycle,
     // the keyboard must be explicitly hidden before the engine is destroyed.
     this.mTextInputHandler.hide();
     this.textInputChannel.setTextInputMethodHandler(null);
   }
 }
+
+const INPUT_TYPE_NAME =
+  ['NONE', 'TEXT', 'MULTILINE', 'NUMBER', 'PHONE', 'DATETIME', 'EMAIL_ADDRESS', 'URL', 'VISIBLE_PASSWORD']
 
 class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private static TAG = "TextInputMethodHandlerImpl";
@@ -88,6 +89,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   inputMethodController: inputMethod.InputMethodController;
   inputTarget: InputTarget;
   public configuration: Configuration | null = null;
+  private lastKind?: PointerDeviceKind;
   mEditable: ListenableEditingState;
   private mRestartInputPending: boolean = false;
   private plugin: EditingStateWatcher | Any;
@@ -128,6 +130,10 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.hideTextInput();
   }
 
+  getKeyboardFocusState() {
+    return this.keyboardFocusState;
+  }
+
   requestAutofill(): void {
 
   }
@@ -137,8 +143,18 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   }
 
   setClient(textInputClientId: number, configuration: Configuration | null): void {
-    Log.d(TextInputMethodHandlerImpl.TAG, "textInputClientId: " + textInputClientId);
     this.setTextInputClient(textInputClientId, configuration);
+  }
+
+  updateConfig(configuration: Configuration | null) {
+    if (configuration) {
+      this.lastKind = this.configuration?.deviceKind;
+      this.configuration = configuration;
+      if (configuration.inputType) {
+        this.textConfig.inputAttribute.textInputType = configuration.inputType.type;
+        this.textConfig.inputAttribute.enterKeyType = configuration.inputAction as Any;
+      }
+    }
   }
 
   setPlatformViewClient(id: number, usesVirtualDisplay: boolean): void {
@@ -168,6 +184,8 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
         + editingState.selectionEnd + " composingStart:" + editingState.composingStart + " composingEnd" +
       editingState.composingEnd);
     this.mEditable.updateTextInputState(editingState);
+    this.inputMethodController.changeSelection(editingState.text, editingState.selectionStart,
+      editingState.selectionEnd);
   }
 
   clearClient(): void {
@@ -176,6 +194,13 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   private async showTextInput(): Promise<void> {
     if (this.keyboardStatus == inputMethod.KeyboardStatus.SHOW) {
+      if (this.lastKind != this.configuration?.deviceKind) {
+        if (deviceInfo.sdkApiVersion >= INPUT_SUPPORT_API) {
+          await this.inputMethodController.showTextInput(this.getRequestReason());
+        } else {
+          await this.inputMethodController.showTextInput();
+        }
+      }
       return;
     }
     await this.attach(true);
@@ -196,11 +221,32 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
 
   async attach(showKeyboard: boolean): Promise<void> {
     try {
-      await this.inputMethodController.attach(showKeyboard, this.textConfig);
+      if (deviceInfo.sdkApiVersion >= INPUT_SUPPORT_API) {
+        await this.inputMethodController.attach(showKeyboard, this.textConfig, this.getRequestReason());
+      } else {
+        await this.inputMethodController.attach(showKeyboard, this.textConfig);
+      }
       this.keyboardStatus = inputMethod.KeyboardStatus.SHOW;
     } catch (err) {
       Log.e(TextInputMethodHandlerImpl.TAG, "Failed to attach:" + JSON.stringify(err));
       this.keyboardStatus = inputMethod.KeyboardStatus.NONE;
+    }
+  }
+
+  getRequestReason() : inputMethod.RequestKeyboardReason {
+    let deviceKind : PointerDeviceKind = this.configuration?.deviceKind ?? PointerDeviceKind.UNKNOWN
+    Log.i(TextInputMethodHandlerImpl.TAG, "getRequestReason: deviceKind=" + deviceKind);
+    switch (deviceKind) {
+      case PointerDeviceKind.TOUCH:
+        return inputMethod.RequestKeyboardReason.TOUCH;
+      case PointerDeviceKind.MOUSE:
+        return inputMethod.RequestKeyboardReason.MOUSE;
+      case PointerDeviceKind.STYLUS:
+      case PointerDeviceKind.INVERTED_STYLUS:
+      case PointerDeviceKind.TRACKPAD:
+        return inputMethod.RequestKeyboardReason.OTHER;
+      default:
+        return inputMethod.RequestKeyboardReason.NONE;
     }
   }
 
@@ -325,6 +371,15 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
       this.cancelListenKeyBoardEvent();
       return;
     }
+
+    try {
+      this.inputMethodController.on('moveCursor', this.moveCursorCallback)
+    } catch (err) {
+      Log.e(TextInputMethodHandlerImpl.TAG, "Failed to subscribe moveCursor:" + JSON.stringify(err));
+      this.cancelListenKeyBoardEvent();
+      return;
+    }
+
     Log.d(TextInputMethodHandlerImpl.TAG, "listenKeyBoardEvent success");
     this.imcFlag = true;
   }
@@ -332,14 +387,20 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
   private insertTextCallback = (text: string) => {
     Log.d(TextInputMethodHandlerImpl.TAG, "insertText: " + text);
     this.mEditable.handleInsertTextEvent(text);
+    this.inputMethodController.changeSelection(this.mEditable.getStringCache(), this.mEditable.getSelectionStart(),
+      this.mEditable.getSelectionEnd());
   }
 
   private deleteLeftCallback = (length: number) => {
     this.mEditable.handleDeleteEvent(false, length);
+    this.inputMethodController.changeSelection(this.mEditable.getStringCache(), this.mEditable.getSelectionStart(),
+      this.mEditable.getSelectionEnd());
   }
 
   private deleteRightCallback = (length: number) => {
     this.mEditable.handleDeleteEvent(true, length);
+    this.inputMethodController.changeSelection(this.mEditable.getStringCache(), this.mEditable.getSelectionStart(),
+      this.mEditable.getSelectionEnd());
   }
 
   private sendFunctionKeyCallback = (functionKey: inputMethod.FunctionKey) => {
@@ -361,6 +422,10 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.mEditable.handleSelectByRange(range);
   }
 
+  private moveCursorCallback = (direction: inputMethod.Direction) => {
+    this.mEditable.handleMoveCursor(direction);
+  }
+
   cancelListenKeyBoardEvent(): void {
     this.inputMethodController?.off('insertText', this.insertTextCallback);
     this.inputMethodController?.off('deleteLeft', this.deleteLeftCallback);
@@ -368,6 +433,7 @@ class TextInputMethodHandlerImpl implements TextInputMethodHandler {
     this.inputMethodController?.off('sendFunctionKey', this.sendFunctionKeyCallback);
     this.inputMethodController?.off('sendKeyboardStatus', this.sendKeyboardStatusCallback);
     this.inputMethodController?.off('selectByRange', this.selectByRangeCallback);
+    this.inputMethodController?.off('moveCursor', this.moveCursorCallback);
     this.imcFlag = false;
   }
 

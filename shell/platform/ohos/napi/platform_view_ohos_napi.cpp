@@ -1,16 +1,7 @@
 /*
  * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 
 #include "platform_view_ohos_napi.h"
@@ -261,6 +252,17 @@ napi_value PlatformViewOHOSNapi::nativeInvokePlatformMessageResponseCallback(
 }
  */
 PlatformViewOHOSNapi::PlatformViewOHOSNapi(napi_env env) {}
+PlatformViewOHOSNapi::~PlatformViewOHOSNapi() {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi Deconstruction";
+  uint32_t result = 0;
+  if (!ref_napi_obj_) {
+    FML_DLOG(ERROR) << "PlatformViewOHOSNapi ref_napi_obj_ is null !!!";
+    return;
+  }
+  napi_reference_unref(env_, ref_napi_obj_, &result);
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi napi_reference_unref, result is "
+                 << result;
+}
 
 void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessageResponse(
     int reponse_id,
@@ -280,11 +282,14 @@ void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessageResponse(
         env_, (void*)data->GetMapping(), data->GetSize());
   }
 
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   status = fml::napi::InvokeJsMethod(
       env_, ref_napi_obj_, "handlePlatformMessageResponse", 2, callbackParam);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod fail ";
   }
+  napi_close_handle_scope(env_, scope);
 }
 
 void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessage(
@@ -329,11 +334,14 @@ void PlatformViewOHOSNapi::FlutterViewHandlePlatformMessage(
     callbackParam[3] = nullptr;
   }
 
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   status = fml::napi::InvokeJsMethod(env_, ref_napi_obj_,
                                      "handlePlatformMessage", 4, callbackParam);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod fail ";
   }
+  napi_close_handle_scope(env_, scope);
 }
 
 void PlatformViewOHOSNapi::FlutterViewOnFirstFrame(bool is_preload) {
@@ -343,20 +351,26 @@ void PlatformViewOHOSNapi::FlutterViewOnFirstFrame(bool is_preload) {
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "napi_create_int64 firstframe fail ";
   }
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   status = fml::napi::InvokeJsMethod(env_, ref_napi_obj_, "onFirstFrame", 1,
                                      callbackParam);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod onFirstFrame fail ";
   }
+  napi_close_handle_scope(env_, scope);
 }
 
 void PlatformViewOHOSNapi::FlutterViewOnPreEngineRestart() {
   FML_DLOG(INFO) << "FlutterViewOnPreEngineRestart";
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   napi_status status = fml::napi::InvokeJsMethod(
       env_, ref_napi_obj_, "onPreEngineRestart", 0, nullptr);
   if (status != napi_ok) {
     FML_DLOG(ERROR) << "InvokeJsMethod onPreEngineRestart fail ";
   }
+  napi_close_handle_scope(env_, scope);
 }
 
 std::vector<std::string> splitString(const std::string& input, char delimiter) {
@@ -446,11 +460,14 @@ void PlatformViewOHOSNapi::FlutterViewOnTouchEvent(
     napi_set_element(env_, arrayString, i, stringItem);
   }
 
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   napi_status status = fml::napi::InvokeJsMethod(
       env_, ref_napi_obj_, "onTouchEvent", 1, &arrayString);
   if (status != napi_ok) {
     FML_LOG(ERROR) << "InvokeJsMethod onTouchEvent fail";
   }
+  napi_close_handle_scope(env_, scope);
 }
 
 /**
@@ -1605,6 +1622,25 @@ napi_value PlatformViewOHOSNapi::nativeGetTextureWindowId(
   return res;
 }
 
+napi_value PlatformViewOHOSNapi::nativeGetTextureWindowPtr(
+    napi_env env,
+    napi_callback_info info) {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeGetTextureWindowPtr";
+  size_t argc = 2;
+  napi_value args[2] = {nullptr};
+  int64_t shell_holder;
+  int64_t textureId;
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
+  NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
+  NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
+  uint64_t windowId =
+      OHOS_SHELL_HOLDER->GetPlatformView()->GetExternalTextureWindowId(
+          textureId);
+  napi_value res;
+  napi_create_bigint_uint64(env, windowId, &res);
+  return res;
+}
+
 napi_value PlatformViewOHOSNapi::nativeSetTextureBufferSize(
     napi_env env,
     napi_callback_info info) {
@@ -1654,10 +1690,42 @@ napi_value PlatformViewOHOSNapi::nativeSetExternalNativeImage(
   int64_t shell_holder;
   int64_t textureId;
   int64_t native_image_ptr;
+
   NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
   NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
   NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
   NAPI_CALL(env, napi_get_value_int64(env, args[2], &native_image_ptr));
+
+  OH_NativeImage* native_image =
+      (reinterpret_cast<OH_NativeImage*>(native_image_ptr));
+
+  bool ret = OHOS_SHELL_HOLDER->GetPlatformView()->SetExternalNativeImage(
+      textureId, native_image);
+  napi_value res;
+  napi_create_int64(env, (int64_t)ret, &res);
+  return res;
+}
+
+napi_value PlatformViewOHOSNapi::nativeSetExternalNativeImagePtr(
+    napi_env env,
+    napi_callback_info info) {
+  FML_DLOG(INFO) << "PlatformViewOHOSNapi::nativeSetExternalNativeImagePtr";
+  size_t argc = 3;
+  napi_value args[3] = {nullptr};
+  int64_t shell_holder;
+  int64_t textureId;
+  uint64_t native_image_ptr;
+  bool lossLess = false;
+
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, nullptr, nullptr));
+  NAPI_CALL(env, napi_get_value_int64(env, args[0], &shell_holder));
+  NAPI_CALL(env, napi_get_value_int64(env, args[1], &textureId));
+  NAPI_CALL(env, napi_get_value_bigint_uint64(env, args[2], &native_image_ptr,
+                                              &lossLess));
+  if (!lossLess) {
+    napi_throw_error(env, nullptr, "BigInt values have no lossless converted");
+    return nullptr;
+  }
 
   OH_NativeImage* native_image =
       (reinterpret_cast<OH_NativeImage*>(native_image_ptr));
@@ -1812,7 +1880,7 @@ void PlatformViewOHOSNapi::SurfaceChanged(int64_t shell_holder,
                                           void* window,
                                           int width,
                                           int height) {
-  FML_LOG(INFO) << "impeller" << "SurfaceChanged:";
+  FML_LOG(INFO) << "impeller SurfaceChanged:";
   auto native_window = fml::MakeRefCounted<OHOSNativeWindow>(
       static_cast<OHNativeWindow*>(window));
   OHOS_SHELL_HOLDER->GetPlatformView()->UpdateDisplaySize(width, height);
@@ -2206,6 +2274,8 @@ napi_value PlatformViewOHOSNapi::nativeLookupCallbackInformation(
   napi_create_string_utf8(env, cbInfo->library_path.c_str(), NAPI_AUTO_LENGTH,
                           &callbackParam[2]);
 
+  napi_handle_scope scope;
+  napi_open_handle_scope(env_, &scope);
   ret = fml::napi::InvokeJsMethod(env, callbck_napi_obj, "init", 3,
                                   callbackParam);
   if (ret != napi_ok) {
@@ -2213,6 +2283,7 @@ napi_value PlatformViewOHOSNapi::nativeLookupCallbackInformation(
     napi_create_int32(env, -1, &result);
     return result;
   }
+  napi_close_handle_scope(env_, scope);
   napi_delete_reference(env, callbck_napi_obj);
   napi_create_int32(env, 0, &result);
   return result;
@@ -2521,8 +2592,9 @@ napi_value PlatformViewOHOSNapi::nativeUpdateCurrentXComponentId(
   return nullptr;
 }
 
-napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callback_info info)
-{
+napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(
+    napi_env env,
+    napi_callback_info info) {
   size_t argc = 2;
   napi_value result;
   napi_value args[2] = {nullptr};
@@ -2549,8 +2621,10 @@ napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callba
     return nullptr;
   }
 
-  auto vsyncWaiter = std::shared_ptr<flutter::VsyncWaiter>(OHOS_SHELL_HOLDER->GetVsyncWaiter().lock());
-  auto vsync_waiter_ohos = std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsyncWaiter);
+  auto vsyncWaiter = std::shared_ptr<flutter::VsyncWaiter>(
+      OHOS_SHELL_HOLDER->GetVsyncWaiter().lock());
+  auto vsync_waiter_ohos =
+      std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsyncWaiter);
 
   if (isEnable) {
     LOGD("EnableDVsync");

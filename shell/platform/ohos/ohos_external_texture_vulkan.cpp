@@ -1,4 +1,9 @@
-#include "ohos_external_texture_vulkan.h"
+/*
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE_KHZG file.
+ */
+ #include "ohos_external_texture_vulkan.h"
 #include <fcntl.h>
 #include <native_buffer/native_buffer.h>
 #include <native_window/external_window.h>
@@ -266,6 +271,7 @@ sk_sp<flutter::DlImage> OHOSExternalTextureVulkan::CreateDlImage(
     PaintContext& context,
     const SkRect& bounds,
     NativeBufferKey key,
+    OH_NativeBuffer_Config& config,
     OHNativeWindowBuffer* nw_buffer) {
   auto texture_source = std::make_shared<impeller::OHBTextureSourceVK>(
       impeller_context_, nw_buffer);
@@ -281,8 +287,14 @@ sk_sp<flutter::DlImage> OHOSExternalTextureVulkan::CreateDlImage(
 
   vk_resources_[key] = {.texture = texture};
   now_key_ = key;
-  vk_resources_.erase(image_lru_.AddImage(dl_image, key));
+  DeleteBufferGPUResource(image_lru_.AddImage(dl_image, config, key));
   return dl_image;
+}
+
+void OHOSExternalTextureVulkan::DeleteBufferGPUResource(NativeBufferKey key) {
+  if (key != 0) {
+    vk_resources_.erase(key);
+  }
 }
 
 }  // namespace flutter

@@ -1,16 +1,11 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 *
-*     http://www.apache.org/licenses/LICENSE-2.0
+* Based on KeyboardManager.java originally written by
+* Copyright (C) 2013 The Flutter Authors.
 *
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 */
 import TextInputPlugin from '../../plugin/editing/TextInputPlugin';
 import FlutterEngine from '../engine/FlutterEngine';
@@ -37,24 +32,16 @@ export default class KeyboardManager {
   }
 
   onKeyPreIme(event: KeyEvent) : boolean {
-    this.keyEmbedderResponder.handleKeyEvent(event);
-
-    this.keyEventChannel?.sendFlutterKeyEvent(new FlutterKeyEvent(event), event.type == KeyType.Up, {
-      onFrameworkResponse: (isEventHandled: boolean): void => {
-
-      }
-    })
-
-    //del物理按键会触发输入法的delete回调，一定时序下会导致多次删除
-    if(event.type == KeyType.Down && (event.keyCode == KeyCode.KEYCODE_DEL || event.keyCode == KeyCode.KEYCODE_FORWARD_DEL)){
-      this.keyEventHandler.startDeleting(event.keyCode)
-    } else if (event.type == KeyType.Up && (event.keyCode == KeyCode.KEYCODE_DEL || event.keyCode == KeyCode.KEYCODE_FORWARD_DEL)) {
-      this.keyEventHandler.endDeletion(event.keyCode)
-    }
     return false;
   }
 
   onKeyEvent(event: KeyEvent) : boolean {
+    this.keyEmbedderResponder.handleKeyEvent(event);
+
+    this.keyEventChannel?.sendFlutterKeyEvent(new FlutterKeyEvent(event), event.type == KeyType.Up, {
+      onFrameworkResponse: (isEventHandled: boolean): void => {
+      }
+    })
     this.keyEventHandler.handleKeyEvent(event);
     return false;
   }

@@ -1,16 +1,8 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright 2013 The Flutter Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style license that can be
+ * found in the LICENSE file.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
@@ -142,9 +134,6 @@ static std::string CheckFontSource() {
     return "";
   }
   path = path.append(fileName);
-  if (OHOSLastFontPath.empty()) {
-    OHOSLastFontPath = path;
-  }
   return path;
 }
 
@@ -272,6 +261,7 @@ OHOSShellHolder::OHOSShellHolder(
   bridge_ = std::make_shared<SemanticsBridge>();
   bridge_mutex_ = std::make_shared<std::mutex>();
   platform_view_->SetSemanticsBridge(bridge_, bridge_mutex_);
+  local_font_path_ = OHOSLastFontPath;
   FML_DCHECK(platform_view_);
 }
 
@@ -296,12 +286,14 @@ OHOSShellHolder::OHOSShellHolder(
   bridge_ = std::make_shared<SemanticsBridge>();
   bridge_mutex_ = std::make_shared<std::mutex>();
   platform_view_->SetSemanticsBridge(bridge_, bridge_mutex_);
+  local_font_path_ = OHOSLastFontPath;
 }
 
 OHOSShellHolder::~OHOSShellHolder() {
   FML_LOG(INFO) << "MHN enter ~OHOSShellHolder()";
   shell_.reset();
   thread_host_.reset();
+  napi_facade_.reset();
   shell_ = nullptr;
 }
 
@@ -413,6 +405,9 @@ void OHOSShellHolder::InitializeSystemFont() {
     LOGE("system font file not found");
     return;
   }
+  if (OHOSLastFontPath.empty()) {
+    OHOSLastFontPath = path;
+  }
   mgr->InitializeSystemFont(path);
 }
 
@@ -421,6 +416,9 @@ void OHOSShellHolder::ReloadSystemFonts() {
   if (IsFontChanged(currentPath)) {
     SkFontMgr_OHOS* mgr = (SkFontMgr_OHOS*)(txt::GetDefaultFontManager().get());
     mgr->AddSystemFont(currentPath);
+  }
+  if (local_font_path_ != OHOSLastFontPath) {
+    local_font_path_ = OHOSLastFontPath;
     shell_->ReloadSystemFonts();
   }
 }
@@ -741,6 +739,10 @@ int32_t OHOSShellHolder::GetAccessibilityNodeCursorPosition(int64_t elementId,
                                                             int32_t* index) {
   std::lock_guard<std::mutex> lock(*bridge_mutex_);
   return bridge_->GetAccessibilityNodeCursorPosition(elementId, index);
+}
+
+std::shared_ptr<PlatformViewOHOSNapi> OHOSShellHolder::GetNapiFacade() {
+  return napi_facade_;
 }
 
 }  // namespace flutter

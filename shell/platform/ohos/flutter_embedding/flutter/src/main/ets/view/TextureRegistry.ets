@@ -1,34 +1,44 @@
 /*
-* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
+* Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
+* Use of this source code is governed by a BSD-style license that can be
+* found in the LICENSE_KHZG file.
 *
-*     http://www.apache.org/licenses/LICENSE-2.0
+* Based on TextureRegistry.java originally written by
+* Copyright (C) 2013 The Flutter Authors.
 *
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
 */
 import image from '@ohos.multimedia.image';
 
 export interface TextureRegistry {
 
+  createSurfaceTexture(): SurfaceTextureEntry;
+
   getTextureId(): number;
 
   registerTexture(textureId: number): SurfaceTextureEntry;
+
+  registerSurfaceTexture(receiver: image.ImageReceiver): SurfaceTextureEntry;
 
   registerPixelMap(pixelMap: PixelMap): number;
 
   setTextureBackGroundPixelMap(textureId: number, pixelMap: PixelMap): void;
 
+  /**
+   * @deprecated since 3.7
+   */
+  setTextureBackGroundColor(textureId: number, color: number): void;
+
   setTextureBufferSize(textureId: number, width: number, height: number): void;
 
   notifyTextureResizing(textureId: number, width: number, height: number): void;
 
+  /**
+   * @deprecated since 3.22
+   * @useinstead TextureRegistry#setExternalNativeImagePtr
+   */
   setExternalNativeImage(textureId: number, native_image: number): boolean;
+
+  setExternalNativeImagePtr(textureId: number, native_image: bigint): boolean;
 
   resetExternalTexture(textureId: number, need_surfaceId: boolean): number;
 
