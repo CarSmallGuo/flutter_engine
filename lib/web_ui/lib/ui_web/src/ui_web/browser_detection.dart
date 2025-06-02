@@ -37,6 +37,8 @@ enum OperatingSystem {
   macOs,
   /// We were unable to detect the current operating system.
   unknown,
+  /// Ohos
+  ohos,
 }
 
 // List of Operating Systems we know to be working on laptops/desktops.
