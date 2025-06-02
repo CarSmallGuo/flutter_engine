@@ -243,6 +243,7 @@ class KeyboardConverter {
         return locale_keymap.LocaleKeymap.win();
       case ui_web.OperatingSystem.android:
       case ui_web.OperatingSystem.linux:
+      case ui_web.OperatingSystem.ohos:
       case ui_web.OperatingSystem.unknown:
         return locale_keymap.LocaleKeymap.linux();
     }
