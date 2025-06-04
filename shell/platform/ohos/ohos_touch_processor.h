@@ -7,12 +7,12 @@
 #ifndef OHOS_TOUCH_PROCESSOR_H
 #define OHOS_TOUCH_PROCESSOR_H
 #include <ace/xcomponent/native_interface_xcomponent.h>
+#include <arkui/ui_input_event.h>
 #include <vector>
 #include <string>
+#include "flutter/fml/platform/ohos/dynamic_library_loader.h"
 #include "flutter/lib/ui/window/pointer_data.h"
 #include "napi_common.h"
-#include <arkui/ui_input_event.h>
-#include "flutter/fml/platform/ohos/dynamic_library_loader.h"
 
 namespace flutter {
 
@@ -32,15 +32,15 @@ public:
     void HandleAxisEvent(int64_t shell_holderID,
                             OH_NativeXComponent* component,
                             ArkUI_UIInputEvent* event);
-    void HandleFlingEvent(int64_t shell_holderID,
-                            OH_NativeXComponent* component,
-                            ArkUI_UIInputEvent* event);
-    void HandlePinchEvent(int64_t shell_holderID,
-                            OH_NativeXComponent* component,
-                            ArkUI_UIInputEvent* event);
     void HandleScaleEvent(int64_t shell_holderID,
                             OH_NativeXComponent* component,
                             ArkUI_UIInputEvent* event);
+    void HandleScrollEvent(int64_t shell_holderID,
+                           OH_NativeXComponent* component,
+                           ArkUI_UIInputEvent* event);
+    void HandlePanZooomEvent(int64_t shell_holderID,
+                             OH_NativeXComponent* component,
+                             ArkUI_UIInputEvent* event);
     void HandleMouseEvent(int64_t shell_holderID,
                             OH_NativeXComponent* component,
                             OH_NativeXComponent_MouseEvent mouseEvent,
@@ -65,8 +65,8 @@ public:
     ~OhosTouchProcessor();
  
 private:
-    float accumulatedDeltaX_ = 0.0;
-    float accumulatedDeltaY_ = 0.0;
+    float accumulatedPanX_ = 0.0;
+    float accumulatedPanY_ = 0.0;
     float accumulatedScale_ = 1.0;
 
 private:
