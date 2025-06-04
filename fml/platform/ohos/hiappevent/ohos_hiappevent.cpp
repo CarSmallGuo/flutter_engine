@@ -8,7 +8,6 @@
 #define STATISICFLAG 3
 #define SINLEFLAG 2
 
-
 #include "ohos_hiappevent.h"
 
 #include <deviceinfo.h>
@@ -40,14 +39,13 @@ std::shared_ptr<OhosHiappEventDDL> OhosHiappEventDDL::GetInstance() {
 }
 
 OhosHiappEventDDL::OhosHiappEventDDL(void)
-    : loader_(std::make_unique<flutter::DynamicLibraryLoader>(HIAPPEVENT_LIB_NAME)) {
-  apiVersion_ =flutter::DynamicLibraryLoader::GetApiVersion();
+    : loader_(std::make_unique<flutter::DynamicLibraryLoader>(
+          HIAPPEVENT_LIB_NAME)) {
+  apiVersion_ = flutter::DynamicLibraryLoader::GetApiVersion();
   return;
 }
 
-OhosHiappEventDDL::~OhosHiappEventDDL() {
-
-}
+OhosHiappEventDDL::~OhosHiappEventDDL() {}
 
 void OhosHiappEventDDL::Init(void) {
   if (apiVersion_ < REQUIRED_API_VERSION) {

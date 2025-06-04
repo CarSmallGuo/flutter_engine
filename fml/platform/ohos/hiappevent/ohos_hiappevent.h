@@ -4,8 +4,8 @@
  * found in the LICENSE_HW file.
  */
 
-#ifndef OHOS_HIAPPEVENT_H
-#define OHOS_HIAPPEVENT_H
+#ifndef FLUTTER_FML_PLATFORM_OHOS_HIAPPEVENT_OHOS_HIAPPEVENT_H_
+#define FLUTTER_FML_PLATFORM_OHOS_HIAPPEVENT_OHOS_HIAPPEVENT_H_
 
 #include <hiappevent/hiappevent.h>
 #include <vector>
@@ -82,4 +82,4 @@ class OhosHiappEventDDL {
 };  // namespace hiappevent
 };  // namespace fml
 
-#endif
+#endif  // FLUTTER_FML_PLATFORM_OHOS_HIAPPEVENT_OHOS_HIAPPEVENT_H_
