@@ -11,6 +11,7 @@
 #include <string>
 #include "flutter/lib/ui/window/pointer_data.h"
 #include "napi_common.h"
+#include <arkui/ui_input_event.h>
 
 namespace flutter {
 
@@ -23,31 +24,62 @@ public:
       float tiltY;
     } TouchPacket;
 
-public:
-    void HandleTouchEvent(int64_t shell_holderID,
-                            OH_NativeXComponent* component,
-                            OH_NativeXComponent_TouchEvent* touchEvent);
-    void HandleMouseEvent(int64_t shell_holderID,
-                            OH_NativeXComponent* component,
-                            OH_NativeXComponent_MouseEvent mouseEvent,
-                            double offsetY,
-                            bool isLeave = false);
-    void HandleVirtualTouchEvent(int64_t shell_holderID,
-                                OH_NativeXComponent* component,
-                                OH_NativeXComponent_TouchEvent* touchEvent);
-    flutter::PointerData::Change getPointerChangeForAction(int maskedAction);
-    flutter::PointerData::DeviceKind getPointerDeviceTypeForToolType(
-        int toolType);
-    flutter::PointerData::Change getPointerChangeForMouseAction(
-        OH_NativeXComponent_MouseEventAction mouseAction);
-    PointerButtonMouse getPointerButtonFromMouse(
-        OH_NativeXComponent_MouseEventButton mouseButton);
+ public:
+  void HandleTouchEvent(int64_t shell_holderID,
+                        OH_NativeXComponent* component,
+                        OH_NativeXComponent_TouchEvent* touchEvent);
+  void HandleAxisEvent(int64_t shell_holderID,
+                       OH_NativeXComponent* component,
+                       ArkUI_UIInputEvent* event);
+  void HandleFlingEvent(int64_t shell_holderID,
+                        OH_NativeXComponent* component,
+                        ArkUI_UIInputEvent* event);
+  void HandlePinchEvent(int64_t shell_holderID,
+                        OH_NativeXComponent* component,
+                        ArkUI_UIInputEvent* event);
+  void HandleScaleEvent(int64_t shell_holderID,
+                        OH_NativeXComponent* component,
+                        ArkUI_UIInputEvent* event);
+  void HandleMouseEvent(int64_t shell_holderID,
+                        OH_NativeXComponent* component,
+                        OH_NativeXComponent_MouseEvent mouseEvent,
+                        double offsetY,
+                        bool isLeave = false);
+  void HandleVirtualTouchEvent(int64_t shell_holderID,
+                               OH_NativeXComponent* component,
+                               OH_NativeXComponent_TouchEvent* touchEvent);
+  flutter::PointerData::Change getPointerChangeForAction(int maskedAction);
+  flutter::PointerData::DeviceKind getPointerDeviceTypeForToolType(
+      int toolType);
+  flutter::PointerData::Change getPointerChangeForMouseAction(
+      OH_NativeXComponent_MouseEventAction mouseAction);
+  PointerButtonMouse getPointerButtonFromMouse(
+      OH_NativeXComponent_MouseEventButton mouseButton);
 
 public:
     OH_NativeXComponent_TouchPointToolType touchType_;
 
-private:
-    std::shared_ptr<std::string[]> packagePacketData(std::unique_ptr<OhosTouchProcessor::TouchPacket> touchPacket);
+ public:
+   OhosTouchProcessor();
+   ~OhosTouchProcessor();
+
+ private:
+  int apiVersion_;
+  // 共享库名称
+  static constexpr char UIInputEvent_LIB_NAME[] = "libace_ndk.z.so";
+  // 类型别名，用于表示动态加载的函数指针类型
+  using GetDeviceIdFunc = int32_t (*)(ArkUI_UIInputEvent*);
+  using GetAxisActionFunc = int32_t (*)(ArkUI_UIInputEvent*);
+  using GetModifierKeyStatesFunc = int32_t (*)(ArkUI_UIInputEvent*, uint64_t*);
+  // 成员变量：保存动态加载的函数指针和库句柄
+  void* localLibHandler_;
+  GetDeviceIdFunc dynamicGetDeviceId_;
+  GetAxisActionFunc dynamicGetAxisAction_;
+  GetModifierKeyStatesFunc dynamicGetModifierKeyStates_;
+
+ private:
+  std::shared_ptr<std::string[]> packagePacketData(
+      std::unique_ptr<OhosTouchProcessor::TouchPacket> touchPacket);
 
     void PlatformViewOnTouchEvent(int64_t shellHolderID,
                                 OH_NativeXComponent_TouchPointToolType toolType,
