@@ -13,13 +13,13 @@
 #include <functional>
 #include <utility>
 #include "accessibility/ohos_semantics_bridge.h"
+#include "flutter/fml/platform/ohos/hiappevent/ohos_hiappevent.h"
 #include "fml/trace_event.h"
 #include "napi/platform_view_ohos_napi.h"
 #include "ohos_logging.h"
 #include "ohos_shell_holder.h"
 #include "shell/common/shell.h"
 #include "types.h"
-#include "flutter/fml/platform/ohos/hiappevent/ohos_hiappevent.h"
 
 namespace flutter {
 
@@ -470,7 +470,6 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
                                          width_, height_);
     is_surface_present_ = true;
   }
-  
 }
 
 void XComponentBase::PreDraw(std::string shellholderId, int width, int height) {
@@ -520,9 +519,8 @@ void XComponentBase::SetNativeXComponent(
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_,
                                                    &mouseCallback_);
-    OH_NativeXComponent_RegisterUIInputEventCallback(nativeXComponent_,
-                                                     DispatchAxisEventCB,
-                                                     ARKUI_UIINPUTEVENT_TYPE_AXIS);
+    OH_NativeXComponent_RegisterUIInputEventCallback(
+        nativeXComponent_, DispatchAxisEventCB, ARKUI_UIINPUTEVENT_TYPE_AXIS);
   }
 }
 
@@ -682,9 +680,11 @@ void XComponentBase::OnDispatchAxisEvent(OH_NativeXComponent* component,
                                          ArkUI_UIInputEvent_Type type) {
   if (type == ARKUI_UIINPUTEVENT_TYPE_AXIS) {
     if (is_engine_attached_) {
-      ohosTouchProcessor_.HandleAxisEvent(std::stoll(shellholderId_), component, event);
+      ohosTouchProcessor_.HandleAxisEvent(std::stoll(shellholderId_), component,
+                                          event);
     } else {
-      LOGE("XComponentManger::DispatchAxisEvent XComponentBase is not attached");
+      LOGE(
+          "XComponentManger::DispatchAxisEvent XComponentBase is not attached");
     }
   }
 }
