@@ -17,7 +17,6 @@
 #include "flutter/fml/trace_event.h"
 #include "flutter/lib/ui/window/pointer_data_packet.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
-#include "ohos_logging.h"
 #include <arkui/native_type.h>
 #include <dlfcn.h>
 
@@ -27,6 +26,9 @@ constexpr int MSEC_PER_SECOND = 1000;
 constexpr int PER_POINTER_MEMBER = 10;
 constexpr int CHANGES_POINTER_MEMBER = 10;
 constexpr int TOUCH_EVENT_ADDITIONAL_ATTRIBUTES = 4;
+constexpr int PINCH_TOUCH_EVENT_ID_1 = -101;
+constexpr int PINCH_TOUCH_EVENT_ID_2 = -102;
+constexpr int FLING_TOUCH_EVENT_ID_1 = -103;
 constexpr double ZOOM_IN = 10.0 / 8.0;
 constexpr double ZOOM_OUT = 1.0 / ZOOM_IN;
 
@@ -217,63 +219,24 @@ void OhosTouchProcessor::HandleTouchEvent(
 
 OhosTouchProcessor::OhosTouchProcessor()
     : apiVersion_(0),
-      localLibHandler_(nullptr),
+      loader_(std::make_unique<DynamicLibraryLoader>(UI_INPUT_EVENT_LIB_NAME)),
       dynamicGetDeviceId_(nullptr),
       dynamicGetAxisAction_(nullptr),
       dynamicGetModifierKeyStates_(nullptr) {
-  apiVersion_ = OH_GetSdkApiVersion();
+  apiVersion_ = DynamicLibraryLoader::GetApiVersion();
   FML_LOG(INFO) << "Current SDK API Version: " << apiVersion_;
 
-  // 动态加载共享库
-  localLibHandler_ = dlopen(UIInputEvent_LIB_NAME, RTLD_LAZY | RTLD_LOCAL);
-  if (localLibHandler_ == nullptr) {
-    FML_LOG(ERROR) << "dlopen failed: " << dlerror();
-    return;
-  }
-  
-  // 当 API 版本大于等于 14 时加载 OH_ArkUI_UIInputEvent_GetDeviceId
-  if (apiVersion_ >= 14) {
-    dynamicGetDeviceId_ = reinterpret_cast<GetDeviceIdFunc>(
-      dlsym(localLibHandler_, "OH_ArkUI_UIInputEvent_GetDeviceId")
-    );
-    if (dynamicGetDeviceId_ == nullptr) {
-      FML_LOG(ERROR) << "dlsym failed for OH_ArkUI_UIInputEvent_GetDeviceId: " << dlerror();
-    }
-  } else {
-    FML_LOG(ERROR) << "API version is lower than 14, dynamic loading OH_ArkUI_UIInputEvent_GetDeviceId skipped.";
-  }
+  std::vector<SymbolInfo> symbols = {
+    { "OH_ArkUI_UIInputEvent_GetDeviceId", reinterpret_cast<void**>(&dynamicGetDeviceId_), 14 },
+    { "OH_ArkUI_AxisEvent_GetAxisAction", reinterpret_cast<void**>(&dynamicGetAxisAction_), 15 },
+    { "OH_ArkUI_UIInputEvent_GetModifierKeyStates", reinterpret_cast<void**>(&dynamicGetModifierKeyStates_), 17 },
+  };
 
-  // 当 API 版本大于等于 15 时加载 OH_ArkUI_AxisEvent_GetAxisAction
-  if (apiVersion_ >= 15) {
-    dynamicGetAxisAction_ = reinterpret_cast<GetAxisActionFunc>(
-      dlsym(localLibHandler_, "OH_ArkUI_AxisEvent_GetAxisAction")
-    );
-    if (dynamicGetAxisAction_ == nullptr) {
-      FML_LOG(ERROR) << "dlsym failed for OH_ArkUI_AxisEvent_GetAxisAction: " << dlerror();
-    }
-  } else {
-    FML_LOG(ERROR) << "API version is lower than 15, dynamic loading OH_ArkUI_AxisEvent_GetAxisAction skipped.";
-  }
-
-  // 当 API 版本大于等于 17 时加载 OH_ArkUI_UIInputEvent_GetModifierKeyStates
-  if (apiVersion_ >= 17) {
-    dynamicGetModifierKeyStates_ = reinterpret_cast<GetModifierKeyStatesFunc>(
-      dlsym(localLibHandler_, "OH_ArkUI_UIInputEvent_GetModifierKeyStates")
-    );
-    if (dynamicGetModifierKeyStates_ == nullptr) {
-      FML_LOG(ERROR) << "dlsym failed for OH_ArkUI_UIInputEvent_GetModifierKeyStates: " << dlerror();
-    }
-  } else {
-    FML_LOG(ERROR) << "API version is lower than 17, dynamic loading OH_ArkUI_UIInputEvent_GetModifierKeyStates skipped.";
-  }
+  loader_->LoadSymbols(symbols);
 }
 
 OhosTouchProcessor::~OhosTouchProcessor() {
-  // 释放动态加载的库资源
-  if (localLibHandler_ != nullptr) {
-    dlclose(localLibHandler_);
-    localLibHandler_ = nullptr;
-  }
+  
 }
 
 // 处理轴事件：触控板捏合缩放和滚动抛滑手势，鼠标：滚轮滑动和Ctrl+滚轮缩放
@@ -292,10 +255,10 @@ void OhosTouchProcessor::HandleAxisEvent(
   // 获取工具类型和功能键情况判断事件
   uint64_t keys = 0;
   int32_t toolType = OH_ArkUI_UIInputEvent_GetToolType(event);
-  int32_t keyStates = dynamicGetModifierKeyStates_ != nullptr ? dynamicGetModifierKeyStates_(event, &keys) : 0;
+  int32_t errorCode = dynamicGetModifierKeyStates_ != nullptr ? dynamicGetModifierKeyStates_(event, &keys) : 0;
   if (toolType == UI_INPUT_EVENT_TOOL_TYPE_MOUSE &&
-      keyStates != ARKUI_ERROR_CODE_PARAM_INVALID &&
-      keyStates & ARKUI_MODIFIER_KEY_CTRL) {
+      errorCode != ARKUI_ERROR_CODE_PARAM_INVALID &&
+      keys & ARKUI_MODIFIER_KEY_CTRL) {
     // Ctrl+鼠标滚轮
     HandleScaleEvent(shell_holderID, component, event);
   } else {
@@ -382,11 +345,11 @@ void OhosTouchProcessor::HandlePinchEvent(
   touchEvent1->screenY = windowY - offsetY;
   touchEvent1->x = centerX - offsetX;
   touchEvent1->y = centerY - offsetY;
-  touchEvent1->id = deviceId;
+  touchEvent1->id = PINCH_TOUCH_EVENT_ID_1;
   touchEvent1->size = 0;
   touchEvent1->type = type;
   touchEvent1->force = 1.0;
-  touchEvent1->deviceId = 0;
+  touchEvent1->deviceId = deviceId;
   touchEvent1->numPoints = 1;
   touchEvent1->timeStamp = eventTime;
 
@@ -395,11 +358,11 @@ void OhosTouchProcessor::HandlePinchEvent(
   touchEvent2->screenY = windowY + offsetY;
   touchEvent2->x = centerX + offsetX;
   touchEvent2->y = centerY + offsetY;
-  touchEvent2->id = deviceId + 1;
+  touchEvent2->id = PINCH_TOUCH_EVENT_ID_2;
   touchEvent2->size = 0;
   touchEvent2->type = type;
   touchEvent2->force = 1.0;
-  touchEvent2->deviceId = 0;
+  touchEvent2->deviceId = deviceId;
   touchEvent2->numPoints = 1;
   touchEvent2->timeStamp = eventTime;
   
@@ -434,10 +397,6 @@ void OhosTouchProcessor::HandleFlingEvent(
   float deltaX = 0 - OH_ArkUI_AxisEvent_GetHorizontalAxisValue(event);
   float deltaY = 0 - OH_ArkUI_AxisEvent_GetVerticalAxisValue(event);
 
-  // 使用静态变量累计 delta
-  static float accumulatedDeltaX = 0.0;
-  static float accumulatedDeltaY = 0.0;
-
   // 获取触摸状态类型并处理累计值
   OH_NativeXComponent_TouchEventType type;
   int32_t axisAction = dynamicGetAxisAction_ != nullptr ? dynamicGetAxisAction_(event) : UI_TOUCH_EVENT_ACTION_CANCEL;
@@ -448,14 +407,14 @@ void OhosTouchProcessor::HandleFlingEvent(
     case UI_TOUCH_EVENT_ACTION_DOWN:
       type = OH_NATIVEXCOMPONENT_DOWN;
       // 重置累计值
-      accumulatedDeltaX = 0.0;
-      accumulatedDeltaY = 0.0;
+      accumulatedDeltaX_ = 0.0;
+      accumulatedDeltaY_ = 0.0;
       break;
     case UI_TOUCH_EVENT_ACTION_MOVE:
       type = OH_NATIVEXCOMPONENT_MOVE;
       // 更新累计值
-      accumulatedDeltaX += deltaX;
-      accumulatedDeltaY += deltaY;
+      accumulatedDeltaX_ += deltaX;
+      accumulatedDeltaY_ += deltaY;
       break;
     case UI_TOUCH_EVENT_ACTION_UP:
       type = OH_NATIVEXCOMPONENT_UP;
@@ -474,15 +433,15 @@ void OhosTouchProcessor::HandleFlingEvent(
   }
  
   // 设置触摸事件：根据累计偏移设置坐标
-  touchEvent->screenX = windowX + accumulatedDeltaX;
-  touchEvent->screenY = windowY + accumulatedDeltaY;
-  touchEvent->x = startX + accumulatedDeltaX;
-  touchEvent->y = startY + accumulatedDeltaY;
-  touchEvent->id = deviceId;
+  touchEvent->screenX = windowX + accumulatedDeltaX_;
+  touchEvent->screenY = windowY + accumulatedDeltaY_;
+  touchEvent->x = startX + accumulatedDeltaX_;
+  touchEvent->y = startY + accumulatedDeltaY_;
+  touchEvent->id = FLING_TOUCH_EVENT_ID_1;
   touchEvent->size = 0;
   touchEvent->type = type;
   touchEvent->force = 1.0;
-  touchEvent->deviceId = 0;
+  touchEvent->deviceId = deviceId;
   touchEvent->numPoints = 1;
   touchEvent->timeStamp = eventTime;
 
@@ -506,9 +465,6 @@ void OhosTouchProcessor::HandleScaleEvent(
   PointerData pointerData;
   pointerData.Clear();
 
-  // 使用静态变量累计 scale
-  static float accumulatedScale = 1.0;
-
   // 获取 PointerData 状态类型并处理累计值
   int32_t axisAction = dynamicGetAxisAction_ != nullptr ? dynamicGetAxisAction_(event) : UI_TOUCH_EVENT_ACTION_CANCEL;
   switch (axisAction) {
@@ -518,12 +474,12 @@ void OhosTouchProcessor::HandleScaleEvent(
     case UI_TOUCH_EVENT_ACTION_DOWN:
       pointerData.change = PointerData::Change::kPanZoomStart;
       // 重置累计值
-      accumulatedScale = 1.0;
+      accumulatedScale_ = 1.0;
       break;
     case UI_TOUCH_EVENT_ACTION_MOVE:
       pointerData.change = PointerData::Change::kPanZoomUpdate;
       // 更新累计值
-      accumulatedScale *= OH_ArkUI_AxisEvent_GetVerticalAxisValue(event) < 0 ? ZOOM_IN : ZOOM_OUT;
+      accumulatedScale_ *= OH_ArkUI_AxisEvent_GetVerticalAxisValue(event) < 0 ? ZOOM_IN : ZOOM_OUT;
       break;
     case UI_TOUCH_EVENT_ACTION_UP:
       pointerData.change = PointerData::Change::kPanZoomEnd;
@@ -534,7 +490,7 @@ void OhosTouchProcessor::HandleScaleEvent(
       break;
   }
 
-  pointerData.scale = accumulatedScale;
+  pointerData.scale = accumulatedScale_;
   pointerData.physical_x = OH_ArkUI_PointerEvent_GetWindowX(event);
   pointerData.physical_y = OH_ArkUI_PointerEvent_GetWindowY(event);
   pointerData.time_stamp = OH_ArkUI_UIInputEvent_GetEventTime(event);
