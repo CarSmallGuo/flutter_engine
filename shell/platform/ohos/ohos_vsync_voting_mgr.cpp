@@ -29,6 +29,9 @@ static constexpr int32_t FPS_72 = 72;
 static constexpr int32_t FPS_60 = 60;
 static constexpr int32_t FPS_30 = 30;
 
+static constexpr int32_t LTPO_SWITCH_OFF = 0;
+static constexpr int32_t LTPO_SWITCH_ON = 1;
+
 constexpr char LIB_NATIVE_VSYNC_NAME[] = "libnative_vsync.so";
 constexpr char FUN_SET_FREAM_RATE_NAME[] =
     "OH_NativeVSync_SetExpectedFrameRateRange";
@@ -76,11 +79,8 @@ OhosVsyncVotingMgr::~OhosVsyncVotingMgr() {
 void OhosVsyncVotingMgr::VoteAnimationValue(AnimationType ANType,
                                             double devicePixelRatio,
                                             double velocity) {
-  if (libHandle_ == nullptr) {
-    return;
-  }
-
-  if (switchStatus_ != 1) {
+  // 接口不存在或ltpo未使能
+  if (libHandle_ == nullptr || switchStatus_ != LTPO_SWITCH_ON) {
     return;
   }
 
@@ -108,11 +108,8 @@ void OhosVsyncVotingMgr::VoteAnimationValue(AnimationType ANType,
 }
 
 void OhosVsyncVotingMgr::VoteTouchValue(VVMTouchType type, int64_t timestamp) {
-  if (libHandle_ == nullptr) {
-    return;
-  }
-
-  if (switchStatus_ != 1) {
+  // 接口不存在或ltpo未使能
+  if (libHandle_ == nullptr || switchStatus_ != LTPO_SWITCH_ON) {
     return;
   }
 
@@ -146,11 +143,8 @@ void OhosVsyncVotingMgr::VoteTouchValue(VVMTouchType type, int64_t timestamp) {
 }
 
 void OhosVsyncVotingMgr::VoteVideoValue(int second, int frameCount) {
-  if (libHandle_ == nullptr) {
-    return;
-  }
-
-  if (switchStatus_ != 1) {
+  // 接口不存在或ltpo未使能
+  if (libHandle_ == nullptr || switchStatus_ != LTPO_SWITCH_ON) {
     return;
   }
 
@@ -168,17 +162,19 @@ void OhosVsyncVotingMgr::VoteVideoValue(int second, int frameCount) {
 }
 
 inline void OhosVsyncVotingMgr::VoteANTranslate(double velocity) {
+  // 一个vsync周期内取动画速率最大值进行帧率投票
   if (velocity < curAnimationTranslateVelocity_) {
     return;
   }
 
   curAnimationTranslateVelocity_ = velocity;
 
-  int expectedRateTmp = 0;
+  // 认为帧率60是静置的，当速率为0或其他速率范围时，默认60刷新率
+  int expectedRateTmp = FPS_60;
   size_t framesSetSize = framesSet.size();
   for (std::vector<std::map<string, int>>::iterator it = framesSet.begin();
        it != framesSet.end(); it++) {
-    if (velocity >= static_cast<double>((*it)["min"])) {
+    if (velocity > static_cast<double>((*it)["min"])) {
       expectedRateTmp = (*it)["preferred_fps"];
       break;
     }
@@ -203,7 +199,8 @@ inline void OhosVsyncVotingMgr::VoteANRotation(double velocity) {
 
 void OhosVsyncVotingMgr::AttachNativeVsync(string handleName,
                                            OH_NativeVSync* handle) {
-  if (libHandle_ == nullptr) {
+  // 接口不存在或ltpo未使能
+  if (libHandle_ == nullptr || switchStatus_ != LTPO_SWITCH_ON) {
     return;
   }
 
@@ -222,11 +219,9 @@ void OhosVsyncVotingMgr::DettachNativeVsync(string handleName) {
 }
 
 void OhosVsyncVotingMgr::VotingByNativeVsync(OH_NativeVSync* handle) {
-  if (libHandle_ == nullptr || setExpectedFrameRateRangeFunc_ == nullptr) {
-    return;
-  }
-
-  if (switchStatus_ != 1) {
+  // 接口不存在或ltpo未使能
+  if (libHandle_ == nullptr || switchStatus_ != LTPO_SWITCH_ON ||
+      setExpectedFrameRateRangeFunc_ == nullptr) {
     return;
   }
 
@@ -246,6 +241,16 @@ void OhosVsyncVotingMgr::VotingByNativeVsync(OH_NativeVSync* handle) {
 
   // 清空缓存
   curAnimationTranslateVelocity_ = 0.0;
+
+  // ltpo投票的情况下，判断platformview是否存在，需要在此清除isPlatformViewExist_存在的标识
+  if (isPlatformViewExist_.load()) {
+    // 存在则强制拉高到120帧率
+    if (resultFrameRate != 0) {
+      resultFrameRate = FPS_120;
+    }
+    // 只在每个vsync信号期间，去清除isPlatformViewExist_标识
+    isPlatformViewExist_.store(false);
+  }
 
   if (resultFrameRate == 0 && resultFrameRate == localFrameRate_) {
     return;
@@ -283,11 +288,9 @@ void OhosVsyncVotingMgr::VotingByNativeVsync(OH_NativeVSync* handle) {
 }
 
 void OhosVsyncVotingMgr::VotingBySelf() {
-  if (libHandle_ == nullptr) {
-    return;
-  }
-
-  if (switchStatus_ != 1) {
+  // 接口不存在或ltpo未使能
+  if (libHandle_ == nullptr || switchStatus_ != LTPO_SWITCH_ON ||
+      setExpectedFrameRateRangeFunc_ == nullptr) {
     return;
   }
 
@@ -309,7 +312,14 @@ void OhosVsyncVotingMgr::VotingBySelf() {
   curAnimationTranslateVelocity_ = 0.0;
   if ((touchVoting_.load() == 0) &&
       (animationVoting_.load() == PlatformViewOHOSNapi::display_refresh_rate)) {
+    // 触摸事件触发时，需要判断是否需要清空动画的帧率投票
     animationVoting_.store(0);
+  }
+
+  // ltpo投票的情况下，判断platformview是否存在
+  if (resultFrameRate != 0 && isPlatformViewExist_.load()) {
+    // 存在则强制拉高到120帧率
+    resultFrameRate = 120;
   }
 
   if (resultFrameRate == 0 && resultFrameRate == localFrameRate_) {
@@ -389,6 +399,7 @@ inline void OhosVsyncVotingMgr::ParseTranslate(const Json::Value& arr) {
 }
 
 void OhosVsyncVotingMgr::ParseFramesCfg(void) {
+  // 接口不存在
   if (libHandle_ == nullptr) {
     return;
   }
@@ -435,17 +446,23 @@ void OhosVsyncVotingMgr::ParseFramesCfg(void) {
   if (root.isMember(SWITCH_KEY)) {
     if (root[SWITCH_KEY].isNumeric()) {
       switchStatus_ = root[SWITCH_KEY].asUInt();
+      FML_LOG(INFO) << "vsync_voting_mgr switchStatus_ = " << switchStatus_;
     } else {
       FML_LOG(ERROR) << "Failed to parse key of SWITCH";
       return;
     }
   }
 
+  if (switchStatus_ != LTPO_SWITCH_ON) {
+    FML_LOG(WARNING) << "ltpo is not enabled";
+    return;
+  }
+
   if (root.isMember(TRANSLATE_KEY)) {
     if (root[TRANSLATE_KEY].isArray()) {
       ParseTranslate(root[TRANSLATE_KEY]);
     } else {
-      FML_LOG(ERROR) << "Failed to parse key of SWITCH";
+      FML_LOG(ERROR) << "Failed to parse key of TRANSLATE";
       return;
     }
   }
@@ -470,6 +487,14 @@ void OhosVsyncVotingMgr::SetAssetProvider(
   }
 
   asset_provider_ = std::move(hap_asset_provider);
+  return;
+}
+
+void OhosVsyncVotingMgr::SetPlatformViewExist(bool isExist)
+{
+  if (isPlatformViewExist_.load() != isExist) {
+    isPlatformViewExist_.store(isExist);
+  }
   return;
 }
 
