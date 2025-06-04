@@ -56,6 +56,8 @@ public:
 
   void SetAssetProvider(std::unique_ptr<OHOSAssetProvider> hap_asset_provider);
 
+  void SetPlatformViewExist(bool isExist);
+
 private:
   inline void VoteANTranslate(double velocity);
 
@@ -73,6 +75,8 @@ private:
   atomic<int> touchVoting_ = 0;
 
   atomic<int> videoVoting_ = 0;
+
+  atomic<bool> isPlatformViewExist_ = false;
 
   int localFrameRate_ = 0;
 
