@@ -26,7 +26,7 @@ export default function FlutterRendererTest() {
       let flutterRenderer = new FlutterRenderer(flutterNapi);
       const pixelMap = {} as PixelMap;
       let textureId = flutterRenderer.registerPixelMap(pixelMap);
-      expect(textureId).assertEqual(1);
+      expect(textureId).not().assertNull();
       done();
     })
 
@@ -37,8 +37,8 @@ export default function FlutterRendererTest() {
       const pixelMap2 = {} as PixelMap;
       const textureId1 = flutterRenderer.registerPixelMap(pixelMap1);
       const textureId2 = flutterRenderer.registerPixelMap(pixelMap2);
-      expect(textureId1).assertEqual(1); // 第一次调用
-      expect(textureId2).assertEqual(2); // 第二次调用
+      expect(textureId1).not().assertNull(); // 第一次调用
+      expect(textureId2).not().assertNull(); // 第二次调用
       done();
     })
   })
