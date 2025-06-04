@@ -217,11 +217,11 @@ class OHFlutterTrace {
       arg1_name, arg1_val);
 
 #define TRACE_EVENT_ASYNC_END1(category_group, name, id, arg1_name, arg1_val) \
-  ::fml::tracing::TraceEventAsyncEnd1(                                        \
-      category_group, name, id, arg1_name, arg1_val);
+  ::fml::tracing::TraceEventAsyncEnd1(category_group, name, id, arg1_name,    \
+                                      arg1_val);
 
-#define TRACE_EVENT_INSTANT0(category_group, name) \
-  ::fml::tracing::TraceEventInstant0(              \
+#define TRACE_EVENT_INSTANT0(category_group, name)                      \
+  ::fml::tracing::TraceEventInstant0(                                   \
       category_group, name, /*flow_id_count=*/0, /*flow_ids=*/nullptr); \
   OH_TRACE_DURATION0((category_group), (name))
 
