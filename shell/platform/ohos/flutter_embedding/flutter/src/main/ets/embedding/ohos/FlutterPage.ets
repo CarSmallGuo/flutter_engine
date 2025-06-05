@@ -10,6 +10,7 @@ import FlutterManager from './FlutterManager';
 import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
 import Any from '../../plugin/common/Any';
 import deviceInfo from '@ohos.deviceInfo';
+import {ApiLevel} from '../../util/ApiLevel'
 import flutter from 'libflutter.so';
 const TAG = "FlutterPage";
 
@@ -67,7 +68,7 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated();
           // Callback is triggered when the xcomponent window is partially visible or completely hidden.
-          if (deviceInfo.sdkApiVersion < 15) {
+          if (deviceInfo.sdkApiVersion < ApiLevel.API_15) {
             this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
               { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
               (isExpanding: boolean, currentRatio: number) => {
@@ -148,7 +149,7 @@ export struct FlutterPage {
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated();
           // Callback is triggered when the xcomponent window is partially visible or completely hidden.
-          if (deviceInfo.sdkApiVersion < 15) {
+          if (deviceInfo.sdkApiVersion < ApiLevel.API_15) {
             this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
               { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
               (isExpanding: boolean, currentRatio: number) => {

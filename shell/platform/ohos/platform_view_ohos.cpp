@@ -815,6 +815,7 @@ void PlatformViewOHOS::OnAccessibilityStateChange(bool state) {
   if (state) {
     SetSemanticsEnabled(true);
     SetAccessibleNavigation(true);
+    SetAccessibleNavigation(true);
     std::lock_guard<std::mutex> lock(*bridge_mutex_);
     bridge_->OnAccessibilityStateChange(state);
   } else {
@@ -823,11 +824,17 @@ void PlatformViewOHOS::OnAccessibilityStateChange(bool state) {
   }
 }
 
+// This navigation behavior belongs to page routing operations in screen reader
+// (such as jumping/back to the next/last flutter page)
 void PlatformViewOHOS::SetNavigation(bool isNavigation) {
   std::lock_guard<std::mutex> lock(*bridge_mutex_);
   bridge_->OnAccessibilityNavigation(isNavigation);
 }
 
+// This navigation behavior aims to determine whether the accessibility service
+// (such as screen reading, automated testing) is on or off.
+// The dart side can use the API of "MediaQuery.of().accessibleNavigation" to
+// get the accessibility service status is true/false.
 void PlatformViewOHOS::SetAccessibleNavigation(bool isAccessibleNavigation) {
   if (is_accessibility_navigation_ == isAccessibleNavigation) {
     return;
