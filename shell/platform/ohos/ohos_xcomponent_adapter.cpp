@@ -13,6 +13,7 @@
 #include <functional>
 #include <utility>
 #include "accessibility/ohos_semantics_bridge.h"
+#include "flutter/shell/platform/ohos/utils/ohos_api_level.h"
 #include "fml/trace_event.h"
 #include "napi/platform_view_ohos_napi.h"
 #include "ohos_logging.h"
@@ -20,8 +21,6 @@
 #include "shell/common/shell.h"
 #include "types.h"
 namespace flutter {
-
-const int32_t OHOS_API_VERSION = OH_GetSdkApiVersion();
 
 bool g_isMouseLeftActive = false;
 double g_scrollDistance = 0.0;
@@ -108,7 +107,7 @@ void XComponentAdapter::AttachFlutterEngine(std::string& id,
   if (findIter != xcomponetMap_.end()) {
     findIter->second->AttachFlutterEngine(shellholderId);
   }
-  if (OHOS_API_VERSION < 15) {
+  if (DeviceInfo::SdkApiVersion() < ApiLevel::API_15) {
     SetCurrentXcomponentId(id);
   }
 }
@@ -136,7 +135,8 @@ void XComponentAdapter::DetachFlutterEngine(std::string& id) {
   if (iter != xcomponetMap_.end()) {
     iter->second->DetachFlutterEngine();
   }
-  if (OHOS_API_VERSION < 15 && current_xcomponent_id_ == id) {
+  if (DeviceInfo::SdkApiVersion() < ApiLevel::API_15 &&
+      current_xcomponent_id_ == id) {
     SetCurrentXcomponentId("");
   }
 }
@@ -236,7 +236,7 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
   for (auto it = XComponentAdapter::GetInstance()->xcomponetMap_.begin();
        it != XComponentAdapter::GetInstance()->xcomponetMap_.end();) {
     if (it->second->nativeXComponent_ == component) {
-      if (OHOS_API_VERSION < 15 &&
+      if (DeviceInfo::SdkApiVersion() < ApiLevel::API_15 &&
           it->second ==
               XComponentAdapter::GetInstance()->GetCurrentXcomponent()) {
         XComponentAdapter::GetInstance()->SetCurrentXcomponentId("");
@@ -451,7 +451,7 @@ XComponentBase::XComponentBase(const std::string& id)
     : OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_(nullptr),
       id_(id),
       is_engine_attached_(false) {
-  if (OHOS_API_VERSION >= 15) {
+  if (DeviceInfo::SdkApiVersion() >= ApiLevel::API_15) {
     loader_->LoadSymbols({
         {ARKUI_REGISTER_CALLBACK_WITH_INSTANCE,
          reinterpret_cast<void**>(
@@ -538,7 +538,7 @@ ArkUI_AccessibilityProvider*
 XComponentBase::GetArkUIAccessibilityServiceProvider(
     OH_NativeXComponent* nativeXComponent) {
   // register multi-instance accessibility provdier callback when API >= 15
-  if (OHOS_API_VERSION >= 15) {
+  if (DeviceInfo::SdkApiVersion() >= ApiLevel::API_15) {
     return GetArkUIAccessibilityServiceProviderWithInstance(nativeXComponent);
   }
   BindAccessibilityProviderCallback();
