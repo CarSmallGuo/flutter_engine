@@ -40,7 +40,6 @@ export default class NativeVsyncChannel implements MethodCallHandler {
 
     onMethodCall(call: MethodCall, result: MethodResult): void {
         let method: string = call.method;
-        Log.i(NativeVsyncChannel.TAG, "Received '" + method + "' message.");
         try {
             switch (method) {
                 case "isEnable":
