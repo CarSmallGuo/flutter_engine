@@ -513,9 +513,8 @@ void XComponentBase::SetNativeXComponent(
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_,
                                                    &mouseCallback_);
-    OH_NativeXComponent_RegisterUIInputEventCallback(nativeXComponent_,
-                                                     DispatchAxisEventCB,
-                                                     ARKUI_UIINPUTEVENT_TYPE_AXIS);
+    OH_NativeXComponent_RegisterUIInputEventCallback(
+        nativeXComponent_, DispatchAxisEventCB, ARKUI_UIINPUTEVENT_TYPE_AXIS);
   }
 }
 
@@ -707,9 +706,11 @@ void XComponentBase::OnDispatchAxisEvent(OH_NativeXComponent* component,
                                          ArkUI_UIInputEvent_Type type) {
   if (type == ARKUI_UIINPUTEVENT_TYPE_AXIS) {
     if (is_engine_attached_) {
-      ohosTouchProcessor_.HandleAxisEvent(std::stoll(shellholderId_), component, event);
+      ohosTouchProcessor_.HandleAxisEvent(std::stoll(shellholderId_), component,
+                                          event);
     } else {
-      LOGE("XComponentManger::DispatchAxisEvent XComponentBase is not attached");
+      LOGE(
+          "XComponentManger::DispatchAxisEvent XComponentBase is not attached");
     }
   }
 }
