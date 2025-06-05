@@ -1,29 +1,27 @@
 /*
- * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd. All rights reserved.
- * Use of this source code is governed by a BSD-style license that can be
- * found in the LICENSE_KHZG file.
+ * Copyright (c) 2023 Hunan OpenValley Digital Industry Development Co., Ltd.
+ * All rights reserved. Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE_KHZG file.
  */
 
 #ifndef OHOS_TOUCH_PROCESSOR_H
 #define OHOS_TOUCH_PROCESSOR_H
 #include <ace/xcomponent/native_interface_xcomponent.h>
-#include <vector>
+#include <arkui/ui_input_event.h>
 #include <string>
+#include "flutter/fml/platform/ohos/dynamic_library_loader.h"
 #include "flutter/lib/ui/window/pointer_data.h"
 #include "napi_common.h"
-#include <arkui/ui_input_event.h>
-#include "flutter/fml/platform/ohos/dynamic_library_loader.h"
-
 namespace flutter {
 
 class OhosTouchProcessor {
-public:
-    typedef struct {
-      OH_NativeXComponent_TouchEvent* touchEventInput;
-      OH_NativeXComponent_TouchPointToolType toolTypeInput;
-      float tiltX;
-      float tiltY;
-    } TouchPacket;
+ public:
+  typedef struct {
+    OH_NativeXComponent_TouchEvent* touchEventInput;
+    OH_NativeXComponent_TouchPointToolType toolTypeInput;
+    float tiltX;
+    float tiltY;
+  } TouchPacket;
 
  public:
   void HandleTouchEvent(int64_t shell_holderID,
@@ -32,15 +30,15 @@ public:
   void HandleAxisEvent(int64_t shell_holderID,
                        OH_NativeXComponent* component,
                        ArkUI_UIInputEvent* event);
-  void HandleFlingEvent(int64_t shell_holderID,
-                        OH_NativeXComponent* component,
-                        ArkUI_UIInputEvent* event);
-  void HandlePinchEvent(int64_t shell_holderID,
-                        OH_NativeXComponent* component,
-                        ArkUI_UIInputEvent* event);
   void HandleScaleEvent(int64_t shell_holderID,
                         OH_NativeXComponent* component,
                         ArkUI_UIInputEvent* event);
+  void HandleScrollEvent(int64_t shell_holderID,
+                         OH_NativeXComponent* component,
+                         ArkUI_UIInputEvent* event);
+  void HandlePanZooomEvent(int64_t shell_holderID,
+                           OH_NativeXComponent* component,
+                           ArkUI_UIInputEvent* event);
   void HandleMouseEvent(int64_t shell_holderID,
                         OH_NativeXComponent* component,
                         OH_NativeXComponent_MouseEvent mouseEvent,
@@ -57,16 +55,16 @@ public:
   PointerButtonMouse getPointerButtonFromMouse(
       OH_NativeXComponent_MouseEventButton mouseButton);
 
-public:
-    OH_NativeXComponent_TouchPointToolType touchType_;
+ public:
+  OH_NativeXComponent_TouchPointToolType touchType_;
 
  public:
-   OhosTouchProcessor();
-   ~OhosTouchProcessor();
+  OhosTouchProcessor();
+  ~OhosTouchProcessor();
 
  private:
-  float accumulatedDeltaX_ = 0.0;
-  float accumulatedDeltaY_ = 0.0;
+  float accumulatedPanX_ = 0.0;
+  float accumulatedPanY_ = 0.0;
   float accumulatedScale_ = 1.0;
 
  private:
@@ -83,7 +81,7 @@ public:
   std::shared_ptr<std::string[]> packagePacketData(
       std::unique_ptr<OhosTouchProcessor::TouchPacket> touchPacket);
 
-    void PlatformViewOnTouchEvent(int64_t shellHolderID,
+  void PlatformViewOnTouchEvent(int64_t shellHolderID,
                                 OH_NativeXComponent_TouchPointToolType toolType,
                                 OH_NativeXComponent* component,
                                 OH_NativeXComponent_TouchEvent* touchEvent);
