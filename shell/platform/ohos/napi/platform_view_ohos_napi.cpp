@@ -32,7 +32,6 @@ namespace flutter {
 napi_env PlatformViewOHOSNapi::env_;
 std::vector<std::string> PlatformViewOHOSNapi::system_languages;
 int64_t PlatformViewOHOSNapi::napi_shell_holder_id_;
-const int32_t PlatformViewOHOSNapi::OHOS_API_VERSION = OH_GetSdkApiVersion();
 
 /**
  * @brief send  empty PlatformMessage

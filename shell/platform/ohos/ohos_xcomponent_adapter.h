@@ -8,7 +8,6 @@
 #define OHOS_XCOMPONENT_ADAPTER_H
 #include <ace/xcomponent/native_interface_xcomponent.h>
 #include <arkui/native_interface_accessibility.h>
-#include <deviceinfo.h>
 #include <map>
 #include <mutex>
 #include <string>
