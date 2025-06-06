@@ -20,7 +20,7 @@
 #include "include/core/SkM44.h"
 #include "include/core/SkMatrix.h"
 #include "ohos_main.h"
-
+#include "flutter/shell/platform/ohos/ohos_vsync_voting_mgr.h"
 namespace flutter {
 
 #define MAX_DELAYED_FRAMES 3
@@ -72,6 +72,10 @@ OHOSExternalTexture::OHOSExternalTexture(int64_t id,
 
   producer_nativewindow_ =
       OH_NativeImage_AcquireNativeWindow(native_image_source_);
+  if (producer_nativewindow_ == nullptr) {
+    FML_LOG(ERROR) << "Error with OH_NativeImage_AcquireNativeWindow";
+    return;
+  }
   FML_LOG(INFO) << "OH_NativeImage_AcquireNativeWindow "
                 << producer_nativewindow_;
 
@@ -84,6 +88,18 @@ OHOSExternalTexture::OHOSExternalTexture(int64_t id,
   if (ret != 0) {
     FML_LOG(ERROR) << "Error with OH_NativeImage_SetOnFrameAvailableListener "
                    << ret;
+  }
+
+  int32_t type = 0;
+  ret = OH_NativeWindow_NativeWindowHandleOpt(producer_nativewindow_, GET_SOURCE_TYPE, &type);
+  if (ret != 0) {
+    FML_LOG(ERROR) << "Error with OH_NativeWindow_NativeWindowHandleOpt "
+                   << ret;
+  } else if (type != OH_SURFACE_SOURCE_VIDEO &&
+    type != OH_SURFACE_SOURCE_GAME &&
+    type != OH_SURFACE_SOURCE_CAMERA) {
+    // 认为该外接纹理页面需要投120帧率
+    need_120_fps_ = true;
   }
 
   is_emulator_ = OhosMain::IsEmulator();
@@ -188,6 +204,15 @@ void OHOSExternalTexture::MarkNewFrameAvailable() {
                     << buffer_queue_size << " ret " << ret;
       return;
     }
+
+    // 通知 ohos_vsync_voting_mgr
+    if (need_120_fps_) {
+      std::shared_ptr<OhosVsyncVotingMgr> votingMgr = OhosVsyncVotingMgr::GetInstance();
+      if (votingMgr != nullptr) {
+        votingMgr->SetPlatformViewExist(true);
+      }
+    }
+
     // Here we release the buffers in the buffer_queue to ensure there is always
     // space in the queue, preventing the producer side from stalling.
     int max_jank_frame = buffer_queue_size * 2 / 3;

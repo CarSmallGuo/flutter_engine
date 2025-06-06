@@ -754,7 +754,7 @@ void PlatformViewOHOS::OnTouchEvent(
   return napi_facade_->FlutterViewOnTouchEvent(touchPacketString, size);
 }
 
-void PlatformViewOHOS::RunTask(OhosThreadType type, const fml::closure& task) {
+void PlatformViewOHOS::RunTask(OhosThreadType type, const fml::closure& task, int64_t millis) {
   fml::RefPtr<fml::TaskRunner> TaskRunnerPtr = nullptr;
   switch (type) {
     case OhosThreadType::kPlatform:
@@ -777,7 +777,11 @@ void PlatformViewOHOS::RunTask(OhosThreadType type, const fml::closure& task) {
     return;
   }
 
-  fml::TaskRunner::RunNowOrPostTask(TaskRunnerPtr, task);
+  if (millis != 0) {
+    TaskRunnerPtr->PostDelayedTask(task, fml::TimeDelta::FromMilliseconds(millis));
+  } else {
+    fml::TaskRunner::RunNowOrPostTask(TaskRunnerPtr, task);
+  }
 }
 
 void PlatformViewOHOS::SetSemanticsBridge(
