@@ -87,6 +87,12 @@ class OhosTouchProcessor {
                                 OH_NativeXComponent_TouchPointToolType toolType,
                                 OH_NativeXComponent* component,
                                 OH_NativeXComponent_TouchEvent* touchEvent);
+
+  void VsyncVotingTouchValue(int64_t shellHolderID, int touchType);
+
+  void VsyncVotingTouchUp(int64_t shellHolderID);
+
+  void VsyncVotingTouchDown(int64_t shellHolderID);
 };
 }  // namespace flutter
 #endif  // FLUTTER_SHELL_PLATFORM_OHOS_OHOS_TOUCH_PROCESSOR_H_
