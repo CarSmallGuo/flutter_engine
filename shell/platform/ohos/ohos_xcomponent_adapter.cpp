@@ -68,7 +68,7 @@ bool XComponentAdapter::Export(napi_env env, napi_value exports) {
 void XComponentAdapter::SetNativeXComponent(
     std::string& id,
     OH_NativeXComponent* nativeXComponent) {
-  std::lock_guard<std::mutex> lock(xcomponentMap_mutex_);
+  std::lock_guard<std::recursive_mutex> lock(xcomponentMap_mutex_);
   auto iter = xcomponetMap_.find(id);
   if (iter == xcomponetMap_.end()) {
     XComponentBase* xcomponet = new XComponentBase(id);
@@ -83,7 +83,7 @@ void XComponentAdapter::SetNativeXComponent(
 
 void XComponentAdapter::AttachFlutterEngine(std::string& id,
                                             std::string& shellholderId) {
-  std::lock_guard<std::mutex> lock(xcomponentMap_mutex_);
+  std::lock_guard<std::recursive_mutex> lock(xcomponentMap_mutex_);
   auto iter = xcomponetMap_.find(id);
   if (iter == xcomponetMap_.end()) {
     XComponentBase* xcomponet = new XComponentBase(id);
@@ -98,7 +98,7 @@ void XComponentAdapter::AttachFlutterEngine(std::string& id,
 }
 
 void XComponentAdapter::DetachFlutterEngine(std::string& id) {
-  std::lock_guard<std::mutex> lock(xcomponentMap_mutex_);
+  std::lock_guard<std::recursive_mutex> lock(xcomponentMap_mutex_);
   auto iter = xcomponetMap_.find(id);
   if (iter != xcomponetMap_.end()) {
     iter->second->DetachFlutterEngine();
@@ -110,7 +110,7 @@ void XComponentAdapter::DetachFlutterEngine(std::string& id) {
 
 void XComponentAdapter::OnMouseWheel(std::string& id, mouseWheelEvent event)
 {
-  std::lock_guard<std::mutex> lock(xcomponentMap_mutex_);
+  std::lock_guard<std::recursive_mutex> lock(xcomponentMap_mutex_);
     auto iter = xcomponetMap_.find(id);
     if (iter != xcomponetMap_.end()) {
         iter->second->OnDispatchMouseWheelEvent(event);
@@ -182,7 +182,7 @@ static int32_t SetNativeWindowOpt(OHNativeWindow* nativeWindow,
 }
 
 void OnSurfaceCreatedCB(OH_NativeXComponent* component, void* window) {
-  std::lock_guard<std::mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
     XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   for(auto it: XComponentAdapter::GetInstance()->xcomponetMap_)
   {
@@ -194,7 +194,7 @@ void OnSurfaceCreatedCB(OH_NativeXComponent* component, void* window) {
 }
 
 void OnSurfaceChangedCB(OH_NativeXComponent* component, void* window) {
-  std::lock_guard<std::mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
     XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   for(auto it: XComponentAdapter::GetInstance()->xcomponetMap_)
   {
@@ -205,7 +205,7 @@ void OnSurfaceChangedCB(OH_NativeXComponent* component, void* window) {
 }
 
 void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
-  std::lock_guard<std::mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
     XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   for(auto it = XComponentAdapter::GetInstance()->xcomponetMap_.begin(); 
     it != XComponentAdapter::GetInstance()->xcomponetMap_.end();)
@@ -221,7 +221,7 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
 
 }
 void DispatchTouchEventCB(OH_NativeXComponent* component, void* window) {
-  std::lock_guard<std::mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
     XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   for(auto it: XComponentAdapter::GetInstance()->xcomponetMap_)
   {
@@ -233,7 +233,7 @@ void DispatchTouchEventCB(OH_NativeXComponent* component, void* window) {
 
 void DispatchMouseEventCB(OH_NativeXComponent* component, void* window)
 {
-  std::lock_guard<std::mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
     XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
     for (auto it: XComponentAdapter::GetInstance()->xcomponetMap_) {
         if (it.second->nativeXComponent_ == component) {
@@ -289,7 +289,7 @@ static int32_t FindAccessibilityNodeInfosByIdCallback(
       "accessibilityProviderCallback_.FindAccessibilityNodeInfosById mode "
       "%{public}d id %{public}ld",
       mode, elementId);
-  std::lock_guard<std::mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
   if (xcomp != nullptr) {
@@ -308,7 +308,7 @@ int32_t FindAccessibilityNodeInfosByTextCallback(
     int32_t requestId,
     ArkUI_AccessibilityElementInfoList* elementList) {
   LOGD("accessibilityProviderCallback_.FindAccessibilityNodeInfosByText");
-  std::lock_guard<std::mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
   if (xcomp != nullptr) {
@@ -327,7 +327,7 @@ int32_t FindFocusedAccessibilityNodeCallback(
     int32_t requestId,
     ArkUI_AccessibilityElementInfo* elementinfo) {
   LOGD("accessibilityProviderCallback_.FindFocusedAccessibilityNode");
-  std::lock_guard<std::mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
   if (xcomp != nullptr) {
@@ -346,7 +346,7 @@ int32_t FindNextFocusAccessibilityNodeCallback(
     int32_t requestId,
     ArkUI_AccessibilityElementInfo* elementList) {
   LOGD("accessibilityProviderCallback_.FindNextFocusAccessibilityNode");
-  std::lock_guard<std::mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
   if (xcomp != nullptr) {
@@ -364,7 +364,7 @@ int32_t ExecuteAccessibilityActionCallback(
     ArkUI_AccessibilityActionArguments* actionArguments,
     int32_t requestId) {
   LOGD("accessibilityProviderCallback_.ExecuteAccessibilityAction");
-  std::lock_guard<std::mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
   if (xcomp != nullptr) {
@@ -377,7 +377,7 @@ int32_t ExecuteAccessibilityActionCallback(
 
 /** Clears the focus status of the currently focused node */
 int32_t ClearFocusedFocusAccessibilityNodeCallback() {
-  std::lock_guard<std::mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
   LOGD("accessibilityProviderCallback_.ClearFocusedFocusAccessibilityNode");
@@ -393,7 +393,7 @@ int32_t GetAccessibilityNodeCursorPositionCallback(int64_t elementId,
                                                    int32_t requestId,
                                                    int32_t* index) {
   LOGD("accessibilityProviderCallback_.GetAccessibilityNodeCursorPosition");
-  std::lock_guard<std::mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   auto xcomp = XComponentAdapter::GetInstance()->GetCurrentXcomponent();
   if (xcomp != nullptr) {
