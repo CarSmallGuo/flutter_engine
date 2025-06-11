@@ -55,6 +55,10 @@ export default class NativeVsyncChannel implements MethodCallHandler {
                         FlutterNapi.animationVoting(AnimationVotingType.TRANSLATE, velocity);
                     }
                     break;
+                case "checkLTPOSwtichState":
+                    // 查询ltpo功能开启状态
+                    result.success(FlutterNapi.checkLTPOSwitchState());
+                    break;
                 default:
                     break;
             }
