@@ -751,6 +751,13 @@ export default class FlutterNapi {
   static prefetchFramesCfg(): void {
     flutter.nativePrefetchFramesCfg();
   }
+
+  /*
+  * 查询ltpo是否开启
+  */
+  static checkLTPOSwitchState(): number {
+    return flutter.nativeCheckLTPOSwitchState();
+  }
 }
 
 export interface AccessibilityDelegate {
