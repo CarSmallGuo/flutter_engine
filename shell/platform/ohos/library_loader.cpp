@@ -216,6 +216,9 @@ static napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NAPI_FUNCTION(
           "nativePrefetchFramesCfg",
           flutter::PlatformViewOHOSNapi::nativePrefetchFramesCfg),
+      DECLARE_NAPI_FUNCTION(
+          "nativeCheckLTPOSwitchState",
+        flutter::PlatformViewOHOSNapi::nativeCheckLTPOSwitchState),
   };
 
   FML_DLOG(INFO) << "Init NAPI size=" << sizeof(desc) / sizeof(desc[0]);

@@ -21,6 +21,10 @@ using namespace std;
 using SetExpectedFrameRateRangeFunc_ = int(*)(OH_NativeVSync* nativeVsync,
                                               OH_NativeVSync_ExpectedRateRange* range);
 
+static constexpr int32_t LTPO_SWITCH_OFF = 0;
+static constexpr int32_t LTPO_SWITCH_ON = 1;
+static constexpr int32_t LTPO_SWITCH_NOT_INIT = 2;
+
 enum class AnimationType {
   AN_TYPE_TRANSLATE = 0,
   AN_TYPE_SCALE,
@@ -61,8 +65,12 @@ public:
 
   void SetPlatformViewExist(bool isExist);
 
+  uint32_t CheckVotingSwitchState(void);
+
 private:
   OhosVsyncVotingMgr();
+
+  int ParseFramesCfgImpl(void);
 
   void VoteANTranslate(double velocity);
 
@@ -81,7 +89,7 @@ private:
 
   int localFrameRate_ = 0;
 
-  uint32_t switchStatus_ = 0;
+  uint32_t switchStatus_ = LTPO_SWITCH_NOT_INIT;
 
   bool isTouchDown_ = false;
 
