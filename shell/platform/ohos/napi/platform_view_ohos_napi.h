@@ -271,6 +271,9 @@ class PlatformViewOHOSNapi {
 
   static napi_value nativePrefetchFramesCfg(napi_env env,
                                             napi_callback_info info);
+
+  static napi_value nativeCheckLTPOSwitchState(napi_env env,
+                                                napi_callback_info info);
  private:
   static napi_env env_;
   napi_ref ref_napi_obj_ = nullptr;

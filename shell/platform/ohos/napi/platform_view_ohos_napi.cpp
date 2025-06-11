@@ -22,11 +22,11 @@
 #include "flutter/shell/platform/ohos/ohos_logging.h"
 #include "flutter/shell/platform/ohos/ohos_main.h"
 #include "flutter/shell/platform/ohos/ohos_shell_holder.h"
+#include "flutter/shell/platform/ohos/ohos_vsync_voting_mgr.h"
 #include "flutter/shell/platform/ohos/ohos_xcomponent_adapter.h"
 #include "flutter/shell/platform/ohos/surface/ohos_native_window.h"
 #include "flutter/shell/platform/ohos/types.h"
 #include "unicode/uchar.h"
-#include "flutter/shell/platform/ohos/ohos_vsync_voting_mgr.h"
 
 #define OHOS_SHELL_HOLDER (reinterpret_cast<OHOSShellHolder*>(shell_holder))
 namespace flutter {
@@ -2535,8 +2535,9 @@ napi_value PlatformViewOHOSNapi::nativeUpdateCurrentXComponentId(
   return nullptr;
 }
 
-napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callback_info info)
-{
+napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(
+    napi_env env,
+    napi_callback_info info) {
   size_t argc = 2;
   napi_value result;
   napi_value args[2] = {nullptr};
@@ -2563,8 +2564,10 @@ napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callba
     return nullptr;
   }
 
-  auto vsyncWaiter = std::shared_ptr<flutter::VsyncWaiter>(OHOS_SHELL_HOLDER->GetVsyncWaiter().lock());
-  auto vsync_waiter_ohos = std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsyncWaiter);
+  auto vsyncWaiter = std::shared_ptr<flutter::VsyncWaiter>(
+      OHOS_SHELL_HOLDER->GetVsyncWaiter().lock());
+  auto vsync_waiter_ohos =
+      std::static_pointer_cast<flutter::VsyncWaiterOHOS>(vsyncWaiter);
 
   if (isEnable) {
     LOGD("EnableDVsync");
@@ -2576,8 +2579,9 @@ napi_value PlatformViewOHOSNapi::nativeSetDVsyncSwitch(napi_env env, napi_callba
   return result;
 }
 
-napi_value PlatformViewOHOSNapi::nativeAnimationVoting(napi_env env, napi_callback_info info)
-{
+napi_value PlatformViewOHOSNapi::nativeAnimationVoting(
+    napi_env env,
+    napi_callback_info info) {
   size_t argc = 2;
   napi_value args[2] = {nullptr};
 
@@ -2619,8 +2623,8 @@ napi_value PlatformViewOHOSNapi::nativeAnimationVoting(napi_env env, napi_callba
   return nullptr;
 }
 
-napi_value PlatformViewOHOSNapi::nativeVideoVoting(napi_env env, napi_callback_info info)
-{
+napi_value PlatformViewOHOSNapi::nativeVideoVoting(napi_env env,
+                                                   napi_callback_info info) {
   size_t argc = 2;
   napi_value args[2] = {nullptr};
   napi_status ret = napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
@@ -2653,8 +2657,9 @@ napi_value PlatformViewOHOSNapi::nativeVideoVoting(napi_env env, napi_callback_i
   return nullptr;
 }
 
-napi_value PlatformViewOHOSNapi::nativePrefetchFramesCfg(napi_env env, napi_callback_info info)
-{
+napi_value PlatformViewOHOSNapi::nativePrefetchFramesCfg(
+    napi_env env,
+    napi_callback_info info) {
   std::shared_ptr<OhosVsyncVotingMgr> votingMgr = OhosVsyncVotingMgr::GetInstance();
   if (votingMgr != nullptr) {
     votingMgr->ParseFramesCfg();
@@ -2663,4 +2668,17 @@ napi_value PlatformViewOHOSNapi::nativePrefetchFramesCfg(napi_env env, napi_call
   return nullptr;
 }
 
+napi_value PlatformViewOHOSNapi::nativeCheckLTPOSwitchState(napi_env env,
+                                                      napi_callback_info info) {
+  uint32_t votingSwitchState = LTPO_SWITCH_NOT_INIT;
+  std::shared_ptr<OhosVsyncVotingMgr> votingMgr =
+      OhosVsyncVotingMgr::GetInstance();
+  if (votingMgr != nullptr) {
+    votingSwitchState = votingMgr->CheckVotingSwitchState();
+  }
+
+  napi_value napiVotingSwitchState;
+  napi_create_uint32(env, votingSwitchState, &napiVotingSwitchState);
+  return napiVotingSwitchState;
+}
 }  // namespace flutter
