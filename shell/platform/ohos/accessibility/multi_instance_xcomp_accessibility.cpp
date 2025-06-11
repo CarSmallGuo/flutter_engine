@@ -20,7 +20,7 @@ static int32_t FindA11yNodeInfosByIdCallbackWithInstance(
       "a11yProviderCallbackWithInstance_.FindAccessibilityNodeInfosById, "
       "instanceId:%{public}s mode:%{public}d id:%{public}ld",
       instanceId, mode, elementId);
-  std::std::lock_guard<std::recursive_mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   auto xcomp = XComponentAdapter::GetInstance()->GetXcomponentBase(
       std::string(instanceId));
@@ -41,7 +41,7 @@ int32_t FindA11yNodeInfosByTextCallbackWithInstance(
     int32_t requestId,
     ArkUI_AccessibilityElementInfoList* elementList) {
   LOGD("a11yProviderCallbackWithInstance_.FindAccessibilityNodeInfosByText");
-  std::std::lock_guard<std::recursive_mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   auto xcomp = XComponentAdapter::GetInstance()->GetXcomponentBase(
       std::string(instanceId));
