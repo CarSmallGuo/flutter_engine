@@ -6,11 +6,13 @@
 
 import { HashMap } from '@kit.ArkTS';
 import deviceInfo from '@ohos.deviceInfo';
-import TextInputPlugin from '../../plugin/editing/TextInputPlugin';
-import Log from '../../util/Log';
-import { KeyCode } from '@kit.InputKit';
+import TextInputPlugin from "../../plugin/editing/TextInputPlugin";
+import Log from "../../util/Log";
+import { KeyCode } from "@kit.InputKit";
+import FlutterManager from "./FlutterManager";
 
 const TAG = "KeyEventHandler";
+const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
 
 class KeyText {
   public normalCase: string;
@@ -131,6 +133,11 @@ export class KeyEventHandler {
     this.textInputPlugin?.getEditingState().endDeletion(code);
   }
 
+  performFallbackAction() {
+    const context = FlutterManager.getInstance().getUIAbility().context;
+    context.eventHub.emit(EVENT_BACK_PRESS);
+  }
+
   handleKeyEvent(event: KeyEvent) {
     Log.i(TAG, JSON.stringify({
       "name": "handleKeyEvent",
@@ -152,6 +159,9 @@ export class KeyEventHandler {
         this.isCombinationMode = false;
       } else if (KeyEventHandler.shiftKeys.has(event.keyCode)) {
         this.isShiftMode = false;
+      } else if (event.keyCode == KeyCode.KEYCODE_ESCAPE) {
+        // fallback last page when tapping up the 'Esc' key
+        this.performFallbackAction();
       }
     }
   }
