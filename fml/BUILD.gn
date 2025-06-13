@@ -222,6 +222,7 @@ source_set("fml") {
       "platform/ohos/timerfd.h",
       "platform/ohos/dynamic_library_loader.cpp",
       "platform/ohos/dynamic_library_loader.h",
+      "platform/ohos/api_level.h",
     ]
     libs += [ "hilog_ndk.z" ]
     libs += [ "ace_napi.z" ]
