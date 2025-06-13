@@ -5,10 +5,11 @@
  */
 
 #include "flutter/shell/platform/ohos/vsync_waiter_ohos.h"
-#include "napi_common.h"
-#include "ohos_logging.h"
 #include <dlfcn.h>
 #include <qos/qos.h>
+#include "flutter/fml/platform/ohos/api_level.h"
+#include "napi_common.h"
+#include "ohos_logging.h"
 
 namespace flutter {
 
@@ -62,7 +63,8 @@ void VsyncWaiterOHOS::OnVsyncFromOHOS(long long timestamp, void* data) {
   }
   if (VsyncWaiterOHOS::firstCall) {
     int ret = OH_QoS_SetThreadQoS(QoS_Level::QOS_USER_INTERACTIVE);
-    FML_DLOG(INFO) << "qos set VsyncWaiterOHOS result:" << ret << ",tid:" << gettid();
+    FML_DLOG(INFO) << "qos set VsyncWaiterOHOS result:" << ret
+                   << ",tid:" << gettid();
     VsyncWaiterOHOS::firstCall = false;
   }
   int64_t frame_nanos = static_cast<int64_t>(timestamp);
@@ -91,9 +93,8 @@ void VsyncWaiterOHOS::OnUpdateRefreshRate(long long refresh_rate) {
   g_refresh_rate_ = static_cast<int>(refresh_rate);
 }
 
-int VsyncWaiterOHOS::GetRefreshRate(void)
-{
-    return g_refresh_rate_;
+int VsyncWaiterOHOS::GetRefreshRate(void) {
+  return g_refresh_rate_;
 }
 
 void VsyncWaiterOHOS::DisableDVsync() {
@@ -112,7 +113,7 @@ void VsyncWaiterOHOS::EnableDVsync() {
 
 void VsyncWaiterOHOS::SetDvsyncSwitch(bool enableDvsync) {
   if (apiVersion_ == 0) {
-    apiVersion_ = OH_GetSdkApiVersion();
+    apiVersion_ = DeviceInfo::SdkApiVersion();
   }
   if (apiVersion_ < SUPPORT_API_VERSION) {
     LOGI("current api version not support native dvsync!");
@@ -127,7 +128,8 @@ void VsyncWaiterOHOS::SetDvsyncSwitch(bool enableDvsync) {
   }
 
   if (!nativeDvsyncFunc_) {
-    nativeDvsyncFunc_ = reinterpret_cast<NativeDvsyncFunc>(dlsym(handle_, "OH_NativeVSync_DVSyncSwitch"));
+    nativeDvsyncFunc_ = reinterpret_cast<NativeDvsyncFunc>(
+        dlsym(handle_, "OH_NativeVSync_DVSyncSwitch"));
   }
   if (!nativeDvsyncFunc_) {
     LOGE("SetDvsyncSwitch load OH_NativeVSync_DVSyncSwitch failed!");

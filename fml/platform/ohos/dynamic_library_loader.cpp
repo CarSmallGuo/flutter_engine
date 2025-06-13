@@ -6,7 +6,7 @@
 
 #include "dynamic_library_loader.h"
 #include "flutter/fml/logging.h"
-#include "deviceinfo.h"
+#include "flutter/fml/platform/ohos/api_level.h"
 
 namespace flutter {
 
@@ -26,9 +26,7 @@ DynamicLibraryLoader::~DynamicLibraryLoader() {
 }
 
 int DynamicLibraryLoader::GetApiVersion() {
-  // 函数内 static，第一次调用时初始化一次，后面都直接返回缓存值
-  static int api_version = OH_GetSdkApiVersion();
-  return api_version;
+  return DeviceInfo::SdkApiVersion();
 }
 
 bool DynamicLibraryLoader::LoadSymbols(const std::vector<SymbolInfo>& symbolInfos) {

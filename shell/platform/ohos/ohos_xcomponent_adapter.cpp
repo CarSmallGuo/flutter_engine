@@ -8,13 +8,12 @@
 #include <functional>
 #include "accessibility/ohos_semantics_bridge.h"
 #include "flutter/fml/logging.h"
+#include "flutter/fml/platform/ohos/api_level.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "ohos_logging.h"
 #include "types.h"
 
 namespace flutter {
-
-const int32_t OHOS_API_VERSION = OH_GetSdkApiVersion();
 
 std::unique_ptr<DynamicLibraryLoader> XComponentBase::loader_ =
     std::make_unique<DynamicLibraryLoader>(ARKUI_ACE_LIB_NAME);
@@ -99,7 +98,7 @@ void XComponentAdapter::AttachFlutterEngine(std::string& id,
   if (findIter != xcomponetMap_.end()) {
     findIter->second->AttachFlutterEngine(shellholderId);
   }
-  if (OHOS_API_VERSION >= 15)
+  if (DeviceInfo::SdkApiVersion() >= ApiLevel::API_15)
     return;
   SetCurrentXcomponentId(id);
 }
@@ -110,7 +109,8 @@ void XComponentAdapter::DetachFlutterEngine(std::string& id) {
   if (iter != xcomponetMap_.end()) {
     iter->second->DetachFlutterEngine();
   }
-  if (OHOS_API_VERSION < 15 && current_xcomponent_id_ == id) {
+  if (DeviceInfo::SdkApiVersion() < ApiLevel::API_15 &&
+      current_xcomponent_id_ == id) {
     SetCurrentXcomponentId("");
   }
 }
@@ -433,7 +433,7 @@ XComponentBase::XComponentBase(const std::string& id)
     : OH_ArkUI_AccessibilityProviderRegisterCallbackWithInstance_(nullptr),
       id_(id),
       isEngineAttached_(false) {
-  if (OHOS_API_VERSION >= 15) {
+  if (DeviceInfo::SdkApiVersion() >= ApiLevel::API_15) {
     loader_->LoadSymbols({
         {ARKUI_REGISTER_CALLBACK_WITH_INSTANCE,
          reinterpret_cast<void**>(
@@ -500,7 +500,7 @@ void XComponentBase::SetNativeXComponent(
 ArkUI_AccessibilityProvider*
 XComponentBase::GetArkUIAccessibilityServiceProvider(
     OH_NativeXComponent* nativeXComponent) {
-  if (OHOS_API_VERSION >= 15) {
+  if (DeviceInfo::SdkApiVersion() >= ApiLevel::API_15) {
     return GetArkUIAccessibilityServiceProviderWithInstance(nativeXComponent);
   }
   BindAccessibilityProviderCallback();

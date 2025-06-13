@@ -10,6 +10,7 @@ import FlutterManager from './FlutterManager';
 import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
 import deviceInfo from '@ohos.deviceInfo';
 import flutter from 'libflutter.so';
+import { ApiLevel } from '../../util/ApiLevel';
 
 const TAG = "FlutterPage";
 
@@ -61,7 +62,7 @@ export struct FlutterPage {
         .focusOnTouch(this.defaultFocusOnTouch)
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
-          if (deviceInfo.sdkApiVersion < 15) {
+          if (deviceInfo.sdkApiVersion < ApiLevel.API_15) {
             this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
               { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
               (isExpanding: boolean, currentRatio: number) => {
@@ -166,7 +167,7 @@ export struct FlutterPage {
         .focusOnTouch(this.defaultFocusOnTouch)
         .onLoad((context) => {
           this.flutterView?.onSurfaceCreated()
-          if (deviceInfo.sdkApiVersion < 15) {
+          if (deviceInfo.sdkApiVersion < ApiLevel.API_15) {
             this.getUIContext()?.getAttachedFrameNodeById(this.viewId)?.commonEvent.setOnVisibleAreaApproximateChange(
               { ratios: [0.0, 1.0], expectedUpdateInterval: 0 },
               (isExpanding: boolean, currentRatio: number) => {
