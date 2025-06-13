@@ -9,8 +9,10 @@ import deviceInfo from '@ohos.deviceInfo';
 import TextInputPlugin from "../../plugin/editing/TextInputPlugin";
 import Log from "../../util/Log";
 import { KeyCode } from "@kit.InputKit";
+import FlutterManager from "./FlutterManager";
 
 const TAG = "KeyEventHandler";
+const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
 
 // 组合键
 const COMBINATION_KEYS = [
@@ -160,6 +162,11 @@ export class KeyEventHandler {
     this.textInputPlugin?.getEditingState().endDeletion(code);
   }
 
+  performFallbackActionByEsc() {
+    const context = FlutterManager.getInstance().getUIAbility().context;
+    context.eventHub.emit(EVENT_BACK_PRESS);
+  }
+
   handleKeyEvent(event: KeyEvent) {
     Log.i(TAG, JSON.stringify({
       "name": "handleKeyEvent",
@@ -184,6 +191,9 @@ export class KeyEventHandler {
       } else if (this.isCombinationKey) {
         // Ctrl/Alt 键按下的状态，不输入字符（字母/数字/符号）
         return;
+      } else if (event.keyCode == KeyCode.KEYCODE_ESCAPE) {
+        // the flutter page did back press action when tapping the 'Esc' key
+        this.performFallbackActionByEsc();
       }
       this.isShiftMode = false;
     }
