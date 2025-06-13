@@ -88,8 +88,12 @@ export class EmbeddingNodeController extends NodeController {
     if (this.rootNode !== null && this.builderNode !== null) {
       this.rootNode.removeChild(this.builderNode?.getFrameNode());
       this.builderNode?.dispose();
-
       this.rootNode.dispose();
+
+      this.platformView?.dispose();
+      this.builderNode = null;
+      this.rootNode = null;
+      this.platformView = undefined;
     }
   }
 

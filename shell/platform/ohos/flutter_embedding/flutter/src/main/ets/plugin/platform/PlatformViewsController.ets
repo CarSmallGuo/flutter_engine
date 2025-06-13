@@ -90,13 +90,13 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
 
   private platformViews: Map<number, PlatformView>;
   private viewIdWithTextureId: Map<number, number>;
-  private viewIdWithNodeController: Map<number, EmbeddingNodeController>;
+  private viewIdWithNodeController: Map<number, WeakRef<EmbeddingNodeController>>;
   private overlayLayerViews: Map<number, PlatformOverlayView>;
   private viewWrappers: Map<number, PlatformViewWrapper>;
   private currentFrameUsedOverlayLayerIds: HashSet<number>;
   private currentFrameUsedPlatformViewIds: HashSet<number>;
   private platformViewParent: Map<number, FlutterMutatorView>;
-  private nodeControllers: Stack<EmbeddingNodeController>;
+  private nodeControllers: Stack<WeakRef<EmbeddingNodeController>>;
 
   constructor() {
     this.registry = new PlatformViewRegistryImpl();
@@ -109,7 +109,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     this.viewIdWithTextureId = new Map();
     this.viewIdWithNodeController = new Map();
     this.platformViewParent = new Map();
-    this.nodeControllers = new Stack<EmbeddingNodeController>();
+    this.nodeControllers = new Stack<WeakRef<EmbeddingNodeController>>();
   }
 
 
@@ -151,8 +151,11 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
       this.textureRegistry!.unregisterTexture(textureId);
     }
 
-    this.viewIdWithNodeController.get(viewId)?.removeBuilderNode()
-    this.viewIdWithNodeController.get(viewId)?.disposeFrameNode()
+    const nodeController = this.viewIdWithNodeController.get(viewId)?.deref();
+    if (nodeController != undefined) {
+      nodeController.removeBuilderNode();
+      nodeController.disposeFrameNode();
+    }
     this.viewIdWithNodeController.delete(viewId);
 
     let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
@@ -242,7 +245,7 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
   }
 
   setDirection(viewId: number, direction: Direction): void {
-    let nodeController = this.viewIdWithNodeController.get(viewId)
+    let nodeController = this.viewIdWithNodeController.get(viewId)?.deref();
     if (nodeController != undefined) {
       nodeController?.setRenderOption(this.flutterView!.getPlatformView()!, this.flutterView!.getSurfaceId(),
         NodeRenderType.RENDER_TYPE_TEXTURE, direction)
@@ -344,8 +347,10 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
 
     let nodeController = new EmbeddingNodeController();
     nodeController.setRenderOption(platformView, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, request.direction);
-    this.viewIdWithNodeController.set(request.viewId, nodeController);
-    this.nodeControllers.push(nodeController);
+    const nodeControllerWeakRef = new WeakRef(nodeController)
+    this.viewIdWithNodeController.set(request.viewId, nodeControllerWeakRef);
+    const weakReference = new WeakRef(nodeController);
+    this.nodeControllers.push(weakReference);
     let dvModel = createDVModelFromJson(new DVModelJson("NodeContainer",
       [],
       {
@@ -516,7 +521,8 @@ export default class PlatformViewsController implements PlatformViewsAccessibili
     let nodeController = new EmbeddingNodeController();
 
     nodeController.setRenderOption(platformView, surfaceId.toString(), NodeRenderType.RENDER_TYPE_TEXTURE, Direction.Auto);
-    this.viewIdWithNodeController.set(surfaceId, nodeController);
+    const nodeControllerWeakRef = new WeakRef(nodeController);
+    this.viewIdWithNodeController.set(surfaceId, nodeControllerWeakRef);
 
     let dvModel = createDVModelFromJson(new DVModelJson("NodeContainer",
       [],
