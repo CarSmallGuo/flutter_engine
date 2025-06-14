@@ -120,7 +120,7 @@ export default class PlatformViewsController implements PlatformViewsHandler {
       this.textureRegistry!.unregisterTexture(textureId);
     }
 
-    this.viewIdWithNodeController.get(viewId)?.disposeFrameNode()
+    this.viewIdWithNodeController.get(viewId)?.disposeFrameNode();
     this.viewIdWithNodeController.delete(viewId);
 
     let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
@@ -213,7 +213,7 @@ export default class PlatformViewsController implements PlatformViewsHandler {
   }
 
   setDirection(viewId: number, direction: Direction): void {
-    let nodeController = this.viewIdWithNodeController.get(viewId)
+    let nodeController = this.viewIdWithNodeController.get(viewId);
     if (nodeController != undefined) {
       nodeController?.setRenderOption(this.flutterView!.getPlatformView()!, this.flutterView!.getSurfaceId(),
         NodeRenderType.RENDER_TYPE_TEXTURE, direction)
@@ -317,6 +317,7 @@ export default class PlatformViewsController implements PlatformViewsHandler {
     let nodeController = new EmbeddingNodeController();
     nodeController.setRenderOption(platformView, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, request.direction);
     this.viewIdWithNodeController.set(request.viewId, nodeController);
+
     let dvModel = createDVModelFromJson(new DVModelJson("NodeContainer",
       [],
       {
