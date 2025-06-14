@@ -11,6 +11,8 @@
 #include <string>
 #include "flutter/lib/ui/window/pointer_data.h"
 #include "napi_common.h"
+#include <arkui/ui_input_event.h>
+#include "flutter/fml/platform/ohos/dynamic_library_loader.h"
 
 namespace flutter {
 
@@ -27,6 +29,18 @@ public:
     void HandleTouchEvent(int64_t shell_holderID,
                             OH_NativeXComponent* component,
                             OH_NativeXComponent_TouchEvent* touchEvent);
+    void HandleAxisEvent(int64_t shell_holderID,
+                            OH_NativeXComponent* component,
+                            ArkUI_UIInputEvent* event);
+    void HandleFlingEvent(int64_t shell_holderID,
+                            OH_NativeXComponent* component,
+                            ArkUI_UIInputEvent* event);
+    void HandlePinchEvent(int64_t shell_holderID,
+                            OH_NativeXComponent* component,
+                            ArkUI_UIInputEvent* event);
+    void HandleScaleEvent(int64_t shell_holderID,
+                            OH_NativeXComponent* component,
+                            ArkUI_UIInputEvent* event);
     void HandleMouseEvent(int64_t shell_holderID,
                             OH_NativeXComponent* component,
                             OH_NativeXComponent_MouseEvent mouseEvent,
@@ -45,6 +59,25 @@ public:
 
 public:
     OH_NativeXComponent_TouchPointToolType touchType_;
+
+public:
+    OhosTouchProcessor();
+    ~OhosTouchProcessor();
+ 
+private:
+    float accumulatedDeltaX_ = 0.0;
+    float accumulatedDeltaY_ = 0.0;
+    float accumulatedScale_ = 1.0;
+
+private:
+    int apiVersion_;
+    std::unique_ptr<DynamicLibraryLoader> loader_;
+    // 共享库名称
+    static constexpr char UI_INPUT_EVENT_LIB_NAME[] = "libace_ndk.z.so";
+    // 动态加载的函数指针
+    int32_t (*dynamicGetDeviceId_)(ArkUI_UIInputEvent*);
+    int32_t (*dynamicGetAxisAction_)(ArkUI_UIInputEvent*);
+    int32_t (*dynamicGetModifierKeyStates_)(ArkUI_UIInputEvent*, uint64_t*);
 
 private:
     std::shared_ptr<std::string[]> packagePacketData(std::unique_ptr<OhosTouchProcessor::TouchPacket> touchPacket);

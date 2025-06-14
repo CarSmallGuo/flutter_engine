@@ -51,6 +51,7 @@ class XComponentBase {
   void OnSurfaceChanged(OH_NativeXComponent* component, void* window);
   void OnSurfaceDestroyed(OH_NativeXComponent* component, void* window);
   void OnDispatchTouchEvent(OH_NativeXComponent* component, void* window);
+  void OnDispatchAxisEvent(OH_NativeXComponent* component, ArkUI_UIInputEvent* event, ArkUI_UIInputEvent_Type type);
   void OnDispatchMouseEvent(OH_NativeXComponent* component, void* window);
   void OnDispatchMouseWheelEvent(mouseWheelEvent event);
   void OnDispatchMouseLeaveEvent(OH_NativeXComponent* component);
@@ -131,7 +132,7 @@ class XComponentAdapter {
  public:
   std::map<std::string, XComponentBase*> xcomponetMap_;
   std::string current_xcomponent_id_ = "";
-  std::mutex xcomponentMap_mutex_;
+  std::recursive_mutex xcomponentMap_mutex_;
 
  private:
   static XComponentAdapter mXComponentAdapter;
