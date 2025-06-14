@@ -82,7 +82,7 @@ export default class PlatformViewsController implements PlatformViewsHandler {
   private nextOverlayLayerId: number = 0;
   private platformViews: Map<number, PlatformView>;
   private viewIdWithTextureId: Map<number, number>;
-  private viewIdWithNodeController: Map<number, EmbeddingNodeController>;
+  private viewIdWithNodeController: Map<number, WeakRef<EmbeddingNodeController>>;
   private viewWrappers: Map<number, PlatformViewWrapper>;
   private currentFrameUsedOverlayLayerIds: HashSet<number>;
   private currentFrameUsedPlatformViewIds: HashSet<number>;
@@ -120,7 +120,10 @@ export default class PlatformViewsController implements PlatformViewsHandler {
       this.textureRegistry!.unregisterTexture(textureId);
     }
 
-    this.viewIdWithNodeController.get(viewId)?.disposeFrameNode()
+    const nodeController = this.viewIdWithNodeController.get(viewId)?.deref();
+    if (nodeController != undefined) {
+      nodeController.disposeFrameNode();
+    }
     this.viewIdWithNodeController.delete(viewId);
 
     let viewWrapper: PlatformViewWrapper | null = this.viewWrappers.get(viewId) || null;
@@ -213,7 +216,7 @@ export default class PlatformViewsController implements PlatformViewsHandler {
   }
 
   setDirection(viewId: number, direction: Direction): void {
-    let nodeController = this.viewIdWithNodeController.get(viewId)
+    let nodeController = this.viewIdWithNodeController.get(viewId)?.deref();
     if (nodeController != undefined) {
       nodeController?.setRenderOption(this.flutterView!.getPlatformView()!, this.flutterView!.getSurfaceId(),
         NodeRenderType.RENDER_TYPE_TEXTURE, direction)
@@ -316,7 +319,8 @@ export default class PlatformViewsController implements PlatformViewsHandler {
 
     let nodeController = new EmbeddingNodeController();
     nodeController.setRenderOption(platformView, surfaceId, NodeRenderType.RENDER_TYPE_TEXTURE, request.direction);
-    this.viewIdWithNodeController.set(request.viewId, nodeController);
+    this.viewIdWithNodeController.set(request.viewId, new WeakRef(nodeController));
+
     let dvModel = createDVModelFromJson(new DVModelJson("NodeContainer",
       [],
       {
@@ -464,7 +468,7 @@ export default class PlatformViewsController implements PlatformViewsHandler {
 
     nodeController.setRenderOption(platformView, surfaceId.toString(), NodeRenderType.RENDER_TYPE_TEXTURE,
       Direction.Auto);
-    this.viewIdWithNodeController.set(surfaceId, nodeController);
+    this.viewIdWithNodeController.set(surfaceId, new WeakRef(nodeController));
 
     let dvModel = createDVModelFromJson(new DVModelJson("NodeContainer",
       [],
