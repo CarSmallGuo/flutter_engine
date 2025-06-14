@@ -9,6 +9,7 @@
 #include <atomic>
 #include <dlfcn.h>
 #include "fml/trace_event.h"
+#include "flutter/fml/platform/ohos/api_level.h"
 #include "napi_common.h"
 #include "ohos_logging.h"
 
@@ -148,7 +149,7 @@ void VsyncWaiterOHOS::ConsumePendingCallback(
 
 void VsyncWaiterOHOS::SetDvsyncSwitch(bool enableDvsync) {
   if (apiVersion_ == 0) {
-    apiVersion_ = OH_GetSdkApiVersion();
+    apiVersion_ = DeviceInfo::SdkApiVersion();
   }
   if (apiVersion_ < SUPPORT_API_VERSION) {
     LOGI("current api version not support native dvsync!");

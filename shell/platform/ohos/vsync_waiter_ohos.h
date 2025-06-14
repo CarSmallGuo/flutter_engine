@@ -7,8 +7,6 @@
 #ifndef FLUTTER_SHELL_PLATFORM_OHOS_VSYNC_WAITER_OHOS_H_
 #define FLUTTER_SHELL_PLATFORM_OHOS_VSYNC_WAITER_OHOS_H_
 #include <memory>
-
-#include <deviceinfo.h>
 #include <native_vsync/native_vsync.h>
 #include "flutter/fml/macros.h"
 #include "flutter/shell/common/vsync_waiter.h"
