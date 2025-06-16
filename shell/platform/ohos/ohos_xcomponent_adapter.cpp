@@ -264,7 +264,7 @@ void DispatchTouchEventCB(OH_NativeXComponent* component, void* window) {
 void DispatchAxisEventCB(OH_NativeXComponent* component,
                          ArkUI_UIInputEvent* event,
                          ArkUI_UIInputEvent_Type type) {
-  std::lock_guard<std::mutex> lock(
+  std::lock_guard<std::recursive_mutex> lock(
       XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
   for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
     if (it.second->nativeXComponent_ == component) {
