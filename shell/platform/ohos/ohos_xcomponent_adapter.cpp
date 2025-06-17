@@ -11,6 +11,7 @@
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "ohos_logging.h"
 #include "types.h"
+#include "flutter/fml/platform/ohos/hiappevent/ohos_hiappevent.h"
 
 namespace flutter {
 
@@ -465,6 +466,7 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
   } else {
     LOGE("OnSurfaceCreated XComponentBase is not attached");
   }
+  
 }
 
 void XComponentBase::DetachFlutterEngine() {
