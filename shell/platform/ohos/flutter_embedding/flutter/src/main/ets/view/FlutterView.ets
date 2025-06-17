@@ -640,7 +640,7 @@ export class FlutterView {
   }
 
   onMouseWheel(eventType: string, event: PanGestureEvent) {
-    if (deviceInfo.sdkApiVersion <= 15) { // API15 后通过轴事件处理滚动
+    if (deviceInfo.sdkApiVersion < 15) { // API15 及以后通过轴事件处理滚动
       this.flutterEngine?.getFlutterNapi()?.xComponentDisPatchMouseWheel(this.id, eventType, event);
     }
   }
