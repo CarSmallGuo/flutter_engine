@@ -73,9 +73,7 @@ void OhosHiappEventDDL::Init(void) {
        reinterpret_cast<void**>(&destroyProcessor_), 18},
   };
 
-  loader_->LoadSymbols(symbols);
-
-  isValid_ = true;
+  isValid_ = loader_->LoadSymbols(symbols);
 
   isInit_ = true;
   return;
