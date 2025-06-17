@@ -21,6 +21,8 @@
 #include "include/core/SkImageInfo.h"
 #include "third_party/skia/include/codec/SkCodecAnimation.h"
 
+const int IMAGE_MAX_CACHE_SIZE = 1024 * 1024 * 10;  // 10MB
+
 namespace flutter {
 
 static void ResolveEncodedOrigin(char* data,
@@ -118,6 +120,7 @@ OHOSImageGenerator::~OHOSImageGenerator() {
   if (image_source_) {
     OH_ImageSourceNative_Release(image_source_);
   }
+  cached_pixelmaps_.clear();
 }
 
 const SkImageInfo& OHOSImageGenerator::GetInfo() {
@@ -208,7 +211,8 @@ bool OHOSImageGenerator::GetPixels(const SkImageInfo& info,
                      << to_string();
       return false;
     }
-    if (image_pixelmap && frame_count_ > 1) {
+    if (image_pixelmap && frame_count_ > 1 &&
+        buffer_size * frame_index < IMAGE_MAX_CACHE_SIZE) {
       // Cache animated images to improve performance.
       cached_pixelmaps_[frame_index] = image_pixelmap;
     }
