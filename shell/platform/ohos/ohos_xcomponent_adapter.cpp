@@ -19,10 +19,7 @@
 #include "ohos_shell_holder.h"
 #include "shell/common/shell.h"
 #include "types.h"
-#include "flutter/fml/platform/ohos/hiappevent/ohos_hiappevent.h"
-
 namespace flutter {
-
 const int32_t OHOS_API_VERSION = OH_GetSdkApiVersion();
 
 bool g_isMouseLeftActive = false;
@@ -484,7 +481,6 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
                                          width_, height_);
     is_surface_present_ = true;
   }
-  
 }
 
 void XComponentBase::PreDraw(std::string shellholderId, int width, int height) {

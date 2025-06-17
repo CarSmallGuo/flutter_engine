@@ -41,7 +41,7 @@ std::shared_ptr<OhosHiappEventDDL> OhosHiappEventDDL::GetInstance() {
 
 OhosHiappEventDDL::OhosHiappEventDDL(void)
     : loader_(std::make_unique<flutter::DynamicLibraryLoader>(HIAPPEVENT_LIB_NAME)) {
-  apiVersion_ =flutter::DynamicLibraryLoader::GetApiVersion();
+  apiVersion_ = flutter::DynamicLibraryLoader::GetApiVersion();
   return;
 }
 
@@ -270,15 +270,14 @@ void OhosHiappEventDDL::FlushAllIn(int type) {
       ret = WriteStatisticFrame();
       break;
     default:
-      setReportEventFunc_(processor, "PERFORMANCE", "OTHER_JANK", true);
       break;
   }
 
-  if (ret != 0) {
-    return;
-  }
-
   destroyProcessor_(processor);
+  if (ret != 0) {
+    FML_LOG(ERROR) << "flush error: type = " << type;
+  }
+  return;
 }
 
 };  // namespace hiappevent

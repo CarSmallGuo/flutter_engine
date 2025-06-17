@@ -58,6 +58,7 @@
 #include <hitrace/trace.h>
 #include <cstdarg>
 #include <cstdio>
+static const int TRACE_EVENT_ARGUMENT_SIZE = 2;
 
 class OHFlutterTrace {
  public:
