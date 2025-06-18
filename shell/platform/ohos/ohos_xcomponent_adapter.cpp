@@ -8,10 +8,10 @@
 #include <functional>
 #include "accessibility/ohos_semantics_bridge.h"
 #include "flutter/fml/logging.h"
+#include "flutter/fml/platform/ohos/hiappevent/ohos_hiappevent.h"
 #include "flutter/shell/platform/ohos/napi/platform_view_ohos_napi.h"
 #include "ohos_logging.h"
 #include "types.h"
-#include "flutter/fml/platform/ohos/hiappevent/ohos_hiappevent.h"
 
 namespace flutter {
 
@@ -116,13 +116,12 @@ void XComponentAdapter::DetachFlutterEngine(std::string& id) {
   }
 }
 
-void XComponentAdapter::OnMouseWheel(std::string& id, mouseWheelEvent event)
-{
+void XComponentAdapter::OnMouseWheel(std::string& id, mouseWheelEvent event) {
   std::lock_guard<std::recursive_mutex> lock(xcomponentMap_mutex_);
-    auto iter = xcomponetMap_.find(id);
-    if (iter != xcomponetMap_.end()) {
-        iter->second->OnDispatchMouseWheelEvent(event);
-    }
+  auto iter = xcomponetMap_.find(id);
+  if (iter != xcomponetMap_.end()) {
+    iter->second->OnDispatchMouseWheelEvent(event);
+  }
 }
 
 // It must be invoked within the xcomponentMap_mutex_ lock.
@@ -200,10 +199,9 @@ static int32_t SetNativeWindowOpt(OHNativeWindow* nativeWindow,
 
 void OnSurfaceCreatedCB(OH_NativeXComponent* component, void* window) {
   std::lock_guard<std::recursive_mutex> lock(
-    XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  for(auto it: XComponentAdapter::GetInstance()->xcomponetMap_)
-  {
-    if(it.second->nativeXComponent_ == component) {
+      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
+  for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
+    if (it.second->nativeXComponent_ == component) {
       LOGD("OnSurfaceCreatedCB is called");
       it.second->OnSurfaceCreated(component, window);
     }
@@ -212,10 +210,9 @@ void OnSurfaceCreatedCB(OH_NativeXComponent* component, void* window) {
 
 void OnSurfaceChangedCB(OH_NativeXComponent* component, void* window) {
   std::lock_guard<std::recursive_mutex> lock(
-    XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  for(auto it: XComponentAdapter::GetInstance()->xcomponetMap_)
-  {
-    if(it.second->nativeXComponent_ == component) {
+      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
+  for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
+    if (it.second->nativeXComponent_ == component) {
       it.second->OnSurfaceChanged(component, window);
     }
   }
@@ -223,11 +220,10 @@ void OnSurfaceChangedCB(OH_NativeXComponent* component, void* window) {
 
 void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
   std::lock_guard<std::recursive_mutex> lock(
-    XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  for(auto it = XComponentAdapter::GetInstance()->xcomponetMap_.begin();
-    it != XComponentAdapter::GetInstance()->xcomponetMap_.end();)
-  {
-    if(it->second->nativeXComponent_ == component) {
+      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
+  for (auto it = XComponentAdapter::GetInstance()->xcomponetMap_.begin();
+       it != XComponentAdapter::GetInstance()->xcomponetMap_.end();) {
+    if (it->second->nativeXComponent_ == component) {
       it->second->OnSurfaceDestroyed(component, window);
       delete it->second;
       it = XComponentAdapter::GetInstance()->xcomponetMap_.erase(it);
@@ -238,11 +234,22 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
 }
 void DispatchTouchEventCB(OH_NativeXComponent* component, void* window) {
   std::lock_guard<std::recursive_mutex> lock(
-    XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
-  for(auto it: XComponentAdapter::GetInstance()->xcomponetMap_)
-  {
-    if(it.second->nativeXComponent_ == component) {
+      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
+  for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
+    if (it.second->nativeXComponent_ == component) {
       it.second->OnDispatchTouchEvent(component, window);
+    }
+  }
+}
+
+void DispatchAxisEventCB(OH_NativeXComponent* component,
+                         ArkUI_UIInputEvent* event,
+                         ArkUI_UIInputEvent_Type type) {
+  std::lock_guard<std::recursive_mutex> lock(
+      XComponentAdapter::GetInstance()->xcomponentMap_mutex_);
+  for (auto it : XComponentAdapter::GetInstance()->xcomponetMap_) {
+    if (it.second->nativeXComponent_ == component) {
+      it.second->OnDispatchAxisEvent(component, event, type);
     }
   }
 }
@@ -471,7 +478,6 @@ void XComponentBase::AttachFlutterEngine(std::string shellholderId) {
   } else {
     LOGE("OnSurfaceCreated XComponentBase is not attached");
   }
-  
 }
 
 void XComponentBase::DetachFlutterEngine() {
@@ -501,6 +507,8 @@ void XComponentBase::SetNativeXComponent(
     OH_NativeXComponent_RegisterCallback(nativeXComponent_, &callback_);
     OH_NativeXComponent_RegisterMouseEventCallback(nativeXComponent_,
                                                    &mouseCallback_);
+    OH_NativeXComponent_RegisterUIInputEventCallback(
+        nativeXComponent_, DispatchAxisEventCB, ARKUI_UIINPUTEVENT_TYPE_AXIS);
   }
 }
 
@@ -683,6 +691,20 @@ void XComponentBase::OnDispatchTouchEvent(OH_NativeXComponent* component,
       LOGE(
           "XComponentManger::DispatchTouchEvent XComponentBase is not "
           "attached");
+    }
+  }
+}
+
+void XComponentBase::OnDispatchAxisEvent(OH_NativeXComponent* component,
+                                         ArkUI_UIInputEvent* event,
+                                         ArkUI_UIInputEvent_Type type) {
+  if (type == ARKUI_UIINPUTEVENT_TYPE_AXIS) {
+    if (isEngineAttached_) {
+      ohosTouchProcessor_.HandleAxisEvent(std::stoll(shellholderId_), component,
+                                          event);
+    } else {
+      LOGE(
+          "XComponentManger::DispatchAxisEvent XComponentBase is not attached");
     }
   }
 }
