@@ -21,6 +21,7 @@ import { accessibility } from '@kit.AccessibilityKit';
 import TextInputPlugin from '../plugin/editing/TextInputPlugin';
 import { uiObserver } from '@kit.ArkUI';
 import { common } from '@kit.AbilityKit';
+import { deviceInfo } from '@kit.BasicServicesKit';
 
 const TAG = "FlutterViewTag";
 const EVENT_BACK_PRESS = 'EVENT_BACK_PRESS';
@@ -639,7 +640,9 @@ export class FlutterView {
   }
 
   onMouseWheel(eventType: string, event: PanGestureEvent) {
-    this.flutterEngine?.getFlutterNapi()?.xComponentDisPatchMouseWheel(this.id, eventType, event);
+    if (deviceInfo.sdkApiVersion < 15) { // API15 及以后通过轴事件处理滚动
+      this.flutterEngine?.getFlutterNapi()?.xComponentDisPatchMouseWheel(this.id, eventType, event);
+    }
   }
 
   addFirstFrameListener(listener: FirstFrameListener) {
