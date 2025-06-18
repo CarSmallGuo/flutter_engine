@@ -221,11 +221,7 @@ export class FlutterView {
     display.on('foldStatusChange', this.foldStatusChangeCallback)
 
     // 监听路由跳转（Flutter跳转鸿蒙原生），软键盘处理
-    uiObserver.on('routerPageUpdate', context as common.UIAbilityContext, (info: uiObserver.RouterPageInfo) => {
-      if (this.getKeyboardHeight() !== 0 && info.state === uiObserver.RouterPageState.ON_PAGE_SHOW) {
-        this.flutterEngine?.getTextInputChannel()?.textInputMethodHandler?.hide();
-      }
-    })
+    uiObserver.on('routerPageUpdate', context as common.UIAbilityContext, this.routerPageUpdateCallback);
 
     // Subscribes to display changes. Example: event that the display size is changed.
     try {
@@ -295,6 +291,12 @@ export class FlutterView {
   private accessibilityStateChangeCallback = (data: boolean) => {
     Log.i(TAG, `subscribe accessibility state change, result: ${JSON.stringify(data)}`);
     this.flutterEngine?.getFlutterNapi()?.accessibilityStateChange(data);
+  }
+
+  private routerPageUpdateCallback = (info: uiObserver.RouterPageInfo) => {
+    if (this.getKeyboardHeight() !== 0 && info.state === uiObserver.RouterPageState.ON_PAGE_SHOW) {
+      this.flutterEngine?.getTextInputChannel()?.textInputMethodHandler?.hide();
+    }
   }
 
   private avoidAreaChangeCallback = (data: window.AvoidAreaOptions) => {
@@ -376,7 +378,7 @@ export class FlutterView {
 
   onDestroy() {
     try {
-      uiObserver.off('routerPageUpdate', this.uiContext!);
+      uiObserver.off('routerPageUpdate', this.context as common.UIAbilityContext, this.routerPageUpdateCallback)
       this.mainWindow?.off('windowSizeChange', this.windowSizeChangeCallback);
       this.mainWindow?.off('avoidAreaChange', this.avoidAreaChangeCallback);
       this.mainWindow?.off('windowStatusChange', this.windowStatusChangeCallback);
