@@ -19,6 +19,7 @@ thread_local int64_t touchTimestamp = 0;
 static std::shared_ptr<OhosVsyncVotingMgr> instance = nullptr;
 static std::once_flag instanceFlag;
 
+// 标准DPI = 160
 static constexpr int32_t PHYSICAL_PIXEL_DENSITY = 160;
 // 1 inch equals 25.4 millimeters
 static constexpr double INCH_2_MILL = 25.4;
@@ -29,8 +30,8 @@ static constexpr int32_t FPS_72 = 72;
 static constexpr int32_t FPS_60 = 60;
 static constexpr int32_t FPS_30 = 30;
 
-static constexpr int32_t LTPO_SWITCH_OFF = 0;
-static constexpr int32_t LTPO_SWITCH_ON = 1;
+static constexpr int32_t RET_FAILED = -1;
+static constexpr int32_t RET_SUCCEED = 0;
 
 constexpr char LIB_NATIVE_VSYNC_NAME[] = "libnative_vsync.so";
 constexpr char FUN_SET_FREAM_RATE_NAME[] =
@@ -46,13 +47,15 @@ static constexpr fml::TimeDelta TOUCH_3_SEC = fml::TimeDelta::FromSeconds(3);
 
 std::shared_ptr<OhosVsyncVotingMgr> OhosVsyncVotingMgr::GetInstance(void) {
   std::call_once(instanceFlag, [&] {
-    instance = std::shared_ptr<OhosVsyncVotingMgr>(new OhosVsyncVotingMgr);
+    instance = std::shared_ptr<OhosVsyncVotingMgr>(new OhosVsyncVotingMgr());
   });
 
   return instance;
 }
 
-OhosVsyncVotingMgr::OhosVsyncVotingMgr() : asset_provider_(nullptr),libHandle_(nullptr) {
+OhosVsyncVotingMgr::OhosVsyncVotingMgr()
+    : asset_provider_(nullptr), libHandle_(nullptr) {
+  switchStatus_ = LTPO_SWITCH_NOT_INIT;
   libHandle_ = dlopen(LIB_NATIVE_VSYNC_NAME, RTLD_LAZY | RTLD_LOCAL);
   if (libHandle_ == nullptr) {
     FML_LOG(ERROR) << "Failed to dlopen libnative_vsync.so";
@@ -96,11 +99,7 @@ void OhosVsyncVotingMgr::VoteAnimationValue(AnimationType ANType,
       VoteANTranslate(velocityTmp);
       break;
     case AnimationType::AN_TYPE_SCALE:
-      VoteANScale(velocityTmp);
-      break;
     case AnimationType::AN_TYPE_ROTATION:
-      VoteANRotation(velocityTmp);
-      break;
     default:
       break;
   }
@@ -161,7 +160,7 @@ void OhosVsyncVotingMgr::VoteVideoValue(int second, int frameCount) {
   return;
 }
 
-inline void OhosVsyncVotingMgr::VoteANTranslate(double velocity) {
+void OhosVsyncVotingMgr::VoteANTranslate(double velocity) {
   // 一个vsync周期内取动画速率最大值进行帧率投票
   if (velocity < curAnimationTranslateVelocity_) {
     return;
@@ -187,20 +186,10 @@ inline void OhosVsyncVotingMgr::VoteANTranslate(double velocity) {
   animationVoting_.store(expectedRateTmp);
 }
 
-inline void OhosVsyncVotingMgr::VoteANScale(double velocity) {
-  // TODO
-  return;
-}
-
-inline void OhosVsyncVotingMgr::VoteANRotation(double velocity) {
-  // TODO
-  return;
-}
-
 void OhosVsyncVotingMgr::AttachNativeVsync(string handleName,
                                            OH_NativeVSync* handle) {
   // 接口不存在或ltpo未使能
-  if (libHandle_ == nullptr || switchStatus_ != LTPO_SWITCH_ON) {
+  if (libHandle_ == nullptr) {
     FML_LOG(ERROR) << "libHandle is null, or ltpo is not enabled";
     return;
   }
@@ -234,7 +223,7 @@ void OhosVsyncVotingMgr::VotingByNativeVsync(OH_NativeVSync* handle) {
 
   if (animationVoting_.load() != 0 && !isTouchDown_) {
     resultFrameRate = animationVoting_.load();
-  } else if (touchVoting_.load()!= 0) {
+  } else if (touchVoting_.load() != 0) {
     resultFrameRate = touchVoting_.load();
   } else if (videoVoting_.load() != 0) {
     resultFrameRate = videoVoting_.load();
@@ -362,7 +351,7 @@ void OhosVsyncVotingMgr::VotingBySelf() {
   return;
 }
 
-inline void OhosVsyncVotingMgr::ParseTranslate(const Json::Value& arr) {
+void OhosVsyncVotingMgr::ParseTranslate(const Json::Value& arr) {
   if (arr.empty()) {
     FML_LOG(ERROR) << "The array is empty";
   }
@@ -370,7 +359,6 @@ inline void OhosVsyncVotingMgr::ParseTranslate(const Json::Value& arr) {
   const char* tags[] = {"serial_number", "min", "max", "preferred_fps"};
   size_t num = sizeof(tags) / sizeof(char*);
 
-  int valueTmp = 0;
   int number = 1;
   size_t size = arr.size();
   for (unsigned int i = 0; i < size; i++) {
@@ -385,7 +373,7 @@ inline void OhosVsyncVotingMgr::ParseTranslate(const Json::Value& arr) {
           FML_LOG(ERROR) << "config value invalid, key = " << key;
           return;
         } else {
-          valueTmp = arr[i][key].asInt();
+          int valueTmp = arr[i][key].asInt();
           if ((j == 0) && (valueTmp != number)) {
             FML_LOG(ERROR) << "config value serial_number is wrong";
           }
@@ -402,34 +390,47 @@ inline void OhosVsyncVotingMgr::ParseTranslate(const Json::Value& arr) {
 void OhosVsyncVotingMgr::ParseFramesCfg(void) {
   // 接口不存在
   if (libHandle_ == nullptr) {
+    FML_LOG(ERROR) << "libHandle is null";
+    switchStatus_ = LTPO_SWITCH_OFF;
     return;
   }
 
   if (asset_provider_ == nullptr) {
-    FML_LOG(ERROR) << "asset_provider_ is null";
+    FML_LOG(ERROR) << "asset_provider is null";
+    switchStatus_ = LTPO_SWITCH_OFF;
     return;
   }
 
   if (isCfgFileInit_) {
     FML_LOG(ERROR) << "framesconfig file has been initiallized";
+    switchStatus_ = LTPO_SWITCH_OFF;
     return;
   }
 
+  isCfgFileInit_ = true;
+
+  if (ParseFramesCfgImpl() != RET_SUCCEED) {
+    FML_LOG(ERROR) << "Failed to parse file frameconfig";
+    switchStatus_ = LTPO_SWITCH_OFF;
+  }
+
+  return;
+}
+
+int OhosVsyncVotingMgr::ParseFramesCfgImpl(void) {
   std::unique_ptr<fml::Mapping> framesCfgMapping =
       asset_provider_->GetAsMapping(std::string(FRAMES_CFG_JSON));
   if (framesCfgMapping == nullptr) {
     FML_LOG(ERROR) << "Failed to GetAsMapping";
-    return;
+    return RET_FAILED;
   }
 
   const char* data =
       reinterpret_cast<const char*>(framesCfgMapping->GetMapping());
   if (data == nullptr) {
     FML_LOG(ERROR) << "Failed to GetBuffer";
-    return;
+    return RET_FAILED;
   }
-
-  isCfgFileInit_ = true;
 
   int size = static_cast<int>(framesCfgMapping->GetSize());
 
@@ -441,22 +442,23 @@ void OhosVsyncVotingMgr::ParseFramesCfg(void) {
   bool isJson = jsonReader->parse(data, data + size, &root, &errs);
   if (!isJson || !errs.empty()) {
     FML_LOG(ERROR) << "Failed to parse frameconfig.json, err = " << errs;
-    return;
+    return RET_FAILED;
   }
 
+  uint32_t switchValue = 0;
   if (root.isMember(SWITCH_KEY)) {
     if (root[SWITCH_KEY].isNumeric()) {
-      switchStatus_ = root[SWITCH_KEY].asUInt();
-      FML_LOG(INFO) << "vsync_voting_mgr switchStatus_ = " << switchStatus_;
+      switchValue = root[SWITCH_KEY].asUInt();
+      FML_LOG(INFO) << "vsync_voting_mgr switchValue = " << switchValue;
     } else {
       FML_LOG(ERROR) << "Failed to parse key of SWITCH";
-      return;
+      return RET_FAILED;
     }
   }
 
-  if (switchStatus_ != LTPO_SWITCH_ON) {
+  if (switchValue != LTPO_SWITCH_ON) {
     FML_LOG(WARNING) << "ltpo is not enabled";
-    return;
+    return RET_FAILED;
   }
 
   if (root.isMember(TRANSLATE_KEY)) {
@@ -464,11 +466,12 @@ void OhosVsyncVotingMgr::ParseFramesCfg(void) {
       ParseTranslate(root[TRANSLATE_KEY]);
     } else {
       FML_LOG(ERROR) << "Failed to parse key of TRANSLATE";
-      return;
+      return RET_FAILED;
     }
   }
 
-  return;
+  switchStatus_ = LTPO_SWITCH_ON;
+  return RET_SUCCEED;
 }
 
 void OhosVsyncVotingMgr::SetAssetProvider(
@@ -491,12 +494,14 @@ void OhosVsyncVotingMgr::SetAssetProvider(
   return;
 }
 
-void OhosVsyncVotingMgr::SetPlatformViewExist(bool isExist)
-{
+void OhosVsyncVotingMgr::SetPlatformViewExist(bool isExist) {
   if (isPlatformViewExist_.load() != isExist) {
     isPlatformViewExist_.store(isExist);
   }
   return;
 }
 
+uint32_t OhosVsyncVotingMgr::CheckVotingSwitchState(void) {
+  return switchStatus_;
+}
 }  // namespace flutter
