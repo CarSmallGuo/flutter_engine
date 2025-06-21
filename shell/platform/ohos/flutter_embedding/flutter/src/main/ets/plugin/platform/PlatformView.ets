@@ -15,6 +15,14 @@ export declare class Params {
   platformView: PlatformView
 }
 
+export declare class PlatformVisibleAreaEventOptions {
+  enable: boolean
+  ratios: Array<number>
+  expectedUpdateInterval: number
+  onInactiveThreshold: number
+  onActiveThreshold: number
+}
+
 /** A handle to an DynamicView to be embedded in the Flutter hierarchy. */
 export default abstract class PlatformView {  
 
@@ -85,5 +93,24 @@ export default abstract class PlatformView {
    * connection. This probably doesn't need to be implemented.
    */
   onInputConnectionUnlocked(): void {
+  }
+
+  // 获取关于外接纹理可见区域变化相关的参数
+  getPlatformVisibleAreaEventOptions(): PlatformVisibleAreaEventOptions {
+    return {
+      enable: false,
+      ratios: [0.0, 1.0],
+      expectedUpdateInterval: 500,
+      onInactiveThreshold : 0.0,
+      onActiveThreshold : 1.0
+    } as PlatformVisibleAreaEventOptions;
+  }
+
+  // 使外接纹理动画停止
+  onInactive(): void {
+  }
+
+  // 使外接纹理动画激活
+  onActive(): void {
   }
 }
