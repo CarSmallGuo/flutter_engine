@@ -6,7 +6,7 @@
 */
 import { BuilderNode, FrameNode, NodeController, NodeRenderType } from '@kit.ArkUI';
 import Any from '../../plugin/common/Any';
-import PlatformView, { Params } from '../../plugin/platform/PlatformView';
+import PlatformView, { Params, PlatformViewVisibleAreaEventOptions } from '../../plugin/platform/PlatformView';
 import Log from '../../util/Log';
 import { DVModel, DVModelChildren, DynamicView } from '../../view/DynamicView/dynamicView';
 
@@ -44,10 +44,41 @@ export class EmbeddingNodeController extends NodeController {
     this.direction = direction;
   }
 
+  setPlatformViewVisibleAreaEventCallback(): void {
+    if (this.platformView == null) {
+      return;
+    }
+    const platformViewVisibleAreaEventOptions: PlatformViewVisibleAreaEventOptions = 
+      this.platformView?.getPlatformViewVisibleAreaEventOptions();
+    if (platformViewVisibleAreaEventOptions.enable == false) {
+      return;
+    }
+
+    let node: FrameNode | null | undefined = this.builderNode?.getFrameNode();
+    if (node == null || node == undefined) {
+      return;
+    }
+    node?.commonEvent.setOnVisibleAreaApproximateChange(
+      { ratios: platformViewVisibleAreaEventOptions.ratios,
+        expectedUpdateInterval: platformViewVisibleAreaEventOptions.expectedUpdateInterval },
+      (isExpanding: boolean, currentRatio: number) =>
+        {
+          if (!isExpanding && currentRatio < platformViewVisibleAreaEventOptions.onInactiveThreshold) {
+            // 暂停纹理持续生产的操作
+            this.platformView?.onInactive();
+          } else if (isExpanding && currentRatio > platformViewVisibleAreaEventOptions.onActiveThreshold) {
+            // 激活纹理持续生产的操作
+            this.platformView?.onActive();
+          }
+        }
+    )
+  }
+
   makeNode(uiContext: UIContext): FrameNode | null {
     this.builderNode = new BuilderNode(uiContext, { surfaceId: this.surfaceId, type: this.renderType });
     if (this.platformView) {
       this.builderNode.build(this.wrappedBuilder, { direction: this.direction, platformView: this.platformView });
+      this.setPlatformViewVisibleAreaEventCallback();
     }
     return this.builderNode.getFrameNode();
   }
