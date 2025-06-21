@@ -15,6 +15,17 @@ export declare class Params {
   platformView: PlatformView
 }
 
+export declare class PlatformViewVisibleAreaEventOptions {
+  enable: boolean // 开启可变区域监听
+  ratios: Array<number> // 阈值数组
+  expectedUpdateInterval: number // 预期更新间隔，单位为ms
+  onInactiveThreshold: number // 纹理持续生产的暂停操作的可见区域阈值
+  onActiveThreshold: number // 纹理持续生产的激活操作的可见区域阈值
+}
+
+// unit: ms
+const defaultExpectedUpdateInterval: number = 1000;
+
 /** A handle to an DynamicView to be embedded in the Flutter hierarchy. */
 export default abstract class PlatformView {  
 
@@ -85,5 +96,24 @@ export default abstract class PlatformView {
    * connection. This probably doesn't need to be implemented.
    */
   onInputConnectionUnlocked(): void {
+  }
+
+  // 获取关于外接纹理可见区域变化相关的参数
+  getPlatformViewVisibleAreaEventOptions(): PlatformViewVisibleAreaEventOptions {
+    return {
+      enable: false,
+      ratios: [0.0, 1.0],
+      expectedUpdateInterval: defaultExpectedUpdateInterval,
+      onInactiveThreshold : 0.0,
+      onActiveThreshold : 1.0
+    } as PlatformViewVisibleAreaEventOptions;
+  }
+
+  // 使外接纹理暂停持续生产的操作，包括动画、视频
+  onInactive(): void {
+  }
+
+  // 使外接纹理激活持续生产的操作，包括动画、视频
+  onActive(): void {
   }
 }
