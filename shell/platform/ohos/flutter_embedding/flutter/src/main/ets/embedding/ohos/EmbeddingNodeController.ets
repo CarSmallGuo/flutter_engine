@@ -44,10 +44,41 @@ export class EmbeddingNodeController extends NodeController {
     this.direction = direction;
   }
 
+  setPlatformVisibleAreaEventCallback(): void {
+    if (this.platformView == null) {
+      return;
+    }
+    const platformVisibleAreaEventOptions: PlatformVisibleAreaEventOptions = 
+      this.platformView?.getPlatformVisibleAreaEventOptions();
+    if (platformVisibleAreaEventOptions.enable == false) {
+      return;
+    }
+
+    let node: FrameNode | null | undefined = this.builderNode?.getFrameNode();
+    if (node == null || node == undefined) {
+      return;
+    }
+    node?.commonEvent.setOnVisibleAreaApproximateChange(
+      { ratios: platformVisibleAreaEventOptions.ratios,
+        expectedUpdateInterval: platformVisibleAreaEventOptions.expectedUpdateInterval },
+      (isExpanding: boolean, currentRatio: number) =>
+        {
+          if (!isExpanding && currentRatio < platformVisibleAreaEventOptions.onInactiveThreshold) {
+            // 停止动画
+            this.platformView?.onInactive();
+          } else if (isExpanding && currentRatio > platformVisibleAreaEventOptions.onActiveThreshold) {
+            // 激活动画
+            this.platformView?.onActive();
+          }
+        }
+    )
+  }
+
   makeNode(uiContext: UIContext): FrameNode | null {
     this.builderNode = new BuilderNode(uiContext, { surfaceId: this.surfaceId, type: this.renderType });
     if (this.platformView) {
       this.builderNode.build(this.wrappedBuilder, { direction: this.direction, platformView: this.platformView });
+      this.setPlatformVisibleAreaEventCallback();
     }
     return this.builderNode.getFrameNode();
   }
