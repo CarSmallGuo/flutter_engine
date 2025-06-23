@@ -526,6 +526,24 @@ void OhosTouchProcessor::HandleMouseEvent(
   auto ohos_shell_holder = reinterpret_cast<OHOSShellHolder*>(shell_holderID);
   ohos_shell_holder->GetPlatformView()->DispatchPointerDataPacket(
       std::move(packet));
+
+  int offset = 0;
+  std::vector<std::string> tempStrings;
+  tempStrings.push_back(std::to_string(mouseEvent.x));
+  tempStrings.push_back(std::to_string(mouseEvent.y));
+  tempStrings.push_back(std::to_string(mouseEvent.screenX));
+  tempStrings.push_back(std::to_string(mouseEvent.screenY));
+  tempStrings.push_back(std::to_string(mouseEvent.timestamp));
+  tempStrings.push_back(std::to_string(mouseEvent.action));
+  tempStrings.push_back(std::to_string(mouseEvent.button));
+
+  size_t length = tempStrings.size();
+  std::shared_ptr<std::string[]> package(new std::string[length]);
+  for(size_t i = 0; i < length; i++){
+    package[offset++] = tempStrings[i];
+  }
+
+  ohos_shell_holder->GetPlatformView()->OnMouseEvent(package, length);    
   return;
 }
 

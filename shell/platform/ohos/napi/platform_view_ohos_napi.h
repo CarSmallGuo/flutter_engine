@@ -78,6 +78,9 @@ class PlatformViewOHOSNapi {
 
   void FlutterViewOnTouchEvent(std::shared_ptr<std::string[]> touchPacketString,
                                int size);
+                               
+  void FlutterViewOnMouseEvent(std::shared_ptr<std::string[]> mousePacketString,
+                               int size);
   /**
    * accessibility-relevant interfaces
    */

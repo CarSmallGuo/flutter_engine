@@ -137,6 +137,8 @@ class PlatformViewOHOS final : public PlatformView {
 
   void OnTouchEvent(std::shared_ptr<std::string[]> touchPacketString, int size);
 
+  void OnMouseEvent(std::shared_ptr<std::string[]> mousePacketString, int size);
+
   void RunTask(OHOS_THREAD_TYPE type, const fml::closure& task);
 
   // accessibitliy
