@@ -16,8 +16,6 @@ namespace impeller {
 
 PipelineDescriptor::PipelineDescriptor() = default;
 
-PipelineDescriptor::~PipelineDescriptor() = default;
-
 // Comparable<PipelineDescriptor>
 std::size_t PipelineDescriptor::GetHash() const {
   auto seed = fml::HashCombine();
@@ -25,7 +23,7 @@ std::size_t PipelineDescriptor::GetHash() const {
   fml::HashCombineSeed(seed, sample_count_);
   for (const auto& entry : entrypoints_) {
     fml::HashCombineSeed(seed, entry.first);
-    if (auto second = entry.second) {
+    if (const auto& second = entry.second) {
       fml::HashCombineSeed(seed, second->GetHash());
     }
   }

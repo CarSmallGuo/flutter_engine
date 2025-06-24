@@ -385,7 +385,7 @@ KHRSwapchainImplVK::AcquireResult KHRSwapchainImplVK::AcquireNextDrawable() {
   /// Record all subsequent cmd buffers as part of the current frame.
   context.GetGPUTracer()->MarkFrameStart();
 
-  auto image = images_[index % images_.size()];
+  const auto& image = images_[index % images_.size()];
   // [MTChannn]
   // current_image_index_ = index % images_.size();
 

@@ -403,7 +403,7 @@ bool BlitPassVK::OnGenerateMipmapCommand(std::shared_ptr<Texture> texture,
                                          std::string label) {
   auto& src = TextureVK::Cast(*texture);
 
-  const auto size = src.GetTextureDescriptor().size;
+  const auto& size = src.GetTextureDescriptor().size;
   uint32_t mip_count = src.GetTextureDescriptor().mip_count;
 
   if (mip_count < 2u) {

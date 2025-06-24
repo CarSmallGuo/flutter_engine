@@ -95,8 +95,7 @@ class BasicMessageChannel {
       return;
     }
     const auto* codec = codec_;
-    std::string channel_name = name_;
-    BinaryMessageHandler binary_handler = [handler, codec, channel_name](
+    BinaryMessageHandler binary_handler = [handler, codec, channel_name = name_](
                                               const uint8_t* binary_message,
                                               const size_t binary_message_size,
                                               const BinaryReply& binary_reply) {

@@ -568,7 +568,7 @@ bool APNGImageGenerator::DemuxNextImageInternal() {
     return false;
   }
 
-  auto last_frame_info = images_.back().frame_info;
+  const auto& last_frame_info = images_.back().frame_info;
   if (!last_frame_info.has_value()) {
     return false;
   }

@@ -518,8 +518,8 @@ Entity ApplyClippedBlurStyle(Entity::ClipOperation clip_operation,
   Entity clipper;
   clipper.SetContents(clip_contents);
   auto restore = std::make_unique<ClipRestoreContents>();
-  Matrix entity_transform = entity.GetTransform();
-  Matrix blur_transform = blur_entity.GetTransform();
+  const Matrix& entity_transform = entity.GetTransform();
+  const Matrix& blur_transform = blur_entity.GetTransform();
   auto renderer = fml::MakeCopyable(
       [blur_entity = blur_entity.Clone(), clipper = std::move(clipper),
        restore = std::move(restore), entity_transform,
@@ -569,7 +569,7 @@ Entity ApplyBlurStyle(FilterContents::BlurStyle blur_style,
       Entity snapshot_entity =
           Entity::FromSnapshot(input_snapshot, entity.GetBlendMode());
       Entity result;
-      Matrix blurred_transform = blur_entity.GetTransform();
+      const Matrix& blurred_transform = blur_entity.GetTransform();
       Matrix snapshot_transform =
           entity.GetTransform() *  //
           Matrix::MakeScale(1.f / source_space_scalar) *
@@ -947,8 +947,8 @@ GaussianBlurPipeline::FragmentShader::KernelSamples LerpHackKernelSamples(
       result.sample_data[i].z = parameters.samples[j].coefficient;
       j++;
     } else {
-      KernelSample left = parameters.samples[j];
-      KernelSample right = parameters.samples[j + 1];
+      const KernelSample& left = parameters.samples[j];
+      const KernelSample& right = parameters.samples[j + 1];
 
       result.sample_data[i].z = left.coefficient + right.coefficient;
 

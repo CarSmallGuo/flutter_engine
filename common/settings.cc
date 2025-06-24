@@ -12,8 +12,4 @@ constexpr FrameTiming::Phase FrameTiming::kPhases[FrameTiming::kCount];
 
 Settings::Settings() = default;
 
-Settings::Settings(const Settings& other) = default;
-
-Settings::~Settings() = default;
-
 }  // namespace flutter

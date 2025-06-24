@@ -607,7 +607,7 @@ void DisplayListBuilder::RestoreLayer() {
             layer_op->type == DisplayListOpType::kSaveLayerBackdrop);
 
   if (layer_op->options.bounds_from_caller()) {
-    SkRect user_bounds = ToSkRect(layer_op->rect);
+    const SkRect& user_bounds = ToSkRect(layer_op->rect);
     if (!content_bounds.isEmpty() && !user_bounds.contains(content_bounds)) {
       layer_op->options = layer_op->options.with_content_is_clipped();
       if (!content_bounds.intersect(user_bounds)) {
@@ -1590,7 +1590,7 @@ void DisplayListBuilder::DrawDisplayList(const sk_sp<DisplayList> display_list,
       current_info().is_nop) {
     return;
   }
-  const SkRect bounds = display_list->bounds();
+  const SkRect& bounds = display_list->bounds();
   bool accumulated;
   sk_sp<const DlRTree> rtree;
   if (display_list->root_is_unbounded()) {
@@ -1613,7 +1613,6 @@ void DisplayListBuilder::DrawDisplayList(const sk_sp<DisplayList> display_list,
     return;
   }
 
-  DlPaint current_paint = current_;
   Push<DrawDisplayListOp>(0, display_list,
                           opacity < SK_Scalar1 ? opacity : SK_Scalar1);
 
@@ -1631,7 +1630,7 @@ void DisplayListBuilder::DrawDisplayList(const sk_sp<DisplayList> display_list,
   // Not really necessary if the developer is interacting with us via
   // our attribute-state-less DlCanvas methods, but this avoids surprises
   // for those who may have been using the stateful Dispatcher methods.
-  SetAttributesFromPaint(current_paint,
+  SetAttributesFromPaint(current_,
                          DisplayListOpFlags::kSaveLayerWithPaintFlags);
 
   // The non-nested op count accumulated in the |Push| method will include

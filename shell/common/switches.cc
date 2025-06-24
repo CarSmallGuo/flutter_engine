@@ -105,7 +105,7 @@ void PrintUsage(const std::string& executable_name) {
 
   uint32_t max_width = 2;
   for (uint32_t i = 0; i < flags_count; i++) {
-    auto desc = gSwitchDescs[i];
+    const auto& desc = gSwitchDescs[i];
     max_width = std::max<uint32_t>(desc.flag.size() + 2, max_width);
   }
 
@@ -113,7 +113,7 @@ void PrintUsage(const std::string& executable_name) {
 
   std::cerr << std::string(column_width, '-') << std::endl;
   for (uint32_t i = 0; i < flags_count; i++) {
-    auto desc = gSwitchDescs[i];
+    const auto& desc = gSwitchDescs[i];
 
     std::cerr << std::setw(max_width)
               << std::string("--") +

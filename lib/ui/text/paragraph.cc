@@ -170,10 +170,10 @@ Dart_Handle Paragraph::getWordBoundary(unsigned utf16Offset) {
 }
 
 Dart_Handle Paragraph::getLineBoundary(unsigned utf16Offset) {
-  std::vector<txt::LineMetrics> metrics = m_paragraph_->GetLineMetrics();
+  const std::vector<txt::LineMetrics>& metrics = m_paragraph_->GetLineMetrics();
   int line_start = -1;
   int line_end = -1;
-  for (txt::LineMetrics& line : metrics) {
+  for (const txt::LineMetrics& line : metrics) {
     if (utf16Offset >= line.start_index && utf16Offset <= line.end_index) {
       line_start = line.start_index;
       line_end = line.end_index;
@@ -185,7 +185,7 @@ Dart_Handle Paragraph::getLineBoundary(unsigned utf16Offset) {
 }
 
 tonic::Float64List Paragraph::computeLineMetrics() const {
-  std::vector<txt::LineMetrics> metrics = m_paragraph_->GetLineMetrics();
+  const std::vector<txt::LineMetrics>& metrics = m_paragraph_->GetLineMetrics();
 
   // Layout:
   // boxes.size() groups of 9 which are the line metrics

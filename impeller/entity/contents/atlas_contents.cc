@@ -56,7 +56,7 @@ bool AtlasContents::Render(const ContentContext& renderer,
     using VS = TextureFillVertexShader;
     using FS = TextureFillFragmentShader;
 
-    auto dst_sampler_descriptor = geometry_->GetSamplerDescriptor();
+    const auto& dst_sampler_descriptor = geometry_->GetSamplerDescriptor();
 
     const std::unique_ptr<const Sampler>& dst_sampler =
         renderer.GetContext()->GetSamplerLibrary()->GetSampler(
@@ -113,7 +113,7 @@ bool AtlasContents::Render(const ContentContext& renderer,
 
     auto inverted_blend_mode =
         InvertPorterDuffBlend(blend_mode).value_or(BlendMode::kSource);
-    auto blend_coefficients =
+    const auto& blend_coefficients =
         kPorterDuffCoefficients[static_cast<int>(inverted_blend_mode)];
     frag_info.src_coeff = blend_coefficients[0];
     frag_info.src_coeff_dst_alpha = blend_coefficients[1];

@@ -107,14 +107,14 @@ SharedHandleVK<vk::RenderPass> RenderPassVK::CreateVKRenderPass(
     }
   }
 
-  if (auto depth = render_target_.GetDepthAttachment(); depth.has_value()) {
+  if (const auto& depth = render_target_.GetDepthAttachment(); depth.has_value()) {
     builder.SetDepthStencilAttachment(
         depth->texture->GetTextureDescriptor().format,        //
         depth->texture->GetTextureDescriptor().sample_count,  //
         depth->load_action,                                   //
         depth->store_action                                   //
     );
-  } else if (auto stencil = render_target_.GetStencilAttachment();
+  } else if (const auto& stencil = render_target_.GetStencilAttachment();
              stencil.has_value()) {
     builder.SetStencilAttachment(
         stencil->texture->GetTextureDescriptor().format,        //
@@ -288,10 +288,10 @@ SharedHandleVK<vk::Framebuffer> RenderPassVK::CreateVKFramebuffer(
           TextureVK::Cast(*color.resolve_texture).GetRenderTargetView());
     }
   }
-  if (auto depth = render_target_.GetDepthAttachment(); depth.has_value()) {
+  if (const auto& depth = render_target_.GetDepthAttachment(); depth.has_value()) {
     attachments.emplace_back(
         TextureVK::Cast(*depth->texture).GetRenderTargetView());
-  } else if (auto stencil = render_target_.GetStencilAttachment();
+  } else if (const auto& stencil = render_target_.GetStencilAttachment();
              stencil.has_value()) {
     attachments.emplace_back(
         TextureVK::Cast(*stencil->texture).GetRenderTargetView());

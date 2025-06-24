@@ -139,7 +139,7 @@ void DlVertexPainter::DrawRect(const SkRect& rect, const DlColor& color) {
 }
 
 std::shared_ptr<DlVertices> DlVertexPainter::IntoVertices() {
-  auto const result = DlVertices::Make(
+  auto result = DlVertices::Make(
       /*mode=*/DlVertexMode::kTriangles,
       /*vertex_count=*/vertices_.size(),
       /*vertices=*/vertices_.data(),

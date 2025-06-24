@@ -7,6 +7,4 @@
 namespace flutter {
 PlatformData::PlatformData() = default;
 
-PlatformData::~PlatformData() = default;
-
 }  // namespace flutter

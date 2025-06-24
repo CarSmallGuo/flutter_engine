@@ -77,7 +77,7 @@ static void SetClipScissor(std::optional<Rect> clip_coverage,
 }
 
 static void ApplyFramebufferBlend(Entity& entity) {
-  auto src_contents = entity.GetContents();
+  const auto& src_contents = entity.GetContents();
   auto contents = std::make_shared<FramebufferBlendContents>();
   contents->SetChildContents(src_contents);
   contents->SetBlendMode(entity.GetBlendMode());
@@ -964,7 +964,7 @@ std::optional<Rect> Canvas::GetLocalCoverageLimit() const {
     return std::nullopt;
   }
 
-  auto current_clip_coverage = maybe_current_clip_coverage.value();
+  const auto& current_clip_coverage = maybe_current_clip_coverage.value();
 
   // The maximum coverage of the subpass. Subpasses textures should never
   // extend outside the parent pass texture or the current clip coverage.
@@ -998,7 +998,7 @@ void Canvas::SaveLayer(const Paint& paint,
   if (!maybe_coverage_limit.has_value()) {
     return SkipUntilMatchingRestore(total_content_depth);
   }
-  auto coverage_limit = maybe_coverage_limit.value();
+  const auto& coverage_limit = maybe_coverage_limit.value();
 
   if (can_distribute_opacity && !backdrop_filter &&
       Paint::CanApplyOpacityPeephole(paint) &&
@@ -1026,7 +1026,7 @@ void Canvas::SaveLayer(const Paint& paint,
     return SkipUntilMatchingRestore(total_content_depth);
   }
 
-  auto subpass_coverage = maybe_subpass_coverage.value();
+  const auto& subpass_coverage = maybe_subpass_coverage.value();
 
   // When an image filter is present, clamp to avoid flicking due to nearest
   // sampled image. For other cases, round out to ensure than any geometry is
@@ -1445,7 +1445,7 @@ void Canvas::AddRenderEntityToCurrentPass(Entity& entity, bool reuse_depth) {
     std::optional<Color> maybe_color = entity.AsBackgroundColor(
         render_passes_.back().inline_pass_context->GetTexture()->GetSize());
     if (maybe_color.has_value()) {
-      Color color = maybe_color.value();
+      const Color& color = maybe_color.value();
       RenderTarget& render_target = render_passes_.back()
                                         .inline_pass_context->GetPassTarget()
                                         .GetRenderTarget();
@@ -1497,7 +1497,7 @@ void Canvas::AddRenderEntityToCurrentPass(Entity& entity, bool reuse_depth) {
       // rendered output will actually be used, and so we set this to the
       // current clip coverage (which is the max clip bounds). The contents may
       // optionally use this hint to avoid unnecessary rendering work.
-      auto element_coverage_hint = entity.GetContents()->GetCoverageHint();
+      const auto& element_coverage_hint = entity.GetContents()->GetCoverageHint();
       entity.GetContents()->SetCoverageHint(Rect::Intersection(
           element_coverage_hint, clip_coverage_stack_.CurrentClipCoverage()));
 
@@ -1528,7 +1528,7 @@ void Canvas::AddClipEntityToCurrentPass(Entity& entity) {
     return;
   }
 
-  auto transform = entity.GetTransform();
+  const auto& transform = entity.GetTransform();
   entity.SetTransform(
       Matrix::MakeTranslation(Vector3(-GetGlobalPassPosition())) * transform);
 
@@ -1584,7 +1584,7 @@ void Canvas::AddClipEntityToCurrentPass(Entity& entity) {
 bool Canvas::BlitToOnscreen() {
   auto command_buffer = renderer_.GetContext()->CreateCommandBuffer();
   command_buffer->SetLabel("EntityPass Root Command Buffer");
-  auto offscreen_target = render_passes_.back()
+  const auto& offscreen_target = render_passes_.back()
                               .inline_pass_context->GetPassTarget()
                               .GetRenderTarget();
 

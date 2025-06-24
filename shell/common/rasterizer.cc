@@ -1167,8 +1167,4 @@ Rasterizer::Screenshot::Screenshot(sk_sp<SkData> p_data,
       format(p_format),
       pixel_format(p_pixel_format) {}
 
-Rasterizer::Screenshot::Screenshot(const Screenshot& other) = default;
-
-Rasterizer::Screenshot::~Screenshot() = default;
-
 }  // namespace flutter

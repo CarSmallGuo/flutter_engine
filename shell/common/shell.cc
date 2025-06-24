@@ -405,7 +405,7 @@ std::unique_ptr<Shell> Shell::CreateWithSnapshot(
                          resource_cache_limit_calculator,                    //
                          task_runners = task_runners,                        //
                          platform_data = platform_data,                      //
-                         settings = settings,                                //
+                         settings = std::move(settings),                     //
                          vm = std::move(vm),                                 //
                          isolate_snapshot = std::move(isolate_snapshot),     //
                          on_create_platform_view = on_create_platform_view,  //

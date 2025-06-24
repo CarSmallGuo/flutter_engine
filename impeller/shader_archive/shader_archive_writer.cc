@@ -98,7 +98,7 @@ constexpr fb::Stage ToStage(ArchiveShaderType type) {
 std::shared_ptr<fml::Mapping> ShaderArchiveWriter::CreateMapping() const {
   fb::ShaderArchiveT shader_archive;
   for (const auto& shader_description : shader_descriptions_) {
-    auto mapping = shader_description.mapping;
+    const auto& mapping = shader_description.mapping;
     if (!mapping) {
       return nullptr;
     }

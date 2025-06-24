@@ -358,7 +358,7 @@ std::shared_ptr<FilterContents> Paint::MaskBlurDescriptor::CreateMaskBlur(
     geometry = rect_geom;
   }
   mask->SetGeometry(geometry);
-  auto descriptor = texture_contents->GetSamplerDescriptor();
+  const auto& descriptor = texture_contents->GetSamplerDescriptor();
   texture_contents->SetSamplerDescriptor(descriptor);
   std::shared_ptr<FilterContents> blurred_mask =
       FilterContents::MakeGaussianBlur(FilterInput::Make(mask), sigma, sigma,

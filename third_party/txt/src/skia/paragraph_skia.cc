@@ -217,7 +217,7 @@ ParagraphSkia::ParagraphSkia(std::unique_ptr<skt::Paragraph> paragraph,
                              std::vector<flutter::DlPaint>&& dl_paints,
                              bool impeller_enabled)
     : paragraph_(std::move(paragraph)),
-      dl_paints_(dl_paints),
+      dl_paints_(std::move(dl_paints)),
       impeller_enabled_(impeller_enabled) {}
 
 double ParagraphSkia::GetMaxWidth() {

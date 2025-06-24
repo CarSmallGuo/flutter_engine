@@ -13,8 +13,6 @@ namespace impeller {
 
 ComputePipelineDescriptor::ComputePipelineDescriptor() = default;
 
-ComputePipelineDescriptor::~ComputePipelineDescriptor() = default;
-
 // Comparable<ComputePipelineDescriptor>
 std::size_t ComputePipelineDescriptor::GetHash() const {
   auto seed = fml::HashCombine();

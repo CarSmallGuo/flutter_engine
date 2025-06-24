@@ -47,7 +47,7 @@ bool RadialGradientContents::IsOpaque(const Matrix& transform) const {
   if (GetOpacityFactor() < 1 || tile_mode_ == Entity::TileMode::kDecal) {
     return false;
   }
-  for (auto color : colors_) {
+  for (const auto& color : colors_) {
     if (!color.IsOpaque()) {
       return false;
     }

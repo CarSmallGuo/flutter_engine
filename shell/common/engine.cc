@@ -314,7 +314,7 @@ void Engine::SetViewportMetrics(int64_t view_id,
 }
 
 void Engine::DispatchPlatformMessage(std::unique_ptr<PlatformMessage> message) {
-  std::string channel = message->channel();
+  const std::string& channel = message->channel();
   if (channel == kLifecycleChannel) {
     if (HandleLifecyclePlatformMessage(message.get())) {
       return;

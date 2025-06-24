@@ -81,7 +81,7 @@ EntityPassClipStack::ClipStateResult EntityPassClipStack::ApplyClipState(
         // whole screen is already being clipped, so skip it.
         return result;
       }
-      auto op = maybe_coverage.value();
+      const auto& op = maybe_coverage.value();
 
       // If the new clip coverage is bigger than the existing coverage for
       // intersect clips, we do not need to change the clip region.

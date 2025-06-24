@@ -176,7 +176,7 @@ fml::StatusOr<vk::UniqueDescriptorSetLayout> MakeDescriptorSetLayout(
       immutable_sampler ? immutable_sampler->GetSampler()
                         : static_cast<vk::Sampler>(VK_NULL_HANDLE);
 
-  for (auto layout : desc.GetVertexDescriptor()->GetDescriptorSetLayouts()) {
+  for (const auto& layout : desc.GetVertexDescriptor()->GetDescriptorSetLayouts()) {
     vk::DescriptorSetLayoutBinding set_binding;
     set_binding.binding = layout.binding;
     set_binding.descriptorCount = 1u;

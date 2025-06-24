@@ -49,13 +49,13 @@ RenderTarget RenderTargetCache::CreateOffscreen(
       .has_depth_stencil = stencil_attachment_config.has_value(),
   };
   for (auto& render_target_data : render_target_data_) {
-    const auto other_config = render_target_data.config;
+    const auto& other_config = render_target_data.config;
     if (!render_target_data.used_this_frame && other_config == config) {
       render_target_data.used_this_frame = true;
-      auto color0 = render_target_data.render_target.GetColorAttachments()
+      const auto& color0 = render_target_data.render_target.GetColorAttachments()
                         .find(0u)
                         ->second;
-      auto depth = render_target_data.render_target.GetDepthAttachment();
+      const auto& depth = render_target_data.render_target.GetDepthAttachment();
       std::shared_ptr<Texture> depth_tex = depth ? depth->texture : nullptr;
       return RenderTargetAllocator::CreateOffscreen(
           context, size, mip_count, label, color_attachment_config,
@@ -99,13 +99,13 @@ RenderTarget RenderTargetCache::CreateOffscreenMSAA(
       .has_depth_stencil = stencil_attachment_config.has_value(),
   };
   for (auto& render_target_data : render_target_data_) {
-    const auto other_config = render_target_data.config;
+    const auto& other_config = render_target_data.config;
     if (!render_target_data.used_this_frame && other_config == config) {
       render_target_data.used_this_frame = true;
-      auto color0 = render_target_data.render_target.GetColorAttachments()
+      const auto& color0 = render_target_data.render_target.GetColorAttachments()
                         .find(0u)
                         ->second;
-      auto depth = render_target_data.render_target.GetDepthAttachment();
+      const auto& depth = render_target_data.render_target.GetDepthAttachment();
       std::shared_ptr<Texture> depth_tex = depth ? depth->texture : nullptr;
       return RenderTargetAllocator::CreateOffscreenMSAA(
           context, size, mip_count, label, color_attachment_config,

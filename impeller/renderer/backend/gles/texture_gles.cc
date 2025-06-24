@@ -183,8 +183,8 @@ TextureGLES::TextureGLES(std::shared_ptr<ReactorGLES> reactor,
     return;
   }
   // Ensure the texture doesn't exceed device capabilities.
-  const auto tex_size = GetTextureDescriptor().size;
-  const auto max_size =
+  const auto& tex_size = GetTextureDescriptor().size;
+  const auto& max_size =
       reactor_->GetProcTable().GetCapabilities()->max_texture_size;
   if (tex_size.Max(max_size) != max_size) {
     VALIDATION_LOG << "Texture of size " << tex_size
@@ -318,7 +318,7 @@ bool TextureGLES::OnSetContents(std::shared_ptr<const fml::Mapping> mapping,
     }
   };
 
-  slices_initialized_ = reactor_->AddOperation(texture_upload);
+  slices_initialized_ = reactor_->AddOperation(std::move(texture_upload));
   return slices_initialized_[0];
 }
 

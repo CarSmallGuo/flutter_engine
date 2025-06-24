@@ -111,7 +111,7 @@ RenderPass::GetOrCreatePipeline() {
   pipeline_desc.SetColorAttachmentDescriptors(color_descriptors_);
 
   {
-    auto stencil = render_target_.GetStencilAttachment();
+    const auto& stencil = render_target_.GetStencilAttachment();
     if (stencil && impeller::IsStencilWritable(
                        stencil->texture->GetTextureDescriptor().format)) {
       pipeline_desc.SetStencilPixelFormat(
@@ -124,7 +124,7 @@ RenderPass::GetOrCreatePipeline() {
   }
 
   {
-    auto depth = render_target_.GetDepthAttachment();
+    const auto& depth = render_target_.GetDepthAttachment();
     if (depth && impeller::IsDepthWritable(
                      depth->texture->GetTextureDescriptor().format)) {
       pipeline_desc.SetDepthPixelFormat(

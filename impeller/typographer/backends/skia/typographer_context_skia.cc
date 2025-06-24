@@ -282,7 +282,7 @@ static bool BulkUpdateAtlasBitmap(const GlyphAtlas& atlas,
     if (!data.has_value()) {
       continue;
     }
-    auto [pos, bounds] = data.value();
+    const auto& [pos, bounds] = data.value();
     Size size = pos.GetSize();
     if (size.IsEmpty()) {
       continue;
@@ -325,7 +325,7 @@ static bool UpdateAtlasBitmap(const GlyphAtlas& atlas,
     if (!data.has_value()) {
       continue;
     }
-    auto [pos, bounds] = data.value();
+    const auto& [pos, bounds] = data.value();
     Size size = pos.GetSize();
     if (size.IsEmpty()) {
       continue;
@@ -411,7 +411,7 @@ static void CollectNewGlyphs(const std::shared_ptr<GlyphAtlas>& atlas,
     const FontGlyphAtlas* font_glyph_atlas =
         atlas->GetFontGlyphAtlas(scaled_font.font, scaled_font.scale);
 
-    auto metrics = scaled_font.font.GetMetrics();
+    const auto& metrics = scaled_font.font.GetMetrics();
 
     SkFont sk_font(
         TypefaceSkia::Cast(*scaled_font.font.GetTypeface()).GetSkiaTypeface(),
@@ -593,7 +593,7 @@ std::shared_ptr<GlyphAtlas> TypographerContextSkia::CreateGlyphAtlas(
   });
 
   // Now append all remaining glyphs. This should never have any missing data...
-  auto old_texture = new_atlas->GetTexture();
+  const auto& old_texture = new_atlas->GetTexture();
   new_atlas->SetTexture(std::move(new_texture));
 
   // ---------------------------------------------------------------------------

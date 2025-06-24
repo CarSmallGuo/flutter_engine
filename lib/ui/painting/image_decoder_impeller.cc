@@ -139,7 +139,7 @@ DecompressResult ImageDecoderImpeller::DecompressTexture(
   /// 1. Decode the image.
   ///
 
-  const auto base_image_info = descriptor->image_info();
+  const auto& base_image_info = descriptor->image_info();
   const bool is_wide_gamut =
       supports_wide_gamut ? IsWideGamut(base_image_info.colorSpace()) : false;
   SkAlphaType alpha_type =
@@ -446,7 +446,7 @@ ImageDecoderImpeller::UploadTextureToStorage(
   if (!bitmap) {
     return std::make_pair(nullptr, "No texture bitmap is available");
   }
-  const auto image_info = bitmap->info();
+  const auto& image_info = bitmap->info();
   const auto pixel_format =
       impeller::skia_conversions::ToPixelFormat(image_info.colorType());
   if (!pixel_format) {

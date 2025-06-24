@@ -106,7 +106,7 @@ bool TextContents::Render(const ContentContext& renderer,
       Entity::GetShaderTransform(entity.GetShaderClipDepth(), pass, Matrix());
   ISize atlas_size = atlas->GetTexture()->GetSize();
   bool is_translation_scale = entity.GetTransform().IsTranslationScaleOnly();
-  Matrix entity_transform = entity.GetTransform();
+  const Matrix& entity_transform = entity.GetTransform();
   Matrix basis_transform = entity_transform.Basis();
 
   VS::BindFrameInfo(pass,
@@ -216,7 +216,7 @@ bool TextContents::Render(const ContentContext& renderer,
             }
             const Rect& atlas_glyph_bounds =
                 maybe_atlas_glyph_bounds.value().first;
-            Rect glyph_bounds = maybe_atlas_glyph_bounds.value().second;
+            const Rect& glyph_bounds = maybe_atlas_glyph_bounds.value().second;
             Rect scaled_bounds = glyph_bounds.Scale(1.0 / rounded_scale);
             // For each glyph, we compute two rectangles. One for the vertex
             // positions and one for the texture coordinates (UVs). The atlas

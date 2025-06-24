@@ -83,9 +83,9 @@ static bool LinkProgram(
 
   const auto& descriptor = pipeline->GetDescriptor();
 
-  auto vert_mapping =
+  const auto& vert_mapping =
       ShaderFunctionGLES::Cast(*vert_function).GetSourceMapping();
-  auto frag_mapping =
+  const auto& frag_mapping =
       ShaderFunctionGLES::Cast(*frag_function).GetSourceMapping();
 
   const auto& gl = reactor.GetProcTable();

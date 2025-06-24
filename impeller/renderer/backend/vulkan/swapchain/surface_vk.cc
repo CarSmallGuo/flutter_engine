@@ -25,7 +25,7 @@ std::unique_ptr<SurfaceVK> SurfaceVK::WrapSwapchainImage(
 
   const auto enable_msaa = transients->IsMSAAEnabled();
 
-  const auto swapchain_tex_desc = swapchain_image->GetTextureDescriptor();
+  const auto& swapchain_tex_desc = swapchain_image->GetTextureDescriptor();
 
   TextureDescriptor resolve_tex_desc;
   resolve_tex_desc.type = TextureType::kTexture2D;

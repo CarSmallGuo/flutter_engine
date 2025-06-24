@@ -73,8 +73,6 @@ class RenderTarget final {
 
   RenderTarget();
 
-  ~RenderTarget();
-
   bool IsValid() const;
 
   void SetupDepthStencilAttachments(

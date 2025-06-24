@@ -30,8 +30,6 @@ namespace flutter {
 struct PlatformData {
   PlatformData();
 
-  ~PlatformData();
-
   // A map from view IDs of existing views to their viewport metrics.
   std::unordered_map<int64_t, ViewportMetrics> viewport_metrics_for_views;
 

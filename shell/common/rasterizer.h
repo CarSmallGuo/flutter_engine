@@ -438,18 +438,6 @@ class Rasterizer final : public SnapshotDelegate,
                SkISize p_size,
                const std::string& p_format,
                ScreenshotFormat p_pixel_format);
-
-    //--------------------------------------------------------------------------
-    /// @brief      The copy constructor for a screenshot.
-    ///
-    /// @param[in]  other  The screenshot to copy from.
-    ///
-    Screenshot(const Screenshot& other);
-
-    //--------------------------------------------------------------------------
-    /// @brief      Destroys the screenshot object and releases underlying data.
-    ///
-    ~Screenshot();
   };
 
   //----------------------------------------------------------------------------

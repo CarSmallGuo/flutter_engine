@@ -18,8 +18,6 @@ namespace impeller {
 
 RenderTarget::RenderTarget() = default;
 
-RenderTarget::~RenderTarget() = default;
-
 bool RenderTarget::IsValid() const {
   // Validate that there is a color attachment at zero index.
   if (!HasColorAttachment(0u)) {

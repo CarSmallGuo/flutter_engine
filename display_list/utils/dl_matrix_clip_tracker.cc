@@ -95,7 +95,7 @@ void DisplayListMatrixClipState::clipOval(const DlRect& bounds,
 void DisplayListMatrixClipState::clipRRect(const SkRRect& rrect,
                                            ClipOp op,
                                            bool is_aa) {
-  DlRect bounds = ToDlRect(rrect.getBounds());
+  const DlRect& bounds = ToDlRect(rrect.getBounds());
   if (rrect.isRect()) {
     return clipRect(bounds, op, is_aa);
   }
@@ -139,7 +139,7 @@ void DisplayListMatrixClipState::clipPath(const SkPath& path,
     }
   }
 
-  DlRect bounds = ToDlRect(path.getBounds());
+  const DlRect& bounds = ToDlRect(path.getBounds());
   if (path.isRect(nullptr)) {
     return clipRect(bounds, op, is_aa);
   }
@@ -320,7 +320,7 @@ bool DisplayListMatrixClipState::rrect_covers_cull(
   if (!getLocalCullCorners(corners)) {
     return false;
   }
-  auto outer = content.getBounds();
+  const auto& outer = content.getBounds();
   DlScalar x_center = outer.centerX();
   DlScalar y_center = outer.centerY();
   auto radii = content.getSimpleRadii();

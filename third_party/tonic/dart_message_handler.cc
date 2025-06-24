@@ -33,7 +33,7 @@ void DartMessageHandler::Initialize(TaskDispatcher dispatcher) {
 }
 
 void DartMessageHandler::OnMessage(DartState* dart_state) {
-  auto task_dispatcher_ = dart_state->message_handler().task_dispatcher_;
+  const auto& task_dispatcher_ = dart_state->message_handler().task_dispatcher_;
 
   // Schedule a task to run on the message loop thread.
   auto weak_dart_state = dart_state->GetWeakPtr();

@@ -60,7 +60,7 @@ void RasterCacheResult::draw(DlCanvas& canvas,
 
     SkRect rtree_bounds =
         RasterCacheUtil::GetRoundedOutDeviceBounds(rtree_->bounds(), matrix);
-    for (auto rect : rects) {
+    for (const auto& rect : rects) {
       SkRect device_rect = RasterCacheUtil::GetRoundedOutDeviceBounds(
           SkRect::Make(rect), matrix);
       device_rect.offset(-rtree_bounds.fLeft, -rtree_bounds.fTop);

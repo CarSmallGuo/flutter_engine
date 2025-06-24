@@ -161,7 +161,7 @@ void DlDeferredImageGPUImpeller::ImageWrapper::SnapshotDisplayList(
         if (!wrapper) {
           return;
         }
-        auto snapshot_delegate = wrapper->snapshot_delegate_;
+        const auto& snapshot_delegate = wrapper->snapshot_delegate_;
         if (!snapshot_delegate) {
           return;
         }

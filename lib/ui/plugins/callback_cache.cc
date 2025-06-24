@@ -40,7 +40,7 @@ Dart_Handle DartCallbackCache::GetCallback(int64_t handle) {
   std::scoped_lock lock(mutex_);
   auto iterator = cache_.find(handle);
   if (iterator != cache_.end()) {
-    DartCallbackRepresentation cb = iterator->second;
+    const DartCallbackRepresentation& cb = iterator->second;
     return LookupDartClosure(cb.name, cb.class_name, cb.library_path);
   }
   return Dart_Null();
@@ -92,7 +92,7 @@ void DartCallbackCache::SaveCacheToDisk() {
   writer.StartArray();
   for (auto iterator = cache_.begin(); iterator != cache_.end(); ++iterator) {
     int64_t hash = iterator->first;
-    DartCallbackRepresentation cb = iterator->second;
+    const DartCallbackRepresentation& cb = iterator->second;
     writer.StartObject();
     writer.Key(kHandleKey);
     writer.Int64(hash);

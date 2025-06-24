@@ -49,7 +49,7 @@ Rect DlAtlasGeometry::ComputeBoundingBox() const {
   Rect bounding_box = {};
   for (size_t i = 0; i < count_; i++) {
     auto matrix = skia_conversions::ToRSXForm(xform_[i]);
-    auto sample_rect = tex_[i];
+    const auto& sample_rect = tex_[i];
     auto bounds = Rect::MakeSize(sample_rect.GetSize()).TransformBounds(matrix);
     bounding_box = bounds.Union(bounding_box);
   }
@@ -83,7 +83,7 @@ VertexBuffer DlAtlasGeometry::CreateSimpleVertexBuffer(
         int offset = 0;
         auto texture_size = atlas_->GetSize();
         for (auto i = 0u; i < count_; i++) {
-          flutter::DlRect sample_rect = tex_[i];
+          const flutter::DlRect& sample_rect = tex_[i];
           Matrix matrix = skia_conversions::ToRSXForm(xform_[i]);
           auto points = sample_rect.GetPoints();
           auto transformed_points = Rect::MakeSize(sample_rect.GetSize())
@@ -118,7 +118,7 @@ VertexBuffer DlAtlasGeometry::CreateBlendVertexBuffer(
         int offset = 0;
         auto texture_size = atlas_->GetSize();
         for (auto i = 0u; i < count_; i++) {
-          flutter::DlRect sample_rect = tex_[i];
+          const flutter::DlRect& sample_rect = tex_[i];
           Matrix matrix = skia_conversions::ToRSXForm(xform_[i]);
           auto points = sample_rect.GetPoints();
           auto transformed_points = Rect::MakeSize(sample_rect.GetSize())

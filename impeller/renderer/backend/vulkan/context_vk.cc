@@ -501,7 +501,7 @@ std::shared_ptr<CommandBuffer> ContextVK::CreateCommandBuffer() const {
 
   auto tracked_objects = std::make_shared<TrackedObjectsVK>(
       weak_from_this(), std::move(tls_pool), GetGPUTracer()->CreateGPUProbe());
-  auto queue = GetGraphicsQueue();
+  const auto& queue = GetGraphicsQueue();
 
   if (!tracked_objects || !tracked_objects->IsValid() || !queue) {
     return nullptr;
@@ -628,14 +628,14 @@ void ContextVK::InitializeCommonlyUsedShadersIfNeeded() const {
     );
   }
 
-  if (auto depth = render_target.GetDepthAttachment(); depth.has_value()) {
+  if (const auto& depth = render_target.GetDepthAttachment(); depth.has_value()) {
     builder.SetDepthStencilAttachment(
         depth->texture->GetTextureDescriptor().format,        //
         depth->texture->GetTextureDescriptor().sample_count,  //
         depth->load_action,                                   //
         depth->store_action                                   //
     );
-  } else if (auto stencil = render_target.GetStencilAttachment();
+  } else if (const auto& stencil = render_target.GetStencilAttachment();
              stencil.has_value()) {
     builder.SetStencilAttachment(
         stencil->texture->GetTextureDescriptor().format,        //

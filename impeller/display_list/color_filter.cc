@@ -83,7 +83,7 @@ ColorFilterProc GetCPUColorFilterProc(const flutter::DlColorFilter* filter) {
 
       impeller::ColorMatrix color_matrix;
       matrix_filter->get_matrix(color_matrix.array);
-      return [color_matrix = color_matrix](Color color) {
+      return [color_matrix = std::move(color_matrix)](Color color) {
         return color.ApplyColorMatrix(color_matrix);
       };
     }

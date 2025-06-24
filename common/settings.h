@@ -111,10 +111,6 @@ class DartIsolate;
 struct Settings {
   Settings();
 
-  Settings(const Settings& other);
-
-  ~Settings();
-
   /// Determines if attempts at grabbing the Surface's SurfaceData can be
   /// attempted.
   static constexpr bool kSurfaceDataAccessible =

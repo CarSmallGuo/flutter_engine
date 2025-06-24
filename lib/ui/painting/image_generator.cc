@@ -17,7 +17,7 @@ namespace flutter {
 ImageGenerator::~ImageGenerator() = default;
 
 sk_sp<SkImage> ImageGenerator::GetImage() {
-  SkImageInfo info = GetInfo();
+  const SkImageInfo& info = GetInfo();
 
   SkBitmap bitmap;
   if (!bitmap.tryAllocPixels(info)) {

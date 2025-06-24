@@ -107,7 +107,7 @@ static std::optional<Entity> AdvancedBlend(
   if (!maybe_dst_uvs.has_value()) {
     return std::nullopt;
   }
-  auto dst_uvs = maybe_dst_uvs.value();
+  const auto& dst_uvs = maybe_dst_uvs.value();
 
   std::optional<Snapshot> src_snapshot;
   std::array<Point, 4> src_uvs;
@@ -132,7 +132,7 @@ static std::optional<Entity> AdvancedBlend(
 
   Rect subpass_coverage = coverage;
   if (entity.GetContents()) {
-    auto coverage_hint = entity.GetContents()->GetCoverageHint();
+    const auto& coverage_hint = entity.GetContents()->GetCoverageHint();
 
     if (coverage_hint.has_value()) {
       auto maybe_subpass_coverage =
@@ -486,7 +486,7 @@ std::optional<Entity> BlendFilterContents::CreateForegroundPorterDuffBlend(
             : 1.0;
     frag_info.output_alpha = 1.0;
 
-    auto blend_coefficients =
+    const auto& blend_coefficients =
         kPorterDuffCoefficients[static_cast<int>(blend_mode)];
     frag_info.src_coeff = blend_coefficients[0];
     frag_info.src_coeff_dst_alpha = blend_coefficients[1];
@@ -534,7 +534,7 @@ static std::optional<Entity> PipelineBlend(
 
   Rect subpass_coverage = coverage;
   if (entity.GetContents()) {
-    auto coverage_hint = entity.GetContents()->GetCoverageHint();
+    const auto& coverage_hint = entity.GetContents()->GetCoverageHint();
 
     if (coverage_hint.has_value()) {
       auto maybe_subpass_coverage =

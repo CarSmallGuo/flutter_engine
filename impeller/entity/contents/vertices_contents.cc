@@ -166,7 +166,7 @@ bool VerticesSimpleBlendContents::Render(const ContentContext& renderer,
 
     auto inverted_blend_mode =
         InvertPorterDuffBlend(blend_mode).value_or(BlendMode::kSource);
-    auto blend_coefficients =
+    const auto& blend_coefficients =
         kPorterDuffCoefficients[static_cast<int>(inverted_blend_mode)];
     frag_info.src_coeff = blend_coefficients[0];
     frag_info.src_coeff_dst_alpha = blend_coefficients[1];

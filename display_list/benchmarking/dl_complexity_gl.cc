@@ -626,7 +626,7 @@ void DisplayListGLComplexityCalculator::GLHelper::drawDisplayList(
   }
   GLHelper helper(Ceiling() - CurrentComplexityScore());
   if (opacity < SK_Scalar1 && !display_list->can_apply_group_opacity()) {
-    auto bounds = display_list->GetBounds();
+    const auto& bounds = display_list->GetBounds();
     helper.saveLayer(bounds, SaveLayerOptions::kWithAttributes, nullptr);
   }
   display_list->Dispatch(helper);

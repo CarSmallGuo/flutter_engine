@@ -68,7 +68,7 @@ std::unique_ptr<ComputePipelineVK> PipelineLibraryVK::CreateComputePipeline(
     return nullptr;
   }
   auto device_properties = strong_device->GetPhysicalDevice().getProperties();
-  auto max_wg_size = device_properties.limits.maxComputeWorkGroupSize;
+  const auto& max_wg_size = device_properties.limits.maxComputeWorkGroupSize;
 
   // Give all compute shaders a specialization constant entry for the
   // workgroup/threadgroup size.
@@ -97,7 +97,7 @@ std::unique_ptr<ComputePipelineVK> PipelineLibraryVK::CreateComputePipeline(
   ///
   std::vector<vk::DescriptorSetLayoutBinding> desc_bindings;
 
-  for (auto layout : desc.GetDescriptorSetLayouts()) {
+  for (const auto& layout : desc.GetDescriptorSetLayouts()) {
     auto vk_desc_layout = ToVKDescriptorSetLayoutBinding(layout);
     desc_bindings.push_back(vk_desc_layout);
   }

@@ -49,7 +49,7 @@ std::unordered_map<int64_t, SkRect> SliceViews(
         continue;
       }
 
-      SkRect current_view_rect = maybe_rect->second;
+      const SkRect& current_view_rect = maybe_rect->second;
       const SkIRect rounded_in_platform_view_rect = current_view_rect.roundIn();
 
       // Each rect corresponds to a native view that renders Flutter UI.

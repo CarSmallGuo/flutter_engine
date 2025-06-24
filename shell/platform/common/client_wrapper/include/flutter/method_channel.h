@@ -66,8 +66,7 @@ class MethodChannel {
     // accessed.
     std::shared_ptr<MethodResult<T>> shared_result(result.release());
     const auto* codec = codec_;
-    std::string channel_name = name_;
-    BinaryReply reply_handler = [shared_result, codec, channel_name](
+    BinaryReply reply_handler = [shared_result, codec, channel_name = name_](
                                     const uint8_t* reply, size_t reply_size) {
       if (reply_size == 0) {
         shared_result->NotImplemented();
@@ -102,8 +101,7 @@ class MethodChannel {
       return;
     }
     const auto* codec = codec_;
-    std::string channel_name = name_;
-    BinaryMessageHandler binary_handler = [handler, codec, channel_name](
+    BinaryMessageHandler binary_handler = [handler, codec, channel_name = name_](
                                               const uint8_t* message,
                                               size_t message_size,
                                               BinaryReply reply) {

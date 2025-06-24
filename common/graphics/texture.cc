@@ -61,7 +61,7 @@ void TextureRegistry::OnGrContextCreated() {
 
   for (const auto& [id, pair] : ordered_images) {
     auto index_id = pair.first;
-    auto weak_image = pair.second;
+    const auto& weak_image = pair.second;
     if (auto image = weak_image.lock()) {
       image->OnGrContextCreated();
     } else {
@@ -79,7 +79,7 @@ void TextureRegistry::OnGrContextDestroyed() {
   auto it = ordered_images_.begin();
   while (it != ordered_images_.end()) {
     auto index_id = it->second.first;
-    auto weak_image = it->second.second;
+    const auto& weak_image = it->second.second;
     if (auto image = weak_image.lock()) {
       image->OnGrContextDestroyed();
       it++;

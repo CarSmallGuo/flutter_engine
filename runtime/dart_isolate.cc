@@ -326,7 +326,7 @@ Dart_Isolate DartIsolate::CreatePlatformIsolate(Dart_Handle entry_point,
 
   // The platform isolate task observer must be added on the platform thread. So
   // schedule the add function on the platform task runner.
-  TaskObserverAdd old_task_observer_add = settings.task_observer_add;
+  const TaskObserverAdd& old_task_observer_add = settings.task_observer_add;
   settings.task_observer_add = [old_task_observer_add, platform_task_runner,
                                 weak_platform_isolate_manager](
                                    intptr_t key, const fml::closure& callback) {
@@ -1016,7 +1016,7 @@ Dart_Isolate DartIsolate::DartCreateAndStartServiceIsolate(
     return nullptr;
   }
 
-  if (auto callback = vm_data->GetSettings().service_isolate_create_callback) {
+  if (const auto& callback = vm_data->GetSettings().service_isolate_create_callback) {
     callback();
   }
 

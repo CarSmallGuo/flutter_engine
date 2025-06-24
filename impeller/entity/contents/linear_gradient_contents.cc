@@ -48,7 +48,7 @@ bool LinearGradientContents::IsOpaque(const Matrix& transform) const {
   if (GetOpacityFactor() < 1 || tile_mode_ == Entity::TileMode::kDecal) {
     return false;
   }
-  for (auto color : colors_) {
+  for (const auto& color : colors_) {
     if (!color.IsOpaque()) {
       return false;
     }
@@ -64,7 +64,7 @@ bool LinearGradientContents::CanApplyFastGradient() const {
   if (!maybe_rect.has_value()) {
     return false;
   }
-  Rect rect = maybe_rect.value();
+  const Rect& rect = maybe_rect.value();
 
   if (ScalarNearlyEqual(start_point_.x, end_point_.x)) {
     // Sort start and end to make on-rect comparisons easier.
@@ -121,7 +121,7 @@ bool LinearGradientContents::FastLinearGradient(const ContentContext& renderer,
     if (!maybe_rect.has_value()) {
       return {};
     }
-    Rect rect = maybe_rect.value();
+    const Rect& rect = maybe_rect.value();
     bool horizontal_axis = start_point_.y == end_point_.y;
 
     // Compute the locations of each breakpoint along the primary axis, then

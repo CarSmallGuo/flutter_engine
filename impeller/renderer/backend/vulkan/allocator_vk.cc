@@ -100,7 +100,7 @@ AllocatorVK::AllocatorVK(std::weak_ptr<Context> context,
                          const vk::Instance& instance,
                          const CapabilitiesVK& capabilities)
     : context_(std::move(context)), device_holder_(device_holder) {
-  auto limits = physical_device.getProperties().limits;
+  const auto& limits = physical_device.getProperties().limits;
   max_texture_size_.width = max_texture_size_.height =
       limits.maxImageDimension2D;
   physical_device.getMemoryProperties(&memory_properties_);

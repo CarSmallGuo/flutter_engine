@@ -76,7 +76,7 @@ std::optional<Entity> BorderMaskBlurFilterContents::RenderFilter(
   if (!maybe_input_uvs.has_value()) {
     return std::nullopt;
   }
-  auto input_uvs = maybe_input_uvs.value();
+  const auto& input_uvs = maybe_input_uvs.value();
 
   //----------------------------------------------------------------------------
   /// Create AnonymousContents for rendering.

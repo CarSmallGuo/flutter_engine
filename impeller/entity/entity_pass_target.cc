@@ -38,7 +38,7 @@ std::shared_ptr<Texture> EntityPassTarget::Flip(Allocator& allocator) {
 
   if (!secondary_color_texture_) {
     // The second texture is allocated lazily to avoid unused allocations.
-    TextureDescriptor new_descriptor =
+    const TextureDescriptor& new_descriptor =
         color0.resolve_texture->GetTextureDescriptor();
     secondary_color_texture_ = allocator.CreateTexture(new_descriptor);
 

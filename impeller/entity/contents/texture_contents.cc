@@ -80,7 +80,7 @@ std::optional<Snapshot> TextureContents::RenderToSnapshot(
     const std::string& label) const {
   // Passthrough textures that have simple rectangle paths and complete source
   // rects.
-  auto bounds = destination_rect_;
+  const auto& bounds = destination_rect_;
   auto opacity = GetOpacity();
   if (source_rect_ == Rect::MakeSize(texture_->GetSize()) &&
       (opacity >= 1 - kEhCloseEnough || defer_applying_opacity_)) {
