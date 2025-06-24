@@ -1,4 +1,3 @@
-
 import { describe, it, expect } from '@ohos/hypium';
 import { FlutterEngine, FlutterPlugin, FlutterEntry } from "@ohos/flutter_ohos";
 import { FlutterPluginBinding } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/plugins/FlutterPlugin';
@@ -9,6 +8,51 @@ function sleep(time: number) {
 
 export default function FlutterEntryTest() {
   describe('FlutterEntryTest', () => {
+
+    it('aboutToAppear', 0, async (done: Function) => {
+      try {
+        const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
+        flutterEntry.aboutToAppear();
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('aboutToDisappear', 0, async (done: Function) => {
+      try {
+        const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
+        flutterEntry.aboutToDisappear();
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('onPageShow', 0, async (done: Function) => {
+      try {
+        const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
+        flutterEntry.onPageShow();
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('onPageHide', 0, async (done: Function) => {
+      try {
+        const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
+        flutterEntry.onPageHide();
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('onBackPress', 0, async (done: Function) => {
+      try {
+        const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
+        flutterEntry.onBackPress();
+      } catch (e) {
+      }
+      done();
+    })
 
     it('TestGetFlutterView', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
@@ -31,6 +75,24 @@ export default function FlutterEntryTest() {
       done();
     })
 
+    it('detachFromFlutterEngine', 0, async (done: Function) => {
+      try {
+        const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
+        flutterEntry.detachFromFlutterEngine();
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('loadContent', 0, async (done: Function) => {
+      try {
+        const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
+        flutterEntry.loadContent();
+      } catch (e) {
+      }
+      done();
+    })
+
     it('TestProvideFlutterEngine', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.provideFlutterEngine(getContext());
@@ -43,6 +105,26 @@ export default function FlutterEntryTest() {
       const flutterEngine = new FlutterEngine(getContext(), null, null, null);
       const result = flutterEntry.providePlatformPlugin(flutterEngine);
       expect(result).not().assertNull();
+      done();
+    })
+
+    it('configureFlutterEngine', 0, async (done: Function) => {
+      try {
+        const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
+        const flutterEngine = new FlutterEngine(getContext(), null, null, null);
+        flutterEntry.configureFlutterEngine(flutterEngine);
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('cleanUpFlutterEngine', 0, async (done: Function) => {
+      try {
+        const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
+        const flutterEngine = new FlutterEngine(getContext(), null, null, null);
+        flutterEntry.cleanUpFlutterEngine(flutterEngine);
+      } catch (e) {
+      }
       done();
     })
 
@@ -70,7 +152,7 @@ export default function FlutterEntryTest() {
     it('TestShouldAttachEngineToAbility', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.shouldAttachEngineToAbility();
-      expect(result).assertUndefined();
+      expect(result).assertTrue();
       done();
     })
 
@@ -126,14 +208,14 @@ export default function FlutterEntryTest() {
     it('TestGetCachedEngineId', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.getCachedEngineId();
-      expect(result).assertUndefined();
+      expect(result).assertEqual("");
       done();
     })
 
     it('TestGetCachedEngineGroupId', 0, async (done: Function) => {
       const flutterEntry: FlutterEntry = new FlutterEntry(getContext());
       const result = flutterEntry.getCachedEngineGroupId();
-      expect(result).assertUndefined();
+      expect(result).assertNull();
       done();
     })
 

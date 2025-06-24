@@ -1,11 +1,11 @@
-
 import { describe, beforeAll, expect, it } from '@ohos/hypium';
 import { common } from '@kit.AbilityKit';
 import { Options } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/FlutterEngineGroup';
 import { DartEntrypoint } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/dart/DartExecutor';
 import { resourceManager } from '@kit.LocalizationKit';
-import DartExecutor from '@ohos/flutter_ohos/src/main/ets/embedding/engine/dart/DartExecutor';
+import DartExecutor, { DartCallback } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/dart/DartExecutor';
 import FlutterNapi from '@ohos/flutter_ohos/src/main/ets/embedding/engine/FlutterNapi';
+import { FlutterCallbackInformation } from '@ohos/flutter_ohos';
 
 export default function DartExecutorTest() {
   const flutterNapi = new FlutterNapi();
@@ -15,6 +15,8 @@ export default function DartExecutorTest() {
   let assetManager: resourceManager.ResourceManager;
   let dartEntrypoint: DartEntrypoint | null = null;
   let resourceManager: resourceManager.ResourceManager;
+  let flutterCallbackInformation: FlutterCallbackInformation;
+  let dartCallback: DartCallback;
 
   describe('DartExecutorTest', () => {
 
@@ -25,6 +27,30 @@ export default function DartExecutorTest() {
       dartExecutor = new DartExecutor(flutterNapi, assetManager);
       options = new Options(context);
       dartEntrypoint = options.getDartEntrypoint();
+      flutterCallbackInformation = new FlutterCallbackInformation();
+      dartCallback = new DartCallback(resourceManager, '', flutterCallbackInformation);
+    })
+
+    it('onAttachedToNAPI', 0, async (done: Function) => {
+      console.info("uitest: onAttachedToNAPI begin");
+      try {
+        if (dartExecutor) {
+          dartExecutor.onAttachedToNAPI();
+        }
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('onDetachedFromNAPI', 0, async (done: Function) => {
+      console.info("uitest: onDetachedFromNAPI begin");
+      try {
+        if (dartExecutor) {
+          dartExecutor.onDetachedFromNAPI();
+        }
+      } catch (e) {
+      }
+      done();
     })
 
     it('isExecutingDart', 0, async (done: Function) => {
@@ -32,6 +58,28 @@ export default function DartExecutorTest() {
       if (dartExecutor) {
         const isExecutingDart = dartExecutor.isExecutingDart();
         expect(isExecutingDart).not().assertNull();
+      }
+      done();
+    })
+
+    it('executeDartEntrypoint', 0, async (done: Function) => {
+      console.info("uitest: executeDartEntrypoint begin");
+      try {
+        if (dartExecutor && dartEntrypoint) {
+          dartExecutor.executeDartEntrypoint(dartEntrypoint, []);
+        }
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('executeDartCallback', 0, async (done: Function) => {
+      console.info("uitest: executeDartCallback begin");
+      try {
+        if (dartExecutor) {
+          dartExecutor.executeDartCallback(dartCallback);
+        }
+      } catch (e) {
       }
       done();
     })
@@ -53,5 +101,27 @@ export default function DartExecutorTest() {
       }
       done();
     })
+
+    it('send', 0, async (done: Function) => {
+      console.info("uitest: send begin");
+      try {
+        if (dartExecutor) {
+          dartExecutor.send('', new ArrayBuffer(16));
+        }
+      } catch (e) {
+      }
+      done();
+    })
+
+    // it('setMessageHandler', 0, async (done: Function) => {
+    //   console.info("uitest: setMessageHandler begin");
+    //   try {
+    //     if (dartExecutor) {
+    //       dartExecutor.setMessageHandler('', new BinaryMessageHandler());
+    //     }
+    //   } catch (e) {
+    //   }
+    //   done();
+    // })
   })
 }
