@@ -576,7 +576,7 @@ SemanticsNodeExtend* SemanticsTree::GetOrAddNode(int32_t id) {
 }
 
 void SemanticsTree::ClearSemanticsTree() {
-  for (auto it : all_semantics_nodes_) {
+  for (const auto& it : all_semantics_nodes_) {
     delete it.second;
   }
   all_semantics_nodes_.clear();

@@ -337,7 +337,7 @@ void SemanticsNodeExtend::UpdateSelfRecursively(
     needUpdate = true;
   }
   if (needUpdate) {
-    auto [left, top, right, bottom] = rect;
+    const auto& [left, top, right, bottom] = rect;
     absoluteTransform = SkM44(fatherTransform, transform);
     SkV4 points[4] = {
         {left, top, 0, 1},

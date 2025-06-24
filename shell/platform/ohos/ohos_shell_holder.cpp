@@ -320,7 +320,7 @@ std::unique_ptr<OHOSShellHolder> OHOSShellHolder::Spawn(
   fml::WeakPtr<PlatformViewOHOS> weak_platform_view;
   PlatformViewOHOS* ohos_platform_view = platform_view_.get();
   FML_DCHECK(ohos_platform_view);
-  std::shared_ptr<flutter::OHOSContext> ohos_context =
+  const std::shared_ptr<flutter::OHOSContext>& ohos_context =
       ohos_platform_view->GetOHOSContext();
   FML_DCHECK(ohos_context);
 

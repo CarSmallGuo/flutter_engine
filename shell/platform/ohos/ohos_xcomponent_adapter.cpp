@@ -221,7 +221,6 @@ void OnSurfaceDestroyedCB(OH_NativeXComponent* component, void* window) {
   for (auto it = XComponentAdapter::GetInstance()->xcomponetMap_.begin();
        it != XComponentAdapter::GetInstance()->xcomponetMap_.end();) {
     if (it->second->nativeXComponent_ == component) {
-      auto component_id = it->first;
       if (it->second ==
           XComponentAdapter::GetInstance()->GetCurrentXcomponent()) {
         XComponentAdapter::GetInstance()->SetCurrentXcomponentId("");

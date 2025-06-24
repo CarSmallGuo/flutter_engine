@@ -119,10 +119,9 @@ napi_value OhosMain::Init(napi_env env, napi_callback_info info) {
   flutter::DartCallbackCache::LoadCacheFromDisk();
 
   if (!flutter::DartVM::IsRunningPrecompiledCode() && kernelPath[0]) {
-    auto application_kernel_path = kernelPath;
-    if (fml::IsFile(application_kernel_path)) {
+    if (fml::IsFile(kernelPath)) {
       FML_DLOG(INFO) << "application_kernel_path exist";
-      settings.application_kernel_asset = application_kernel_path;
+      settings.application_kernel_asset = kernelPath;
     }
   }
 
