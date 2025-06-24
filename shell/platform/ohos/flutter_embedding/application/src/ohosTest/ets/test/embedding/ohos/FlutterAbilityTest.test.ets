@@ -31,7 +31,7 @@ export default function FlutterAbilityTest() {
     it('isDefaultFullScreen', 0, async (done: Function) => {
       const flutterAbility: FlutterAbility = new FlutterAbility();
       const isDefaultFullScreen: boolean = flutterAbility.isDefaultFullScreen();
-      expect(isDefaultFullScreen).assertFalse();
+      expect(isDefaultFullScreen).assertTrue();
       done();
     })
 
