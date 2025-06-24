@@ -189,7 +189,7 @@ void OhosVsyncVotingMgr::VoteANTranslate(double velocity) {
 void OhosVsyncVotingMgr::AttachNativeVsync(string handleName,
                                            OH_NativeVSync* handle) {
   // 接口不存在或ltpo未使能
-  if (libHandle_ == nullptr || switchStatus_ != LTPO_SWITCH_ON) {
+  if (libHandle_ == nullptr) {
     FML_LOG(ERROR) << "libHandle is null, or ltpo is not enabled";
     return;
   }
@@ -300,8 +300,7 @@ void OhosVsyncVotingMgr::VotingBySelf() {
 
   // 清空缓存
   curAnimationTranslateVelocity_ = 0.0;
-  if ((touchVoting_.load() == 0) &&
-      (animationVoting_.load() == PlatformViewOHOSNapi::display_refresh_rate)) {
+  if (touchVoting_.load() == 0) {
     // 触摸事件触发时，需要判断是否需要清空动画的帧率投票
     animationVoting_.store(0);
   }
