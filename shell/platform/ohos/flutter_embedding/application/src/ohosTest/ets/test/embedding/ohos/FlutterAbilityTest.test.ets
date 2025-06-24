@@ -1,10 +1,10 @@
-
 import { describe, it, expect } from '@ohos/hypium';
 import { abilityDelegatorRegistry } from '@kit.TestKit';
 import { Want } from '@kit.AbilityKit';
 import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 import { FlutterView, FlutterAbility, FlutterEngine, FlutterPlugin } from "@ohos/flutter_ohos";
 import { FlutterPluginBinding } from '@ohos/flutter_ohos/src/main/ets/embedding/engine/plugins/FlutterPlugin';
+import { Configuration } from '@ohos.app.ability.Configuration';
 
 const bundleName = abilityDelegatorRegistry.getArguments().bundleName;
 const want: Want = {
@@ -28,6 +28,31 @@ export default function FlutterAbilityTest() {
       done();
     })
 
+    it('isDefaultFullScreen', 0, async (done: Function) => {
+      const flutterAbility: FlutterAbility = new FlutterAbility();
+      const isDefaultFullScreen: boolean = flutterAbility.isDefaultFullScreen();
+      expect(isDefaultFullScreen).assertFalse();
+      done();
+    })
+
+    it('onCreate', 0, async (done: Function) => {
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        flutterAbility.onCreate(want, launchParam);
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('onDestroy', 0, async (done: Function) => {
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        flutterAbility.onDestroy();
+      } catch (e) {
+      }
+      done();
+    })
+
     it('TestFlutterAbilityOnSaveState', 0, async (done: Function) => {
       const flutterAbility: FlutterAbility = new FlutterAbility();
       const reason: AbilityConstant.StateType = AbilityConstant.StateType.CONTINUATION
@@ -37,6 +62,59 @@ export default function FlutterAbilityTest() {
       await sleep(1000);
       const result = flutterAbility.onSaveState(reason, wantParam);
       expect(result).not().assertNull();
+      done();
+    })
+
+    it('onNewWant', 0, async (done: Function) => {
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        flutterAbility.onNewWant(want, launchParam);
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('onWindowStageDestroy', 0, async (done: Function) => {
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        flutterAbility.onWindowStageDestroy();
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('onForeground', 0, async (done: Function) => {
+
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        flutterAbility.onForeground();
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('onBackground', 0, async (done: Function) => {
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        flutterAbility.onBackground();
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('release', 0, async (done: Function) => {
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        flutterAbility.release();
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('getAbility', 0, async (done: Function) => {
+      const flutterAbility: FlutterAbility = new FlutterAbility();
+      const result = flutterAbility.getAbility();
+      expect(result).not().assertUndefined();
       done();
     })
 
@@ -73,6 +151,35 @@ export default function FlutterAbilityTest() {
       const flutterEngine = new FlutterEngine(getContext(), null, null, null);
       const result = flutterAbility.providePlatformPlugin(flutterEngine);
       expect(result).not().assertNull();
+      done();
+    })
+
+    it('configureFlutterEngine', 0, async (done: Function) => {
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        const flutterEngine = new FlutterEngine(getContext(), null, null, null);
+        flutterAbility.configureFlutterEngine(flutterEngine);
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('cleanUpFlutterEngine', 0, async (done: Function) => {
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        const flutterEngine = new FlutterEngine(getContext(), null, null, null);
+        flutterAbility.cleanUpFlutterEngine(flutterEngine);
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('detachFromFlutterEngine', 0, async (done: Function) => {
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        flutterAbility.detachFromFlutterEngine();
+      } catch (e) {
+      }
       done();
     })
 
@@ -118,6 +225,42 @@ export default function FlutterAbilityTest() {
       done();
     })
 
+    it('addPlugin', 0, async (done: Function) => {
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        flutterAbility.addPlugin(plugin);
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('removePlugin', 0, async (done: Function) => {
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        flutterAbility.removePlugin(plugin);
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('onMemoryLevel', 0, async (done: Function) => {
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        flutterAbility.onMemoryLevel(AbilityConstant.MemoryLevel.MEMORY_LEVEL_LOW);
+      } catch (e) {
+      }
+      done();
+    })
+
+    it('onConfigurationUpdated', 0, async (done: Function) => {
+      try {
+        const flutterAbility: FlutterAbility = new FlutterAbility();
+        flutterAbility.onConfigurationUpdated(configuration);
+      } catch (e) {
+      }
+      done();
+    })
+
     it('TestGetFlutterEngine', 0, async (done: Function) => {
       const flutterAbility: FlutterAbility = new FlutterAbility();
       const result = flutterAbility.getFlutterEngine();
@@ -128,7 +271,7 @@ export default function FlutterAbilityTest() {
 
 }
 
-class TestFlutterPlugin implements FlutterPlugin {
+export class TestFlutterPlugin implements FlutterPlugin {
   getUniqueClassName(): string {
     return "engine test";
   }
@@ -142,4 +285,26 @@ class TestFlutterPlugin implements FlutterPlugin {
   }
 }
 
-let plugin: FlutterPlugin = new TestFlutterPlugin();
+export let plugin: FlutterPlugin = new TestFlutterPlugin();
+
+export class TestLaunchParam implements AbilityConstant.LaunchParam {
+  launchReason: AbilityConstant.LaunchReason;
+  lastExitReason: AbilityConstant.LastExitReason;
+  lastExitMessage: string;
+
+  constructor(launchReason: AbilityConstant.LaunchReason, lastExitReason: AbilityConstant.LastExitReason,
+    lastExitMessage: string) {
+    this.launchReason = launchReason;
+    this.lastExitReason = lastExitReason;
+    this.lastExitMessage = lastExitMessage;
+  }
+}
+
+export let launchParam: TestLaunchParam =
+  new TestLaunchParam(AbilityConstant.LaunchReason.START_ABILITY, AbilityConstant.LastExitReason.NORMAL, '');
+
+export class TestConfiguration implements Configuration {
+
+}
+
+let configuration: Configuration = new TestConfiguration();
