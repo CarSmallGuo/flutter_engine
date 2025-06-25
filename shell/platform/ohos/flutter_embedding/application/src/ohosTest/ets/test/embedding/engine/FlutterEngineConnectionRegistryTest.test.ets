@@ -51,5 +51,15 @@ export default function FlutterEngineConnectionRegistryTest() {
       }
       done();
     })
+
+    it('remove', 0, async (done: Function) => {
+      if (flutterEngineConnectionRegistry) {
+        flutterEngineConnectionRegistry.remove(pluginClassName);
+      }
+      done();
+    })
+
+
+
   })
 }

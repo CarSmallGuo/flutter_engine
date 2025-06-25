@@ -2,6 +2,7 @@
 import { describe, it, expect } from '@ohos/hypium'
 import Any from '@ohos/flutter_ohos/src/main/ets/plugin/common/Any';
 import SendableStandardMessageCodec from '@ohos/flutter_ohos/src/main/ets/plugin/common/SendableStandardMessageCodec';
+import { util } from '@kit.ArkTS';
 
 export default function SendableStandardMessageCodecTest() {
   describe('SendableStandardMessageCodecTest', () => {
@@ -71,5 +72,12 @@ export default function SendableStandardMessageCodecTest() {
       const decodedArray:Any  = codec.decodeMessage(encodedArray);
       expect(decodedArray).assertDeepEquals(float64Array);
     })
+
+
+
   })
+}
+
+interface test{
+  f:string
 }
