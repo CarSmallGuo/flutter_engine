@@ -71,6 +71,7 @@ import SendableStandardMethodCodecTest from './plugin/common/SendableStandardMet
 import FlutterPluginRegistryTest from './app/FlutterPluginRegistry.test';
 import FlutterCallbackInformationTest from './view/FlutterCallbackInformation.test';
 import FlutterViewTest from './view/FlutterView.test';
+import BasicMessageChannelSend from './plugin/common/BasicMessageChannel.test';
 import FlutterWindowTest from './embedding/ohos/FlutterWindowTest.test';
 import EmbeddingNodeControllerTest from './embedding/ohos/EmbeddingNodeControllerTest.test';
 import KeyEventHandlerTest from './embedding/ohos/KeyEventHandlerTest.test';
@@ -146,7 +147,4 @@ export default function testsuite() {
   FlutterPluginRegistryTest();
   FlutterCallbackInformationTest();
   FlutterViewTest();
-  FlutterWindowTest();
-  EmbeddingNodeControllerTest();
-  KeyEventHandlerTest();
 }
