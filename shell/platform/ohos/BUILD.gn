@@ -90,7 +90,7 @@ source_set("flutter_ohos_sources") {
              "./accessibility/ohos_semantics_node.h",
              "./accessibility/ohos_semantics_tree.h",
              "./accessibility/ohos_semantics_bridge.h",
-             "./accessibility/multi_instance_xcomp_accessibility.h"
+             "./accessibility/multi_instance_xcomp_accessibility.h",
            ]
 
   #configs += [ "//flutter/shell/platform/ohos/config:gtk" ]
@@ -107,10 +107,10 @@ source_set("flutter_ohos_sources") {
     "ohos_context_vulkan_impeller.cpp",
 
     # "//flutter/impeller/toolkit/egl/display.cc",
+    "./accessibility/multi_instance_xcomp_accessibility.cpp",
     "./accessibility/ohos_semantics_bridge.cpp",
     "./accessibility/ohos_semantics_node.cpp",
     "./accessibility/ohos_semantics_tree.cpp",
-    "./accessibility/multi_instance_xcomp_accessibility.cpp",
     "image_lru.cpp",
     "ohos_context_gl_skia.cpp",
     "ohos_display.cpp",
@@ -224,6 +224,7 @@ executable("flutter_ohos_unittests") {
   ]
 
   ldflags += [ "-lnative_window" ]
+  ldflags += [ "-lnative_drawing" ]
   ldflags += [ "-lnative_vsync" ]
   ldflags += [ "-lace_napi.z" ]
   ldflags += [ "-lace_ndk.z" ]
@@ -265,6 +266,7 @@ shared_library("flutter_shell_native") {
   #ldflags = [ "-Wl,-rpath,\$ORIGIN" ]
   #ldflags += ["-L{$OHOS_NDK_LIB}","-lnative_window"]
   ldflags += [ "-lnative_window" ]
+  ldflags += [ "-lnative_drawing" ]
   ldflags += [ "-lnative_vsync" ]
   ldflags += [ "-ldeviceinfo_ndk.z" ]
   ldflags += [ "-lace_napi.z" ]
@@ -353,13 +355,9 @@ action("ohos_har") {
     engine_library = "so.unstripped/libflutter.so"
   }
 
-  inputs = [
-    "$root_build_dir/$engine_library",
-  ]
+  inputs = [ "$root_build_dir/$engine_library" ]
 
-  outputs = [
-    "$root_build_dir/flutter.har",
-  ]
+  outputs = [ "$root_build_dir/flutter.har" ]
 
   args = [
     "--embedding_src",
@@ -396,8 +394,8 @@ zip_bundle("flutter_har_zip") {
   output = "$ohos_zip_archive_dir/artifacts.zip"
 
   deps = [
-    ":embedding_hars",
     ":abi_hars",
+    ":embedding_hars",
     ":ohos_har",
   ]
 
@@ -571,9 +569,7 @@ action("embedding_hars") {
   script = "//flutter/attachment/scripts/ohos_create_flutter_har.py"
 
   inputs = []
-  outputs = [
-    "$embedding_har_path",
-  ]
+  outputs = [ "$embedding_har_path" ]
 
   args = [
     "--embedding_src",
@@ -602,13 +598,9 @@ action("abi_hars") {
     engine_library = "so.unstripped/libflutter.so"
   }
 
-  inputs = [
-    "$root_build_dir/$engine_library",
-  ]
+  inputs = [ "$root_build_dir/$engine_library" ]
 
-  outputs = [
-    "$root_build_dir/$engine_har_filename",
-  ]
+  outputs = [ "$root_build_dir/$engine_har_filename" ]
 
   args = [
     "--embedding_src",
@@ -628,12 +620,10 @@ action("abi_hars") {
     "--har_name",
     "flutter_native",
     "--append_abi",
-    "true"
+    "true",
   ]
 
-  deps = [
-    ":flutter_shell_native",
-  ]
+  deps = [ ":flutter_shell_native" ]
 
   if (flutter_runtime_mode == "profile") {
     deps += [ "//flutter/shell/vmservice:vmservice_snapshot" ]
