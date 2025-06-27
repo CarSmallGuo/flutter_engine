@@ -62,7 +62,7 @@ void OHOSExternalTextureVulkan::SetGPUFence(OHNativeWindowBuffer* window_buffer,
 
   // ensure buffer_id > 0 (may get seqNum = 0)
   uint32_t buffer_id = OH_NativeBuffer_GetSeqNum(native_buffer) + 1;
-  auto texture = vk_resources_[buffer_id].texture;
+  const auto& texture = vk_resources_[buffer_id].texture;
   auto device = impeller_context_->GetDevice();
   if (texture && device) {
     impeller::vk::ExportSemaphoreCreateInfo export_info;
@@ -152,7 +152,7 @@ impeller::vk::UniqueSemaphore OHOSExternalTextureVulkan::CreateVkSemaphore(
 }
 
 void OHOSExternalTextureVulkan::WaitGPUFence(int fence_fd) {
-  auto texture = vk_resources_[now_key_].texture;
+  const auto& texture = vk_resources_[now_key_].texture;
   impeller::vk::SubmitInfo submit_info;
   impeller::BarrierVK barrier;
   std::shared_ptr<impeller::CommandBuffer> cmd_buffer =

@@ -151,7 +151,7 @@ void PlatformViewOHOS::NotifyCreate(
     // the screen is normal in the scenario of page jump and return (when there
     // is a detachEngine operation during page jump, there will be a
     // NotifyDestroy call, which will bring unregister texture).
-    for (auto [texture_id, external_texture] : all_external_texture_) {
+    for (const auto& [texture_id, external_texture] : all_external_texture_) {
       // registerTexture must be called before PlatformView::NotifyCreated,
       // because the onGrContextCreate method of the external texture will be
       // called in PlatformView::NotifyCreated.
@@ -195,7 +195,7 @@ void PlatformViewOHOS::Preload(int width, int height) {
     LOGI("Preload start");
     InstallFirstFrameCallback(true);
 
-    for (auto [texture_id, external_texture] : all_external_texture_) {
+    for (const auto& [texture_id, external_texture] : all_external_texture_) {
       RegisterTexture(external_texture);
       std::lock_guard<std::recursive_mutex> lock(g_map_mutex);
       g_texture_platformview_map[(uint64_t)texture_id] = this;
@@ -591,7 +591,7 @@ uint64_t PlatformViewOHOS::RegisterExternalTexture(int64_t texture_id) {
 
 uint64_t PlatformViewOHOS::GetExternalTextureWindowId(int64_t texture_id) {
   if (all_external_texture_.find(texture_id) != all_external_texture_.end()) {
-    auto external_texture = all_external_texture_[texture_id];
+    const auto& external_texture = all_external_texture_[texture_id];
     return external_texture->GetProducerWindowId();
   }
   return 0;
@@ -670,7 +670,7 @@ void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(
     return;
   }
 
-  auto external_texture = all_external_texture_[texture_id];
+  const auto& external_texture = all_external_texture_[texture_id];
   FML_LOG(INFO) << "SetExternalTextureBackGroundPixelMap " << texture_id;
   bool ret =
       external_texture->SetPixelMapAsProducer(pixelMap, pixelMap_native_buffer);
@@ -682,7 +682,7 @@ void PlatformViewOHOS::SetExternalTextureBackGroundPixelMap(
 void PlatformViewOHOS::SetExternalTextureBackGroundColor(int64_t texture_id,
                                                          uint32_t color) {
   if (all_external_texture_.find(texture_id) != all_external_texture_.end()) {
-    auto external_texture = all_external_texture_[texture_id];
+    const auto& external_texture = all_external_texture_[texture_id];
     FML_LOG(INFO) << "SetExternalTextureBackGroundColor " << texture_id
                   << " color " << color;
     external_texture->SetBackGroundColor(color);
@@ -694,7 +694,7 @@ void PlatformViewOHOS::SetTextureBufferSize(int64_t texture_id,
                                             int32_t width,
                                             int32_t height) {
   if (all_external_texture_.find(texture_id) != all_external_texture_.end()) {
-    auto external_texture = all_external_texture_[texture_id];
+    const auto& external_texture = all_external_texture_[texture_id];
     external_texture->SetProducerWindowSize(width, height);
   }
 }
@@ -703,7 +703,7 @@ void PlatformViewOHOS::NotifyTextureResizing(int64_t texture_id,
                                              int32_t width,
                                              int32_t height) {
   if (all_external_texture_.find(texture_id) != all_external_texture_.end()) {
-    auto external_texture = all_external_texture_[texture_id];
+    const auto& external_texture = all_external_texture_[texture_id];
     external_texture->NotifyResizing(width, height);
   }
 }

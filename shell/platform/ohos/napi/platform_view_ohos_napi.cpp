@@ -399,7 +399,7 @@ flutter::locale PlatformViewOHOSNapi::resolveNativeLocale(
     PlatformViewOHOSNapi::system_languages.push_back("zh-Hans");
   }
   for (size_t i = 0; i < PlatformViewOHOSNapi::system_languages.size(); i++) {
-    std::string language = PlatformViewOHOSNapi::system_languages
+    const std::string& language = PlatformViewOHOSNapi::system_languages
         [i];  // 格式language-script-region,例如en-Latn-US
     for (const locale& localeInfo : supportedLocales) {
       if (language == localeInfo.language + "-" + localeInfo.script + "-" +
